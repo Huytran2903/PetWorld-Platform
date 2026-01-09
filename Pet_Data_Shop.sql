@@ -202,19 +202,6 @@ CREATE TABLE dbo.OrderItems (
 );
 GO
 
-CREATE TABLE dbo.Payments (
-    PaymentID       INT IDENTITY(1,1) PRIMARY KEY,
-    OrderID         INT NOT NULL,
-    Method          VARCHAR(30) NOT NULL CHECK (Method IN ('cod','bank','momo','vnpay','paypal','other')),
-    Amount          DECIMAL(12,2) NOT NULL CHECK (Amount >= 0),
-    Status          VARCHAR(20) NOT NULL DEFAULT 'pending'
-                    CHECK (Status IN ('pending','success','failed','refunded')),
-    PaidAt          DATETIME2 NULL,
-    CreatedAt       DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    CONSTRAINT FK_Payments_Orders FOREIGN KEY (OrderID) REFERENCES dbo.Orders(OrderID)
-);
-GO
-
 /* =========================================================
    7) SERVICES / APPOINTMENTS (đặt lịch chăm sóc)
 ========================================================= */
@@ -290,18 +277,42 @@ CREATE TABLE dbo.AppointmentAssignments (
 );
 GO
 
-/* Appointment payment (dịch vụ cũng có thể thanh toán) */
-CREATE TABLE dbo.ServicePayments (
-    ServicePaymentID INT IDENTITY(1,1) PRIMARY KEY,
-    AppointmentID    INT NOT NULL,
-    Method           VARCHAR(30) NOT NULL CHECK (Method IN ('cash','bank','momo','vnpay','other')),
-    Amount           DECIMAL(12,2) NOT NULL CHECK (Amount >= 0),
-    Status           VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (Status IN ('pending','success','failed','refunded')),
-    PaidAt           DATETIME2 NULL,
-    CreatedAt        DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    CONSTRAINT FK_ServicePayments_App FOREIGN KEY (AppointmentID) REFERENCES dbo.Appointments(AppointmentID)
+CREATE TABLE dbo.Payments (
+    PaymentID       INT IDENTITY(1,1) PRIMARY KEY,
+
+    PaymentType     VARCHAR(10) NOT NULL
+        CHECK (PaymentType IN ('order','service')),
+
+    OrderID         INT NULL,
+    AppointmentID   INT NULL,
+
+    Method          VARCHAR(30) NOT NULL
+        CHECK (Method IN ('cod','bank','momo','vnpay','paypal','cash','other')),
+
+    Amount          DECIMAL(12,2) NOT NULL CHECK (Amount >= 0),
+
+    Status          VARCHAR(20) NOT NULL DEFAULT 'pending'
+        CHECK (Status IN ('pending','success','failed','refunded')),
+
+    PaidAt          DATETIME2 NULL,
+    CreatedAt       DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+
+    CONSTRAINT FK_Payments_Orders
+        FOREIGN KEY (OrderID) REFERENCES dbo.Orders(OrderID),
+
+    CONSTRAINT FK_Payments_Appointments
+        FOREIGN KEY (AppointmentID) REFERENCES dbo.Appointments(AppointmentID),
+
+    CONSTRAINT CK_Payments_Target_One
+        CHECK (
+            (PaymentType='order'  AND OrderID IS NOT NULL AND AppointmentID IS NULL)
+         OR (PaymentType='service' AND AppointmentID IS NOT NULL AND OrderID IS NULL)
+        )
 );
 GO
+
+CREATE INDEX IX_Payments_TypeStatusDate ON dbo.Payments(PaymentType, Status, PaidAt);
+
 
 /* =========================================================
    8) FEEDBACKS / CONTACT
