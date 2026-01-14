@@ -1,7 +1,8 @@
 /* =========================================================
-   PETSHOP DATABASE - VERSION: TÁCH CUSTOMER / STAFF
-   - Customer: tự đăng ký (dbo.Customers) -> KHÔNG role
-   - Staff: chỉ admin cấp (dbo.Staff) -> CÓ role (dbo.Roles)
+   PETSHOP DATABASE - VERSION: FINAL FULL
+   - Customer: Table riêng, không Role
+   - Staff: Table riêng, có Role (Admin/Staff)
+   - Feedback: Có link tới Service cụ thể
    ========================================================= */
 
 USE master;
@@ -163,7 +164,7 @@ CREATE TABLE dbo.Appointments (
     PetID INT NOT NULL,
     AppointmentDate DATETIME2 NOT NULL,
     Note NVARCHAR(255) NULL,
-    Status VARCHAR(20) NOT NULL DEFAULT 'pending'
+    Status VARCHAR(20) NOT NULL DEFAULT 'pending' 
         CHECK (Status IN ('pending','confirmed','in_progress','done','canceled','no_show')),
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2 NULL,
@@ -301,7 +302,7 @@ CREATE TABLE dbo.Orders (
     ShipAddress NVARCHAR(255) NULL,
     Note NVARCHAR(255) NULL,
 
-    Status VARCHAR(20) NOT NULL DEFAULT 'pending'
+    Status VARCHAR(20) NOT NULL DEFAULT 'pending' 
         CHECK (Status IN ('pending','paid','processing','shipped','done','canceled','refunded')),
 
     Subtotal DECIMAL(12,2) NOT NULL DEFAULT 0,
@@ -366,8 +367,8 @@ GO
 /* =========================================================
    11) FEEDBACKS (PRODUCT / SERVICE / GENERAL)
    - Product feedback: Customer + OrderItem
-   - Service feedback: Customer + Appointment (+ Staff nếu muốn lưu)
-   - General feedback: có thể là khách vãng lai (CustomerID NULL) => cần Email/Phone
+   - Service feedback: Customer + Appointment + Service (Option)
+   - General feedback: có thể là khách vãng lai (CustomerID NULL)
    ========================================================= */
 CREATE TABLE dbo.Feedbacks (
     FeedbackID INT IDENTITY(1,1) PRIMARY KEY,
@@ -375,9 +376,10 @@ CREATE TABLE dbo.Feedbacks (
     CustomerID INT NULL,  -- cho phép NULL nếu feedback general từ guest
     FeedbackType VARCHAR(10) NOT NULL CHECK (FeedbackType IN ('product','service','general')),
 
-    OrderItemID INT NULL,      -- product feedback
-    AppointmentID INT NULL,    -- service feedback
-    StaffID INT NULL,          -- staff phục vụ (optional, có thể derive qua Assignment)
+    OrderItemID INT NULL,    -- product feedback
+    AppointmentID INT NULL,  -- service feedback (buổi hẹn nào)
+    ServiceID INT NULL,      -- service feedback (dịch vụ cụ thể nào trong buổi hẹn đó)
+    StaffID INT NULL,        -- staff phục vụ (optional)
 
     Rating INT NULL CHECK (Rating BETWEEN 1 AND 5),
     Subject NVARCHAR(100) NULL,
@@ -386,7 +388,7 @@ CREATE TABLE dbo.Feedbacks (
     Email VARCHAR(255) NULL,
     PhoneNumber VARCHAR(20) NULL,
 
-    ImageUrls VARCHAR(MAX) NULL, -- JSON array / comma-separated
+    ImageUrls VARCHAR(MAX) NULL, 
     Status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (Status IN ('pending','approved','rejected')),
 
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
@@ -395,19 +397,22 @@ CREATE TABLE dbo.Feedbacks (
     CONSTRAINT FK_Feedback_Customer FOREIGN KEY (CustomerID) REFERENCES dbo.Customers(CustomerID),
     CONSTRAINT FK_Feedback_OrderItem FOREIGN KEY (OrderItemID) REFERENCES dbo.OrderItems(OrderItemID),
     CONSTRAINT FK_Feedback_Appointment FOREIGN KEY (AppointmentID) REFERENCES dbo.Appointments(AppointmentID),
+    CONSTRAINT FK_Feedback_Service FOREIGN KEY (ServiceID) REFERENCES dbo.Services(ServiceID),
     CONSTRAINT FK_Feedback_Staff FOREIGN KEY (StaffID) REFERENCES dbo.Staff(StaffID),
 
     CONSTRAINT CK_Feedback_Logic CHECK (
-        -- product: bắt buộc Customer + OrderItem, không có appointment/staff
+        -- 1. Product: Bắt buộc Customer + OrderItem. KHÔNG CÓ Appointment/Service/Staff
         (FeedbackType = 'product'
             AND CustomerID IS NOT NULL
             AND OrderItemID IS NOT NULL
             AND AppointmentID IS NULL
+            AND ServiceID IS NULL
             AND StaffID IS NULL
             AND Rating IS NOT NULL
         )
         OR
-        -- service: bắt buộc Customer + Appointment, staff optional
+        -- 2. Service: Bắt buộc Customer + Appointment.
+        -- ServiceID có thể có (đánh giá dịch vụ cụ thể) hoặc NULL (đánh giá chung buổi hẹn)
         (FeedbackType = 'service'
             AND CustomerID IS NOT NULL
             AND AppointmentID IS NOT NULL
@@ -415,11 +420,11 @@ CREATE TABLE dbo.Feedbacks (
             AND Rating IS NOT NULL
         )
         OR
-        -- general: không gắn order/appointment/staff, rating có thể NULL,
-        -- nếu CustomerID NULL thì phải có ít nhất Email hoặc Phone
+        -- 3. General: Không gắn với Order/Appointment/Service cụ thể
         (FeedbackType = 'general'
             AND OrderItemID IS NULL
             AND AppointmentID IS NULL
+            AND ServiceID IS NULL
             AND StaffID IS NULL
             AND (
                 CustomerID IS NOT NULL
@@ -476,6 +481,7 @@ CREATE INDEX IX_Feedbacks_Type ON dbo.Feedbacks(FeedbackType, Status, CreatedAt 
 CREATE INDEX IX_Feedbacks_Customer ON dbo.Feedbacks(CustomerID, CreatedAt DESC);
 CREATE INDEX IX_Feedbacks_OrderItem ON dbo.Feedbacks(OrderItemID);
 CREATE INDEX IX_Feedbacks_Appointment ON dbo.Feedbacks(AppointmentID);
+CREATE INDEX IX_Feedbacks_Service ON dbo.Feedbacks(ServiceID);
 CREATE INDEX IX_Feedbacks_Staff ON dbo.Feedbacks(StaffID) WHERE StaffID IS NOT NULL;
 CREATE INDEX IX_Feedbacks_Status ON dbo.Feedbacks(Status, CreatedAt DESC);
 
