@@ -147,7 +147,7 @@ GO
    ========================================================= */
 CREATE TABLE dbo.Services (
     ServiceID INT IDENTITY(1,1) PRIMARY KEY,
-    ServiceType VARCHAR(20) NOT NULL CHECK (ServiceType IN ('vaccination','boarding','hygiene','health_check')),
+    ServiceType VARCHAR(20) NOT NULL CHECK (ServiceType IN ('vaccination','boarding','hygiene')),
     Name NVARCHAR(120) NOT NULL,
     Description NVARCHAR(500) NULL,
     BasePrice DECIMAL(12,2) NOT NULL CHECK (BasePrice >= 0),
