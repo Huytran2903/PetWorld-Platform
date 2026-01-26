@@ -1,4 +1,4 @@
-package vn.edu.fpt.petworldplatform;
+package petworldplatform;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
