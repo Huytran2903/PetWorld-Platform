@@ -1,4 +1,4 @@
-package petworldplatform.entity;
+package vn.edu.fpt.petworldplatform.entity;
 
 public class DummyEntity {
 }

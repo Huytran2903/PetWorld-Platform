@@ -689,7 +689,7 @@
     z-index: 10;
 }
 
-.profile-settings-wrapper .user-info-text {
+  .user-info-text {
     margin-left: 120px;
     padding-top: 5px;
 }
