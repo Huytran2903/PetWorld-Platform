@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout_staff :: layout(~{::content})}">
+<section th:fragment="content">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/pet-dashboard.css}">
+    <script th:src="@{/js/pet-dashboard.js}"></script>
+
+    <div class="flex h-screen overflow-hidden font-sans antialiased text-gray-700">
+        <aside class="w-64 bg-white shadow-xl flex flex-col z-10 hidden md:flex border-r border-gray-100">
+            <div class="p-6 flex items-center gap-3 border-b border-gray-100">
+                <i class="fa-solid fa-paw text-3xl text-primary"></i>
+                <span class="text-2xl font-extrabold text-gray-800"><span class="text-secondary">Petworld Platform</span></span>
+            </div>
+            <nav class="flex-1 overflow-y-auto py-4">
+                <ul class="space-y-1">
+                    <p class="px-6 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 mt-2">Feature 3 - Pet Profiles</p>
+                    <li><a th:href="@{/staff/pet/list}" class="sidebar-link active flex items-center gap-3 px-6 py-3 transition-colors hover:bg-gray-50 text-gray-600"><i class="fa-solid fa-dog w-5 text-center"></i><span class="font-semibold">Pet List</span></a></li>
+                    <li><a th:href="@{/staff/pet/create}" class="sidebar-link flex items-center gap-3 px-6 py-3 transition-colors hover:bg-gray-50 text-gray-600"><i class="fa-solid fa-circle-plus w-5 text-center"></i><span class="font-semibold">Create New Profile</span></a></li>
+                    <p class="px-6 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 mt-6">Customers</p>
+                    <li><a href="#" class="sidebar-link flex items-center gap-3 px-6 py-3 transition-colors hover:bg-gray-50 text-gray-600"><i class="fa-solid fa-users w-5 text-center"></i><span class="font-semibold">Detail & History</span></a></li>
+                    <p class="px-6 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 mt-6">Feature 7 - Feedback</p>
+                    <li><a th:href="@{/staff/feedback}" class="sidebar-link flex items-center gap-3 px-6 py-3 transition-colors hover:bg-gray-50 text-gray-600"><i class="fa-solid fa-comments w-5 text-center"></i><span class="font-semibold">Feedback Manager</span></a></li>
+                </ul>
+            </nav>
+            <div class="p-4 border-t border-gray-100 bg-gray-50">
+                <div class="flex items-center gap-3">
+                    <img src="https://ui-avatars.com/api/?name=Quoc+Thai&background=FFA54F&color=fff" alt="User" class="w-10 h-10 rounded-full shadow-sm">
+                    <div><p class="text-sm font-bold text-gray-800">Quoc Thai</p><p class="text-xs text-gray-500">Staff (Role: Staff)</p></div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="flex-1 flex flex-col h-screen overflow-hidden bg-bgLight">
+            <main class="flex-1 overflow-x-hidden overflow-y-auto p-6 relative">
+                <section class="fade-in">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-800">Pet Profiles</h2>
+                            <p class="text-sm text-gray-500">View and manage all pets (Feature 2.2 - Item 9, 19)</p>
+                        </div>
+                        <a th:href="@{/staff/pet/create}" class="bg-primary hover:bg-primaryHover text-white px-5 py-2.5 rounded-lg shadow-lg flex items-center gap-2 transition">
+                            <i class="fa-solid fa-plus"></i> Add New
+                        </a>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex gap-4 border border-gray-100">
+                        <div class="relative flex-1">
+                            <i class="fa-solid fa-search absolute left-3 top-3.5 text-gray-400"></i>
+                            <input type="text" placeholder="Search pet name, owner..." class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-primary">
+                        </div>
+                        <select class="border border-gray-200 rounded-lg px-4 py-2 focus:outline-none text-gray-600">
+                            <option value="">All Statuses</option>
+                            <option value="1">For Sale (Shop)</option>
+                            <option value="0">Owned (Customer)</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        <div class="bg-white rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden border border-gray-100 group relative">
+                            <div class="absolute top-3 left-3 z-10 bg-gray-800 text-white text-xs font-bold px-2 py-1 rounded shadow">Owned</div>
+                            <div class="h-48 overflow-hidden relative bg-gray-100">
+                                <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                            </div>
+                            <div class="p-5">
+                                <div class="flex justify-between items-start">
+                                    <div><h3 class="text-lg font-bold text-gray-800">LuLu</h3><p class="text-sm text-gray-500">Corgi • 24 Months</p></div>
+                                    <i class="fa-solid fa-dog text-gray-300 text-xl"></i>
+                                </div>
+                                <div class="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-6 h-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-xs font-bold">A</div>
+                                        <span class="text-xs text-gray-500 font-semibold truncate max-w-[80px]">Nguyen Van A</span>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <a th:href="@{/staff/pet/update}" class="text-gray-400 hover:text-blue-600 tooltip" title="Quick Update"><i class="fa-solid fa-pen-to-square"></i></a>
+                                        <a th:href="@{/staff/pet/detail}" class="text-primary hover:text-orange-700 text-sm font-bold">Details &rarr;</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+</section>
+</html>

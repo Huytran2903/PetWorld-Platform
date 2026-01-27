@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout_staff :: layout(~{::content})}">
+<section th:fragment="content">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/pet-dashboard.css}">
+    <script th:src="@{/js/pet-dashboard.js}"></script>
+
+    <div class="flex h-screen overflow-hidden font-sans antialiased text-gray-700">
+        <aside class="w-64 bg-white shadow-xl flex flex-col z-10 hidden md:flex border-r border-gray-100">
+             <div class="p-6 flex items-center gap-3 border-b border-gray-100">
+                <i class="fa-solid fa-paw text-3xl text-primary"></i>
+                <span class="text-2xl font-extrabold text-gray-800"><span class="text-secondary">Petworld Platform</span></span>
+            </div>
+            <nav class="flex-1 overflow-y-auto py-4">
+                <ul class="space-y-1">
+                     <li><a th:href="@{/staff/pet/list}" class="sidebar-link active flex items-center gap-3 px-6 py-3 transition-colors hover:bg-gray-50 text-gray-600"><i class="fa-solid fa-dog w-5 text-center"></i><span class="font-semibold">Pet List</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <div class="flex-1 flex flex-col h-screen overflow-hidden bg-bgLight">
+            <main class="flex-1 overflow-x-hidden overflow-y-auto p-6 relative">
+                <section class="fade-in">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-2 text-sm text-gray-500">
+                            <a th:href="@{/staff/pet/list}" class="cursor-pointer hover:text-primary">Pets</a>
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                            <span class="font-semibold text-gray-800">LuLu</span>
+                        </div>
+                        <a th:href="@{/staff/pet/update}" class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 rounded-lg shadow-sm font-semibold transition text-sm">
+                            <i class="fa-solid fa-pen mr-2"></i> Edit Profile
+                        </a>
+                    </div>
+                    
+                    <div class="bg-white rounded-2xl shadow-sm p-6 mb-6 flex flex-col md:flex-row gap-6 border border-gray-100">
+                        <div class="w-32 h-32 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
+                             <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover">
+                        </div>
+                        <div class="flex-1">
+                            <div class="flex justify-between">
+                                <h1 class="text-3xl font-extrabold text-gray-800 mb-2">LuLu <span class="text-base font-normal text-gray-500 ml-2">(Dog - Corgi)</span></h1>
+                                <span class="bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm font-bold h-fit border border-gray-200">IsAvailable: No (Owned)</span>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600 mt-2">
+                                <div><i class="fa-regular fa-calendar mr-2"></i>Age: 24 Months</div>
+                                <div><i class="fa-solid fa-weight-hanging mr-2"></i>Weight: 12.00 Kg</div>
+                                <div><i class="fa-solid fa-venus-mars mr-2"></i>Gender: Female</div>
+                                <div><i class="fa-solid fa-palette mr-2"></i>Color: White Gold</div>
+                            </div>
+                            <div class="mt-4 flex gap-4">
+                                <div class="p-3 bg-teal-50 border border-teal-100 rounded-lg text-sm text-gray-700 flex-1"><span class="font-bold text-teal-700">Owner:</span> Nguyen Van A (ID: 101)</div>
+                                <div class="p-3 bg-gray-50 border border-gray-100 rounded-lg text-sm text-gray-700 flex-1"><span class="font-bold text-gray-700">Price:</span> <span class="italic text-gray-400">Not for sale</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-sm min-h-[400px]">
+                        <div class="flex border-b border-gray-200">
+                            <button id="btn-tab-info" class="tab-btn active w-1/2 md:w-auto px-8 py-4 font-medium text-gray-500 hover:text-primary transition">Description</button>
+                            <a th:href="@{/staff/pet/history}" id="btn-tab-history" class="tab-btn w-1/2 md:w-auto px-8 py-4 font-medium text-gray-500 hover:text-primary transition text-center block">Care History (Vaccine/Health/Appt)</a>
+                        </div>
+                        <div id="tab-info" class="p-8">
+                            <h4 class="font-bold text-gray-800 mb-2">Detailed Description</h4>
+                            <p class="text-gray-600 leading-relaxed mb-4">Obedient, gentle, fully vaccinated with basic shots. Loves running and playing ball.</p>
+                            <h4 class="font-bold text-gray-800 mb-2">Note</h4>
+                            <p class="text-gray-600 leading-relaxed">Allergic to seafood. Diet needs attention.</p>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+</section>
+</html>
