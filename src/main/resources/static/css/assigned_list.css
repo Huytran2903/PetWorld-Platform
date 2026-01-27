@@ -1,0 +1,236 @@
+/* =========================================
+   1. VARIABLES & RESET (Shared Theme)
+   ========================================= */
+:root {
+    --primary: #FFA54F;
+    --primary-text: #1c1c1c;
+    --navy: #143a66;
+    --navy2: #0f2f55;
+    --bg: #f6f8fc;
+    --card: #ffffff;
+    --text: #132238;
+    --muted: #6b7686;
+    --border: #e7ecf4;
+    --shadow: 0 14px 28px rgba(16, 32, 51, .08);
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* =========================================
+   2. HERO SECTION
+   ========================================= */
+.hero {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    padding: 24px 0;
+    margin-bottom: 24px;
+}
+
+.hero-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.hero h1 { margin: 0; font-size: 24px; color: var(--navy); }
+.hero p { margin: 5px 0 0; color: var(--muted); }
+
+.pill {
+    background: var(--navy);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* =========================================
+   3. LAYOUT & CARDS
+   ========================================= */
+.container {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 18px 40px;
+    display: grid;
+    grid-template-columns: 1fr 300px; /* Main content + Sidebar */
+    gap: 20px;
+}
+
+@media (max-width: 900px) {
+    .container { grid-template-columns: 1fr; }
+}
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    height: fit-content;
+}
+
+.card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fdfdfd;
+}
+
+.card-header .title { margin: 0; font-size: 18px; color: var(--navy2); }
+.card-header .subtitle { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+.tag { font-size: 11px; font-weight: 800; color: var(--muted); letter-spacing: 1px; }
+
+.card-body { padding: 20px; }
+
+/* =========================================
+   4. APPOINTMENT LIST ITEMS
+   ========================================= */
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #fff;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    border-color: var(--primary);
+}
+
+.item .left {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.row-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.code {
+    font-weight: 800;
+    color: var(--navy);
+    font-family: monospace;
+    font-size: 14px;
+}
+
+/* Chips & Badges */
+.chip {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    text-transform: capitalize;
+}
+
+/* Status Colors (From your prompt) */
+.status { border-width: 1px; border-style: solid; }
+.status-pending     { background: #edf2f7; color: #4a5568; border-color: #cbd5e0; }
+.status-confirmed   { background: #e6fffa; color: #276749; border-color: #38a169; }
+.status-in_progress { background: #ebf8ff; color: #2c5282; border-color: #4299e1; }
+.status-done        { background: #f0fff4; color: #22543d; border-color: #48bb78; }
+.status-canceled    { background: #fff5f5; color: #9b2c2c; border-color: #f56565; }
+.status-no_show     { background: #fffaf0; color: #9c4221; border-color: #ed8936; }
+
+.meta {
+    display: flex;
+    gap: 20px;
+    font-size: 13px;
+    color: var(--text);
+}
+
+.meta strong { color: var(--muted); font-weight: 500; }
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--muted);
+    font-style: italic;
+}
+
+/* =========================================
+   5. FILTERS & FORMS
+   ========================================= */
+.grid {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--navy2);
+}
+
+input, select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    outline: none;
+    font-size: 14px;
+}
+
+input:focus, select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--focus); /* Define focus var if needed or inherit */
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    padding: 10px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    display: inline-block;
+}
+
+.btn-primary {
+    background: var(--navy);
+    color: #fff;
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+}
+
+.btn:hover { opacity: 0.9; }

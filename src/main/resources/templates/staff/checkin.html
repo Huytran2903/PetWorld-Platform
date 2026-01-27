@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/staff_layout :: layout(~{::checkin_content})}">
+
+<head>
+    <title>Pet Check-In</title>
+    <link rel="stylesheet" th:href="@{/css/checkin.css}" />
+</head>
+
+<body>
+<div th:fragment="checkin_content">
+
+    <div class="hero">
+        <div class="hero-inner">
+            <div>
+                <h1>Pet Info / Check-In</h1>
+                <p>Review pet profile, health history, and record check-in condition to start service.</p>
+            </div>
+            <div class="pill">CHECK-IN</div>
+        </div>
+    </div>
+
+    <main class="container">
+        <section class="card">
+            <header class="card-header">
+                <div>
+                    <h2 class="title">Pet profile & history</h2>
+                    <p class="subtitle">Feature 30: performBasicHealthCheck</p>
+                </div>
+                <div class="tag">DETAILS</div>
+            </header>
+
+            <div class="card-body">
+                <div class="petcard">
+                    <div class="avatar">🐾</div>
+                    <div style="min-width:0;">
+                        <div class="petname" th:text="${pet.name + ' (' + pet.petType + ')'}">Lucky (Dog)</div>
+                        <div class="petmeta">
+                            Breed: <strong th:text="${pet.breed}">Poodle</strong> •
+                            Gender: <strong th:text="${pet.gender}">Male</strong> •
+                            Age: <strong th:text="${pet.ageMonths + ' months'}">12 months</strong>
+                            <br/>
+                            <span class="mono">PetID: <span th:text="${pet.petID}">5</span></span> •
+                            <span class="mono">AppID: <span th:text="${appointment.appointmentID}">123</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tabs" role="tablist">
+                    <button class="tab active" type="button" data-tab="health">Health records</button>
+                    <button class="tab" type="button" data-tab="vacc">Vaccinations</button>
+                    <button class="tab" type="button" data-tab="profile">Full profile</button>
+                </div>
+
+                <div class="panel" id="panel-health">
+                    <div class="list">
+                        <div th:if="${#lists.isEmpty(healthHistory)}" class="info-box">No health history found.</div>
+
+                        <div class="row" th:each="rec : ${healthHistory}">
+                            <div class="h">
+                                <span>Health check</span>
+                                <span class="mono" th:text="${#temporals.format(rec.checkDate, 'yyyy-MM-dd')}">2026-01-05</span>
+                            </div>
+                            <div class="d">
+                                Weight: <span th:text="${rec.weightKg}">3.2</span> kg •
+                                Temp: <span th:text="${rec.temperature}">38.5</span> °C<br/>
+                                <strong>Findings:</strong> <span th:text="${rec.findings}">...</span><br/>
+                                <strong>Recommendation:</strong> <span th:text="${rec.recommendations}">...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel" id="panel-vacc" style="display:none;">
+                    <div class="list">
+                        <div th:if="${#lists.isEmpty(vaccinationHistory)}" class="info-box">No vaccination records.</div>
+
+                        <div class="row" th:each="vac : ${vaccinationHistory}">
+                            <div class="h">
+                                <span th:text="${vac.vaccineName}">Rabies</span>
+                                <span class="mono" th:text="${#temporals.format(vac.administeredDate, 'yyyy-MM-dd')}">2025-11-10</span>
+                            </div>
+                            <div class="d">
+                                Next due: <span th:text="${#temporals.format(vac.nextDueDate, 'yyyy-MM-dd')}">...</span> •
+                                Note: <span th:text="${vac.note}">...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel" id="panel-profile" style="display:none;">
+                    <div class="row">
+                        <div class="h"><span>Full Details</span></div>
+                        <div class="d">
+                            <strong>Weight:</strong> <span th:text="${pet.weightKg}"></span> kg<br/>
+                            <strong>Color:</strong> <span th:text="${pet.color}"></span><br/>
+                            <strong>Note:</strong> <span th:text="${pet.note}"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <aside class="card">
+            <header class="card-header">
+                <div>
+                    <h2 class="title">Check-in (Health check)</h2>
+                    <p class="subtitle">Record initial condition</p>
+                </div>
+                <div class="tag">FORM</div>
+            </header>
+
+            <div class="card-body">
+                <form th:action="@{/staff/checkin/submit}" method="post" th:object="${healthRecordDTO}">
+
+                    <input type="hidden" th:field="*{appointmentId}" />
+                    <input type="hidden" th:field="*{petId}" />
+
+                    <div class="grid2">
+                        <div>
+                            <label>Weight (kg)</label>
+                            <input type="number" step="0.01" min="0" th:field="*{weightKg}" placeholder="Ex: 3.20" />
+                        </div>
+                        <div>
+                            <label>Temp (°C)</label>
+                            <input type="number" step="0.01" min="0" th:field="*{temperature}" placeholder="Ex: 38.50" />
+                        </div>
+                    </div>
+
+                    <div style="margin-top:12px;">
+                        <label>Condition Before</label>
+                        <textarea th:field="*{conditionBefore}" placeholder="Ex: anxious, allergies..."></textarea>
+                    </div>
+
+                    <div style="margin-top:12px;">
+                        <label>Findings</label>
+                        <textarea th:field="*{findings}" placeholder="Ex: skin dryness, normal appetite..."></textarea>
+                    </div>
+
+                    <div style="margin-top:12px;">
+                        <label>Recommendations</label>
+                        <textarea th:field="*{recommendations}" placeholder="Ex: use sensitive shampoo..."></textarea>
+                    </div>
+
+                    <div class="actions">
+                        <button class="btn btn-primary" type="submit">Confirm Check-in</button>
+
+                        <a class="btn btn-secondary"
+                           th:href="@{/staff/appointment/detail/{id}(id=${appointment.appointmentID})}">
+                            Back to Details
+                        </a>
+                    </div>
+
+                    <div class="info-box">
+                        <strong>Note:</strong> Submitting this will create a new health record and update the appointment status to <strong>In Progress</strong>.
+                    </div>
+                </form>
+            </div>
+        </aside>
+    </main>
+
+    <script th:src="@{/js/checkin.js}"></script>
+</div>
+</body>
+</html>

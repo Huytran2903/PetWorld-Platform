@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="~{fragments/staff_layout :: layout(~{::detail_content})}">
+
+    <div th:fragment="detail_content">
+        <link rel="stylesheet" th:href="@{/css/staff_detail.css}">
+
+        <div class="hero">
+            <div class="hero-inner">
+                <div>
+                    <h1>Appointment Details</h1>
+                    <p th:text="'View details of appointment ' + ${appointment.appointmentCode}">Static view of appointment APP-000123.</p>
+                </div>
+                <div class="pill">DETAIL</div>
+            </div>
+        </div>
+
+        <main class="container">
+            <section class="card">
+                <header class="card-header">
+                    <h2 class="title">Selected appointment</h2>
+                    <div class="tag">STAFF</div>
+                </header>
+
+                <div class="card-body">
+                    <div class="grid2">
+                        <div class="kv">
+                            <div class="k">Appointment Code</div>
+                            <div class="v" th:text="${appointment.appointmentCode}">APP-000123</div>
+                        </div>
+                        <div class="kv">
+                            <div class="k">Status</div>
+                            <div class="v">
+                                <span class="status-pill"
+                                      th:text="${appointment.status}"
+                                      th:classappend="${'status-' + appointment.status.toLowerCase()}">
+                                    pending
+                                </span>
+                            </div>
+                        </div>
+                        <div class="kv">
+                            <div class="k">Date & time</div>
+                            <div class="v" th:text="${#temporals.format(appointment.appointmentDate, 'dd-MM-yyyy HH:mm')}">
+                                07-01-2026 21:00
+                            </div>
+                        </div>
+                        <div class="kv">
+                            <div class="k">Pet</div>
+                            <div class="v" th:text="${appointment.pet.name} + ' (' + ${appointment.pet.petType} + ')'">
+                                Lucky (Dog)
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section-title">Customer requests</div>
+                    <div class="note" th:if="${appointment.note}" th:text="${appointment.note}">
+                        Example note...
+                    </div>
+                    <div class="note" th:unless="${appointment.note}" style="background:#f1f5f9; border-color:#e2e8f0; color:#64748b;">
+                        No special requests.
+                    </div>
+
+                    <div class="section-title">Selected services</div>
+
+                    <div class="svc" th:each="item : ${appointment.appointmentServices}">
+                        <div class="left">
+                            <div class="name">
+                                <span th:text="${item.service.name}">Boarding</span>
+                                <span class="badge" th:text="${item.service.serviceType}">boarding</span>
+                            </div>
+                            <div class="meta">
+                                Qty: <strong th:text="${item.quantity}">2</strong> •
+                                Duration: <span th:text="${item.service.durationMinutes * item.quantity}">1440</span> mins
+                            </div>
+                        </div>
+                        <div class="price"
+                             th:text="${#numbers.formatDecimal(item.price * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                            160,000 đ
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <a class="btn btn-primary"
+                           th:href="@{/staff/execution/{id}(id=${appointment.appointmentID})}">
+                            Start Execution
+                        </a>
+                        <a class="btn btn-secondary" th:href="@{/staff/appointments}">Back to list</a>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="card">
+                <header class="card-header">
+                    <h2 class="title">Customer Info</h2>
+                </header>
+                <div class="card-body">
+                    <div class="kv">
+                        <div class="k">Name</div>
+                        <div class="v" th:text="${appointment.customer.fullName}">Nguyen Van A</div>
+                        <div class="small" th:text="${appointment.customer.phone}">0901234567</div>
+                        <div class="small" th:text="${appointment.customer.email}">email@example.com</div>
+                    </div>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+</th:block>
+</html>

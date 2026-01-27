@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<th:block th:replace="~{fragments/staff_layout :: layout(~{::page_content})}">
+
+    <div th:fragment="page_content">
+
+        <link rel="stylesheet" th:href="@{/css/assigned_list.css}">
+
+        <div class="hero">
+            <div class="hero-inner">
+                <div>
+                    <h1>Assigned Appointments</h1>
+                    <p>Manage appointments assigned to you.</p>
+                </div>
+                <div class="pill">LIST</div>
+            </div>
+        </div>
+
+        <main class="container">
+            <section class="card">
+                <header class="card-header">
+                    <div>
+                        <h2 class="title">Your assigned list</h2>
+                        <p class="subtitle">Feature 34: viewAssignedAppointments</p>
+                    </div>
+                    <div class="tag">STAFF</div>
+                </header>
+
+                <div class="card-body">
+
+                    <div th:if="${#lists.isEmpty(appointments)}" class="empty-state">
+                        <p>No appointments are currently assigned to you.</p>
+                    </div>
+
+                    <div class="list" id="list" th:unless="${#lists.isEmpty(appointments)}">
+
+                        <article class="item" th:each="app : ${appointments}">
+                            <div class="left">
+                                <div class="row-top">
+                                    <div class="code" th:text="${app.appointmentCode}">APP-Code</div>
+
+                                    <span class="chip status"
+                                          th:text="${app.status}"
+                                          th:classappend="${'status-' + app.status.toLowerCase()}">
+                                        Status
+                                    </span>
+
+                                    <span class="chip" th:each="svc, iter : ${app.appointmentServices}"
+                                          th:if="${iter.index == 0}"
+                                          th:text="${svc.service.name} + (${iter.size > 1} ? '...' : '')">
+                                        Service
+                                    </span>
+                                </div>
+
+                                <div class="meta">
+                                    <div>
+                                        <strong>Date:</strong>
+                                        <span th:text="${#temporals.format(app.appointmentDate, 'dd-MM-yyyy HH:mm')}">Date</span>
+                                    </div>
+                                    <div>
+                                        <strong>Pet:</strong>
+                                        <span th:text="${app.pet.name} + ' (' + ${app.pet.petType} + ')'">Pet</span>
+                                    </div>
+                                    <div>
+                                        <strong>Customer:</strong>
+                                        <span th:text="${app.customer.fullName}">Customer</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="right">
+                                <a class="btn btn-primary"
+                                   th:href="@{/staff/appointment/detail/{id}(id=${app.appointmentID})}">
+                                    View details
+                                </a>
+                            </div>
+                        </article>
+
+                    </div>
+                </div>
+            </section>
+
+            <aside class="card">
+                <header class="card-header">
+                    <h2 class="title">Filters</h2>
+                </header>
+                <div class="card-body">
+                    <form th:action="@{/staff/appointments}" method="get">
+                        <div class="grid">
+                            <div>
+                                <label>Status</label>
+                                <select name="status">
+                                    <option value="">All</option>
+                                    <option value="pending" th:selected="${param.status != null && param.status[0] == 'pending'}">Pending</option>
+                                    <option value="confirmed" th:selected="${param.status != null && param.status[0] == 'confirmed'}">Confirmed</option>
+                                    <option value="in_progress" th:selected="${param.status != null && param.status[0] == 'in_progress'}">In Progress</option>
+                                    <option value="done" th:selected="${param.status != null && param.status[0] == 'done'}">Done</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>Search</label>
+                                <input name="keyword"
+                                       th:value="${param.keyword}"
+                                       placeholder="Code, Customer name..." />
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button class="btn btn-primary" type="submit">Apply</button>
+                            <a th:href="@{/staff/appointments}" class="btn btn-ghost">Reset</a>
+                        </div>
+                    </form>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+</th:block>
+</html>

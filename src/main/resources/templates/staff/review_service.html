@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout_user}">
+<head>
+    <title>Submit Service Review</title>
+    <link rel="stylesheet" th:href="@{/css/review.css}" />
+</head>
+
+<body>
+<main layout:fragment="content" class="container">
+
+    <div class="hero">
+        <div class="hero-inner">
+            <div>
+                <h1>Submit Service Review</h1>
+                <p>Share your feedback about the service quality for appointment <span th:text="${appointment.appointmentCode}">#123</span>.</p>
+            </div>
+            <div class="type-pill">CUSTOMER</div>
+        </div>
+    </div>
+
+    <div class="container" style="padding: 0; margin-top: 18px; display: grid; grid-template-columns: 1.1fr .9fr; gap: 18px;">
+
+        <section class="card">
+            <header class="card-header">
+                <div>
+                    <h2 class="title">Review Form</h2>
+                    <p class="subtitle">Your feedback helps us improve.</p>
+                </div>
+                <div class="pill">SERVICE REVIEW</div>
+            </header>
+
+            <div class="card-body">
+                <form id="reviewForm" th:action="@{/review/submit}" th:object="${feedbackDTO}" method="post">
+
+                    <input type="hidden" th:field="*{appointmentId}" />
+                    <input type="hidden" th:field="*{feedbackType}" value="service" />
+                    <input type="hidden" id="ratingVal" th:field="*{rating}" />
+
+                    <div class="grid">
+                        <div>
+                            <label for="serviceId">Specific Service (Optional)</label>
+                            <select id="serviceId" th:field="*{serviceId}">
+                                <option value="">— General Appointment Review —</option>
+                                <option th:each="svc : ${appointment.appointmentServices}"
+                                        th:value="${svc.service.serviceID}"
+                                        th:text="${svc.service.name}">Service Name</option>
+                            </select>
+                            <div class="hint">Leave empty to review the whole visit.</div>
+                        </div>
+
+                        <div>
+                            <label for="subject">Subject (Optional)</label>
+                            <input id="subject" th:field="*{subject}" maxlength="100"
+                                   placeholder="Ex: Great grooming service" />
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h3 class="section-title"><span class="dot"></span>Rating</h3>
+                        <div class="stars">
+                            <div class="badge-soft">Choose 1 to 5</div>
+                            <div style="flex:1"></div>
+                            <div class="star" data-v="1" title="Poor">★</div>
+                            <div class="star" data-v="2" title="Fair">★</div>
+                            <div class="star" data-v="3" title="Good">★</div>
+                            <div class="star" data-v="4" title="Very Good">★</div>
+                            <div class="star" data-v="5" title="Excellent">★</div>
+                        </div>
+                        <div class="hint" id="ratingHint">You must pick a rating to submit.</div>
+                    </div>
+
+                    <div class="section">
+                        <h3 class="section-title"><span class="dot"></span>Comment</h3>
+                        <textarea id="comment" th:field="*{comment}" required
+                                  placeholder="Tell us what you liked and what can be improved..."></textarea>
+                    </div>
+
+                    <div class="actions">
+                        <button class="btn btn-primary" type="submit">Submit Review</button>
+                        <a class="btn btn-secondary" th:href="@{/tracking/{id}(id=${appointment.appointmentID})}">Back</a>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <aside class="card">
+            <header class="card-header">
+                <div>
+                    <h2 class="title" style="font-size:17px;">Appointment Summary</h2>
+                    <p class="subtitle">Verifying details for this review.</p>
+                </div>
+                <div class="pill">SUMMARY</div>
+            </header>
+
+            <div class="card-body">
+                <div class="summary-row">
+                    <span>Appointment Code</span>
+                    <strong th:text="${appointment.appointmentCode}">APP-123</strong>
+                </div>
+                <div class="summary-row">
+                    <span>Status</span>
+                    <strong th:text="${appointment.status}">DONE</strong>
+                </div>
+                <div class="summary-row">
+                    <span>Pet</span>
+                    <strong th:text="${appointment.pet.name}">Lucky</strong>
+                </div>
+                <div class="summary-row">
+                    <span>Date</span>
+                    <strong th:text="${#temporals.format(appointment.appointmentDate, 'dd/MM/yyyy HH:mm')}">Date</strong>
+                </div>
+
+                <div class="note-box">
+                    <strong>Submission Rules:</strong>
+                    <ul style="margin:8px 0 0 18px; padding:0;">
+                        <li>Rating is required (1-5 stars).</li>
+                        <li>Your review will be marked as <strong>pending</strong> for moderation.</li>
+                        <li>Once submitted, you cannot edit it.</li>
+                    </ul>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script th:src="@{/js/review.js}"></script>
+</main>
+</body>
+</html>
