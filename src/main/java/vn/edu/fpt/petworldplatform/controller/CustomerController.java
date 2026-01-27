@@ -7,7 +7,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class CustomerController {
 
     @GetMapping("/profile")
-    public String profileSetting() {
+    public String profileShow() {
         return "auth/viewProfile"; // viewProfile.html
     }
+
+    @GetMapping("/profile/edit")
+    public String profileSetting() {
+        return "auth/editProfile";
+    }
 }
+
