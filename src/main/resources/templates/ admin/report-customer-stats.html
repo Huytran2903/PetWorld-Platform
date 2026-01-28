@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Stats - PetShop DB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: { colors: { primary: '#0d9488', primaryHover: '#0f766e', secondary: '#f97316', bgLight: '#f3f4f6' }, fontFamily: { sans: ['Nunito', 'sans-serif'] } }
+            }
+        }
+    </script>
+</head>
+<body class="bg-bgLight font-sans text-gray-700">
+    <div class="flex h-screen overflow-hidden">
+        <aside class="w-64 bg-white shadow-xl flex flex-col z-10 hidden md:flex border-r border-gray-100">
+            <div class="p-6 flex items-center gap-3 border-b border-gray-100">
+                <i class="fa-solid fa-paw text-3xl text-primary"></i>
+                <span class="text-2xl font-extrabold text-gray-800">PetShop<span class="text-secondary">DB</span></span>
+            </div>
+            <nav class="flex-1 overflow-y-auto py-4">
+                <ul class="space-y-1">
+                    <li><a href="staff-dashboard.html" class="flex items-center gap-3 px-6 py-3 text-gray-600 hover:bg-gray-50"><i class="fa-solid fa-chart-line w-5 text-center"></i><span class="font-semibold">Dashboard</span></a></li>
+                    <li><a href="assigned-appointments.html" class="flex items-center gap-3 px-6 py-3 text-gray-600 hover:bg-gray-50"><i class="fa-solid fa-list-check w-5 text-center"></i><span class="font-semibold">My Appointments</span></a></li>
+                    <li><a href="service-manager.html" class="flex items-center gap-3 px-6 py-3 text-gray-600 hover:bg-gray-50"><i class="fa-solid fa-briefcase-medical w-5 text-center"></i><span class="font-semibold">Service Manager</span></a></li>
+                    <li><a href="report-center.html" class="flex items-center gap-3 px-6 py-3 bg-teal-50 text-primary border-r-4 border-primary"><i class="fa-solid fa-chart-pie w-5 text-center"></i><span class="font-semibold">Reports</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <div class="flex-1 flex flex-col h-screen overflow-hidden">
+            <main class="flex-1 overflow-x-hidden overflow-y-auto p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <a href="report-center.html" class="text-gray-500 hover:text-primary mb-2 inline-block"><i class="fa-solid fa-arrow-left mr-2"></i>Back to Reports</a>
+                        <h2 class="text-2xl font-bold text-gray-800">Customer Statistics (Thống kê Khách hàng)</h2>
+                        <p class="text-sm text-gray-500">Source: <code>dbo.Customers</code></p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 font-bold text-sm uppercase">Tổng khách hàng</p>
+                            <h3 class="text-4xl font-extrabold text-primary mt-2">1,245</h3>
+                            <p class="text-sm text-gray-400 mt-2">Account active</p>
+                        </div>
+                        <div class="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center text-primary text-2xl">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 font-bold text-sm uppercase">Khách mới tháng này</p>
+                            <h3 class="text-4xl font-extrabold text-blue-600 mt-2">48</h3>
+                            <p class="text-sm text-green-500 mt-2"><i class="fa-solid fa-arrow-trend-up"></i> +5% so với tháng trước</p>
+                        </div>
+                        <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 text-2xl">
+                            <i class="fa-solid fa-user-plus"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="p-5 border-b border-gray-100">
+                        <h3 class="font-bold text-gray-800">Khách hàng chi tiêu nhiều nhất (Top Spenders)</h3>
+                    </div>
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="p-4 text-xs font-bold text-gray-500 uppercase">Rank</th>
+                                <th class="p-4 text-xs font-bold text-gray-500 uppercase">Customer Name</th>
+                                <th class="p-4 text-xs font-bold text-gray-500 uppercase">Total Orders</th>
+                                <th class="p-4 text-xs font-bold text-gray-500 uppercase">Total Spent</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 text-sm">
+                            <tr>
+                                <td class="p-4"><span class="w-6 h-6 bg-yellow-400 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span></td>
+                                <td class="p-4 font-bold text-gray-700">Hoàng Văn E</td>
+                                <td class="p-4">15</td>
+                                <td class="p-4 font-bold text-primary">25,000,000 ₫</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4"><span class="w-6 h-6 bg-gray-300 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span></td>
+                                <td class="p-4 font-bold text-gray-700">Phạm Thị D</td>
+                                <td class="p-4">12</td>
+                                <td class="p-4 font-bold text-primary">18,500,000 ₫</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>
