@@ -1,0 +1,1486 @@
+* {
+    box-sizing: border-box;
+    font-family: "Poppins", sans-serif;
+}
+
+.register-page-wrapper {
+    background: #FFB25B;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: "Poppins", sans-serif;
+    padding: 40px 20px;
+}
+
+/* Container */
+.register-page-wrapper .register-container {
+    width: 100%;
+    max-width: 1300px;
+    background: white;
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    display: flex;
+    min-height: 850px;
+}
+
+/* Left Section - Form */
+.register-page-wrapper .register-left-section {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 50px 50px;
+    background: white;
+}
+
+.register-page-wrapper .register-logo {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 20px;
+}
+
+.register-page-wrapper .register-form-container {
+    width: 100%;
+    max-width: 500px;
+}
+
+.register-page-wrapper .register-form-title {
+    font-family: "Prata", serif;
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 8px;
+    color: #000;
+    font-weight: 400;
+}
+
+.register-page-wrapper .register-form-subtitle {
+    text-align: center;
+    font-size: 13px;
+    color: #666;
+    font-weight: 300;
+    margin-bottom: 30px;
+}
+
+.register-page-wrapper .register-form-group {
+    margin-bottom: 16px;
+}
+
+.register-page-wrapper .register-form-group label {
+    display: block;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 6px;
+    color: #000;
+}
+
+.register-page-wrapper .register-form-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #E0E0E0;
+    border-radius: 10px;
+    background: #F4F4F4;
+    font-size: 14px;
+    font-family: "Poppins", sans-serif;
+    font-weight: 300;
+    color: #000;
+}
+
+.register-page-wrapper .register-form-group input::placeholder {
+    color: #999;
+}
+
+.register-page-wrapper .register-form-group input:focus {
+    outline: 2px solid #35A8E0;
+    outline-offset: 2px;
+    background: white;
+}
+
+.register-page-wrapper .register-btn-signup {
+    width: 100%;
+    padding: 14px;
+    background: #35A8E0;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    margin-bottom: 18px;
+    transition: background 0.3s;
+}
+
+.register-page-wrapper .register-btn-signup:hover {
+    background: #2d8fc4;
+}
+
+.register-page-wrapper .register-divider {
+    display: flex;
+    align-items: center;
+    margin: 18px 0;
+    gap: 15px;
+}
+
+.register-page-wrapper .register-divider::before,
+.register-page-wrapper .register-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #ddd;
+}
+
+.register-page-wrapper .register-divider span {
+    font-size: 13px;
+    color: #666;
+}
+
+.register-page-wrapper .register-btn-google {
+    width: 100%;
+    padding: 12px;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s;
+    text-decoration: none;
+    color: #333;
+}
+
+.register-page-wrapper .register-btn-google:hover {
+    background: #f5f5f5;
+}
+
+.register-page-wrapper .register-btn-google img {
+    width: 20px;
+    height: 20px;
+}
+
+.register-page-wrapper .register-login-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    color: #000;
+}
+
+.register-page-wrapper .register-login-link a {
+    color: #35A8E0;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.register-page-wrapper .register-login-link a:hover {
+    text-decoration: underline;
+}
+
+/* Right Section - Image */
+.register-page-wrapper .register-right-section {
+    width: 50%;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    padding: 15px;
+    overflow: hidden;
+    background: white;
+}
+
+.register-page-wrapper .register-pet-image {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    bottom: 15px;
+    width: calc(100% - 30px);
+    height: calc(100% - 30px);
+    object-fit: cover;
+    border-radius: 20px;
+}
+
+.register-page-wrapper .register-slogan {
+    position: absolute;
+    bottom: 50px;
+    right: 50px;
+    z-index: 2;
+    color: white;
+    font-family: "Prata", serif;
+    font-size: 52px;
+    line-height: 1.3;
+    text-align: right;
+    text-shadow: 3px 3px 15px rgba(0, 0, 0, 0.7);
+    font-weight: 700;
+}
+
+/* ===== LOGIN ===== */
+.login-link {
+    text-align: center;
+    font-size: 14px;
+}
+
+.login-link a {
+    color: #35A8E0;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* ===== RIGHT ===== */
+.register-right {
+    width: 50%;
+    background: #FFFFFF; /* Nền trắng */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    padding: 15px; /* Tạo viền trắng */
+}
+
+.register-right::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    background-image: url(img/img-register.png);
+    background-size: cover;
+    background-position: center;
+    border-radius: 15px; /* Bo góc cho đẹp */
+}
+
+.slogan {
+    position: absolute;
+    bottom: 40px;
+    right: 40px;
+    color: white;
+    font-size: 54px;
+    font-weight: bold;
+    text-align: right;
+    font-family: serif;
+}
+
+/* ===== LOGIN ===== */
+.login-page-wrapper {
+    background: #FFA54F;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: "Poppins", sans-serif;
+    padding: 40px 20px;
+}
+
+/* Container */
+.login-page-wrapper .login-container {
+    width: 100%;
+    max-width: 1300px;
+    background: white;
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    display: flex;
+    min-height: 850px;
+}
+
+/* Left Section */
+.login-page-wrapper .login-left-section {
+    width: 50%;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    padding: 30px;
+    overflow: hidden;
+    background: white;
+}
+
+.login-page-wrapper .login-spa-image {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    right: 30px;
+    bottom: 30px;
+    width: calc(100% - 60px);
+    height: calc(100% - 60px);
+    object-fit: cover;
+    border-radius: 20px;
+}
+
+.login-page-wrapper .login-hero-text {
+    position: absolute;
+    bottom: 50px;
+    left: 50px;
+    z-index: 2;
+    color: white;
+    font-family: "Prata", serif;
+    font-size: 50px;
+    line-height: 1.3;
+    text-shadow: 3px 3px 15px rgba(0, 0, 0, 0.7);
+    font-weight: 400;
+}
+
+/* Right Section */
+.login-page-wrapper .login-right-section {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 50px;
+    background: white;
+}
+
+.login-page-wrapper .login-logo {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 30px;
+}
+
+.login-page-wrapper .login-form-container {
+    width: 100%;
+    max-width: 450px;
+}
+
+.login-page-wrapper .login-form-title {
+    font-family: "Prata", serif;
+    font-size: 38px;
+    text-align: center;
+    margin-bottom: 8px;
+    color: #000;
+    font-weight: 400;
+}
+
+.login-page-wrapper .login-form-subtitle {
+    text-align: center;
+    font-size: 13px;
+    color: #666;
+    font-weight: 300;
+    margin-bottom: 35px;
+}
+
+.login-page-wrapper .login-form-group {
+    margin-bottom: 18px;
+}
+
+.login-page-wrapper .login-form-group label {
+    display: block;
+    font-weight: 500;
+    font-size: 15px;
+    margin-bottom: 8px;
+    color: #000;
+}
+
+.login-page-wrapper .login-form-group input[type="text"],
+.login-page-wrapper .login-form-group input[type="password"] {
+    width: 100%;
+    padding: 13px 18px;
+    border: none;
+    border-radius: 10px;
+    background: #F4F4F4;
+    font-size: 14px;
+    font-family: "Poppins", sans-serif;
+    font-weight: 300;
+    color: #000;
+}
+
+.login-page-wrapper .login-form-group input::placeholder {
+    color: #999;
+}
+
+.login-page-wrapper .login-form-group input:focus {
+    outline: 2px solid #2CA9E3;
+    outline-offset: 2px;
+}
+
+.login-page-wrapper .login-form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    margin-top: 12px;
+}
+
+.login-page-wrapper .login-remember-me {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.login-page-wrapper .login-remember-me input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    border: 1px solid #000;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.login-page-wrapper .login-remember-me label {
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+    color: #000;
+}
+
+.login-page-wrapper .login-forgot-link {
+    font-size: 13px;
+    color: #000;
+    text-decoration: none;
+}
+
+.login-page-wrapper .login-forgot-link:hover {
+    text-decoration: underline;
+}
+
+.login-page-wrapper .login-btn-signin {
+    width: 100%;
+    padding: 14px;
+    background: #2CA9E3;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 22px;
+    transition: background 0.3s;
+}
+
+.login-page-wrapper .login-btn-signin:hover {
+    background: #2596c9;
+}
+
+.login-page-wrapper .login-divider {
+    display: flex;
+    align-items: center;
+    margin: 22px 0;
+    gap: 15px;
+}
+
+.login-page-wrapper .login-divider::before,
+.login-page-wrapper .login-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #ddd;
+}
+
+.login-page-wrapper .login-divider span {
+    font-size: 13px;
+    color: #666;
+}
+
+.login-page-wrapper .login-btn-google {
+    width: 100%;
+    padding: 13px;
+    background: white;
+    border: 1px solid #34A853;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.login-page-wrapper .login-btn-google:hover {
+    background: #f8f8f8;
+}
+
+.login-page-wrapper .login-btn-google img {
+    width: 22px;
+    height: 22px;
+}
+
+.login-page-wrapper .login-signup-link {
+    text-align: center;
+    margin-top: 28px;
+    font-size: 15px;
+    color: #000;
+}
+
+.login-page-wrapper .login-signup-link a {
+    color: #000;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.login-page-wrapper .login-signup-link a:hover {
+    text-decoration: underline;
+}
+
+/* === CHANGE PASS ==== */
+.page-change-password-wrapper {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 0;
+    background: linear-gradient(117deg, rgba(239, 246, 255, 1) 0%, rgba(224, 231, 255, 1) 100%);
+    font-family: 'Arimo', 'Poppins', sans-serif;
+}
+
+.page-change-password-wrapper .card-custom {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0px 8px 10px -6px rgba(0, 0, 0, 0.1), 0px 20px 25px -5px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+
+.page-change-password-wrapper .card-header-custom {
+    background: linear-gradient(90deg, rgba(255, 165, 79, 1) 38%, rgba(79, 57, 246, 1) 100%);
+    padding: 20px 25px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.page-change-password-wrapper .card-header-custom h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.page-change-password-wrapper .form-label {
+    color: #354152;
+    font-weight: 500;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.page-change-password-wrapper .form-control {
+    border-radius: 8px;
+    padding: 10px 15px;
+    border-color: #d0d5db;
+    font-size: 15px;
+}
+
+.page-change-password-wrapper .form-control:focus {
+    box-shadow: 0 0 0 3px rgba(79, 57, 246, 0.15);
+    border-color: #4f39f6;
+}
+
+.page-change-password-wrapper .form-control[readonly] {
+    background-color: #f3f4f6;
+    color: #495565;
+}
+
+.page-change-password-wrapper .input-group-text {
+    background-color: #fff;
+    border-color: #d0d5db;
+    padding: 0 15px;
+}
+
+.page-change-password-wrapper .custom-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.page-change-password-wrapper .btn-save {
+    background: linear-gradient(90deg, #155DFC 0%, #4F39F6 100%);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.page-change-password-wrapper .btn-save:hover {
+    opacity: 0.9;
+    color: white;
+}
+
+.page-change-password-wrapper .btn-cancel {
+    background-color: #fff;
+    border: 1px solid #d0d5db;
+    color: #354152;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.page-change-password-wrapper .btn-cancel:hover {
+    background-color: #f9fafb;
+}
+
+/* === PROFILE ===*/
+.profile-settings-wrapper {
+    background-color: #f5f7fa;
+    min-height: 100vh;
+    font-family: 'Poppins', sans-serif;
+    padding: 40px 0;
+}
+
+
+.profile-settings-wrapper .nav-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    border: none;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #3e435d;
+    transition: all 0.2s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+}
+
+.profile-settings-wrapper .nav-btn:hover {
+    background-color: #e9ecef;
+    transform: translateY(-2px);
+}
+
+.profile-settings-wrapper .nav-avatar {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 12px;
+}
+
+
+.profile-settings-wrapper .main-card {
+    background: #fff;
+    border-radius: 20px;
+    border: none;
+    overflow: visible;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    margin-top: 20px;
+    padding-bottom: 40px;
+}
+
+.profile-settings-wrapper .banner-container {
+    height: 160px;
+    width: 100%;
+    border-radius: 20px 20px 0 0;
+    background: linear-gradient(90deg, #FFA54F 0%, #f5c000 100%);
+    position: relative;
+}
+
+.profile-settings-wrapper .profile-header-info {
+    position: relative;
+    padding: 15px 40px 0 40px;
+}
+
+.profile-settings-wrapper .avatar-large {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 5px solid #fff;
+    object-fit: cover;
+    background-color: #eee;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    position: absolute;
+    top: -50px;
+    left: 40px;
+    z-index: 10;
+}
+
+.user-info-text {
+    margin-left: 120px;
+    padding-top: 5px;
+}
+
+.profile-settings-wrapper .btn-yellow {
+    background-color: #FFA54F;
+    color: #fff;
+    border: none;
+    font-weight: 500;
+    padding: 10px 24px;
+    border-radius: 8px;
+}
+
+.profile-settings-wrapper .btn-yellow:hover {
+    background-color: #FFA54F;
+    color: #fff;
+}
+
+.profile-settings-wrapper .btn-blue {
+    background-color: #4182f9;
+    color: #fff;
+    border: none;
+    font-weight: 500;
+    padding: 10px 24px;
+    border-radius: 8px;
+}
+
+.profile-settings-wrapper .btn-blue:hover {
+    background-color: #326fe0;
+    color: #fff;
+}
+
+.profile-settings-wrapper .form-section {
+    padding: 40px;
+    margin-top: 10px;
+}
+
+.profile-settings-wrapper .form-label {
+    font-weight: 500;
+    color: #3e435d;
+    margin-bottom: 8px;
+}
+
+.profile-settings-wrapper .form-control {
+    background-color: #f9f9f9;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    height: 50px;
+    padding: 10px 20px;
+    color: #3e435d;
+}
+
+.profile-settings-wrapper .form-control:focus {
+    background-color: #fff;
+    border-color: #4182f9;
+    box-shadow: 0 0 0 3px rgba(65, 130, 249, 0.1);
+}
+
+.profile-settings-wrapper .form-control[readonly] {
+    background-color: #f0f2f5;
+    cursor: default;
+}
+
+.profile-settings-wrapper .email-section {
+    margin-top: 30px;
+}
+
+.profile-settings-wrapper .email-icon-box {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(65, 130, 249, 0.1);
+    color: #4182f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+/* OanhTP - Product List*/
+/* Namespace prefix: pw- (Pet World) */
+
+.pet-world-container {
+    --pw-primary: #ffa54f;
+    --pw-bg: #ffffff;
+    --pw-border: rgba(0, 0, 0, 0.1);
+    background-color: var(--pw-bg);
+}
+
+/* Header */
+.pet-world-container .pw-header {
+    background-color: var(--pw-primary);
+    border-bottom: 1px solid var(--pw-border);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+/* Namespace để tránh ảnh hưởng đến các trang khác */
+.pet-world-container .col-auto {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Khoảng cách giữa ảnh và chữ */
+}
+
+.pet-world-container .logo-petshop {
+    /* Chỉnh kích thước tại đây */
+    width: auto;
+    height: 36px; /* Độ cao lý tưởng cho Header */
+    object-fit: contain;
+}
+
+.pet-world-container .pw-logo {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #030213; /* Màu đen theo thiết kế */
+    line-height: 1;
+}
+
+.pet-world-container .pw-search-wrapper {
+    position: relative;
+}
+
+.pet-world-container .pw-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #717182;
+}
+
+.pet-world-container .pw-input {
+    border-radius: 8px;
+    padding-left: 35px;
+    border: none;
+    height: 38px;
+}
+
+/* Filter Bar */
+.pet-world-container .pw-filter-bar {
+    border-bottom: 1px solid var(--pw-border);
+    padding: 12px 0;
+    background: #fff;
+}
+
+.pet-world-container .pw-btn-filter {
+    background: #fff;
+    border: 1px solid var(--pw-border);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    color: #717182;
+    transition: 0.2s;
+}
+
+.pet-world-container .pw-btn-filter.active {
+    background: #030213;
+    color: #fff;
+    border-color: #030213;
+}
+
+/* Product Cards */
+.pet-world-container .pw-card {
+    background: #fff;
+    border: 1px solid var(--pw-border);
+    border-radius: 12px;
+    overflow: hidden;
+    height: 100%;
+    transition: transform 0.3s;
+}
+
+.pet-world-container .pw-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.pet-world-container .pw-img-box {
+    width: 100%;
+    aspect-ratio: 1/1;
+    background-size: cover;
+    background-position: center;
+    background-color: #f8f9fa;
+    position: relative;
+}
+
+.pet-world-container .pw-img-box.out-of-stock {
+    opacity: 0.6;
+}
+
+.pet-world-container .pw-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255,255,255,0.9);
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.pet-world-container .pw-card-body {
+    padding: 16px;
+}
+
+.pet-world-container .pw-product-name {
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.pet-world-container .pw-price {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.pet-world-container .pw-stock-label {
+    font-size: 11px;
+    background: #eceef2;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.pet-world-container .pw-price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.pet-world-container .pw-btn-add {
+    width: 100%;
+    background-color: var(--pw-primary);
+    border: none;
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.pet-world-container .disabled-btn {
+    background-color: #ffe0c2 !important;
+    cursor: not-allowed;
+}
+
+/* OanhTP - Product Detail*/
+#whiskas-product-page {
+    background-color: #f9fafb;
+    font-family: "Manrope", Helvetica, Arial, sans-serif;
+    overflow-x: hidden;
+}
+
+#whiskas-product-page .full-height-row {
+    min-height: 100vh;
+}
+
+/* --- Cột trái: Vùng ảnh --- */
+#whiskas-product-page .image-wrapper {
+    position: relative; /* Quan trọng để đặt nút Back absolute bên trong */
+    width: 100%;
+    height: 100%;
+    min-height: 100vh;
+    background-color: #ffa54f;
+    border-radius: 0 40px 40px 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- NÚT BACK MỚI (Nằm đè lên ảnh) --- */
+#whiskas-product-page .back-link-absolute {
+    position: absolute;
+    top: 40px;    /* Cách mép trên */
+    left: 40px;   /* Cách mép trái */
+    z-index: 100; /* Luôn nổi lên trên các layer khác */
+
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    text-decoration: none;
+    color: #6e758d; /* Màu xám đậm giống Figma */
+    font-weight: 700;
+    font-size: 14px;
+    transition: 0.2s;
+    opacity: 0.8;
+}
+
+#whiskas-product-page .back-link-absolute:hover {
+    opacity: 1;
+    color: #333;
+}
+
+/* Các hiệu ứng nền (Blob) */
+#whiskas-product-page .blob-1 {
+    position: absolute;
+    width: 80vh;
+    height: 80vh;
+    top: 20%;
+    left: -10%;
+    border-radius: 50%;
+    background: linear-gradient(286deg, rgba(129, 138, 249, 1) 0%, rgba(129, 138, 249, 0) 100%);
+    opacity: 0.1;
+    pointer-events: none;
+}
+
+#whiskas-product-page .blob-2 {
+    position: absolute;
+    top: -100px;
+    left: -50px;
+    width: 50vh;
+    height: 50vh;
+    border-radius: 50%;
+    filter: blur(50px);
+    background: linear-gradient(286deg, rgba(129, 138, 249, 1) 0%, rgba(130, 136, 215, 1) 100%);
+    opacity: 0.1;
+    pointer-events: none;
+}
+
+#whiskas-product-page .product-main-img {
+    position: relative;
+    z-index: 2;
+    max-width: 80%;
+    height: auto;
+    max-height: 70vh;
+    object-fit: contain;
+    filter: drop-shadow(0 20px 30px rgba(0,0,0,0.15));
+}
+
+/* --- Cột phải: Nội dung --- */
+#whiskas-product-page .product-content-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-bottom: 100px;
+}
+
+#whiskas-product-page .product-content {
+    padding: 40px 40px 40px 40px; /* Tăng padding trái vì đã bỏ nút Back ở đây */
+}
+
+#whiskas-product-page .badge-hotsale {
+    background-color: #FF4F4F;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    display: inline-block;
+    margin-bottom: 15px;
+}
+
+#whiskas-product-page .product-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #000;
+    margin-bottom: 30px;
+    line-height: 1.3;
+}
+
+#whiskas-product-page .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #000;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+}
+
+#whiskas-product-page .detail-list {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 30px;
+}
+
+#whiskas-product-page .detail-list li {
+    position: relative;
+    padding-left: 18px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #444;
+    font-weight: 400;
+    line-height: 1.6;
+}
+
+#whiskas-product-page .detail-list li::before {
+    content: "•";
+    color: #818af9;
+    position: absolute;
+    left: 0;
+    font-weight: bold;
+    font-size: 18px;
+    line-height: 18px;
+    top: 2px;
+}
+
+#whiskas-product-page .thumbnail-group {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+#whiskas-product-page .thumb-item {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    border: 2px solid #e0e0e0;
+    padding: 4px;
+    cursor: pointer;
+    object-fit: contain;
+    background-color: #fff;
+    transition: 0.2s;
+}
+
+#whiskas-product-page .thumb-item.active {
+    border-color: #ffa54f;
+}
+
+/* Floating Action Bar */
+#whiskas-product-page .action-bar-wrapper {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 1100px;
+    background: #fff;
+    padding: 15px 30px;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(53, 56, 90, 0.15);
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    border: 1px solid #f0f0f0;
+}
+
+#whiskas-product-page .mini-product-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#whiskas-product-page .mini-img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    padding: 2px;
+}
+
+#whiskas-product-page .mini-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0;
+    max-width: 350px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#whiskas-product-page .mini-cat {
+    font-size: 10px;
+    color: #4fcc97;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+#whiskas-product-page .controls-right {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+#whiskas-product-page .qty-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#whiskas-product-page .qty-btn {
+    background: #fff;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.2s;
+    color: #ffa54f;
+    font-weight: bold;
+    font-size: 18px;
+    padding-bottom: 4px;
+}
+
+#whiskas-product-page .qty-btn:hover {
+    border-color: #ffa54f;
+}
+
+#whiskas-product-page .qty-input {
+    width: 40px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 4px;
+    font-weight: bold;
+    color: #333;
+}
+
+#whiskas-product-page .btn-add-cart {
+    background-color: #ffa54f;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 15px rgba(255, 165, 79, 0.4);
+    transition: all 0.2s;
+}
+
+#whiskas-product-page .btn-add-cart:hover {
+    background-color: #ff912b;
+    transform: translateY(-2px);
+}
+
+/* === EDIT PROFILE ===*/
+
+.edit-profile-wrapper {
+    background-color: #f5f7fa;
+    min-height: 100vh;
+    padding: 40px 0;
+    font-family: 'Poppins', 'Arimo', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.edit-profile-wrapper .card-custom {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border: none;
+    overflow: hidden;
+    width: 100%;
+    max-width: 800px;
+}
+
+.edit-profile-wrapper .card-header-custom {
+    background-color: #ffa54f;
+    padding: 20px 30px;
+    color: #fff;
+}
+
+.edit-profile-wrapper .card-header-custom h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+    color: #0a0a0a;
+}
+.edit-profile-wrapper .card-header-custom p {
+    font-size: 14px;
+    margin: 0;
+    color: #333;
+    opacity: 0.8;
+}
+
+.edit-profile-wrapper .avatar-section {
+    display: flex;
+    justify-content: center;
+    padding: 30px 0;
+}
+
+.edit-profile-wrapper .avatar-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    border: 4px solid #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    background-image: url('https://via.placeholder.com/120');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+
+.edit-profile-wrapper .form-label {
+    font-weight: 500;
+    font-size: 14px;
+    color: #0a0a0a;
+    margin-bottom: 6px;
+}
+
+.edit-profile-wrapper .input-group-text {
+    background-color: #f3f3f5;
+    border: 1px solid #dee2e6;
+    border-right: none;
+    color: #666;
+}
+
+.edit-profile-wrapper .form-control {
+    background-color: #f3f3f5;
+    border: 1px solid #dee2e6;
+    border-left: none;
+    font-size: 14px;
+    height: 42px;
+    color: #333;
+}
+
+.edit-profile-wrapper .form-control:focus {
+    background-color: #fff;
+    box-shadow: none;
+    border-color: #ffa54f;
+}
+
+
+.edit-profile-wrapper .form-control:focus + .input-group-text,
+.edit-profile-wrapper .input-group:focus-within .input-group-text {
+    background-color: #fff;
+    border-color: #ffa54f;
+}
+
+.edit-profile-wrapper .form-control[readonly] {
+    background-color: #e9ecef;
+    opacity: 0.8;
+    cursor: not-allowed;
+}
+
+/* Buttons */
+.edit-profile-wrapper .btn-save {
+    background-color: #030213;
+    color: #fff;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    transition: all 0.2s;
+}
+.edit-profile-wrapper .btn-save:hover {
+    background-color: #222;
+    transform: translateY(-2px);
+}
+
+.edit-profile-wrapper .btn-cancel {
+    background-color: #d62828;
+    color: #fff;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    transition: all 0.2s;
+}
+.edit-profile-wrapper .btn-cancel:hover {
+    background-color: #b01e1e;
+    transform: translateY(-2px);
+}
+
+/* === EDIT STAFF === */
+
+.staff-edit-wrapper {
+    background-color: #f5f7fa;
+    min-height: 100vh;
+    padding: 40px 0;
+    font-family: 'Arimo', 'Poppins', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.staff-edit-wrapper .card-custom {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.1);
+    overflow: hidden;
+    width: 100%;
+    max-width: 800px;
+}
+
+.staff-edit-wrapper .card-header-custom {
+    background-color: #ffa54f;
+    padding: 20px 30px;
+    color: #0a0a0a;
+    border-bottom: none;
+}
+
+.staff-edit-wrapper .card-header-custom h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+.staff-edit-wrapper .card-header-custom p {
+    font-size: 14px;
+    margin: 0;
+    color: #333;
+    opacity: 0.8;
+}
+
+.staff-edit-wrapper .avatar-section {
+    display: flex;
+    justify-content: center;
+    padding: 30px 0;
+}
+
+.staff-edit-wrapper .avatar-circle {
+    width: 128px;
+    height: 128px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    border: 4px solid #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    background-image: url('https://via.placeholder.com/128');
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.staff-edit-wrapper .form-label {
+    font-weight: 500;
+    font-size: 14px;
+    color: #0a0a0a;
+    margin-bottom: 6px;
+}
+
+.staff-edit-wrapper .input-group-text {
+    background-color: #f3f3f5;
+    border: 1px solid #dee2e6;
+    border-right: none;
+    color: #666;
+}
+
+.staff-edit-wrapper .form-control,
+.staff-edit-wrapper .form-select {
+    background-color: #f3f3f5;
+    border: 1px solid #dee2e6;
+    border-left: none;
+    font-size: 14px;
+    height: 42px;
+    color: #333;
+}
+
+.staff-edit-wrapper .form-control:focus,
+.staff-edit-wrapper .form-select:focus {
+    background-color: #fff;
+    box-shadow: none;
+    border-color: #ffa54f;
+    border-left: 1px solid #ffa54f;
+}
+
+.staff-edit-wrapper .btn-save {
+    background-color: #ffa54f;
+    color: #fff;
+    padding: 10px 30px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    transition: all 0.2s;
+}
+.staff-edit-wrapper .btn-save:hover {
+    background-color: #e59446;
+    color: #fff;
+}
+
+.staff-edit-wrapper .btn-cancel {
+    background-color: #ff2d2d;
+    color: #fff;
+    padding: 10px 30px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    transition: all 0.2s;
+}
+.staff-edit-wrapper .btn-cancel:hover {
+    background-color: #d62828;
+    color: #fff;
+}
+
