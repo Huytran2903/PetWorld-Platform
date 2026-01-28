@@ -15,5 +15,11 @@ public class CustomerController {
     public String profileSetting() {
         return "auth/editProfile";
     }
+
+    //Order History
+    @GetMapping("/customer/order-history")
+    public String orderHistory() {
+        return "customer/order-history";
+    }
 }
 
