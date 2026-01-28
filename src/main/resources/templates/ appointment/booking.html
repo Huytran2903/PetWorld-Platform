@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout_user}">
+<head>
+    <title th:text="${pageTitle} ?: 'Book Service Appointment'">Book Service Appointment</title>
+    <link rel="stylesheet" th:href="@{/css/booking.css}" />
+</head>
+
+<body>
+<main layout:fragment="content" class="container">
+
+    <div class="hero">
+        <div class="hero-inner">
+            <div>
+                <h1 id="heroTitle" th:text="${heroTitle} ?: 'Book Service Appointment'">Book Service Appointment</h1>
+                <p id="heroDesc">Choose a pet, select date & time, and pick a service package.</p>
+            </div>
+            <div class="type-pill" id="typePill" th:text="${currentType != null ? currentType.toUpperCase() : 'SERVICE'}">SERVICE</div>
+        </div>
+    </div>
+
+    <section class="card">
+        <header class="card-header">
+            <div>
+                <h2 class="title">Booking Information</h2>
+                <p class="subtitle">Please fill in the details below</p>
+            </div>
+            <div class="pill">CUSTOMER</div>
+        </header>
+
+        <div class="card-body">
+            <form id="bookForm" th:action="@{/appointment/create}" method="post">
+                <input type="hidden" name="serviceType" id="serviceTypeInput" th:value="${currentType}" />
+
+                <div class="grid">
+                    <div>
+                        <label for="petId">Select Pet</label>
+                        <select id="petId" name="petId" required>
+                            <option value="">— Select your pet —</option>
+                            <option th:each="pet : ${petList}"
+                                    th:value="${pet.petID}"
+                                    th:text="${pet.name} + ' (' + ${pet.petType} + ')'">
+                            </option>
+                        </select>
+                        <div class="hint" th:if="${#lists.isEmpty(petList)}">
+                            You have no pets. <a th:href="@{/pet/create}">Add a pet now</a>.
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="appointmentDate">Appointment Date & Time</label>
+                        <input type="datetime-local" id="appointmentDate" name="appointmentDate" required />
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3 class="section-title"><span class="dot"></span>Service Package</h3>
+
+                    <div class="svc-list">
+                        <label class="svc-item" th:each="svc : ${serviceList}">
+                            <span class="svc-badge" th:text="${currentType}">TYPE</span>
+
+                            <input th:if="${currentType == 'hygiene'}" type="checkbox"
+                                   name="mainServices"
+                                   th:value="${svc.serviceID}"
+                                   th:data-price="${svc.basePrice}"
+                                   th:data-duration="${svc.durationMinutes}"
+                                   th:data-name="${svc.name}" />
+
+                            <input th:unless="${currentType == 'hygiene'}" type="radio"
+                                   name="mainServices"
+                                   th:value="${svc.serviceID}"
+                                   th:data-price="${svc.basePrice}"
+                                   th:data-duration="${svc.durationMinutes}"
+                                   th:data-name="${svc.name}"
+                                   th:data-unit="${currentType == 'boarding' ? 'day' : 'time'}" />
+
+                            <div>
+                                <p class="svc-name" th:text="${svc.name}">Service Name</p>
+                                <p class="svc-meta" th:text="'Duration: ' + ${svc.durationMinutes} + ' mins'"></p>
+                                <div class="svc-price" th:text="${#numbers.formatDecimal(svc.basePrice, 0, 'COMMA', 0, 'POINT')} + ' VND'"></div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div id="boardingQtyBlock" th:if="${currentType == 'boarding'}" style="margin-top: 15px;">
+                        <div class="grid">
+                            <div>
+                                <label for="boardingQty">Quantity (Days/Hours)</label>
+                                <input type="number" id="boardingQty" name="boardingQty" min="1" value="1" />
+                            </div>
+                            <div>
+                                <label for="boardingHint">Pick-up/Drop-off Note</label>
+                                <input type="text" id="boardingHint" placeholder="Ex: Pick up at 9 AM..." />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h3 class="section-title"><span class="dot"></span>Additional Notes</h3>
+                    <textarea id="note" name="note" placeholder="Ex: Allergies, aggressive behavior, needs muzzle..."></textarea>
+                </div>
+
+                <div id="generatedServices"></div>
+
+                <div class="actions">
+                    <button class="btn btn-primary" type="submit">Confirm Booking</button>
+                    <button class="btn btn-secondary" type="button" onclick="history.back()">Back</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <aside class="card">
+        <header class="card-header">
+            <div>
+                <h2 class="title" style="font-size:17px;">Estimated Cost</h2>
+                <p class="subtitle">Cost estimation</p>
+            </div>
+            <div class="pill">SUMMARY</div>
+        </header>
+
+        <div class="card-body">
+            <div class="summary-row"><span>Service Type</span><strong th:text="${currentType}">—</strong></div>
+            <div class="summary-row"><span>Selected Services</span><strong id="sumServices">—</strong></div>
+            <div class="summary-row"><span>Estimated Duration</span><strong id="sumDuration">—</strong></div>
+            <div class="summary-row"><span>Total Amount</span><strong id="sumTotal" style="color: var(--primary); font-size: 16px;">—</strong></div>
+        </div>
+    </aside>
+
+    <script th:src="@{/js/booking.js}"></script>
+</main>
+</body>
+</html>

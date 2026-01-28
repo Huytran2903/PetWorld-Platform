@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/staff_layout :: layout(~{::status_content})}">
+
+<head>
+    <title>Update Status</title>
+    <link rel="stylesheet" th:href="@{/css/update_status.css}" />
+</head>
+
+<body>
+<div th:fragment="status_content">
+
+    <div class="hero">
+        <div class="hero-inner">
+            <div>
+                <h1>Update Status</h1>
+                <p>Final step: Update the appointment status to <strong>Completed</strong> to finish the workflow.</p>
+            </div>
+            <div class="pill">FINAL STEP</div>
+        </div>
+    </div>
+
+    <main class="container">
+        <section class="card">
+            <header class="card-header">
+                <div>
+                    <h2 class="title">Mark appointment as completed</h2>
+                    <p class="subtitle">Feature 35: updateAppointmentStatus</p>
+                </div>
+                <div class="tag">STATUS</div>
+            </header>
+
+            <div class="card-body">
+
+                <div class="summary">
+                    <div class="kv">
+                        <div class="k">Appointment</div>
+                        <div class="v" th:text="${appointment.appointmentCode}">APP-000123</div>
+                        <div class="mono" style="margin-top:6px; font-size:12px;">
+                            ID: <span th:text="${appointment.appointmentID}">123</span>
+                        </div>
+                    </div>
+                    <div class="kv">
+                        <div class="k">Current status</div>
+                        <div class="v">
+                            <span th:text="${appointment.status}">In progress</span>
+                            <span class="badge" th:text="${appointment.status}">in_progress</span>
+                        </div>
+                    </div>
+                </div>
+
+                <form th:action="@{/staff/status/update}" method="post">
+                    <input type="hidden" name="appointmentId" th:value="${appointment.appointmentID}" />
+
+                    <div class="mini">
+                        <div>
+                            <label for="statusSelect">Set new status</label>
+                            <select id="statusSelect" name="newStatus">
+                                <option value="done" selected>Completed (done)</option>
+                                <option value="in_progress">In progress (in_progress)</option>
+                                <option value="canceled">Canceled (canceled)</option>
+                                <option value="no_show">No show (no_show)</option>
+                            </select>
+                            <div class="notice">
+                                <strong>Recommendation:</strong> Choose <strong>Completed</strong> to close this ticket.
+                            </div>
+                        </div>
+
+                        <div>
+                            <label>Updated at</label>
+                            <input id="updatedAt" type="datetime-local" readonly />
+                            <div class="notice">
+                                Recorded automatically as <code>SYSDATETIME()</code> in database.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button class="btn btn-primary" type="submit">Update & Finish</button>
+
+                        <a class="btn btn-secondary" th:href="@{/staff/appointments}">
+                            Return to List
+                        </a>
+
+                        <a class="btn btn-ghost"
+                           th:href="@{/staff/report/{id}(id=${appointment.appointmentID})}">
+                            Back to Report
+                        </a>
+                    </div>
+                </form>
+
+                <div th:if="${param.success}" class="notice ok">
+                    Status successfully updated! You can now return to the list.
+                </div>
+
+                <div class="notice" style="margin-top:10px;">
+                    <strong>Backend Action:</strong> UPDATE Appointments SET Status=?, UpdatedAt=NOW() WHERE AppointmentID=?
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script th:src="@{/js/update_status.js}"></script>
+</div>
+</body>
+</html>

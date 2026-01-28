@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout_staff :: layout(~{::content})}">
+<section th:fragment="content">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/pet-dashboard.css}">
+    <script th:src="@{/js/pet-dashboard.js}"></script>
+
+    <div class="flex h-screen overflow-hidden font-sans antialiased text-gray-700">
+        <aside class="w-64 bg-white shadow-xl flex flex-col z-10 hidden md:flex border-r border-gray-100">
+            <div class="p-6 flex items-center gap-3 border-b border-gray-100">
+                <i class="fa-solid fa-paw text-3xl text-primary"></i>
+                <span class="text-2xl font-extrabold text-gray-800"><span class="text-secondary">Petworld Platform</span></span>
+            </div>
+            <nav class="flex-1 overflow-y-auto py-4">
+                <ul class="space-y-1">
+                    <li><a th:href="@{/staff/pet/list}" class="sidebar-link flex items-center gap-3 px-6 py-3 transition-colors hover:bg-gray-50 text-gray-600"><i class="fa-solid fa-dog w-5 text-center"></i><span class="font-semibold">Pet List</span></a></li>
+                    <p class="px-6 text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 mt-6">Feature 7 - Feedback</p>
+                    <li><a th:href="@{/staff/feedback}" class="sidebar-link active flex items-center gap-3 px-6 py-3 transition-colors hover:bg-gray-50 text-gray-600"><i class="fa-solid fa-comments w-5 text-center"></i><span class="font-semibold">Feedback Manager</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <div class="flex-1 flex flex-col h-screen overflow-hidden bg-bgLight">
+            <main class="flex-1 overflow-x-hidden overflow-y-auto p-6 relative">
+                <section class="fade-in">
+                    <div class="flex justify-between items-end mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-800">Feedback Manager</h2>
+                            <p class="text-sm text-gray-500">Data from table <code>dbo.Feedbacks</code>.</p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 border-b border-gray-200">
+                                <tr>
+                                    <th class="p-4 text-sm font-semibold text-gray-600">Type</th>
+                                    <th class="p-4 text-sm font-semibold text-gray-600">Rating</th>
+                                    <th class="p-4 text-sm font-semibold text-gray-600">Content (Subject & Comment)</th>
+                                    <th class="p-4 text-sm font-semibold text-gray-600">Images (ImageUrls)</th>
+                                    <th class="p-4 text-sm font-semibold text-gray-600">Status</th>
+                                    <th class="p-4 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                <tr class="hover:bg-teal-50 transition">
+                                    <td class="p-4"><span class="font-bold text-gray-800">Service</span><div class="text-xs text-gray-500">ID: 101 (Appointment #55)</div></td>
+                                    <td class="p-4"><div class="flex text-yellow-400 text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div></td>
+                                    <td class="p-4 max-w-xs text-sm text-gray-600">
+                                        <div class="font-bold text-gray-700 mb-1">Very satisfied! (Subject)</div>
+                                        "Beautiful cut, my pet loved it!" (Comment)
+                                        <div class="mt-2 p-2 bg-blue-50 border-l-4 border-blue-200 rounded text-xs text-gray-600 italic"><span class="font-bold text-blue-700 not-italic">Admin Reply:</span> Thank you for your feedback. We are glad to hear that you are satisfied with our service.</div>
+                                    </td>
+                                    <td class="p-4"><div class="relative w-12 h-12 rounded overflow-hidden border border-gray-200"><img src="https://images.unsplash.com/photo-1583337130417-3346a1be7dee?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" class="w-full h-full object-cover"></div></td>
+                                    <td class="p-4"><span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold">pending</span></td>
+                                    <td class="p-4 text-right space-x-2"><button class="text-green-600 hover:bg-green-100 p-2 rounded" title="Approve (Set Status=Approved)"><i class="fa-solid fa-check"></i></button><button class="text-red-500 hover:bg-red-100 p-2 rounded" title="Reject (Set Status=Rejected)"><i class="fa-solid fa-xmark"></i></button></td>
+                                </tr>
+                                <tr>
+                                    <td class="p-4"><span class="font-bold text-gray-800">Product</span><div class="text-xs text-gray-500">Guest (No ID)</div></td>
+                                    <td class="p-4"><div class="flex text-yellow-400 text-xs"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-regular fa-star"></i><i class="fa-regular fa-star"></i></div></td>
+                                    <td class="p-4 max-w-xs text-sm text-gray-600">
+                                        <div class="font-bold text-gray-700 mb-1">Feedback on dry food</div>
+                                        "The kibble is a bit hard."
+                                        <div class="mt-2"><textarea class="w-full border border-gray-200 rounded p-1 text-xs focus:outline-none focus:border-blue-400" placeholder="Type admin reply..." rows="2"></textarea><button class="bg-blue-500 hover:bg-blue-600 text-white text-[10px] px-2 py-1 rounded mt-1">Send Reply</button></div>
+                                    </td>
+                                    <td class="p-4 text-xs text-gray-400 italic">No image</td>
+                                    <td class="p-4"><span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">approved</span></td>
+                                    <td class="p-4 text-right"><button class="text-red-500 hover:bg-red-100 p-2 rounded" title="Reject (Set Status=Rejected)"><i class="fa-solid fa-xmark"></i></button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+</section>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/staff_layout :: layout(~{::exec_content})}">
+
+<head>
+    <title>Service Execution</title>
+    <link rel="stylesheet" th:href="@{/css/execution.css}" />
+</head>
+
+<body>
+<div th:fragment="exec_content">
+
+    <div class="hero">
+        <div class="hero-inner">
+            <div>
+                <h1>Service Execution</h1>
+                <p>Perform specific actions based on the service type: Spa, Vaccination, or Boarding.</p>
+            </div>
+            <div class="pill" id="typePill">TYPE</div>
+        </div>
+    </div>
+
+    <main class="container">
+        <section class="card">
+            <header class="card-header">
+                <div>
+                    <h2 class="title">Execution workspace</h2>
+                    <p class="subtitle">Feature 29: performSpaService</p>
+                </div>
+                <div class="tag">EXECUTE</div>
+            </header>
+
+            <div class="card-body">
+                <div class="summary">
+                    <div class="kv">
+                        <div class="k">Appointment</div>
+                        <div class="v" th:text="${appointment.appointmentCode}">APP-000123</div>
+                        <div class="mono" style="margin-top:6px; font-size:12px;">
+                            ID: <span th:text="${appointment.appointmentID}">123</span>
+                        </div>
+                    </div>
+                    <div class="kv">
+                        <div class="k">Pet</div>
+                        <div class="v" th:text="${appointment.pet.name}">Lucky (Dog)</div>
+                        <div class="mono" style="margin-top:6px; font-size:12px;">
+                            ID: <span th:text="${appointment.pet.petID}">5</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top:14px; font-weight:950;">Choose service type</div>
+                <div class="chips" role="tablist">
+                    <div class="chip" data-type="hygiene"
+                         th:if="${hasHygiene}">Spa (hygiene)</div>
+                    <div class="chip" data-type="vaccination"
+                         th:if="${hasVaccination}">Vaccination</div>
+                    <div class="chip" data-type="boarding"
+                         th:if="${hasBoarding}">Boarding</div>
+                </div>
+
+                <div id="panel-spa" th:if="${hasHygiene}" style="margin-top:14px;">
+                    <form th:action="@{/staff/execution/spa}" method="post">
+                        <input type="hidden" name="appointmentId" th:value="${appointment.appointmentID}" />
+
+                        <div class="row">
+                            <div class="h"><span>Spa Action</span><span class="badge">hygiene</span></div>
+                            <div class="d">Record grooming/spa execution details.</div>
+                        </div>
+
+                        <div class="grid2" style="margin-top:12px;">
+                            <div>
+                                <label>Service performed</label>
+                                <select name="serviceId">
+                                    <option th:each="svc : ${hygieneServices}"
+                                            th:value="${svc.service.serviceID}"
+                                            th:text="${svc.service.name}">Basic spa</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label>Duration (mins)</label>
+                                <input type="number" name="duration" min="1" placeholder="Ex: 60" />
+                            </div>
+                        </div>
+
+                        <div style="margin-top:12px;">
+                            <label>Execution Notes</label>
+                            <textarea name="note" placeholder="Ex: trimmed nails, cleaned ears..."></textarea>
+                        </div>
+
+                        <div class="actions">
+                            <button class="btn btn-primary" type="submit">Save Spa Action</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="panel-vac" class="hidden" th:if="${hasVaccination}" style="margin-top:14px;">
+                    <form th:action="@{/staff/execution/vaccine}" method="post">
+                        <input type="hidden" name="appointmentId" th:value="${appointment.appointmentID}" />
+
+                        <div class="row">
+                            <div class="h"><span>Vaccination Action</span><span class="badge">vaccination</span></div>
+                            <div class="d">Record vaccination result. Saves to PetVaccinations.</div>
+                        </div>
+
+                        <div class="grid2" style="margin-top:12px;">
+                            <div>
+                                <label>Vaccine name</label>
+                                <input type="text" name="vaccineName" placeholder="Ex: Rabies vaccine" />
+                            </div>
+                            <div>
+                                <label>Administered date</label>
+                                <input type="datetime-local" name="administeredDate" />
+                            </div>
+                        </div>
+
+                        <div class="grid2" style="margin-top:12px;">
+                            <div>
+                                <label>Next due date</label>
+                                <input type="datetime-local" name="nextDueDate" />
+                            </div>
+                            <div>
+                                <label>Performed by</label>
+                                <input type="text" disabled th:value="${session.user.fullName}" />
+                            </div>
+                        </div>
+
+                        <div style="margin-top:12px;">
+                            <label>Note</label>
+                            <textarea name="note" placeholder="Ex: no reaction..."></textarea>
+                        </div>
+
+                        <div class="actions">
+                            <button class="btn btn-primary" type="submit">Save Vaccination</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="panel-board" class="hidden" th:if="${hasBoarding}" style="margin-top:14px;">
+                    <form th:action="@{/staff/execution/boarding}" method="post">
+                        <input type="hidden" name="appointmentId" th:value="${appointment.appointmentID}" />
+
+                        <div class="row">
+                            <div class="h"><span>Boarding Action</span><span class="badge">boarding</span></div>
+                            <div class="d">Record boarding details log.</div>
+                        </div>
+
+                        <div class="grid2" style="margin-top:12px;">
+                            <div>
+                                <label>Boarding start</label>
+                                <input type="datetime-local" name="startTime" />
+                            </div>
+                            <div>
+                                <label>Boarding end</label>
+                                <input type="datetime-local" name="endTime" />
+                            </div>
+                        </div>
+
+                        <div style="margin-top:12px;">
+                            <label>Care notes</label>
+                            <textarea name="note" placeholder="Ex: feeding schedule..."></textarea>
+                        </div>
+
+                        <div class="actions">
+                            <button class="btn btn-primary" type="submit">Save Boarding Action</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="actions" style="border-top: 1px dashed var(--border); padding-top: 15px;">
+                    <a class="btn btn-secondary"
+                       th:href="@{/staff/report/{id}(id=${appointment.appointmentID})}">
+                        Next: Final Report
+                    </a>
+                    <a class="btn btn-ghost"
+                       th:href="@{/staff/checkin/{id}(id=${appointment.appointmentID})}">
+                        Back to Check-in
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <aside class="card">
+            <header class="card-header">
+                <div>
+                    <h2 class="title" style="font-size:17px;">Selected services</h2>
+                    <p class="subtitle">Services booked for this appointment.</p>
+                </div>
+                <div class="tag">LIST</div>
+            </header>
+
+            <div class="card-body">
+                <div class="list">
+                    <div class="row" th:each="svc : ${appointment.appointmentServices}">
+                        <div class="h">
+                            <span th:text="${svc.service.name}">Service Name</span>
+                            <span class="badge" th:text="${svc.service.serviceType}">Type</span>
+                        </div>
+                        <div class="d">
+                            Qty: <span th:text="${svc.quantity}">1</span> •
+                            Duration: <span th:text="${svc.service.durationMinutes * svc.quantity}">60</span> mins
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <script th:src="@{/js/execution.js}"></script>
+</div>
+</body>
+</html>
