@@ -768,3 +768,459 @@
     justify-content: center;
     font-size: 18px;
 }
+
+/* OanhTP - Product List*/
+/* Namespace prefix: pw- (Pet World) */
+
+.pet-world-container {
+    --pw-primary: #ffa54f;
+    --pw-bg: #ffffff;
+    --pw-border: rgba(0, 0, 0, 0.1);
+    background-color: var(--pw-bg);
+}
+
+/* Header */
+.pet-world-container .pw-header {
+    background-color: var(--pw-primary);
+    border-bottom: 1px solid var(--pw-border);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+/* Namespace để tránh ảnh hưởng đến các trang khác */
+.pet-world-container .col-auto {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Khoảng cách giữa ảnh và chữ */
+}
+
+.pet-world-container .logo-petshop {
+    /* Chỉnh kích thước tại đây */
+    width: auto;
+    height: 36px; /* Độ cao lý tưởng cho Header */
+    object-fit: contain;
+}
+
+.pet-world-container .pw-logo {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: #030213; /* Màu đen theo thiết kế */
+    line-height: 1;
+}
+
+.pet-world-container .pw-search-wrapper {
+    position: relative;
+}
+
+.pet-world-container .pw-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #717182;
+}
+
+.pet-world-container .pw-input {
+    border-radius: 8px;
+    padding-left: 35px;
+    border: none;
+    height: 38px;
+}
+
+/* Filter Bar */
+.pet-world-container .pw-filter-bar {
+    border-bottom: 1px solid var(--pw-border);
+    padding: 12px 0;
+    background: #fff;
+}
+
+.pet-world-container .pw-btn-filter {
+    background: #fff;
+    border: 1px solid var(--pw-border);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    color: #717182;
+    transition: 0.2s;
+}
+
+.pet-world-container .pw-btn-filter.active {
+    background: #030213;
+    color: #fff;
+    border-color: #030213;
+}
+
+/* Product Cards */
+.pet-world-container .pw-card {
+    background: #fff;
+    border: 1px solid var(--pw-border);
+    border-radius: 12px;
+    overflow: hidden;
+    height: 100%;
+    transition: transform 0.3s;
+}
+
+.pet-world-container .pw-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.pet-world-container .pw-img-box {
+    width: 100%;
+    aspect-ratio: 1/1;
+    background-size: cover;
+    background-position: center;
+    background-color: #f8f9fa;
+    position: relative;
+}
+
+.pet-world-container .pw-img-box.out-of-stock {
+    opacity: 0.6;
+}
+
+.pet-world-container .pw-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255,255,255,0.9);
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.pet-world-container .pw-card-body {
+    padding: 16px;
+}
+
+.pet-world-container .pw-product-name {
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.pet-world-container .pw-price {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.pet-world-container .pw-stock-label {
+    font-size: 11px;
+    background: #eceef2;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.pet-world-container .pw-price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.pet-world-container .pw-btn-add {
+    width: 100%;
+    background-color: var(--pw-primary);
+    border: none;
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.pet-world-container .disabled-btn {
+    background-color: #ffe0c2 !important;
+    cursor: not-allowed;
+}
+
+/* OanhTP - Product Detail*/
+#whiskas-product-page {
+    background-color: #f9fafb;
+    font-family: "Manrope", Helvetica, Arial, sans-serif;
+    overflow-x: hidden;
+}
+
+#whiskas-product-page .full-height-row {
+    min-height: 100vh;
+}
+
+/* --- Cột trái: Vùng ảnh --- */
+#whiskas-product-page .image-wrapper {
+    position: relative; /* Quan trọng để đặt nút Back absolute bên trong */
+    width: 100%;
+    height: 100%;
+    min-height: 100vh;
+    background-color: #ffa54f;
+    border-radius: 0 40px 40px 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- NÚT BACK MỚI (Nằm đè lên ảnh) --- */
+#whiskas-product-page .back-link-absolute {
+    position: absolute;
+    top: 40px;    /* Cách mép trên */
+    left: 40px;   /* Cách mép trái */
+    z-index: 100; /* Luôn nổi lên trên các layer khác */
+
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    text-decoration: none;
+    color: #6e758d; /* Màu xám đậm giống Figma */
+    font-weight: 700;
+    font-size: 14px;
+    transition: 0.2s;
+    opacity: 0.8;
+}
+
+#whiskas-product-page .back-link-absolute:hover {
+    opacity: 1;
+    color: #333;
+}
+
+/* Các hiệu ứng nền (Blob) */
+#whiskas-product-page .blob-1 {
+    position: absolute;
+    width: 80vh;
+    height: 80vh;
+    top: 20%;
+    left: -10%;
+    border-radius: 50%;
+    background: linear-gradient(286deg, rgba(129, 138, 249, 1) 0%, rgba(129, 138, 249, 0) 100%);
+    opacity: 0.1;
+    pointer-events: none;
+}
+
+#whiskas-product-page .blob-2 {
+    position: absolute;
+    top: -100px;
+    left: -50px;
+    width: 50vh;
+    height: 50vh;
+    border-radius: 50%;
+    filter: blur(50px);
+    background: linear-gradient(286deg, rgba(129, 138, 249, 1) 0%, rgba(130, 136, 215, 1) 100%);
+    opacity: 0.1;
+    pointer-events: none;
+}
+
+#whiskas-product-page .product-main-img {
+    position: relative;
+    z-index: 2;
+    max-width: 80%;
+    height: auto;
+    max-height: 70vh;
+    object-fit: contain;
+    filter: drop-shadow(0 20px 30px rgba(0,0,0,0.15));
+}
+
+/* --- Cột phải: Nội dung --- */
+#whiskas-product-page .product-content-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-bottom: 100px;
+}
+
+#whiskas-product-page .product-content {
+    padding: 40px 40px 40px 40px; /* Tăng padding trái vì đã bỏ nút Back ở đây */
+}
+
+#whiskas-product-page .badge-hotsale {
+    background-color: #FF4F4F;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    display: inline-block;
+    margin-bottom: 15px;
+}
+
+#whiskas-product-page .product-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #000;
+    margin-bottom: 30px;
+    line-height: 1.3;
+}
+
+#whiskas-product-page .section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #000;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+}
+
+#whiskas-product-page .detail-list {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 30px;
+}
+
+#whiskas-product-page .detail-list li {
+    position: relative;
+    padding-left: 18px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #444;
+    font-weight: 400;
+    line-height: 1.6;
+}
+
+#whiskas-product-page .detail-list li::before {
+    content: "•";
+    color: #818af9;
+    position: absolute;
+    left: 0;
+    font-weight: bold;
+    font-size: 18px;
+    line-height: 18px;
+    top: 2px;
+}
+
+#whiskas-product-page .thumbnail-group {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+#whiskas-product-page .thumb-item {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    border: 2px solid #e0e0e0;
+    padding: 4px;
+    cursor: pointer;
+    object-fit: contain;
+    background-color: #fff;
+    transition: 0.2s;
+}
+
+#whiskas-product-page .thumb-item.active {
+    border-color: #ffa54f;
+}
+
+/* Floating Action Bar */
+#whiskas-product-page .action-bar-wrapper {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 1100px;
+    background: #fff;
+    padding: 15px 30px;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(53, 56, 90, 0.15);
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    border: 1px solid #f0f0f0;
+}
+
+#whiskas-product-page .mini-product-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#whiskas-product-page .mini-img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    padding: 2px;
+}
+
+#whiskas-product-page .mini-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0;
+    max-width: 350px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#whiskas-product-page .mini-cat {
+    font-size: 10px;
+    color: #4fcc97;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+#whiskas-product-page .controls-right {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+#whiskas-product-page .qty-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#whiskas-product-page .qty-btn {
+    background: #fff;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.2s;
+    color: #ffa54f;
+    font-weight: bold;
+    font-size: 18px;
+    padding-bottom: 4px;
+}
+
+#whiskas-product-page .qty-btn:hover {
+    border-color: #ffa54f;
+}
+
+#whiskas-product-page .qty-input {
+    width: 40px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 4px;
+    font-weight: bold;
+    color: #333;
+}
+
+#whiskas-product-page .btn-add-cart {
+    background-color: #ffa54f;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 15px rgba(255, 165, 79, 0.4);
+    transition: all 0.2s;
+}
+
+#whiskas-product-page .btn-add-cart:hover {
+    background-color: #ff912b;
+    transform: translateY(-2px);
+}
