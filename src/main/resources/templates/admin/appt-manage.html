@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Management</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/appt-manage.css}"/>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+
+        <div class="col-md-2 sidebar p-0 d-none d-md-block">
+            <div class="p-4 border-bottom">
+                <h5 class="fw-bold mb-0 text-secondary">Dashboard</h5>
+            </div>
+            <nav class="nav flex-column mt-3">
+                <a class="nav-link" href="#"><i class="bi bi-grid"></i> Menu</a>
+                <a class="nav-link active" href="#"><i class="bi bi-person-lines-fill"></i> Appointment List</a>
+                <a class="nav-link" href="#"><i class="bi bi-gear"></i> Settings</a>
+            </nav>
+        </div>
+
+        <div class="col-md-10 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="page-title">Manage Appointments</h1>
+                <div class="d-flex gap-3">
+                    <div class="input-group search-box" style="width: 250px;">
+                        <span class="input-group-text"><i class="bi bi-search text-warning"></i></span>
+                        <input type="text" class="form-control" placeholder="Search...">
+                    </div>
+                    <button class="btn btn-orange d-flex align-items-center gap-2">
+                        <i class="bi bi-plus-lg"></i> Add Appointment
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-card">
+                <div class="table-responsive">
+                    <table class="table table-hover table-alternating mb-0">
+                        <thead class="bg-light">
+                        <tr>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Phone Number</th>
+                            <th>Appointment Date & Time <i class="bi bi-sort-down ms-1 text-muted"></i></th>
+                            <th>Status</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+
+                        <tr>
+                            <td>Jane</td>
+                            <td>Cooper</td>
+                            <td>+84 9876543210</td>
+                            <td>13-Aug-2026 at 10:00 AM</td>
+                            <td><span class="status-badge status-pending">Pending</span></td>
+                            <td>
+                                <div class="d-flex gap-2 justify-content-center align-items-center">
+                                    <a th:href="@{/admin/payment}" class="btn-action-pay text-decoration-none">Pay
+                                        Now</a>
+                                    <button class="btn-action-assign text-decoration-none border-0"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#assignModal"
+
+                                            data-firstname="Jane"
+                                            data-lastname="Cooper"
+                                            data-phone="+84 9876543210"
+                                            data-date="13-Aug-2026 at 10:00 AM">
+                                        Assign Staff
+                                    </button>
+                                    <button class="btn-icon text-danger" title="Delete"><i class="bi bi-trash"></i>
+                                    </button>
+
+                                    <button class="btn-icon text-primary border-0 bg-transparent"
+                                            title="View Detail"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#detailModal"
+                                            data-firstname="Jane"
+                                            data-lastname="Cooper"
+                                            data-phone="+84 9876543210"
+                                            data-date="13-Aug-2026 at 10:00 AM"
+                                            data-status="Pending">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Wade</td>
+                            <td>Warren</td>
+                            <td>+84 9876543210</td>
+                            <td>14-Aug-2026 at 10:00 AM</td>
+                            <td><span class="status-badge status-confirmed">Confirmed</span></td>
+                            <td>
+                                <div class="d-flex gap-2 justify-content-center align-items-center">
+                                    <button class="btn-icon text-primary border-0 bg-transparent"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#detailModal"
+                                            data-firstname="Wade"
+                                            data-lastname="Warren"
+                                            data-phone="+84 9876543210"
+                                            data-date="14-Aug-2026 at 10:00 AM"
+                                            data-status="Confirmed">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="detailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content modal-content-bordered border-0 shadow-lg overflow-hidden"
+             style="border-radius: 12px;">
+            <div class="modal-header bg-orange text-white px-4 py-3 border-0">
+                <h5 class="modal-title fw-bold font-poppins">Detail Appointment</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 p-md-5 bg-white">
+                <form>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label text-dark fw-normal">First Name</label>
+                            <input type="text" class="form-control form-control-custom" id="modalFirstName" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-dark fw-normal">Last Name</label>
+                            <input type="text" class="form-control form-control-custom" id="modalLastName" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-dark fw-normal">Phone Number</label>
+                            <input type="text" class="form-control form-control-custom" id="modalPhone" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-dark fw-normal">Date & Time</label>
+                            <input type="text" class="form-control form-control-custom" id="modalDate" readonly>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label d-block text-dark fw-normal">Status</label>
+                            <div id="modalStatusBadge" class="status-badge"></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="assignModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg overflow-hidden" style="border-radius: 12px;">
+
+            <div class="modal-header bg-orange text-white px-4 py-3 border-0">
+                <h5 class="modal-title fw-bold font-poppins">Confirm Appointment</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body p-4 p-md-5 bg-white">
+                <form>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label text-dark fw-normal">First Name</label>
+                            <input type="text" class="form-control form-control-custom" id="assignFirstName" readonly>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label text-dark fw-normal">Last Name</label>
+                            <input type="text" class="form-control form-control-custom" id="assignLastName" readonly>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label text-dark fw-normal">Phone Number</label>
+                            <input type="text" class="form-control form-control-custom" id="assignPhone" readonly>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label text-dark fw-normal">Date & Time</label>
+                            <input type="text" class="form-control form-control-custom" id="assignDate" readonly>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label text-dark fw-normal">Staff in charge</label>
+                            <select class="form-select form-control-custom" id="assignStaffSelect">
+                                <option value="" selected disabled>Select a staff member...</option>
+                                <option value="1">Nguyen thi A</option>
+                                <option value="2">Tran Van B</option>
+                                <option value="3">John Doe</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-center mt-5">
+                        <button type="button" class="btn btn-confirm-green px-5 py-2">Confirm</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script th:src="@{/js/appt-manage.js}"></script>
+
+
+</body>
+</html>
