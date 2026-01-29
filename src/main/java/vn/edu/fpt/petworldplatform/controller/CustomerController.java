@@ -8,7 +8,7 @@ public class CustomerController {
 
     @GetMapping("/profile")
     public String profileShow() {
-        return "auth/viewProfile"; // viewProfile.html
+        return "auth/viewProfile";
     }
 
     @GetMapping("/profile/edit")
