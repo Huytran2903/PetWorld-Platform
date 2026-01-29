@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}"/>
+
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold text-dark" href="#">
+            <i class="bi bi-speedometer2 me-2"></i>Dashboard
+        </a>
+
+        <div class="ms-auto d-flex align-items-center">
+            <div class="dropdown">
+                <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle user-profile"
+                   id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                    <img
+                            th:src="@{/img/logo-petshop.png}" alt="mdo" class="user-avatar">
+                    <div class="d-none d-sm-block text-start">
+                        <div class="fw-bold" style="font-size: 14px;">Moni Roy</div>
+                        <div class="small text-white-50" style="font-size: 12px; line-height: 1;">Admin</div>
+                    </div>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownUser1">
+                    <li><a class="dropdown-item" href="#">Profile</a></li>
+                    <li><a class="dropdown-item" href="#">Settings</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item text-danger" href="#">Sign out</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid py-4 px-md-5">
+
+    <div class="mb-4">
+        <h2 class="fw-bold">Dashboard Overview</h2>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stats-title">Total User</div>
+                    <h3 class="stats-value">40,689</h3>
+                    <div class="text-success small mt-2"><i class="bi bi-graph-up-arrow"></i> 8.5% Up from yesterday
+                    </div>
+                </div>
+                <div class="icon-box bg-purple-light">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stats-title">Total Order</div>
+                    <h3 class="stats-value">10,293</h3>
+                    <div class="text-success small mt-2"><i class="bi bi-graph-up-arrow"></i> 1.3% Up from past week
+                    </div>
+                </div>
+                <div class="icon-box bg-yellow-light">
+                    <i class="bi bi-box-seam-fill"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stats-title">Total Sales</div>
+                    <h3 class="stats-value">$89,000</h3>
+                    <div class="text-danger small mt-2"><i class="bi bi-graph-down-arrow"></i> 4.3% Down from yesterday
+                    </div>
+                </div>
+                <div class="icon-box bg-green-light">
+                    <i class="bi bi-graph-up"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="stats-title">Total Pending</div>
+                    <h3 class="stats-value">2,040</h3>
+                    <div class="text-success small mt-2"><i class="bi bi-graph-up-arrow"></i> 1.8% Up from yesterday
+                    </div>
+                </div>
+                <div class="icon-box bg-red-light">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="d-flex justify-content-between align-items-center mb-4 header-orange-custom">
+
+            <h4 class="fw-bold mb-0 text-white">Recent Orders</h4>
+
+            <div class="d-flex gap-2">
+                <select class="form-select form-select-sm" style="width: 120px;">
+                    <option selected>October</option>
+                    <option value="1">November</option>
+                    <option value="2">December</option>
+                </select>
+
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Product</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>#001</td>
+                    <td>Nguyen Van A</td>
+                    <td>Apple Watch</td>
+                    <td>12.09.2025</td>
+                    <td>$34,295</td>
+                    <td><span class="badge badge-status status-rejected">Rejected</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-light text-primary"
+                                data-bs-toggle="modal"
+                                data-bs-target="#orderDetailModal"
+
+                                data-id="#001"
+                                data-customer="Nguyen Van A"
+                                data-product="Apple Watch"
+                                data-date="12.09.2025"
+                                data-amount="$34,295"
+                                data-status="Rejected">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>#002</td>
+                    <td>Nguyen Van B</td>
+                    <td>Happy meal</td>
+                    <td>12.09.2025</td>
+                    <td>$34,295</td>
+                    <td><span class="badge badge-status status-completed">Completed</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-light text-primary"><i class="bi bi-eye"></i></button>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>#003</td>
+                    <td>Tran Thi C</td>
+                    <td>Macbook Pro</td>
+                    <td>13.09.2025</td>
+                    <td>$1,200</td>
+                    <td><span class="badge badge-status status-pending">Pending</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-light text-primary"><i class="bi bi-eye"></i></button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<div class="modal fade" id="orderDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+
+            <div class="modal-header" style="background-color: #FFA54F; color: white;">
+                <h5 class="modal-title fw-bold">Order Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body p-4 p-md-5 bg-white">
+                <form>
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary">Order ID</label>
+                            <input type="text" class="form-control form-control-custom" id="modalOrderId" readonly>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary">Date</label>
+                            <input type="text" class="form-control form-control-custom" id="modalOrderDate" readonly>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary">Customer Name</label>
+                            <input type="text" class="form-control form-control-custom" id="modalCustomerName" readonly>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary">Product</label>
+                            <input type="text" class="form-control form-control-custom" id="modalProductName" readonly>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary">Amount</label>
+                            <input type="text" class="form-control form-control-custom" id="modalAmount" readonly>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-secondary d-block">Status</label>
+                            <span id="modalStatusBadge" class="badge-status">Pending</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-4 gap-2">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/admin-dashboard.js}"></script>
+</body>
+</html>
