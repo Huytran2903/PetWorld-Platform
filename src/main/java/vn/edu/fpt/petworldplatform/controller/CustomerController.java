@@ -21,5 +21,17 @@ public class CustomerController {
     public String orderHistory() {
         return "customer/order-history";
     }
+
+    //Cart
+    @GetMapping("/customer/shopping-cart")
+    public String shoppingCart() {
+        return "customer/shopping-cart";
+    }
+
+    //Checkout Order
+    @GetMapping("/customer/checkout-order")
+    public String checkoutOrder() {
+        return "customer/checkout-order";
+    }
 }
 

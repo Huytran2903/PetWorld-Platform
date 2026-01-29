@@ -12,14 +12,14 @@ public class ProductController {
     @GetMapping("/products")
     public String showProductList(Model model) {
         model.addAttribute("formMode", "product");
-        return "product-pet-list";
+        return "product/product-pet-list";
     }
 
     //Pet List
     @GetMapping("/pets")
     public String showPetList(Model model) {
         model.addAttribute("formMode", "pet");
-        return "product-pet-list";
+        return "product/product-pet-list";
     }
 
     //Product Detail

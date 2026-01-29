@@ -15,4 +15,16 @@ public class AdminController {
     public String editStaffProfile() {
         return "admin/add-editStaffProfile";
     }
+
+    //Manage Pet
+    @GetMapping("/admin/manage-pet")
+    public String managePet() {
+        return "admin/managePet";
+    }
+
+    //Manage Product
+    @GetMapping("/admin/manage-product")
+    public String manageProduct() {
+        return "admin/manageProduct";
+    }
 }
