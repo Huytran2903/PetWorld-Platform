@@ -1,0 +1,93 @@
+/* Sidebar Variables */
+:root {
+    --sb-orange: #ff9f43;
+    --sb-hover: rgba(255, 255, 255, 0.15);
+    --sb-active: rgba(255, 255, 255, 0.25);
+    --sb-text: #ffffff;
+}
+
+/* Sidebar Container */
+.sidebar-container {
+    width: 280px;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    left: 0;
+    background-color: var(--sb-orange); /* Màu cam chủ đạo */
+    flex-shrink: 0;
+    font-family: 'Montserrat', sans-serif !important;
+    padding: 32px 16px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
+}
+
+.flex-grow-1 {
+    width: 100%;
+}
+
+/* Logo Section */
+.sidebar-header {
+    padding-left: 12px;
+}
+
+.logo-text {
+    color: var(--sb-text);
+    font-size: 24px;
+    font-weight: 700;
+    font-family: 'Poppins', sans-serif;
+}
+
+.logo-dot {
+    color: #262633; /* Dấu chấm màu tối tạo điểm nhấn */
+    font-size: 24px;
+    font-weight: 700;
+}
+
+/* Navigation Links */
+.nav-link-custom {
+    text-decoration: none;
+    color: var(--sb-text) !important;
+    font-family: 'Montserrat', sans-serif !important;
+    font-size: 16px;
+    font-weight: 500;
+    padding: 12px 16px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.nav-link-custom:hover {
+    background-color: var(--sb-hover);
+    transform: translateX(5px);
+}
+
+/* Trạng thái Active từ Thymeleaf */
+.active-state {
+    background-color: var(--sb-active) !important;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Icon Placeholder inside Sidebar */
+.icon-box {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-placeholder {
+    background-color: #ffffff; /* Icon màu trắng trên nền cam */
+    border-radius: 2px;
+}
+
+.nav-link-custom i {
+    font-size: 1.2rem;
+    color: white !important;
+    margin-right: 15px;
+}

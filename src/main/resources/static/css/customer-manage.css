@@ -1,0 +1,133 @@
+/* 1. Khai báo biến và Reset */
+:root {
+    --primary-orange: #ff9f43;
+    --primary-orange-hover: #ee8e32;
+    --dark-blue: #2e66ff;
+    --dark-blue-hover: #1b52ee;
+    --bg-soft-orange: #fff8f1;
+    --text-gray: #444444;
+}
+
+body {
+    background-color: #f8f9fa; /* Màu nền nhẹ nhàng hơn */
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: var(--text-gray);
+}
+
+/* 2. Header & Search Box */
+.btn-add {
+    background-color: var(--primary-orange);
+    border-radius: 10px;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-add:hover {
+    background-color: var(--primary-orange-hover);
+    transform: translateY(-1px);
+}
+
+.search-box {
+    width: 280px;
+}
+
+.search-box .input-group-text {
+    border-radius: 10px 0 0 10px;
+    border-color: #dee2e6;
+}
+
+.search-box .form-control {
+    border-radius: 0 10px 10px 0;
+    border-color: #dee2e6;
+    font-size: 0.95rem;
+}
+
+.search-box .form-control:focus {
+    box-shadow: none;
+    border-color: var(--primary-orange);
+}
+
+/* 3. Table Styling */
+.table thead th {
+    background-color: #fdfdfd;
+    padding: 1.25rem 0.75rem;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    color: #6c757d;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.table tbody td {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+    border-color: #f8f9fa;
+}
+
+/* Màu dòng được highlight (Sarah Williams) */
+.bg-orange-light {
+    background-color: var(--bg-soft-orange) !important;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f1f4f9 !important; /* Màu xanh nhạt khi hover */
+    transition: background-color 0.2s ease;
+}
+
+/* 4. Avatar & Badges */
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.badge {
+    font-weight: 600;
+    min-width: 85px;
+    font-size: 0.75rem;
+}
+
+/* 5. Action Buttons (Pill Style) */
+.btn-orange-pill, .btn-blue-pill {
+    border-radius: 50px;
+    border: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.4rem 1rem;
+    min-width: 90px;
+    transition: all 0.2s ease;
+}
+
+.btn-orange-pill {
+    background-color: var(--primary-orange);
+}
+
+.btn-orange-pill:hover {
+    background-color: var(--primary-orange-hover);
+    color: white;
+}
+
+.btn-blue-pill {
+    background-color: var(--dark-blue);
+}
+
+.btn-blue-pill:hover {
+    background-color: var(--dark-blue-hover);
+    color: white;
+}
+
+/* Icon Action */
+.text-danger i, .text-primary i {
+    transition: transform 0.2s ease;
+}
+
+.text-danger:hover i {
+    color: #dc3545;
+    transform: scale(1.2);
+}

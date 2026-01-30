@@ -705,7 +705,7 @@ Single Product section style start
     font-size: 2rem;
     flex-shrink: 0;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     z-index: 2;
     position: relative;
 }
@@ -749,4 +749,11 @@ Single Product section style start
     color: #666;
     margin: 0;
     line-height: 1.5;
+}
+
+.footer-logo {
+    width: 150px;
+    height: auto;
+    display: block;
+    object-fit: contain;
 }

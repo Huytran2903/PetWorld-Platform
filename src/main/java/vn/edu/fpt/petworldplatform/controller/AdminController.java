@@ -47,4 +47,9 @@ public class AdminController {
     public String showAppointmentDetail() {
         return " appointment/appt-detail";
     }
+
+    @GetMapping("/admin/customer-manage")
+    public String showCustomerList() {
+        return "admin/customer-manage";
+    }
 }
