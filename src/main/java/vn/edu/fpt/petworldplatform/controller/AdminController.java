@@ -21,16 +21,40 @@ public class AdminController {
         return "admin/add-editStaffProfile";
     }
 
-    //Manage Pet
+    //Manage Pet - OanhTP
     @GetMapping("/admin/manage-pet")
     public String managePet() {
         return "admin/managePet";
     }
 
-    //Manage Product
+    //Manage Product - OanhTP
     @GetMapping("/admin/manage-product")
     public String manageProduct() {
         return "admin/manageProduct";
+    }
+
+    //Manage Categories - OanhTP
+   @GetMapping("/admin/manage-categories")
+   public String manageCategories() {
+        return "admin/manageCategories";
+   }
+
+    //Create Pet - OanhTP
+    @GetMapping("/admin/pet/save")
+    public String savePet() {
+        return "admin/pet-form";
+    }
+
+    //Create Product - OanhTP
+    @GetMapping("/admin/product/save")
+    public String saveProduct() {
+        return "admin/product-form";
+    }
+
+    //Create Category - OanhTP
+    @GetMapping("/admin/category/save")
+    public String saveCategory() {
+        return "admin/category-form";
     }
 
     @GetMapping("/admin/staff-manage")

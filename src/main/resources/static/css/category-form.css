@@ -1,0 +1,92 @@
+/* Color Palette & Variables */
+:root {
+    --primary-orange: #ff9f43;
+    --primary-orange-hover: #ee8e32;
+    --bg-soft-orange: #fff8f1; /* Your requested light orange */
+    --text-gray: #6c757d;
+    --transition-speed: 0.3s;
+}
+
+/* Base Body Styles */
+body {
+    background-color: var(--bg-soft-orange) !important;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    margin: 0;
+}
+
+/* Vertical and Horizontal Centering */
+.main-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Form Container */
+.form-container {
+    width: 100%;
+}
+
+/* White Card Design */
+.pet-card {
+    border-radius: 20px;
+    background-color: #ffffff !important;
+    box-shadow: 0 15px 35px rgba(255, 159, 67, 0.1) !important;
+}
+
+/* Icons within labels */
+label i {
+    color: var(--primary-orange);
+    width: 22px;
+    text-align: center;
+}
+
+/* --- DYNAMIC BUTTONS CSS --- */
+.btn {
+    transition: all var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Save Button - Pop & Shadow Effect */
+.btn-save-pill {
+    background-color: var(--primary-orange);
+    border-radius: 12px;
+    border: none;
+}
+
+.btn-save-pill:hover {
+    background-color: var(--primary-orange-hover);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(255, 159, 67, 0.4);
+    color: white;
+}
+
+.btn-save-pill:active {
+    transform: translateY(-1px) scale(0.98);
+}
+
+/* Cancel Button */
+.btn-pill-cancel {
+    border-radius: 50px;
+    border: 1px solid #dee2e6;
+    background-color: white;
+    color: var(--text-gray);
+    font-weight: 600;
+}
+
+.btn-pill-cancel:hover {
+    background-color: #fffaf5;
+    border-color: var(--primary-orange);
+    color: var(--primary-orange);
+    transform: translateY(-2px);
+}
+
+/* Form Controls & Inputs */
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-orange);
+    box-shadow: 0 0 0 0.25rem rgba(255, 159, 67, 0.15);
+}
+
+.form-control::placeholder {
+    color: #cbd5e0;
+    font-size: 0.9rem;
+}

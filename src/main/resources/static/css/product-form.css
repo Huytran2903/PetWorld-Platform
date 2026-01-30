@@ -1,0 +1,96 @@
+:root {
+    --primary-orange: #ff9f43;
+    --primary-orange-hover: #ee8e32;
+    --bg-soft-orange: #fff8f1;
+    --text-gray: #6c757d;
+}
+
+body {
+    background-color: var(--bg-soft-orange) !important;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+}
+
+.main-wrapper {
+    min-height: 100vh;
+}
+
+.form-container {
+    width: 100%;
+    max-width: 950px;
+}
+
+.pet-card {
+    border-radius: 20px;
+    background-color: #ffffff !important;
+    box-shadow: 0 15px 35px rgba(255, 159, 67, 0.1) !important;
+}
+
+label i {
+    color: var(--primary-orange);
+    width: 22px;
+    text-align: center;
+}
+
+/* --- DYNAMIC BUTTONS --- */
+.btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-save-pill {
+    background-color: var(--primary-orange);
+    border-radius: 12px;
+    border: none;
+}
+
+.btn-save-pill:hover {
+    background-color: var(--primary-orange-hover);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(255, 159, 67, 0.4);
+    color: white;
+}
+
+.btn-pill-cancel {
+    border-radius: 50px;
+    border: 1px solid #dee2e6;
+    background-color: white;
+    color: var(--text-gray);
+    font-weight: 600;
+}
+
+.btn-pill-cancel:hover {
+    background-color: #fffaf5;
+    border-color: var(--primary-orange);
+    color: var(--primary-orange);
+    transform: translateY(-2px);
+}
+
+/* --- UPLOAD SECTION --- */
+.upload-container {
+    border: 2px dashed var(--primary-orange) !important;
+    background-color: #ffffff !important;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.upload-container:hover {
+    background-color: #fffbf5 !important;
+    transform: scale(1.01);
+}
+
+.btn-outline-warning {
+    color: var(--primary-orange);
+    border-color: var(--primary-orange);
+    border-radius: 8px;
+}
+
+.btn-outline-warning:hover {
+    background-color: var(--primary-orange);
+    color: white;
+}
+
+/* Inputs & Focus */
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-orange);
+    box-shadow: 0 0 0 0.25rem rgba(255, 159, 67, 0.15);
+}

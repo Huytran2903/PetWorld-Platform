@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -14,9 +14,9 @@
             <div>
                 <h1 class="h3 mb-1 fw-bold text-dark">Pet Management System</h1>
             </div>
-            <button class="btn btn-add-new d-flex align-items-center gap-2 px-4 py-2 shadow-sm">
+            <a th:href="@{/admin/pet/save}" class="btn btn-add-new d-flex align-items-center gap-2 px-4 py-2 shadow-sm text-decoration-none">
                 <span class="fs-4">+</span> Add New Pet
-            </button>
+            </a>
         </div>
     </header>
 
