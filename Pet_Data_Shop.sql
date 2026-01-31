@@ -508,48 +508,44 @@ GO
 
 /* =========================================================
    13) SEED DATA
-   PasswordHash mẫu: MD5('123456') = e10adc3949ba59abbe56e057f20f883e
+   PasswordHash mẫu: MD5('12345r6') = e10adc3949ba59abbe56e057f20f883e
    ========================================================= */
 
 -- Seed Admin (Staff role admin)
 DECLARE @AdminRoleID INT = (SELECT RoleID FROM dbo.Roles WHERE RoleName='admin');
 INSERT INTO dbo.Staff(RoleID, Username, PasswordHash, Email, Phone, FullName, HireDate, Bio)
-VALUES (@AdminRoleID, 'admin', 'e10adc3949ba59abbe56e057f20f883e', 'admin@petshop.com', '0901234567', N'Quản trị viên', '2024-01-01', N'Quản trị hệ thống');
+VALUES (@AdminRoleID, 'admin', 'e10adc3949ba59abbe56e057f20f883e', 'admin@petshop.com', '0901234567', N'System Administrator', '2024-01-01', N'System administration');
 
 -- Seed Staff
 DECLARE @StaffRoleID INT = (SELECT RoleID FROM dbo.Roles WHERE RoleName='staff');
 INSERT INTO dbo.Staff(RoleID, Username, PasswordHash, Email, Phone, FullName, HireDate, Bio)
 VALUES
-(@StaffRoleID, 'staff01', 'e10adc3949ba59abbe56e057f20f883e', 'staff01@petshop.com', '0912345678', N'Nguyễn Văn A', '2024-01-15', N'Chuyên viên chăm sóc thú cưng, 3 năm kinh nghiệm'),
-(@StaffRoleID, 'staff02', 'e10adc3949ba59abbe56e057f20f883e', 'staff02@petshop.com', '0923456789', N'Trần Thị B', '2024-02-01', N'Bác sĩ thú y, chuyên khoa nội'),
-(@StaffRoleID, 'staff03', 'e10adc3949ba59abbe56e057f20f883e', 'staff03@petshop.com', '0934567890', N'Lê Văn C', '2024-03-10', N'Chuyên viên spa & grooming');
+(@StaffRoleID, 'staff01', 'e10adc3949ba59abbe56e057f20f883e', 'staff01@petshop.com', '0912345678', N'Nguyen Van A', '2024-01-15', N'Pet care specialist, three years of experience'),
+(@StaffRoleID, 'staff02', 'e10adc3949ba59abbe56e057f20f883e', 'staff02@petshop.com', '0923456789', N'Tran Thi B', '2024-02-01', N'Veterinarian, internal medicine specialist'),
+(@StaffRoleID, 'staff03', 'e10adc3949ba59abbe56e057f20f883e', 'staff03@petshop.com', '0934567890', N'Le Van C', '2024-03-10', N'Spa and grooming specialist');
 
 -- Seed Customers
-INSERT INTO dbo.Customers(Username, PasswordHash, Email, Phone, FullName, IsActive)
-VALUES
-('customer01', 'e10adc3949ba59abbe56e057f20f883e', 'customer01@gmail.com', '0945678901', N'Phạm Thị D', 1),
-('customer02', 'e10adc3949ba59abbe56e057f20f883e', 'customer02@gmail.com', '0956789012', N'Hoàng Văn E', 1);
 
--- Seed Categories
+-- Seed Categoriesr
 INSERT INTO dbo.Categories(Name, Description) VALUES
-(N'Thức ăn cho chó', N'Thức ăn dinh dưỡng dành cho chó các loại'),
-(N'Thức ăn cho mèo', N'Thức ăn dinh dưỡng dành cho mèo các loại'),
-(N'Phụ kiện thú cưng', N'Đồ chơi, vòng cổ, quần áo cho thú cưng'),
-(N'Vệ sinh & chăm sóc', N'Sản phẩm tắm rửa, vệ sinh cho thú cưng'),
-(N'Sức khỏe', N'Vitamin, thuốc bổ, sản phẩm chăm sóc sức khỏe');
+(N'Dog Food', N'Nutritious food for dogs of all kinds'),
+(N'Cat Food', N'Nutritious food for cats of all kinds'),
+(N'Pet Accessories', N'Toys, collars, and clothes for pets'),
+(N'Hygiene & Care', N'Bathing and hygiene products for pets'),
+(N'Health', N'Vitamins, supplements, and health care products');
 
 -- Seed Services
 INSERT INTO dbo.Services(ServiceType, Name, Description, BasePrice, DurationMinutes) VALUES
-('vaccination', N'Tiêm phòng dại', N'Tiêm phòng bệnh dại cho chó mèo', 150000, 30),
-('vaccination', N'Tiêm phòng 5 bệnh', N'Tiêm phòng 5 bệnh cơ bản cho chó', 200000, 30),
-('vaccination', N'Tiêm phòng 7 bệnh', N'Tiêm phòng 7 bệnh toàn diện cho chó', 250000, 30),
-('hygiene', N'Tắm spa cơ bản', N'Tắm, vệ sinh, cắt móng cơ bản', 100000, 60),
-('hygiene', N'Tắm spa cao cấp', N'Tắm spa + massage + làm đẹp lông', 200000, 90),
-('hygiene', N'Cắt tỉa lông chuyên nghiệp', N'Cắt tỉa, tạo kiểu lông theo yêu cầu', 150000, 60),
-('health_check', N'Khám sức khỏe tổng quát', N'Kiểm tra sức khỏe toàn diện', 300000, 45),
-('health_check', N'Khám bệnh chuyên khoa', N'Khám và tư vấn bệnh chuyên sâu', 500000, 60),
-('boarding', N'Giữ thú cưng theo ngày', N'Dịch vụ giữ thú cưng chuyên nghiệp', 80000, 1440),
-('boarding', N'Giữ thú cưng theo tuần', N'Dịch vụ giữ thú cưng theo tuần', 500000, 10080);
+('vaccination', N'Rabies Vaccination', N'Rabies vaccination for dogs and cats', 150000, 30),
+('vaccination', N'Five-in-One Vaccination', N'Basic five-disease vaccination for dogs', 200000, 30),
+('vaccination', N'Seven-in-One Vaccination', N'Comprehensive seven-disease vaccination for dogs', 250000, 30),
+('hygiene', N'Basic Spa Bath', N'Bathing, hygiene, and basic nail trimming', 100000, 60),
+('hygiene', N'Premium Spa Bath', N'Spa bath + massage + coat grooming', 200000, 90),
+('hygiene', N'Professional Grooming', N'Grooming and styling on request', 150000, 60),
+('health_check', N'General Health Check-up', N'Comprehensive health examination', 300000, 45),
+('health_check', N'Specialist Consultation', N'In-depth examination and specialized consultation', 500000, 60),
+('boarding', N'Daily Pet Boarding', N'Professional pet boarding service', 80000, 1440),
+('boarding', N'Weekly Pet Boarding', N'Weekly pet boarding service', 500000, 10080);
 
 -- Seed FEATURE 10 (tối giản)
 INSERT INTO dbo.SystemConfigs(ConfigKey, ConfigValue, DataType) VALUES
