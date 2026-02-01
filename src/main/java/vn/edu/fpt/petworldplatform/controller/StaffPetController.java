@@ -14,26 +14,23 @@ public class StaffPetController {
     @Autowired
     private PetService petService;
 
-    // 1. Hiển thị danh sách
-    @GetMapping("/list")
-    public String showPetList(Model model) {
-        // Đẩy list pet từ DB ra view
-        model.addAttribute("pets", petService.getAllPets());
-        return "staff/pet/pet-list";
-    }
-
-    // 2. Hiển thị form tạo mới
     @GetMapping("/create")
-    public String showCreateForm(Model model) {
-        // Tạo object rỗng để hứng dữ liệu form
+    public String showCreatePet(Model model) {
+        // Gửi 1 phiếu trắng sang giao diện để người dùng điền
         model.addAttribute("petDTO", new PetCreateDTO());
         return "staff/pet/pet-create";
     }
 
-    // 3. Xử lý khi bấm nút "Create Profile"
     @PostMapping("/create")
     public String handleCreatePet(@ModelAttribute PetCreateDTO petDTO) {
+        // Gọi Service lưu vào Database
         petService.createPet(petDTO);
-        return "redirect:/staff/pet/list"; // Xong thì quay về danh sách
+        return "redirect:/staff/pet/list";
+    }
+
+    @GetMapping("/list")
+    public String showPetList(Model model) {
+        model.addAttribute("pets", petService.getAllPets());
+        return "staff/pet/pet-list";
     }
 }
