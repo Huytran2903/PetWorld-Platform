@@ -4,9 +4,9 @@ document.addEventListener("DOMContentLoaded", function() {
     const sumDuration = document.getElementById("sumDuration");
     const sumTotal = document.getElementById("sumTotal");
 
-    // Hàm định dạng tiền tệ VN
+    // Format currency (VND, English locale for display)
     function formatVND(n) {
-        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(n);
+        return new Intl.NumberFormat('en-US', { style: 'decimal', minimumFractionDigits: 0 }).format(n) + " VND";
     }
 
     // Hàm tính toán
@@ -52,14 +52,14 @@ document.addEventListener("DOMContentLoaded", function() {
         sumServices.textContent = names.length > 0 ? names.join(", ") : "—";
         sumTotal.textContent = names.length > 0 ? formatVND(total) : "—";
 
-        // Format thời gian (phút -> giờ)
+        // Format duration (minutes -> hours/minutes, English)
         if (totalDuration > 0) {
             const hours = Math.floor(totalDuration / 60);
             const minutes = totalDuration % 60;
             let timeStr = "";
-            if(hours > 0) timeStr += `${hours} giờ `;
-            if(minutes > 0) timeStr += `${minutes} phút`;
-            sumDuration.textContent = timeStr;
+            if (hours > 0) timeStr += `${hours} ${hours === 1 ? "hour" : "hours"} `;
+            if (minutes > 0) timeStr += `${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
+            sumDuration.textContent = timeStr.trim();
         } else {
             sumDuration.textContent = "—";
         }
