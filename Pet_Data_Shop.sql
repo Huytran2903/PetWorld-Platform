@@ -168,10 +168,19 @@ GO
 /* =========================================================
    6) SERVICES / APPOINTMENTS / ASSIGNMENT / SCHEDULE
    ========================================================= */
+/* Service Types: categorize services (Spa, Vaccination, Boarding, etc.) - Admin CRUD, soft delete */
+CREATE TABLE dbo.ServiceTypes (
+    ServiceTypeID INT IDENTITY(1,1) PRIMARY KEY,
+    Name NVARCHAR(80) NOT NULL UNIQUE,
+    Description NVARCHAR(500) NULL,
+    IsActive BIT NOT NULL DEFAULT 1
+);
+GO
+
 CREATE TABLE dbo.Services (
     ServiceID INT IDENTITY(1,1) PRIMARY KEY,
     ServiceType VARCHAR(20) NOT NULL
-        CHECK (ServiceType IN ('vaccination','boarding','hygiene')),
+        CHECK (ServiceType IN ('vaccination','boarding','hygiene','health_check')),
     Name NVARCHAR(120) NOT NULL,
     Description NVARCHAR(500) NULL,
     BasePrice DECIMAL(12,2) NOT NULL CHECK (BasePrice >= 0),
@@ -549,6 +558,13 @@ INSERT INTO dbo.Categories(Name, Description) VALUES
 (N'Pet Accessories', N'Toys, collars, and clothes for pets'),
 (N'Hygiene & Care', N'Bathing and hygiene products for pets'),
 (N'Health', N'Vitamins, supplements, and health care products');
+
+-- Seed Service Types (Name matches Services.ServiceType for BR-21 dependency check; used as filters in booking)
+INSERT INTO dbo.ServiceTypes(Name, Description, IsActive) VALUES
+('vaccination', N'Vaccination and immunization services', 1),
+('boarding', N'Pet boarding and daycare', 1),
+('hygiene', N'Bathing, grooming, and hygiene care', 1),
+('health_check', N'General health check-up and consultation', 1);
 
 -- Seed Services
 INSERT INTO dbo.Services(ServiceType, Name, Description, BasePrice, DurationMinutes) VALUES

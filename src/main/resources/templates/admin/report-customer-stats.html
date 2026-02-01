@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,7 +26,7 @@
                 <ul class="space-y-1">
                     <li><a href="staff-dashboard.html" class="flex items-center gap-3 px-6 py-3 text-gray-600 hover:bg-gray-50"><i class="fa-solid fa-chart-line w-5 text-center"></i><span class="font-semibold">Dashboard</span></a></li>
                     <li><a href="assigned-appointments.html" class="flex items-center gap-3 px-6 py-3 text-gray-600 hover:bg-gray-50"><i class="fa-solid fa-list-check w-5 text-center"></i><span class="font-semibold">My Appointments</span></a></li>
-                    <li><a href="service-manager.html" class="flex items-center gap-3 px-6 py-3 text-gray-600 hover:bg-gray-50"><i class="fa-solid fa-briefcase-medical w-5 text-center"></i><span class="font-semibold">Service Manager</span></a></li>
+                    <li><a th:href="@{/admin/service-manager}" href="/admin/service-manager" class="flex items-center gap-3 px-6 py-3 text-gray-600 hover:bg-gray-50"><i class="fa-solid fa-briefcase-medical w-5 text-center"></i><span class="font-semibold">Service Manager</span></a></li>
                     <li><a href="report-center.html" class="flex items-center gap-3 px-6 py-3 bg-teal-50 text-primary border-r-4 border-primary"><i class="fa-solid fa-chart-pie w-5 text-center"></i><span class="font-semibold">Reports</span></a></li>
                 </ul>
             </nav>
