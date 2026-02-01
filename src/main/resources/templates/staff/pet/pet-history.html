@@ -1,85 +1,138 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" 
+<html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/staff_layout :: layout(~{::content})}">
 
 <section th:fragment="content">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/pet-dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/pet-detail.css}">
     <script th:src="@{/js/pet-dashboard.js}"></script>
 
     <div class="bg-gray-50 min-h-screen p-6">
         <div class="max-w-6xl mx-auto fade-in">
-             <div class="flex items-center justify-between mb-8">
+
+            <a th:href="@{/staff/pet/list}" class="inline-flex items-center gap-2 text-gray-500 hover:text-orange-600 mb-6 font-medium transition">
+                <i class="fa-solid fa-arrow-left"></i> Back to Pet List
+            </a>
+
+            <div class="flex items-center justify-between mb-8">
                 <nav class="flex" aria-label="Breadcrumb">
                     <ol class="inline-flex items-center space-x-1 md:space-x-3">
-                        <li class="inline-flex items-center"><a th:href="@{/staff/pet/list}" class="inline-flex items-center text-sm font-medium text-gray-500 hover:text-orange-600"><i class="fa-solid fa-dog mr-2"></i>Pet List</a></li>
-                        <li><div class="flex items-center"><i class="fa-solid fa-chevron-right text-gray-300 mx-2"></i><span class="text-sm font-medium text-gray-800">LuLu</span></div></li>
+                        <li class="inline-flex items-center"><span class="text-sm font-medium text-gray-400">Current Pet:</span></li>
+                        <li><div class="flex items-center"><span class="text-sm font-bold text-gray-800 ml-2" th:text="${pet.name}">LuLu</span></div></li>
                     </ol>
                 </nav>
+                <a th:href="@{/staff/pet/update(id=${pet.id})}" class="bg-white border border-gray-200 hover:border-orange-500 hover:text-orange-600 text-gray-700 px-5 py-2.5 rounded-lg shadow-sm font-bold transition flex items-center gap-2">
+                    <i class="fa-solid fa-pen"></i> Edit Profile
+                </a>
             </div>
 
-            <!-- Pet Summary Header (Condensed) -->
-            <div class="bg-white rounded-xl shadow-sm p-4 mb-6 flex items-center gap-4 border border-gray-100">
-                <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" class="w-12 h-12 rounded-full object-cover border border-gray-200">
-                <div>
-                    <h1 class="text-lg font-bold text-gray-800">LuLu's Records</h1>
-                    <p class="text-xs text-gray-500">History of services, vaccinations, and health checks.</p>
+            <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 flex flex-col md:flex-row gap-8 border border-gray-100">
+                <div class="w-48 h-48 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 shadow-inner border border-gray-200 relative group">
+                    <img th:src="${pet.imageUrl}" class="w-full h-full object-cover">
+                    <div class="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition cursor-pointer"><i class="fa-solid fa-expand text-white text-2xl"></i></div>
+                </div>
+                <div class="flex-1">
+                    <div class="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+                        <div>
+                            <h1 class="text-4xl font-extrabold text-gray-800 mb-2" th:text="${pet.name}">LuLu</h1>
+                            <div class="flex items-center gap-3 text-gray-500 font-medium">
+                                <span class="flex items-center gap-1"><i class="fa-solid fa-paw text-orange-400"></i> <span th:text="${pet.petType} + ' (' + ${pet.breed} + ')'">Dog (Corgi)</span></span>
+                                <span>•</span>
+                                <span th:text="${pet.ageMonths} + ' Months'">24 Months</span>
+                                <span>•</span>
+                                <span>-- kg</span>
+                            </div>
+                        </div>
+
+                        <span th:if="${pet.owner != null}" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-full text-sm font-bold border border-gray-200 flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-green-500"></div> Owned by Customer
+                        </span>
+
+                        <span th:if="${pet.owner == null}" class="bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-bold border border-green-200 flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-green-500"></div> For Sale: <span th:text="${#numbers.formatDecimal(pet.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                        </span>
+                    </div>
+
+                    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-gray-50 rounded-xl border border-gray-100">
+                        <div th:if="${pet.owner != null}">
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Owner Info</span>
+                            <div class="mt-1 flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">U</div>
+                                <div>
+                                    <div class="font-bold text-gray-800" th:text="${pet.owner.fullName}">Name</div>
+                                    <div class="text-xs text-gray-500" th:text="'ID: ' + ${pet.owner.customerId}">ID: 101</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div th:if="${pet.owner == null}">
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Shop Item</span>
+                            <div class="mt-1 flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold"><i class="fa-solid fa-shop"></i></div>
+                                <div><div class="font-bold text-gray-800">Available for Sale</div></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Health Status</span>
+                            <div class="mt-1 font-bold text-green-600 flex items-center gap-2"><i class="fa-solid fa-heart-pulse"></i> Normal / Healthy</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="bg-white rounded-2xl shadow-sm min-h-[500px] border border-gray-100 overflow-hidden">
+            <div class="bg-white rounded-2xl shadow-sm min-h-[400px] border border-gray-100 overflow-hidden">
                 <div class="flex border-b border-gray-100">
-                    <a th:href="@{/staff/pet/detail}" class="px-8 py-5 font-bold text-gray-500 hover:text-orange-500 hover:bg-gray-50 transition">Description & Notes</a>
+                    <a th:href="@{/staff/pet/detail(id=${pet.id})}" class="px-8 py-5 font-bold text-gray-500 hover:text-orange-500 hover:bg-gray-50 transition">Description & Notes</a>
+
                     <button class="px-8 py-5 font-bold text-orange-600 border-b-2 border-orange-500 bg-orange-50/50">Care History & Records</button>
                 </div>
-                <div class="p-8 space-y-10">
-                    <!-- Section 1: Services -->
+
+                <div class="p-10 space-y-10">
+
                     <div>
                         <h4 class="text-lg font-bold text-gray-800 mb-4 pl-3 border-l-4 border-blue-500">Service History (Appointments)</h4>
                         <div class="overflow-x-auto rounded-xl border border-gray-200">
                             <table class="w-full text-left">
                                 <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                                    <tr><th class="p-4 font-semibold">Date</th><th class="p-4 font-semibold">Service Name</th><th class="p-4 font-semibold">Note</th><th class="p-4 font-semibold text-right">Status</th></tr>
+                                <tr><th class="p-4 font-semibold">Date</th><th class="p-4 font-semibold">Service Name</th><th class="p-4 font-semibold">Note</th><th class="p-4 font-semibold text-right">Status</th></tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-100">
-                                    <tr class="hover:bg-gray-50 transition">
-                                        <td class="p-4 text-gray-700">Jan 20, 2026</td>
-                                        <td class="p-4 font-bold text-gray-800">Spa - Hygiene Bath</td>
-                                        <td class="p-4 text-gray-500 italic">Scared of dryer.</td>
-                                        <td class="p-4 text-right"><span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Completed</span></td>
-                                    </tr>
+                                <tr class="hover:bg-gray-50 transition">
+                                    <td class="p-4 text-gray-700">Jan 20, 2026</td>
+                                    <td class="p-4 font-bold text-gray-800">Spa - Hygiene Bath</td>
+                                    <td class="p-4 text-gray-500 italic">Scared of dryer.</td>
+                                    <td class="p-4 text-right"><span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Completed</span></td>
+                                </tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
 
-                    <!-- Section 2: Vaccination -->
                     <div>
                         <h4 class="text-lg font-bold text-gray-800 mb-4 pl-3 border-l-4 border-green-500">Vaccination Records</h4>
-                         <div class="overflow-x-auto rounded-xl border border-gray-200">
+                        <div class="overflow-x-auto rounded-xl border border-gray-200">
                             <table class="w-full text-left">
                                 <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                                    <tr><th class="p-4 font-semibold">Date</th><th class="p-4 font-semibold">Vaccine</th><th class="p-4 font-semibold">Next Due</th><th class="p-4 font-semibold text-right">Vet</th></tr>
+                                <tr><th class="p-4 font-semibold">Date</th><th class="p-4 font-semibold">Vaccine</th><th class="p-4 font-semibold">Next Due</th><th class="p-4 font-semibold text-right">Vet</th></tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-100">
-                                    <tr class="hover:bg-gray-50 transition">
-                                        <td class="p-4 text-gray-700">Dec 10, 2025</td>
-                                        <td class="p-4 font-bold text-gray-800">Rabies</td>
-                                        <td class="p-4 text-red-500 font-bold">Dec 10, 2026</td>
-                                        <td class="p-4 text-right text-gray-600">Dr. Staff02</td>
-                                    </tr>
+                                <tr class="hover:bg-gray-50 transition">
+                                    <td class="p-4 text-gray-700">Dec 10, 2025</td>
+                                    <td class="p-4 font-bold text-gray-800">Rabies</td>
+                                    <td class="p-4 text-red-500 font-bold">Dec 10, 2026</td>
+                                    <td class="p-4 text-right text-gray-600">Dr. Staff02</td>
+                                </tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
     </div>
 </section>
 </html>
-
-
-

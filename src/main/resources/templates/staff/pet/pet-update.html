@@ -1,53 +1,104 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" 
+<html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/staff_layout :: layout(~{::content})}">
 
 <section th:fragment="content">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/pet-dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/pet-detail.css}">
     <script th:src="@{/js/pet-dashboard.js}"></script>
 
     <div class="bg-gray-50 min-h-screen p-6">
         <div class="max-w-4xl mx-auto fade-in">
-            <a th:href="@{/staff/pet/detail}" class="inline-flex items-center gap-2 text-gray-500 hover:text-orange-600 mb-6 font-medium transition">
+            <a th:href="@{/staff/pet/detail(id=${pet.id})}" class="inline-flex items-center gap-2 text-gray-500 hover:text-orange-600 mb-6 font-medium transition">
                 <i class="fa-solid fa-arrow-left"></i> Back to Detail
             </a>
-            
+
             <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-                <div class="bg-gradient-to-r from-blue-500 to-indigo-600 p-8 text-white">
+                <div class="bg-gradient-to-r from-orange-500 to-red-500 p-8 text-white">
                     <h2 class="text-3xl font-bold flex items-center gap-3">
                         <i class="fa-solid fa-pen-to-square"></i> Update Profile
                     </h2>
-                    <p class="mt-2 text-blue-100 opacity-90">Edit details for pet <span class="font-bold underline">LuLu</span>.</p>
+                    <p class="mt-2 text-orange-100 opacity-90">Edit details for pet <span class="font-bold underline" th:text="${pet.name}">LuLu</span>.</p>
                 </div>
-                
-                <form class="p-8 md:p-10">
+
+                <form th:action="@{/staff/pet/update}" th:object="${pet}" method="post" class="p-8 md:p-10">
+
+                    <input type="hidden" th:field="*{id}">
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                         <div class="space-y-6">
-                            <div><label class="block text-sm font-bold text-gray-700 mb-2">Pet Name *</label><input type="text" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50" value="LuLu"></div>
-                            
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Pet Name *</label>
+                                <input type="text" th:field="*{name}" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-gray-50">
+                            </div>
+
                             <div class="grid grid-cols-2 gap-4">
-                                <div><label class="block text-sm font-bold text-gray-700 mb-2">Species</label><select class="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50"><option value="dog" selected>Dog</option></select></div>
-                                <div><label class="block text-sm font-bold text-gray-700 mb-2">Breed</label><input type="text" class="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50" value="Corgi"></div>
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">Species</label>
+                                    <select th:field="*{petType}" class="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                        <option value="dog">Dog 🐕</option>
+                                        <option value="cat">Cat 🐈</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">Breed</label>
+                                    <input type="text" th:field="*{breed}" class="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Age (Months)</label>
+                                <input type="number" th:field="*{ageMonths}" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 bg-gray-50">
                             </div>
                         </div>
+
                         <div class="space-y-6">
-                            <div>
+                            <div th:if="${pet.owner != null}">
                                 <label class="block text-sm font-bold text-gray-700 mb-2">Owner (Read-only)</label>
-                                <div class="relative"><input type="text" class="w-full px-4 py-3 pl-11 border border-gray-200 bg-gray-100 rounded-lg text-gray-500 cursor-not-allowed" value="Nguyen Van A (ID: 101)" readonly><i class="fa-solid fa-lock absolute left-4 top-4 text-gray-400"></i></div>
+                                <div class="relative">
+                                    <input type="text" class="w-full px-4 py-3 pl-11 border border-gray-200 bg-gray-100 rounded-lg text-gray-500 cursor-not-allowed"
+                                           th:value="${pet.owner.fullName} + ' (ID: ' + ${pet.owner.customerId} + ')'" readonly>
+                                    <i class="fa-solid fa-lock absolute left-4 top-4 text-gray-400"></i>
+                                </div>
                             </div>
+
+                            <div th:if="${pet.owner == null}">
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Sale Price</label>
+                                <div class="relative">
+                                    <input type="number" th:field="*{price}" class="w-full px-4 py-3 pl-11 border border-green-200 bg-green-50 rounded-lg text-green-700 font-bold focus:ring-2 focus:ring-green-500">
+                                    <i class="fa-solid fa-tag absolute left-4 top-4 text-green-600"></i>
+                                </div>
+                            </div>
+
                             <div>
                                 <label class="block text-sm font-bold text-gray-700 mb-2">Status</label>
-                                <select class="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50"><option value="true">Active / Alive</option><option value="false">Inactive / Deceased</option></select>
+                                <select th:field="*{available}" class="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                    <option value="true">Active / Available</option>
+                                    <option value="false">Inactive / Sold</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Image URL</label>
+                                <div class="relative">
+                                    <input type="text" th:field="*{imageUrl}" class="w-full px-4 py-3 pl-11 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                                    <i class="fa-solid fa-image absolute left-4 top-4 text-gray-400"></i>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    
+
+                    <div class="mt-6">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Description</label>
+                        <textarea th:field="*{description}" class="w-full px-4 py-3 border border-gray-200 rounded-lg h-24 bg-gray-50 resize-none focus:outline-none focus:ring-2 focus:ring-orange-500"></textarea>
+                    </div>
+
                     <div class="mt-10 flex justify-end gap-4 border-t border-gray-100 pt-6">
-                        <a th:href="@{/staff/pet/detail}" class="px-6 py-3 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 font-semibold transition">Cancel</a>
-                        <button type="button" class="px-8 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-lg font-bold transition">Save Changes</button>
+                        <a th:href="@{/staff/pet/detail(id=${pet.id})}" class="px-6 py-3 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-50 font-semibold transition">Cancel</a>
+
+                        <button type="submit" class="px-8 py-3 rounded-lg bg-orange-500 text-white hover:bg-orange-600 shadow-lg font-bold transition transform active:scale-95">Save Changes</button>
                     </div>
                 </form>
             </div>
@@ -55,6 +106,3 @@
     </div>
 </section>
 </html>
-
-
-
