@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
-    <link rel="stylesheet" th:href="@{/style.css}"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
 </head>
 <body>
 
@@ -18,39 +18,23 @@
 
         <header class="d-flex flex-wrap justify-content-between align-items-center mb-4">
             <div class="welcome-text">
-                <h1 class="h3 fw-medium text-dark mb-1">Welcome, UserName</h1>
+                <h1 class="h3 fw-medium text-dark mb-1">
+                    Welcome, <span th:text="${user.username}">UserName</span>
+                </h1>
                 <time class="text-muted fw-light small">Tue, 07 June 2022</time>
             </div>
 
             <nav class="d-flex gap-3">
-                <a th:href="@{/}" class="nav-btn"
-                   data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Home">
+                <a th:href="@{/}" class="nav-btn" data-bs-title="Home">
                     <i class="bi bi-house"></i>
                 </a>
+                <button class="nav-btn"><i class="bi bi-list"></i></button>
+                <button class="nav-btn"><i class="bi bi-grid"></i></button>
+                <a th:href="@{/customer/shopping-cart}" class="nav-btn"><i class="bi bi-bag"></i></a>
+                <button class="nav-btn"><i class="bi bi-bell"></i></button>
 
-                <button class="nav-btn"
-                        data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Menu">
-                    <i class="bi bi-list"></i>
-                </button>
-
-                <button class="nav-btn"
-                        data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Grid View">
-                    <i class="bi bi-grid"></i>
-                </button>
-
-                <a th:href="@{/cart}" class="nav-btn"
-                   data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="My Orders">
-                    <i class="bi bi-bag"></i>
-                </a>
-
-                <button class="nav-btn position-relative"
-                        data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Notifications">
-                    <i class="bi bi-bell"></i>
-                </button>
                 <div class="nav-item">
-                    <img class="nav-avatar"
-                         th:src="@{/images/logo-petshop.png}"
-                         alt="User avatar">
+                    <img class="nav-avatar" th:src="@{/images/logo-petshop.png}" alt="User avatar">
                 </div>
             </nav>
         </header>
@@ -61,20 +45,17 @@
 
             <div class="profile-header-info">
 
-                <img class="avatar-large"
-                     th:src="@{/images/logo-petshop.png}"
-                     alt="Profile">
+                <img class="avatar-large" th:src="@{/images/logo-petshop.png}" alt="Profile">
 
                 <div class="d-flex flex-wrap align-items-center justify-content-between user-info-text">
 
                     <div>
-                        <h2 class="h4 fw-medium mb-1">Alexa Rawles</h2>
-                        <p class="text-muted mb-0">alexarawles@gmail.com</p>
+                        <h2 class="h4 fw-medium mb-1" th:text="${user.username}"></h2>
+                        <p class="text-muted mb-0" th:text="${user.email}"></p>
                     </div>
 
                     <div class="d-flex gap-3 mt-3 mt-md-0">
                         <a th:href="@{/changePassword}" class="btn btn-yellow">Change password</a>
-
                         <a th:href="@{/profile/edit}" class="btn btn-blue">Edit</a>
                     </div>
                 </div>
@@ -86,20 +67,22 @@
                         <div class="col-md-6">
                             <label class="form-label" for="fullName">Full Name</label>
                             <input class="form-control" type="text" id="fullName" name="fullName"
-                                   th:value="'Nguyen Van A'"
+                                   th:value="${user.fullName}"
                                    readonly>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label" for="userName">User name</label>
                             <input class="form-control" type="text" id="userName" name="userName"
-                                   th:value="'A@1243'"
+                                   th:value="${user.username}"
                                    readonly>
                         </div>
 
-                        <div class="col-12"><label class="form-label" for="phone">Phone</label>
+                        <div class="col-12">
+                            <label class="form-label" for="phone">Phone</label>
                             <input class="form-control" type="tel" id="phone" name="phone"
-                                   placeholder="Your Phone Number" value="0123456789" readonly>
+                                   th:value="${user.phone}"
+                                   readonly>
                         </div>
                     </div>
 
@@ -110,8 +93,9 @@
                                 <i class="bi bi-envelope-fill"></i>
                             </div>
                             <div>
-                                <span class="d-block text-dark fw-medium">alexarawles@gmail.com</span>
-                                <small class="text-muted">1 month ago</small>
+                                <span class="d-block text-dark fw-medium" th:text="${user.email}">
+                                </span>
+                                <small class="text-muted">Verified</small>
                             </div>
                         </div>
                     </div>
@@ -119,10 +103,10 @@
             </div>
         </div>
     </div>
+
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');

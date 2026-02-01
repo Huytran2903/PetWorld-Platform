@@ -46,7 +46,8 @@ CREATE TABLE dbo.Customers (
     FullName NVARCHAR(120) NULL,
     IsActive BIT NOT NULL DEFAULT 1,
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    UpdatedAt DATETIME2 NULL
+    UpdatedAt DATETIME2 NULL,
+	AuthProvider VARCHAR(20) DEFAULT 'LOCAL'
 );
 GO
 
@@ -445,9 +446,24 @@ CREATE TABLE dbo.Feedbacks (
     )
 );
 GO
+/* =========================================================
+   12) Verification-Tokens(for email)
+   ========================================================= */
+CREATE TABLE dbo.verification_tokens (
+    id BIGINT IDENTITY(1,1) PRIMARY KEY,
+    token VARCHAR(255) NOT NULL,
+    expiry_date DATETIME2 NOT NULL,
+    customer_id INT NOT NULL UNIQUE, 
+    
+   
+    CONSTRAINT FK_VerificationToken_Customer 
+    FOREIGN KEY (customer_id) REFERENCES dbo.Customers(CustomerID) 
+    ON DELETE CASCADE 
+);
+GO
 
 /* =========================================================
-   12) INDEXES
+   13) INDEXES
    ========================================================= */
 -- Products
 CREATE INDEX IX_Products_Category ON dbo.Products(CategoryID);

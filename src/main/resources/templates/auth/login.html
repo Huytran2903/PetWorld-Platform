@@ -4,22 +4,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <meta charset="utf-8"/>
     <title>Login - Pet Care</title>
-    <link rel="stylesheet" th:href="@{/style.css}"/>
+
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Prata&display=swap"
-          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Prata&display=swap" rel="stylesheet">
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 </head>
 <body>
 <div class="login-page-wrapper">
     <div class="login-container">
-        <!-- LEFT SECTION -->
         <div class="login-left-section">
-            <img class="login-spa-image" th:src="@{/images/img-login.png}"
-                 alt="Dog relaxing at spa"/>
+            <img class="login-spa-image" th:src="@{/images/img-login.png}" alt="Dog relaxing at spa"/>
             <h2 class="login-hero-text">Happy Pets<br/>Happy Owners</h2>
         </div>
 
-        <!-- RIGHT SECTION -->
         <div class="login-right-section">
             <img class="login-logo" th:src="@{/images/logo-petshop.png}" alt="Logo"/>
 
@@ -27,23 +25,34 @@
                 <h1 class="login-form-title">Welcome Back</h1>
                 <p class="login-form-subtitle">Enter your email and password to access your account</p>
 
-                <form>
-                    <div class="login-form-group">
-                        <label for="login-username">USERNAME</label>
-                        <input type="text" id="login-username" placeholder="Enter your username" required/>
+                <form th:action="@{/do-login}" method="POST">
+
+                    <div th:if="${param.error}" class="alert alert-danger py-2" role="alert" style="font-size: 0.9rem;">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <span>Email hoặc mật khẩu không đúng, hoặc tài khoản chưa kích hoạt!</span>
+                    </div>
+
+                    <div th:if="${param.logout}" class="alert alert-success py-2" role="alert" style="font-size: 0.9rem;">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        <span>Đăng xuất thành công.</span>
                     </div>
 
                     <div class="login-form-group">
-                        <label for="login-password">Password</label>
-                        <input type="password" id="login-password" placeholder="Enter your password" required/>
+                        <label for="login-email">EMAIL</label>
+                        <input type="text" id="login-email" name="email" placeholder="Enter your email" required/>
+                    </div>
+
+                    <div class="login-form-group">
+                        <label for="login-password">PASSWORD</label>
+                        <input type="password" id="login-password" name="password" placeholder="Enter your password" required/>
                     </div>
 
                     <div class="login-form-options">
                         <div class="login-remember-me">
-                            <input type="checkbox" id="login-remember"/>
+                            <input type="checkbox" id="login-remember" name="remember-me"/>
                             <label for="login-remember">Remember Me</label>
                         </div>
-                        <a th:href="@{'/changePassword'}" class="login-forgot-link">Forgot Password</a>
+                        <a th:href="@{/forgot-password}" class="login-forgot-link">Forgot Password?</a>
                     </div>
 
                     <button type="submit" class="login-btn-signin">Sign In</button>
@@ -52,13 +61,15 @@
                         <span>Or</span>
                     </div>
 
-                    <button type="button" class="login-btn-google">
-                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"/>
-                        <span>Sign in with Google</span>
-                    </button>
+                    <a th:href="@{/oauth2/authorization/google}" class="text-decoration-none w-100">
+                        <button type="button" class="login-btn-google w-100">
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"/>
+                            <span>Sign in with Google</span>
+                        </button>
+                    </a>
 
                     <p class="login-signup-link">
-                        Don't have an account? <a th:href="@{'/register'}">Sign Up</a>
+                        Don't have an account? <a th:href="@{/register}">Sign Up</a>
                     </p>
                 </form>
             </div>
@@ -66,7 +77,78 @@
     </div>
 </div>
 
-<!-- Bootstrap JS (optional) -->
+<div class="modal fade" id="verificationModal" tabindex="-1" aria-labelledby="verificationLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning border-0">
+                <h5 class="modal-title text-white fw-bold" id="verificationLabel">Thông Báo Hệ Thống</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div id="verifyIcon" class="mb-3" style="font-size: 4rem;"></div>
+
+                <h4 id="verifyTitle" class="fw-bold mb-2"></h4>
+                <p id="verifyMessage" class="text-muted"></p>
+            </div>
+            <div class="modal-footer justify-content-center border-0">
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // 1. Lấy tham số 'verification_status' hoặc 'success_verify_sent' từ URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const status = urlParams.get('verification_status');
+        const justRegistered = urlParams.has('success_verify_sent');
+
+        const modalElement = document.getElementById('verificationModal');
+        const iconDiv = document.getElementById('verifyIcon');
+        const titleEl = document.getElementById('verifyTitle');
+        const msgEl = document.getElementById('verifyMessage');
+        let shouldShowModal = false;
+
+        // A. Trường hợp vừa bấm link Verify trong Email
+        if (status) {
+            shouldShowModal = true;
+            if (status === 'success') {
+                iconDiv.innerHTML = '<iconify-icon icon="mdi:check-circle" style="color: #28a745;"></iconify-icon>';
+                titleEl.textContent = 'Xác thực thành công!';
+                msgEl.textContent = 'Tài khoản của bạn đã được kích hoạt. Bạn có thể đăng nhập ngay bây giờ.';
+            } else if (status === 'expired') {
+                iconDiv.innerHTML = '<iconify-icon icon="mdi:clock-alert" style="color: #ffc107;"></iconify-icon>';
+                titleEl.textContent = 'Link đã hết hạn!';
+                msgEl.textContent = 'Link xác thực này đã cũ. Vui lòng thực hiện đăng ký lại.';
+            } else if (status === 'invalid') {
+                iconDiv.innerHTML = '<iconify-icon icon="mdi:close-circle" style="color: #dc3545;"></iconify-icon>';
+                titleEl.textContent = 'Lỗi xác thực!';
+                msgEl.textContent = 'Mã xác thực không tồn tại hoặc đường dẫn bị lỗi.';
+            }
+        }
+        // B. Trường hợp vừa Đăng Ký xong (chưa check mail)
+        else if (justRegistered) {
+            shouldShowModal = true;
+            iconDiv.innerHTML = '<iconify-icon icon="mdi:email-fast" style="color: #17a2b8;"></iconify-icon>';
+            titleEl.textContent = 'Đăng ký thành công!';
+            msgEl.textContent = 'Chúng tôi đã gửi một email xác thực. Vui lòng kiểm tra hộp thư của bạn để kích hoạt tài khoản.';
+        }
+
+        // 2. Hiển thị Modal nếu cần
+        if (shouldShowModal) {
+            const myModal = new bootstrap.Modal(modalElement);
+
+            // Xóa param trên URL để F5 không hiện lại (tùy chọn)
+            window.history.replaceState(null, null, window.location.pathname);
+
+            myModal.show();
+        }
+    });
+</script>
+
 </body>
 </html>

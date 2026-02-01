@@ -1,0 +1,10 @@
+package vn.edu.fpt.petworldplatform.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import vn.edu.fpt.petworldplatform.entity.VerificationToken;
+
+@Repository
+public interface VerificationTokenRepo extends JpaRepository<VerificationToken, Long> {
+    VerificationToken findByToken(String token);
+}
