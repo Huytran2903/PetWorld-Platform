@@ -40,35 +40,31 @@
 
             <!-- Grid Danh sách -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                <!-- Card Item -->
-                <div class="bg-white rounded-2xl shadow-sm hover:shadow-lg transition duration-300 overflow-hidden border border-gray-100 group relative flex flex-col">
-                    <div class="absolute top-3 left-3 z-10 bg-gray-900/80 text-white text-xs font-bold px-2 py-1 rounded backdrop-blur-sm">Owned</div>
-                    <div class="h-56 overflow-hidden relative bg-gray-100">
-                        <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover group-hover:scale-105 transition duration-700">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition duration-300"></div>
+
+                <div th:each="pet : ${pets}" class="bg-white rounded-2xl ..."> <div class="absolute top-3 left-3 ...">
+                    <span th:text="${pet.owner == null ? 'For Sale' : 'Owned'}">Owned</span>
+                </div>
+
+                    <div class="h-56 ...">
+                        <img th:src="${pet.imageUrl}" class="w-full h-full object-cover ...">
                     </div>
-                    <div class="p-5 flex-1 flex flex-col">
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <h3 class="text-xl font-bold text-gray-800 group-hover:text-orange-600 transition">LuLu</h3>
-                                <p class="text-sm text-gray-500 font-medium">Corgi • 24 Months</p>
-                            </div>
-                            <div class="w-8 h-8 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center"><i class="fa-solid fa-dog"></i></div>
-                        </div>
-                        
-                        <div class="mt-auto pt-4 border-t border-gray-100 flex justify-between items-center">
+
+                    <div class="p-5 ...">
+                        <h3 class="text-xl font-bold ..." th:text="${pet.name}">LuLu</h3>
+                        <p class="text-sm ..." th:text="${pet.breed} + ' • ' + ${pet.ageMonths} + ' Months'">Corgi</p>
+
+                        <div class="mt-auto pt-4 ...">
                             <div class="flex items-center gap-2">
-                                <div class="w-6 h-6 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-xs font-bold">A</div>
-                                <span class="text-xs text-gray-500 font-semibold truncate max-w-[100px]">Nguyen Van A</span>
+                    <span class="text-xs font-bold"
+                          th:text="${pet.owner != null ? pet.owner.fullName : #numbers.formatDecimal(pet.price, 0, 'COMMA', 0, 'POINT') + ' VND'}">
+                          Owner Name
+                    </span>
                             </div>
-                            <div class="flex gap-2">
-                                <a th:href="@{/staff/pet/update}" class="w-8 h-8 rounded-full bg-gray-50 hover:bg-blue-50 text-gray-400 hover:text-blue-600 flex items-center justify-center transition" title="Edit"><i class="fa-solid fa-pen"></i></a>
-                                <a th:href="@{/staff/pet/detail}" class="px-3 py-1 rounded-full bg-orange-50 hover:bg-orange-100 text-orange-600 text-xs font-bold transition flex items-center">Details <i class="fa-solid fa-arrow-right ml-1"></i></a>
-                            </div>
+                            <a th:href="@{/staff/pet/detail(id=${pet.id})}" class="...">Details</a>
                         </div>
                     </div>
                 </div>
-                <!-- End Card Item -->
+
             </div>
         </div>
     </div>

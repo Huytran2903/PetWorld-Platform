@@ -1,45 +1,39 @@
 package vn.edu.fpt.petworldplatform.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import vn.edu.fpt.petworldplatform.dto.PetCreateDTO;
+import vn.edu.fpt.petworldplatform.service.PetService;
 
 @Controller
-@RequestMapping("/staff/pet") // Prefix chung cho tất cả các URL bên dưới
+@RequestMapping("/staff/pet")
 public class StaffPetController {
 
-    // 1. Trang danh sách (Pet List)
-    // URL: http://localhost:8080/staff/pet/list
+    @Autowired
+    private PetService petService;
+
+    // 1. Hiển thị danh sách
     @GetMapping("/list")
-    public String showPetList() {
+    public String showPetList(Model model) {
+        // Đẩy list pet từ DB ra view
+        model.addAttribute("pets", petService.getAllPets());
         return "staff/pet/pet-list";
     }
 
-    // 2. Trang tạo mới (Create Profile)
-    // URL: http://localhost:8080/staff/pet/create
+    // 2. Hiển thị form tạo mới
     @GetMapping("/create")
-    public String showCreatePet() {
+    public String showCreateForm(Model model) {
+        // Tạo object rỗng để hứng dữ liệu form
+        model.addAttribute("petDTO", new PetCreateDTO());
         return "staff/pet/pet-create";
     }
 
-    // 3. Trang chi tiết (Pet Detail)
-    // URL: http://localhost:8080/staff/pet/detail
-    @GetMapping("/detail")
-    public String showPetDetail() {
-        return "staff/pet/pet-detail";
-    }
-
-    // 4. Trang cập nhật (Update Profile)
-    // URL: http://localhost:8080/staff/pet/update
-    @GetMapping("/update")
-    public String showUpdatePet() {
-        return "staff/pet/pet-update";
-    }
-
-    // 5. Trang lịch sử chăm sóc (Care History)
-    // URL: http://localhost:8080/staff/pet/history
-    @GetMapping("/history")
-    public String showPetHistory() {
-        return "staff/pet/pet-history";
+    // 3. Xử lý khi bấm nút "Create Profile"
+    @PostMapping("/create")
+    public String handleCreatePet(@ModelAttribute PetCreateDTO petDTO) {
+        petService.createPet(petDTO);
+        return "redirect:/staff/pet/list"; // Xong thì quay về danh sách
     }
 }
