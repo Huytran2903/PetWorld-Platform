@@ -7,7 +7,10 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import java.util.List;
+import vn.edu.fpt.petworldplatform.entity.ServiceItem;
 import vn.edu.fpt.petworldplatform.entity.ServiceType;
+import vn.edu.fpt.petworldplatform.service.ServiceItemService;
 import vn.edu.fpt.petworldplatform.service.ServiceTypeService;
 
 @Controller
@@ -15,6 +18,7 @@ import vn.edu.fpt.petworldplatform.service.ServiceTypeService;
 public class AdminController {
 
     private final ServiceTypeService serviceTypeService;
+    private final ServiceItemService serviceItemService;
 
     @GetMapping("/admin/dashboard")
     public String viewDashboard() {
@@ -143,5 +147,66 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("error", "Cannot delete this Service Type because it has associated services or bookings.");
         }
         return "redirect:/admin/service-type";
+    }
+
+    // UC-26: Manage Services (service items: price, duration, etc.)
+    @GetMapping("/admin/services")
+    public String listServices(Model model,
+                              @RequestParam(required = false) String typeFilter,
+                              @RequestParam(required = false) Integer editId) {
+        model.addAttribute("serviceTypes", serviceTypeService.findAll());
+        List<ServiceItem> services = typeFilter != null && !typeFilter.isBlank()
+                ? serviceItemService.findByServiceType(typeFilter)
+                : serviceItemService.findAll();
+        model.addAttribute("services", services);
+        model.addAttribute("typeFilter", typeFilter != null ? typeFilter : "");
+        if (editId != null) {
+            serviceItemService.findById(editId).ifPresent(svc -> {
+                model.addAttribute("service", svc);
+                model.addAttribute("openModal", true);
+            });
+        }
+        if (!model.containsAttribute("service")) {
+            model.addAttribute("service", ServiceItem.builder().durationMinutes(30).isActive(true).build());
+        }
+        return "admin/service-list";
+    }
+
+    @PostMapping("/admin/service/save")
+    public String saveService(
+            @Valid @ModelAttribute("service") ServiceItem service,
+            BindingResult bindingResult,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+        Integer id = service.getId();
+        if (id != null && id == 0) service.setId(null);
+        if (service.getServiceType() != null && !service.getServiceType().isBlank() && !bindingResult.hasFieldErrors("name")) {
+            if (serviceItemService.isNameDuplicate(service.getName().trim(), service.getServiceType(), service.getId())) {
+                bindingResult.rejectValue("name", "duplicate", "A service with this name already exists in the selected type.");
+            }
+        }
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("serviceTypes", serviceTypeService.findAll());
+            model.addAttribute("services", serviceItemService.findAll());
+            model.addAttribute("typeFilter", "");
+            model.addAttribute("openModal", true);
+            return "admin/service-list";
+        }
+        service.setName(service.getName().trim());
+        if (service.getServiceType() != null) service.setServiceType(service.getServiceType().trim());
+        serviceItemService.save(service);
+        redirectAttributes.addFlashAttribute("message", "Service saved successfully.");
+        return "redirect:/admin/services";
+    }
+
+    @PostMapping("/admin/service/delete/{id}")
+    public String deleteService(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+        boolean deleted = serviceItemService.softDelete(id);
+        if (deleted) {
+            redirectAttributes.addFlashAttribute("message", "Service has been deactivated.");
+        } else {
+            redirectAttributes.addFlashAttribute("error", "Cannot delete this service because it has associated appointments.");
+        }
+        return "redirect:/admin/services";
     }
 }
