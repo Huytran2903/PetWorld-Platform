@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" 
+<html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{fragments/staff_layout :: layout(~{::content})}">
 
 <section th:fragment="content">
@@ -9,7 +9,6 @@
     <link rel="stylesheet" th:href="@{/css/pet-dashboard.css}">
     <script th:src="@{/js/pet-dashboard.js}"></script>
 
-    <!-- Đã xóa Sidebar trái, chỉ còn container nội dung chính -->
     <div class="bg-gray-50 min-h-screen p-6">
         <div class="max-w-7xl mx-auto fade-in">
             <div class="flex justify-between items-center mb-6">
@@ -21,8 +20,7 @@
                     <i class="fa-solid fa-plus"></i> Add New Pet
                 </a>
             </div>
-            
-            <!-- Search & Filter Bar -->
+
             <div class="bg-white p-4 rounded-xl shadow-sm mb-8 flex flex-col md:flex-row gap-4 border border-gray-100">
                 <div class="relative flex-1">
                     <i class="fa-solid fa-search absolute left-4 top-3.5 text-gray-400"></i>
@@ -38,37 +36,54 @@
                 </div>
             </div>
 
-            <!-- Grid Danh sách -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
 
-                <div th:each="pet : ${pets}" class="bg-white rounded-2xl ..."> <div class="absolute top-3 left-3 ...">
-                    <span th:text="${pet.owner == null ? 'For Sale' : 'Owned'}">Owned</span>
-                </div>
+                <div th:each="pet : ${pets}" class="bg-white rounded-2xl shadow-sm hover:shadow-lg transition duration-300 overflow-hidden border border-gray-100 group relative flex flex-col">
 
-                    <div class="h-56 ...">
-                        <img th:src="${pet.imageUrl}" class="w-full h-full object-cover ...">
+                    <div class="absolute top-3 left-3 z-10 bg-gray-900/80 text-white text-xs font-bold px-2 py-1 rounded backdrop-blur-sm"
+                         th:if="${pet.owner != null}">Owned</div>
+
+                    <div class="absolute top-3 left-3 z-10 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded backdrop-blur-sm shadow-sm"
+                         th:if="${pet.owner == null}">For Sale</div>
+
+                    <div class="h-56 overflow-hidden relative bg-gray-100">
+                        <img th:src="${pet.imageUrl}" class="w-full h-full object-cover group-hover:scale-105 transition duration-700" alt="Pet Image">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition duration-300"></div>
                     </div>
 
-                    <div class="p-5 ...">
-                        <h3 class="text-xl font-bold ..." th:text="${pet.name}">LuLu</h3>
-                        <p class="text-sm ..." th:text="${pet.breed} + ' • ' + ${pet.ageMonths} + ' Months'">Corgi</p>
-
-                        <div class="mt-auto pt-4 ...">
-                            <div class="flex items-center gap-2">
-                    <span class="text-xs font-bold"
-                          th:text="${pet.owner != null ? pet.owner.fullName : #numbers.formatDecimal(pet.price, 0, 'COMMA', 0, 'POINT') + ' VND'}">
-                          Owner Name
-                    </span>
+                    <div class="p-5 flex-1 flex flex-col">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800 group-hover:text-orange-600 transition" th:text="${pet.name}">Pet Name</h3>
+                                <p class="text-sm text-gray-500 font-medium">
+                                    <span th:text="${pet.breed}">Breed</span> • <span th:text="${pet.ageMonths}">0</span> Months
+                                </p>
                             </div>
-                            <a th:href="@{/staff/pet/detail(id=${pet.id})}" class="...">Details</a>
+                            <div class="w-8 h-8 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center">
+                                <i class="fa-solid fa-dog" th:if="${pet.petType == 'dog'}"></i>
+                                <i class="fa-solid fa-cat" th:if="${pet.petType == 'cat'}"></i>
+                            </div>
+                        </div>
+
+                        <div class="mt-auto pt-4 border-t border-gray-100 flex justify-between items-center">
+                            <div th:if="${pet.owner != null}" class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-xs font-bold">U</div>
+                                <span class="text-xs text-gray-500 font-semibold truncate max-w-[100px]" th:text="${pet.owner.fullName}">Owner Name</span>
+                            </div>
+
+                            <div th:if="${pet.owner == null}" class="flex items-center gap-2">
+                                <span class="text-sm font-bold text-green-600" th:text="${#numbers.formatDecimal(pet.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <a th:href="@{/staff/pet/update(id=${pet.id})}" class="w-8 h-8 rounded-full bg-gray-50 hover:bg-blue-50 text-gray-400 hover:text-blue-600 flex items-center justify-center transition" title="Edit"><i class="fa-solid fa-pen"></i></a>
+                                <a th:href="@{/staff/pet/detail(id=${pet.id})}" class="px-3 py-1 rounded-full bg-orange-50 hover:bg-orange-100 text-orange-600 text-xs font-bold transition flex items-center">Details <i class="fa-solid fa-arrow-right ml-1"></i></a>
+                            </div>
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
 </section>
 </html>
-
-
