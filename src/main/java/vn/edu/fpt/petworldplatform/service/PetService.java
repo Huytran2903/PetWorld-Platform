@@ -1,4 +1,4 @@
-package vn.edu.fpt.petworldplatform.service;
+package vn.edu.fpt.petworldplatform.service;// ... các import giữ nguyên
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,8 @@ import java.util.List;
 public class PetService {
 
     @Autowired private PetRepository petRepo;
-    @Autowired private CustomerRepo customerRepo; // Dùng repo bạn đã có
+    @Autowired
+    private CustomerRepo customerRepo;
 
     public List<Pet> getAllPets() {
         return petRepo.findAll();
@@ -29,18 +30,23 @@ public class PetService {
         pet.setDescription(dto.getDescription());
         pet.setImageUrl(dto.getImageUrl());
 
-        if ("shop".equals(dto.getOwnerType())) {
-            // Pet của Shop -> Có giá bán, Không có chủ
+        // SỬA DÒNG 32: Gọi đúng tên getCreatePetOwnerType()
+        if ("shop".equals(dto.getCreatePetOwnerType())) {
+
+            // Pet của Shop
             pet.setPrice(dto.getPrice());
             pet.setOwner(null);
             pet.setAvailable(true);
+
         } else {
-            // Pet của Khách -> Không giá bán, Phải có chủ
+            // Pet của Khách
+            // Dòng này sẽ hết lỗi đỏ vì ownerId bên DTO đã là Long
             Customer owner = customerRepo.findById(dto.getOwnerId())
                     .orElseThrow(() -> new RuntimeException("Customer not found ID: " + dto.getOwnerId()));
+
             pet.setOwner(owner);
             pet.setPrice(null);
-            pet.setAvailable(false); // Đã có chủ thì không bán
+            pet.setAvailable(false);
         }
         petRepo.save(pet);
     }
