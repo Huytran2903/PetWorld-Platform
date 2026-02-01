@@ -4,15 +4,18 @@ import lombok.Data;
 
 @Data
 public class PetCreateDTO {
+    // Tên biến này đang là createPetOwnerType
+    private String createPetOwnerType;
+
     private String name;
-    private String species; // dog/cat
+    private String species;
     private String breed;
     private Integer age;
-    private String description;
-    private String imageUrl;
 
-    // Logic form
-    private String ownerType; // "shop" hoặc "customer"
-    private Long ownerId;     // ID khách hàng (nếu chọn customer)
-    private Double price;     // Giá bán (nếu chọn shop)
+    // SỬA Ở ĐÂY: Đổi Integer thành Long
+    private Long ownerId;
+
+    private Double price;
+    private String imageUrl;
+    private String description;
 }
