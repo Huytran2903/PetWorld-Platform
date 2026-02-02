@@ -13,7 +13,6 @@ import vn.edu.fpt.petworldplatform.entity.ServiceType;
 import vn.edu.fpt.petworldplatform.service.ServiceItemService;
 import vn.edu.fpt.petworldplatform.service.ServiceTypeService;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 
 @Controller

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Sidebar</title>
+    <style>
+        .sidebar {
+            width: 250px;
+            background-color: #2c3e50;
+            color: white;
+            min-height: 100vh;
+            padding: 20px 0;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid #34495e;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-header h3 {
+            margin: 0;
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .sidebar-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-nav li {
+            margin: 0;
+        }
+
+        .sidebar-nav a {
+            display: block;
+            padding: 15px 20px;
+            color: #ecf0f1;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .sidebar-nav a:hover {
+            background-color: #34495e;
+            border-left: 4px solid #3498db;
+            padding-left: 24px;
+        }
+
+        .sidebar-nav a.active {
+            background-color: #34495e;
+            border-left: 4px solid #3498db;
+            font-weight: 600;
+        }
+
+        .sidebar-nav i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #34495e;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #3498db;
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <!-- Fragment sidebar cho staff -->
+    <div th:fragment="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h3>Staff Menu</h3>
+        </div>
+        <nav class="sidebar-nav">
+            <ul>
+                <li>
+                    <a th:href="@{/staff/dashboard}">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a th:href="@{/staff/services}">
+                        <i class="fas fa-concierge-bell"></i> Dịch vụ
+                    </a>
+                </li>
+                <li>
+                    <a th:href="@{/staff/service-execution-history}" class="active">
+                        <i class="fas fa-history"></i> Lịch sử thực hiện
+                    </a>
+                </li>
+                <li>
+                    <a th:href="@{/staff/customers}">
+                        <i class="fas fa-users"></i> Khách hàng
+                    </a>
+                </li>
+                <li>
+                    <a th:href="@{/staff/appointments}">
+                        <i class="fas fa-calendar-alt"></i> Lịch hẹn
+                    </a>
+                </li>
+                <li>
+                    <a th:href="@{/staff/bookings}">
+                        <i class="fas fa-book"></i> Đặt chỗ
+                    </a>
+                </li>
+                <li>
+                    <a th:href="@{/staff/profile}">
+                        <i class="fas fa-user"></i> Hồ sơ
+                    </a>
+                </li>
+                <li>
+                    <a th:href="@{/staff/settings}">
+                        <i class="fas fa-cog"></i> Cài đặt
+                    </a>
+                </li>
+                <li>
+                    <a th:href="@{/logout}">
+                        <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</body>
+</html>

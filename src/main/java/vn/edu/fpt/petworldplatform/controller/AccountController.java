@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.Staff;
 import vn.edu.fpt.petworldplatform.service.CustomerService;
-import vn.edu.fpt.petworldplatform.service.EmailService;
 import vn.edu.fpt.petworldplatform.service.StaffService;
 
 import java.util.List;

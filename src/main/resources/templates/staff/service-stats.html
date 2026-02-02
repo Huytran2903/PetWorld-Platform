@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Staff Sidebar</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: #2c3e50;
+            color: white;
+            min-height: 100vh;
+            padding: 20px 0;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid #34495e;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-header h3 {
+            margin: 0;
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .sidebar-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-nav li {
+            margin: 0;
+        }
+
+        .sidebar-nav a {
+            display: block;
+            padding: 15px 20px;
+            color: #ecf0f1;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .sidebar-nav a:hover {
+            background-color: #34495e;
+            border-left: 4px solid #3498db;
+            padding-left: 24px;
+        }
+
+        .sidebar-nav a.active {
+            background-color: #34495e;
+            border-left: 4px solid #3498db;
+            font-weight: 600;
+        }
+
+        .sidebar-nav i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #34495e;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #3498db;
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #2980b9;
+        }
+
+        /* Main content area */
+        .main-content {
+            margin-left: 250px;
+            padding: 30px;
+            background-color: #ecf0f1;
+            min-height: 100vh;
+        }
+
+        .main-content h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .content-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h3>Staff Menu</h3>
+        </div>
+        <nav class="sidebar-nav">
+            <ul>
+                <li>
+                    <a href="#dashboard">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="#services">
+                        <i class="fas fa-concierge-bell"></i> Dịch vụ
+                    </a>
+                </li>
+                <li>
+                    <a href="#service-history" class="active">
+                        <i class="fas fa-history"></i> Lịch sử thực hiện
+                    </a>
+                </li>
+                <li>
+                    <a href="#customers">
+                        <i class="fas fa-users"></i> Khách hàng
+                    </a>
+                </li>
+                <li>
+                    <a href="#appointments">
+                        <i class="fas fa-calendar-alt"></i> Lịch hẹn
+                    </a>
+                </li>
+                <li>
+                    <a href="#bookings">
+                        <i class="fas fa-book"></i> Đặt chỗ
+                    </a>
+                </li>
+                <li>
+                    <a href="#profile">
+                        <i class="fas fa-user"></i> Hồ sơ
+                    </a>
+                </li>
+                <li>
+                    <a href="#settings">
+                        <i class="fas fa-cog"></i> Cài đặt
+                    </a>
+                </li>
+                <li>
+                    <a href="#logout">
+                        <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <h1>Lịch sử thực hiện dịch vụ</h1>
+        <div class="content-box">
+            <p>Đây là nội dung trang lịch sử thực hiện dịch vụ.</p>
+            <p>Sidebar bên trái đang hoạt động với menu "Lịch sử thực hiện" được highlight.</p>
+            <p>Hover vào các menu items để xem hiệu ứng!</p>
+        </div>
+    </main>
+</body>
+</html>

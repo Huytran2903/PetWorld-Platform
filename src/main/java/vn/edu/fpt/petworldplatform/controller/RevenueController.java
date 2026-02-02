@@ -65,7 +65,7 @@ public class RevenueController {
 
         model.addAttribute("transactions", transactions);
         model.addAttribute("filtered",     filtered);
-        model.addAttribute("startDate",    startDate);  // Giữ giá trị trong input sau khi filter
+        model.addAttribute("startDate",    startDate);  
         model.addAttribute("endDate",      endDate);
 
         return "admin/report-revenue";
