@@ -114,21 +114,8 @@
                         <label class="svc-item" th:each="svc : ${serviceList}">
                             <span class="svc-badge" th:text="${currentType}">TYPE</span>
 
-                            <!-- hygiene: checkbox -->
                             <input
-                                    th:if="${currentType == 'hygiene'}"
                                     type="checkbox"
-                                    name="mainServices"
-                                    th:value="${svc.id}"
-                                    th:data-price="${svc.basePrice}"
-                                    th:data-duration="${svc.durationMinutes}"
-                                    th:data-name="${svc.name}"
-                            />
-
-                            <!-- others: radio -->
-                            <input
-                                    th:unless="${currentType == 'hygiene'}"
-                                    type="radio"
                                     name="mainServices"
                                     th:value="${svc.id}"
                                     th:data-price="${svc.basePrice}"
