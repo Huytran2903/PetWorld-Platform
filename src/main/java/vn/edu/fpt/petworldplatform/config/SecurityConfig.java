@@ -33,7 +33,7 @@ public class SecurityConfig {
 
                         // B. Các trang PUBLIC (Không cần đăng nhập)
                         .requestMatchers("/", "/home", "/index").permitAll()
-                        .requestMatchers("/login", "/register", "/do-register").permitAll()
+                        .requestMatchers("/login", "/register", "/do-register", "/do-login").permitAll()
 
                         // QUAN TRỌNG: Mở khóa link verify email
                         .requestMatchers("/verify").permitAll()
@@ -44,7 +44,7 @@ public class SecurityConfig {
 
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .loginProcessingUrl("/do-login")
+                        .loginProcessingUrl("/login-security-check")
                         .defaultSuccessUrl("/", true)
                         .failureUrl("/login?error")
                         .usernameParameter("email")

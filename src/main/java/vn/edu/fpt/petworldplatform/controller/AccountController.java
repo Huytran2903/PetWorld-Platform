@@ -1,8 +1,16 @@
 package vn.edu.fpt.petworldplatform.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -16,6 +24,7 @@ import vn.edu.fpt.petworldplatform.service.CustomerService;
 import vn.edu.fpt.petworldplatform.service.EmailService;
 import vn.edu.fpt.petworldplatform.service.StaffService;
 
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -26,6 +35,9 @@ public class AccountController {
 
     @Autowired
     private StaffService staffService;
+
+    private final SecurityContextRepository securityContextRepository =
+            new HttpSessionSecurityContextRepository();
 
 
     @GetMapping("/login")
@@ -77,7 +89,8 @@ public class AccountController {
     @PostMapping("/do-login")
     public String handleLogin(@RequestParam String username,
                               @RequestParam String password,
-                              Model model, HttpSession session) {
+                              Model model, HttpSession session, HttpServletRequest request,
+                              HttpServletResponse response) {
 
         Optional<Customer> customerOpt = customerService.login(username, password);
 
@@ -90,6 +103,18 @@ public class AccountController {
             }
 
             session.setAttribute("loggedInAccount", customer);
+            List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
+
+            // B2: Tạo thẻ bài (Token) chứa thông tin User
+            UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(customer, null, authorities);
+
+            // B3: Đưa thẻ bài cho Security giữ
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(authToken);
+            SecurityContextHolder.setContext(context);
+
+            securityContextRepository.saveContext(context, request, response);
             return "redirect:/";
         }
 
@@ -106,7 +131,17 @@ public class AccountController {
                 }
 
                 session.setAttribute("loggedInStaff", staff);
-                session.setAttribute("role", "admin");
+                session.setAttribute("role", staff.getRole());
+
+                List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_STAFF"));
+                UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(staff, null, authorities);
+
+                SecurityContext context = SecurityContextHolder.createEmptyContext();
+                context.setAuthentication(authToken);
+                SecurityContextHolder.setContext(context);
+
+                securityContextRepository.saveContext(context, request, response);
 
                 return "redirect:/admin/dashboard";
             }

@@ -1,17 +1,18 @@
 package vn.edu.fpt.petworldplatform.controller;
 
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.petworldplatform.dto.PetCreateDTO;
+import vn.edu.fpt.petworldplatform.dto.ProfileFormDTO;
 import vn.edu.fpt.petworldplatform.entity.Customer;
-import vn.edu.fpt.petworldplatform.service.CustomerService;
-import vn.edu.fpt.petworldplatform.service.PetService;
+import vn.edu.fpt.petworldplatform.service.*;
 
 @Controller
 public class CustomerController {
@@ -23,66 +24,82 @@ public class CustomerController {
     PetService petService;
 
     @GetMapping("/profile")
-    public String profileShow(HttpSession session, Model model) {
-        Customer currentUser = (Customer) session.getAttribute("loggedInAccount");
-
-        if (currentUser == null) {
+    public String profileShow(@AuthenticationPrincipal Customer authUser, Model model) {
+        if (authUser == null) {
             return "redirect:/login";
         }
 
-        model.addAttribute("user", currentUser);
+        Customer currentFreshUser = customerService.findById(authUser.getCustomerId()).orElse(null);
 
+        model.addAttribute("user", currentFreshUser);
         return "auth/viewProfile";
     }
 
     @GetMapping("/profile/edit")
-    public String profileSetting(HttpSession session, Model model) {
-        Customer currentUser = (Customer) session.getAttribute("loggedInAccount");
+    public String profileSetting(@AuthenticationPrincipal Customer authUser, Model model) {
 
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+        if (authUser == null) return "redirect:/login";
 
-        model.addAttribute("user", currentUser);
+        Customer currentFreshUser = customerService.findById(authUser.getCustomerId()).orElse(null);
+        if (currentFreshUser == null) return "redirect:/login?logout";
+
+        ProfileFormDTO form = new ProfileFormDTO();
+        form.setFullName(currentFreshUser.getFullName());
+        form.setUsername(currentFreshUser.getUsername());
+        form.setEmail(currentFreshUser.getEmail());
+        form.setPhoneNumber(currentFreshUser.getPhone());
+
+        model.addAttribute("user", form);
+
         return "auth/editProfile";
     }
 
     @PostMapping("/profile/do-edit")
-    public String updateProfile(@ModelAttribute("user") Customer customerForm,
+    public String updateProfile(@Valid @ModelAttribute("user") ProfileFormDTO profileForm,
+                                BindingResult bindingResult,
+                                @AuthenticationPrincipal Customer authUser,
                                 HttpSession session,
                                 Model model) {
 
-        Customer currentUser = (Customer) session.getAttribute("loggedInAccount");
-
-        if (currentUser == null) {
+        if (authUser == null) {
             return "redirect:/login";
         }
 
+        if (bindingResult.hasErrors()) {
+
+            return "auth/editProfile";
+        }
+
         try {
-            currentUser.setFullName(customerForm.getFullName());
-            currentUser.setEmail(customerForm.getEmail());
-            currentUser.setPhone(customerForm.getPhone());
+
+            Customer currentUser = customerService.findById(authUser.getCustomerId()).orElse(null);
+
+            if (currentUser == null) {
+                return "redirect:/login?logout"; //khó xảy ra nhưng cho chắc(User bị xóa khi edit)
+            }
+
+
+            currentUser.setFullName(profileForm.getFullName());
+            currentUser.setEmail(profileForm.getEmail());
+            currentUser.setPhone(profileForm.getPhoneNumber());
+
             customerService.updateCustomer(currentUser);
+
             session.setAttribute("loggedInAccount", currentUser);
 
-
-            return "redirect:/profile";
+            return "redirect:/profile?success";
 
         } catch (Exception e) {
-
             e.printStackTrace();
 
             String message = e.getMessage();
-
-            if (message != null && message.contains("ConstraintViolationException")) {
-                model.addAttribute("error", "Invalid format! Phone number must be 10-12 digits.");
-            } else if (message != null && (message.contains("Duplicate") || message.contains("UNIQUE"))) {
-                model.addAttribute("error", "This email or phone number is already taken.");
+            if (message != null && (message.contains("Duplicate") || message.contains("UNIQUE"))) {
+                model.addAttribute("error", "Email or phone number has already exist!");
             } else {
-                model.addAttribute("error", "An unexpected error occurred. Please try again later.");
+                model.addAttribute("error", "System error: " + e.getMessage());
             }
-            model.addAttribute("user", customerForm);
 
+            model.addAttribute("user", profileForm);
             return "auth/editProfile";
         }
     }
@@ -105,7 +122,9 @@ public class CustomerController {
         return "customer/checkout-order";
     }
 
-    /** Create Pet Profile (for customer - use case: no pets → redirect here). */
+    /**
+     * Create Pet Profile (for customer - use case: no pets → redirect here).
+     */
     @GetMapping("/customer/pet/create")
     public String showCreatePet(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
         Customer customer = (Customer) session.getAttribute("loggedInAccount");

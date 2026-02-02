@@ -58,4 +58,8 @@ public class CustomerService {
         return customerRepo.existsByEmail(email);
     }
 
+    public Optional<Customer> findById(Long id) {
+        return customerRepo.findById(id);
+    }
+
 }
