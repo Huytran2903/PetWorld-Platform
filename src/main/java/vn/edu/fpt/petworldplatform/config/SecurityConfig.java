@@ -3,11 +3,14 @@ package vn.edu.fpt.petworldplatform.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -15,6 +18,12 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final GoogleLoginSuccessHandler googleLoginSuccessHandler;
+
+    // 1. BEAN MỚI (BẮT BUỘC): Để AuthController có thể gọi authenticationManager.authenticate()
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
+        return configuration.getAuthenticationManager();
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -24,42 +33,43 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf.disable()) // Tắt CSRF để dễ test (Production nên bật lại)
 
-                // --- 1. PHÂN QUYỀN TRUY CẬP ---
+                // --- PHÂN QUYỀN ---
                 .authorizeHttpRequests(auth -> auth
-                        // A. Các link Tĩnh (CSS, JS, Ảnh)
+                        // A. Link Tĩnh
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/fonts/**", "/webjars/**").permitAll()
 
-                        // B. Các trang PUBLIC (Không cần đăng nhập)
+                        // B. Link Public
                         .requestMatchers("/", "/home", "/index").permitAll()
-                        .requestMatchers("/login", "/register", "/do-register", "/do-login").permitAll()
+                        .requestMatchers("/login", "/register", "/do-register", "/verify").permitAll()
 
-                        // QUAN TRỌNG: Mở khóa link verify email
-                        .requestMatchers("/verify").permitAll()
+                        .requestMatchers("/do-login").permitAll()
 
-                        .requestMatchers("/admin/pet/save").permitAll()
+                        // C. Phân quyền
+//                        .requestMatchers("/admin/**").hasAnyRole("ADMIN", "STAFF") // Chỉ Staff/Admin mới vào được Admin
+//                        .requestMatchers("/profile/**").authenticated() // Đăng nhập là vào được
 
-
-                        // C. Các trang còn lại -> BẮT BUỘC ĐĂNG NHẬP
+                        // D. Còn lại khóa hết
                         .anyRequest().authenticated()
                 )
+
+                // --- CẤU HÌNH FORM LOGIN ---
 
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login-security-check")
                         .defaultSuccessUrl("/", true)
-                        .failureUrl("/login?error")
-                        .usernameParameter("email")
-                        .passwordParameter("password")
                         .permitAll()
                 )
 
+                // --- GOOGLE LOGIN ---
                 .oauth2Login(oauth2 -> oauth2
                         .loginPage("/login")
-                        .successHandler(googleLoginSuccessHandler) // Xử lý logic lưu user Google
+                        .successHandler(googleLoginSuccessHandler)
                 )
 
+                // --- LOGOUT ---
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout")
