@@ -13,6 +13,8 @@ public interface ServiceItemRepository extends JpaRepository<ServiceItem, Intege
 
     List<ServiceItem> findByServiceTypeOrderByNameAsc(String serviceType);
 
+    List<ServiceItem> findByServiceTypeIgnoreCaseOrderByNameAsc(String serviceType);
+
     boolean existsByNameIgnoreCaseAndServiceType(String name, String serviceType);
 
     boolean existsByNameIgnoreCaseAndServiceTypeAndIdNot(String name, String serviceType, Integer excludeId);

@@ -23,7 +23,7 @@ public class ServiceItemService {
         if (serviceType == null || serviceType.isBlank()) {
             return findAll();
         }
-        return serviceItemRepository.findByServiceTypeOrderByNameAsc(serviceType.trim());
+        return serviceItemRepository.findByServiceTypeIgnoreCaseOrderByNameAsc(serviceType.trim());
     }
 
     public Optional<ServiceItem> findById(Integer id) {

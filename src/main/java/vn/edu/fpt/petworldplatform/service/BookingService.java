@@ -47,7 +47,7 @@ public class BookingService {
         if (serviceType == null || serviceType.isBlank()) {
             return findActiveServices();
         }
-        return serviceItemRepository.findByServiceTypeOrderByNameAsc(serviceType.trim()).stream()
+        return serviceItemRepository.findByServiceTypeIgnoreCaseOrderByNameAsc(serviceType.trim()).stream()
                 .filter(s -> Boolean.TRUE.equals(s.getIsActive()))
                 .toList();
     }

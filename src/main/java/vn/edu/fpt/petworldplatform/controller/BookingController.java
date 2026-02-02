@@ -36,9 +36,9 @@ public class BookingController {
             return "redirect:/customer/pet/create";
         }
 
-        String currentType = (type != null && !type.isBlank()) ? type.trim() : "health_check";
+        String currentType = (type != null && !type.isBlank()) ? type.trim() : "";
         model.addAttribute("petList", petList);
-        model.addAttribute("serviceList", bookingService.findActiveServicesByType(currentType));
+        model.addAttribute("serviceList", currentType.isBlank() ? bookingService.findActiveServices() : bookingService.findActiveServicesByType(currentType));
         model.addAttribute("currentType", currentType);
         model.addAttribute("pageTitle", "Book Service Appointment");
         model.addAttribute("heroTitle", "Book Service Appointment");

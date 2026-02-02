@@ -112,7 +112,7 @@
 
                     <div class="svc-list">
                         <label class="svc-item" th:each="svc : ${serviceList}">
-                            <span class="svc-badge" th:text="${currentType}">TYPE</span>
+                            <span class="svc-badge" th:text="${svc.serviceType}">TYPE</span>
 
                             <input
                                     type="checkbox"
@@ -121,7 +121,7 @@
                                     th:data-price="${svc.basePrice}"
                                     th:data-duration="${svc.durationMinutes}"
                                     th:data-name="${svc.name}"
-                                    th:data-unit="${currentType == 'boarding' ? 'day' : 'time'}"
+                                    th:data-unit="${svc.serviceType == 'boarding' ? 'day' : 'time'}"
                             />
 
                             <div>
