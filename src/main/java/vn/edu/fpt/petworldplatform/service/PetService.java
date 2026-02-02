@@ -5,7 +5,9 @@ import org.springframework.stereotype.Service;
 import vn.edu.fpt.petworldplatform.dto.PetCreateDTO;
 import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.Pet;
+import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.repository.CustomerRepo;
+import vn.edu.fpt.petworldplatform.repository.PetRepo;
 import vn.edu.fpt.petworldplatform.repository.PetRepository;
 
 import java.util.List;
@@ -17,7 +19,12 @@ public class PetService {
     private PetRepository petRepo;
 
     @Autowired
+    private PetRepo petRepository;
+
+    @Autowired
     private CustomerRepo customerRepo;
+
+    //OanhTP
 
     // --- 1. Lấy danh sách ---
     public List<Pet> getAllPets() {
@@ -29,6 +36,16 @@ public class PetService {
         return petRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thú cưng với ID: " + id));
     }
+
+    //OanhTP
+    public void savePet(Pets pet) {
+        petRepository.save(pet);
+    }
+
+    public Pets getPetById(Long id) {
+        return petRepository.findById(id).get();
+    }
+
 
     // --- 3. Tạo mới (Create) ---
     public void createPet(PetCreateDTO dto) {

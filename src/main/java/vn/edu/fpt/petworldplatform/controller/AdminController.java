@@ -1,8 +1,28 @@
 package vn.edu.fpt.petworldplatform.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import vn.edu.fpt.petworldplatform.entity.Categories;
+import vn.edu.fpt.petworldplatform.entity.Pets;
+import vn.edu.fpt.petworldplatform.service.CategoryService;
+import vn.edu.fpt.petworldplatform.service.PetService;
+import org.springframework.util.StringUtils;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +38,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 @Controller
 @RequiredArgsConstructor
 public class AdminController {
+
+    @Autowired
+    private CategoryService categoryService;
+
+    @Autowired
+    private PetService petService;
 
     private final ServiceTypeService serviceTypeService;
     private final ServiceItemService serviceItemService;
@@ -38,10 +64,71 @@ public class AdminController {
     }
 
     //Manage Pet - OanhTP
+    //List
     @GetMapping("/admin/manage-pet")
-    public String managePet() {
+    public String managePet(Model model) {
+        model.addAttribute("pets", petService.getAllPets());
         return "admin/managePet";
     }
+
+    //Edit Pet
+    @GetMapping("/admin/pet/edit/{id}")
+    public String editPet(Model model) {
+        model.addAttribute("formMode", "edit");
+        return "admin/pet-form";
+    }
+
+    //Create Pet
+    @GetMapping("/admin/pet/new")
+    public String createPet(Model model) {
+        model.addAttribute("selectedPet", new Pets() );
+        model.addAttribute("formMode", "add");
+        return "admin/pet-form";
+    }
+
+    //Save
+    @PostMapping(
+            value = "/admin/pet/save",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public String savePet(
+            @ModelAttribute("selectedPet") Pets pet,
+            @RequestParam(value = "imageFile", required = false) MultipartFile file,
+            RedirectAttributes ra
+    ) throws IOException {
+
+        if (file != null && !file.isEmpty()) {
+
+            String fileName = System.currentTimeMillis() + "_" +
+                    StringUtils.cleanPath(file.getOriginalFilename());
+
+            // 📁 LƯU TRONG PROJECT
+            Path uploadDir = Paths.get("src/main/resources/static/pet-images");
+
+            // Tạo thư mục nếu chưa có
+            Files.createDirectories(uploadDir);
+
+            // Lưu file
+            Files.copy(
+                    file.getInputStream(),
+                    uploadDir.resolve(fileName),
+                    StandardCopyOption.REPLACE_EXISTING
+            );
+
+            // Lưu tên file vào DB
+            pet.setImageUrl(fileName);
+        }
+
+        System.out.println(">>> Multipart OK");
+        System.out.println(file.getOriginalFilename());
+        petService.savePet(pet);
+        ra.addFlashAttribute("message", "Lưu thú cưng thành công!");
+        return "redirect:/admin/manage-pet";
+    }
+
+
+
+
 
     //Manage Product - OanhTP
     @GetMapping("/admin/manage-product")
@@ -50,28 +137,59 @@ public class AdminController {
     }
 
     //Manage Categories - OanhTP
-   @GetMapping("/admin/manage-categories")
-   public String manageCategories() {
+    //List
+    @GetMapping("/admin/manage-categories")
+    public String manageCategories(Model model) {
+
+        model.addAttribute("categories", categoryService.getAllCategories());
+
         return "admin/manageCategories";
    }
+    //Edit
+    @GetMapping("/admin/category/edit/{id}")
+    public String editCategory(Model model, @PathVariable("id") Integer id) {
+        model.addAttribute("selectedCate", categoryService.getCategoryById(id));
+        model.addAttribute("formMode", "edit");
 
-    //Create Pet - OanhTP
-    @GetMapping("/admin/pet/save")
-    public String savePet() {
-        return "admin/pet-form";
+        return "admin/category-form";
     }
 
+    //Create
+    @GetMapping("/admin/category/new")
+    public String createCategory(Model model) {
+        model.addAttribute("selectedCate", new Categories());
+
+        model.addAttribute("formMode", "add");
+        return "admin/category-form";
+    }
+
+    //Save
+    @PostMapping("/admin/category/save")
+    public String saveCategory(@Validated @ModelAttribute("selectedCate")Categories cate, BindingResult result, Model model, @RequestParam("mode") String formMode) {
+
+        if(result.hasErrors()) {
+            model.addAttribute("formMode", formMode);
+            return "admin/category-form";
+        }
+
+        categoryService.saveCategory(cate);
+        return "redirect:/admin/manage-categories";
+    }
+
+    //Delete
+    @GetMapping("/admin/category/delete/{id}")
+    public String deleteCategory(@PathVariable("id") Integer id) {
+        categoryService.deleteCategoryById(id);
+        return "redirect:/admin/manage-categories";
+    }
+
+
     //Create Product - OanhTP
-    @GetMapping("/admin/product/save")
+    @GetMapping("/admin/product/new")
     public String saveProduct() {
         return "admin/product-form";
     }
 
-    //Create Category - OanhTP
-    @GetMapping("/admin/category/save")
-    public String saveCategory() {
-        return "admin/category-form";
-    }
 
     @GetMapping("/admin/staff-manage")
     public String showStaffList() {
@@ -211,5 +329,5 @@ public class AdminController {
         }
         return "redirect:/admin/services";
     }
-    
+
 }

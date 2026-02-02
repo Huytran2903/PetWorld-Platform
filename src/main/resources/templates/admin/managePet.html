@@ -14,7 +14,7 @@
             <div>
                 <h1 class="h3 mb-1 fw-bold text-dark">Pet Management System</h1>
             </div>
-            <a th:href="@{/admin/pet/save}" class="btn btn-add-new d-flex align-items-center gap-2 px-4 py-2 shadow-sm text-decoration-none">
+            <a th:href="@{/admin/pet/new}" class="btn btn-add-new d-flex align-items-center gap-2 px-4 py-2 shadow-sm text-decoration-none">
                 <span class="fs-4">+</span> Add New Pet
             </a>
         </div>
@@ -98,7 +98,7 @@
                         </td>
                         <td class="text-end pe-4">
                             <div class="btn-group shadow-sm rounded-pill overflow-hidden">
-                                <button class="btn btn-sm btn-outline-secondary border-0 px-3">Edit</button>
+                                <a th:href="@{'/admin/pet/edit'}" class="btn btn-sm btn-outline-secondary border-0 px-3">Edit</a>
                                 <button class="btn btn-sm btn-outline-danger border-0 px-3">Delete</button>
                             </div>
                         </td>

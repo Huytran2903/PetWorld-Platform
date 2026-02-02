@@ -38,6 +38,9 @@ public class SecurityConfig {
                         // QUAN TRỌNG: Mở khóa link verify email
                         .requestMatchers("/verify").permitAll()
 
+                        .requestMatchers("/admin/pet/save").permitAll()
+
+
                         // C. Các trang còn lại -> BẮT BUỘC ĐĂNG NHẬP
                         .anyRequest().authenticated()
                 )

@@ -86,12 +86,12 @@ public class AccountController {
     }
 
     @PostMapping("/do-login")
-    public String handleLogin(@RequestParam String username,
+    public String handleLogin(@RequestParam String email,
                               @RequestParam String password,
                               Model model, HttpSession session, HttpServletRequest request,
                               HttpServletResponse response) {
 
-        Optional<Customer> customerOpt = customerService.login(username, password);
+        Optional<Customer> customerOpt = customerService.login(email, password);
 
         if (customerOpt.isPresent()) {
             Customer customer = customerOpt.get();
@@ -117,7 +117,7 @@ public class AccountController {
             return "redirect:/";
         }
 
-        Optional<Staff> staffOpt = staffService.login(username, password);
+        Optional<Staff> staffOpt = staffService.login(email, password);
 
         if (staffOpt.isPresent()) {
             Staff staff = staffOpt.get();

@@ -18,19 +18,22 @@
   <div class="form-container px-3" style="max-width: 650px;">
     <div class="mb-4 text-start ps-2">
 
-      <h2 class="fw-bold text-dark mb-0">Add New Category</h2>
+      <h2 class="fw-bold text-dark mb-0" th:if="${formMode == 'add'}">Add New Category</h2>
+      <h2 class="fw-bold text-dark mb-0" th:if="${formMode == 'edit'}">Edit Category</h2>
+
       <p class="text-secondary small">Define a new category for pets or products.</p>
     </div>
 
     <div class="card pet-card border-0 shadow-lg p-4">
-      <form th:action="@{/admin/categories/save}" method="POST">
+      <form th:action="@{'/admin/category/save'}" method="post" th:object="${selectedCate}">
         <div class="row g-4">
 
-          <div class="col-12">
+
+          <div class="col-12" th:if="${formMode == 'edit'}">
             <label class="form-label fw-semibold text-secondary small">
               <i class="fa-solid fa-fingerprint me-1 text-warning"></i> Category ID
             </label>
-            <input type="text" class="form-control shadow-none bg-light" placeholder="Auto-generated ID" readonly>
+            <input type="text" id="categoryID" th:field="*{categoryID}" th:readonly="${formMode == 'edit'}" class="form-control shadow-none bg-light" placeholder="Auto-generated ID" readonly>
             <div class="form-text mt-1 italic small text-muted">ID will be assigned automatically by the system.</div>
           </div>
 
@@ -38,14 +41,16 @@
             <label class="form-label fw-semibold text-secondary small">
               <i class="fa-solid fa-tag me-1 text-warning"></i> Category Name <span class="text-danger">*</span>
             </label>
-            <input type="text" class="form-control shadow-none" placeholder="e.g. Pet Food, Accessories, Cats..." required>
+            <input type="text" id="name" th:field="*{name}" class="form-control shadow-none" placeholder="e.g. Pet Food, Accessories, Cats..." >
+            <span th:errors="*{name}" style="color: red"></span>
           </div>
 
           <div class="col-12">
             <label class="form-label fw-semibold text-secondary small">
               <i class="bi bi-chat-left-text-fill me-1 text-warning"></i> Description
             </label>
-            <textarea class="form-control shadow-none" rows="5" placeholder="Describe the purpose of this category..."></textarea>
+            <textarea type="text" id="description" th:field="*{description}" class="form-control shadow-none" rows="5" placeholder="Describe the purpose of this category..."></textarea>
+            <span th:errors="*{description}" style="color: red"></span>
           </div>
 
           <div class="col-md-12 border-top pt-4 mt-2 d-flex gap-3 justify-content-end">
@@ -56,6 +61,10 @@
               Save Category
             </button>
           </div>
+
+          <p>
+            <input type="hidden" name="mode" th:value="${formMode}">
+          </p>
 
         </div>
       </form>
