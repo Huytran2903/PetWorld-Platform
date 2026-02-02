@@ -5,29 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staff Sidebar</title>
     <style>
+        /* Sidebar container - giống admin */
         .sidebar {
             width: 250px;
-            background-color: #2c3e50;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
             color: white;
             min-height: 100vh;
-            padding: 20px 0;
+            padding: 0;
             position: fixed;
             left: 0;
             top: 0;
             overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
         }
 
+        /* Header - giống admin */
         .sidebar-header {
-            padding: 0 20px 20px;
-            border-bottom: 1px solid #34495e;
-            margin-bottom: 10px;
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .sidebar-header h3 {
             margin: 0;
-            color: white;
-            font-size: 20px;
-            font-weight: 600;
+            color: #ffffff;
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        /* Navigation - giống admin */
+        .sidebar-nav {
+            padding: 1rem 0;
         }
 
         .sidebar-nav ul {
@@ -37,52 +46,71 @@
         }
 
         .sidebar-nav li {
-            margin: 0;
+            margin: 0.25rem 0;
         }
 
         .sidebar-nav a {
-            display: block;
-            padding: 15px 20px;
-            color: #ecf0f1;
+            display: flex;
+            align-items: center;
+            padding: 0.875rem 1.5rem;
+            color: #cbd5e1;
             text-decoration: none;
-            transition: all 0.3s ease;
-            border-left: 4px solid transparent;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 3px solid transparent;
+            font-size: 0.95rem;
+            font-weight: 500;
         }
 
         .sidebar-nav a:hover {
-            background-color: #34495e;
-            border-left: 4px solid #3498db;
-            padding-left: 24px;
+            background: rgba(59, 130, 246, 0.1);
+            color: #ffffff;
+            border-left-color: #3b82f6;
+            padding-left: 1.75rem;
         }
 
         .sidebar-nav a.active {
-            background-color: #34495e;
-            border-left: 4px solid #3498db;
+            background: rgba(59, 130, 246, 0.15);
+            color: #ffffff;
+            border-left-color: #3b82f6;
             font-weight: 600;
         }
 
         .sidebar-nav i {
-            margin-right: 10px;
+            margin-right: 0.75rem;
             width: 20px;
             text-align: center;
-            display: inline-block;
+            font-size: 1rem;
+            opacity: 0.9;
         }
 
+        .sidebar-nav a:hover i,
+        .sidebar-nav a.active i {
+            opacity: 1;
+        }
+
+        /* Scrollbar styling - giống admin */
         .sidebar::-webkit-scrollbar {
             width: 6px;
         }
 
         .sidebar::-webkit-scrollbar-track {
-            background: #34495e;
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .sidebar::-webkit-scrollbar-thumb {
-            background: #3498db;
+            background: rgba(59, 130, 246, 0.5);
             border-radius: 3px;
         }
 
         .sidebar::-webkit-scrollbar-thumb:hover {
-            background: #2980b9;
+            background: rgba(59, 130, 246, 0.7);
+        }
+
+        /* Divider cho logout */
+        .sidebar-nav .nav-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 0.5rem 1.5rem;
         }
     </style>
 </head>
@@ -90,61 +118,74 @@
     <!-- Fragment aside cho staff với tham số activePage -->
     <aside th:fragment="aside(activePage)" class="sidebar">
         <div class="sidebar-header">
-            <h3>Staff Menu</h3>
+            <h3><i class="fas fa-user-tie me-2"></i>Staff Panel</h3>
         </div>
         <nav class="sidebar-nav">
             <ul>
                 <li>
                     <a th:href="@{/staff/dashboard}" 
                        th:classappend="${activePage == 'dashboard'} ? 'active' : ''">
-                        <i class="fas fa-home"></i> Dashboard
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
                     </a>
                 </li>
                 <li>
                     <a th:href="@{/staff/services}" 
                        th:classappend="${activePage == 'services'} ? 'active' : ''">
-                        <i class="fas fa-concierge-bell"></i> Dịch vụ
+                        <i class="fas fa-concierge-bell"></i>
+                        <span>Dịch vụ</span>
                     </a>
                 </li>
                 <li>
                     <a th:href="@{/staff/service-execution-history}" 
                        th:classappend="${activePage == 'service-history'} ? 'active' : ''">
-                        <i class="fas fa-history"></i> Lịch sử thực hiện
+                        <i class="fas fa-history"></i>
+                        <span>Lịch sử thực hiện</span>
                     </a>
                 </li>
                 <li>
                     <a th:href="@{/staff/customers}" 
                        th:classappend="${activePage == 'customers'} ? 'active' : ''">
-                        <i class="fas fa-users"></i> Khách hàng
+                        <i class="fas fa-users"></i>
+                        <span>Khách hàng</span>
                     </a>
                 </li>
                 <li>
                     <a th:href="@{/staff/appointments}" 
                        th:classappend="${activePage == 'appointments'} ? 'active' : ''">
-                        <i class="fas fa-calendar-alt"></i> Lịch hẹn
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Lịch hẹn</span>
                     </a>
                 </li>
                 <li>
                     <a th:href="@{/staff/bookings}" 
                        th:classappend="${activePage == 'bookings'} ? 'active' : ''">
-                        <i class="fas fa-book"></i> Đặt chỗ
+                        <i class="fas fa-book"></i>
+                        <span>Đặt chỗ</span>
                     </a>
                 </li>
                 <li>
                     <a th:href="@{/staff/profile}" 
                        th:classappend="${activePage == 'profile'} ? 'active' : ''">
-                        <i class="fas fa-user"></i> Hồ sơ
+                        <i class="fas fa-user"></i>
+                        <span>Hồ sơ</span>
                     </a>
                 </li>
                 <li>
                     <a th:href="@{/staff/settings}" 
                        th:classappend="${activePage == 'settings'} ? 'active' : ''">
-                        <i class="fas fa-cog"></i> Cài đặt
+                        <i class="fas fa-cog"></i>
+                        <span>Cài đặt</span>
                     </a>
                 </li>
+                
+                <!-- Divider trước logout -->
+                <li><div class="nav-divider"></div></li>
+                
                 <li>
                     <a th:href="@{/logout}">
-                        <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Đăng xuất</span>
                     </a>
                 </li>
             </ul>

@@ -27,7 +27,7 @@ public class ServiceExecutionHistoryController {
      * Display Service Execution History page
      * Supports filtering by status and date range
      */
-    @GetMapping("/service-history")
+    @GetMapping("/service-execution-history")
     public String getServiceHistory(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String startDate,
