@@ -11,6 +11,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import vn.edu.fpt.petworldplatform.dto.PetFormDTO;
 import vn.edu.fpt.petworldplatform.entity.Categories;
 import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.service.CategoryService;
@@ -81,54 +82,65 @@ public class AdminController {
     //Create Pet
     @GetMapping("/admin/pet/new")
     public String createPet(Model model) {
-        model.addAttribute("selectedPet", new Pets() );
+        model.addAttribute("pet", new PetFormDTO());
         model.addAttribute("formMode", "add");
         return "admin/pet-form";
     }
 
-    //Save
     @PostMapping(
             value = "/admin/pet/save",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     public String savePet(
-            @ModelAttribute("selectedPet") Pets pet,
-            @RequestParam(value = "imageFile", required = false) MultipartFile file,
+            @Valid @ModelAttribute("pet") PetFormDTO dto,
+            BindingResult br,
             RedirectAttributes ra
     ) throws IOException {
 
+        if (br.hasErrors()) {
+            return "admin/pet-form";
+        }
+
+        Pets pet = new Pets();
+
+        pet.setPetID(dto.getPetID());
+        pet.setName(dto.getName());
+        pet.setBreed(dto.getBreed());
+        pet.setPetType(dto.getPetType());
+        pet.setGender(dto.getGender());
+        pet.setAgeMonths(dto.getAgeMonths());
+        pet.setWeightKg(dto.getWeightKg());
+        pet.setColor(dto.getColor());
+        pet.setPrice(dto.getPrice());
+        pet.setDiscountPercent(dto.getDiscountPercent());
+        pet.setDescription(dto.getDescription());
+        pet.setIsAvailable(dto.getIsAvailable() != null ? dto.getIsAvailable() : true);
+
+        // ✅ LẤY FILE TỪ DTO
+        MultipartFile file = dto.getImageFile();
+
         if (file != null && !file.isEmpty()) {
 
-            String fileName = System.currentTimeMillis() + "_" +
-                    StringUtils.cleanPath(file.getOriginalFilename());
+            String fileName = System.currentTimeMillis() + "_"
+                    + StringUtils.cleanPath(file.getOriginalFilename());
 
-            // 📁 LƯU TRONG PROJECT
-            Path uploadDir = Paths.get("src/main/resources/static/pet-images");
-
-            // Tạo thư mục nếu chưa có
+            Path uploadDir = Paths.get("uploads/pet-images");
             Files.createDirectories(uploadDir);
 
-            // Lưu file
             Files.copy(
                     file.getInputStream(),
                     uploadDir.resolve(fileName),
                     StandardCopyOption.REPLACE_EXISTING
             );
 
-            // Lưu tên file vào DB
-            pet.setImageUrl(fileName);
+            pet.setImageUrl("/uploads/pet-images/" + fileName);
         }
 
-        System.out.println(">>> Multipart OK");
-        System.out.println(file.getOriginalFilename());
         petService.savePet(pet);
+
         ra.addFlashAttribute("message", "Lưu thú cưng thành công!");
         return "redirect:/admin/manage-pet";
     }
-
-
-
-
 
     //Manage Product - OanhTP
     @GetMapping("/admin/manage-product")
