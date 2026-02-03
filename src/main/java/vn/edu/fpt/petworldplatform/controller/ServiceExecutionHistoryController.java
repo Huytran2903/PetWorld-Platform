@@ -34,20 +34,20 @@ public class ServiceExecutionHistoryController {
             @RequestParam(required = false) String endDate,
             Model model) {
 
-        // Get statistics for dashboard cards
-        Long completedCount = service.getCompletedCount();
-        Long inProgressCount = service.getInProgressCount();
-        Long pendingCount = service.getPendingCount();
-
-        model.addAttribute("completedCount", completedCount != null ? completedCount : 0L);
-        model.addAttribute("inProgressCount", inProgressCount != null ? inProgressCount : 0L);
-        model.addAttribute("pendingCount", pendingCount != null ? pendingCount : 0L);
-
-        // Get history data based on filters
-        List<ServiceExecutionHistoryDTO> history;
-        boolean filtered = false;
-
         try {
+            // Get statistics for dashboard cards
+            Long completedCount = service.getCompletedCount();
+            Long inProgressCount = service.getInProgressCount();
+            Long pendingCount = service.getPendingCount();
+
+            model.addAttribute("completedCount", completedCount != null ? completedCount : 0L);
+            model.addAttribute("inProgressCount", inProgressCount != null ? inProgressCount : 0L);
+            model.addAttribute("pendingCount", pendingCount != null ? pendingCount : 0L);
+
+            // Get history data based on filters
+            List<ServiceExecutionHistoryDTO> history;
+            boolean filtered = false;
+
             // Case 1: Filter by both status and date range
             if (isNotEmpty(status) && isNotEmpty(startDate) && isNotEmpty(endDate)) {
                 LocalDateTime start = parseDate(startDate, true);
@@ -71,20 +71,28 @@ public class ServiceExecutionHistoryController {
             else {
                 history = service.getAllHistory();
             }
+
+            // Add data to model
+            model.addAttribute("history", history);
+            model.addAttribute("filtered", filtered);
+            model.addAttribute("status", status);
+            model.addAttribute("startDate", startDate);
+            model.addAttribute("endDate", endDate);
+
         } catch (Exception e) {
             // If error occurs, return empty list
-            history = List.of();
-            model.addAttribute("error", "Error loading data: " + e.getMessage());
+            model.addAttribute("history", List.of());
+            model.addAttribute("filtered", false);
+            model.addAttribute("error", "Lỗi khi tải dữ liệu: " + e.getMessage());
+            model.addAttribute("completedCount", 0L);
+            model.addAttribute("inProgressCount", 0L);
+            model.addAttribute("pendingCount", 0L);
+            
+            // Log error for debugging
+            e.printStackTrace();
         }
 
-        // Add data to model
-        model.addAttribute("history", history);
-        model.addAttribute("filtered", filtered);
-        model.addAttribute("status", status);
-        model.addAttribute("startDate", startDate);
-        model.addAttribute("endDate", endDate);
-
-        return "staff/service-execution-history";  // Fixed: Added "staff/" prefix
+        return "staff/service-execution-history";
     }
 
     /**
