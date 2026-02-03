@@ -45,6 +45,18 @@ public class Appointment {
     @Column(name = "UpdatedAt")
     private LocalDateTime updatedAt;
 
+    @Column(name = "CanceledAt")
+    private LocalDateTime canceledAt;
+
+    @Column(name = "CancellationReason", length = 255)
+    private String cancellationReason;
+
+    @Column(name = "RescheduledAt")
+    private LocalDateTime rescheduledAt;
+
+    @Column(name = "PreviousAppointmentDate")
+    private LocalDateTime previousAppointmentDate;
+
     @OneToMany(mappedBy = "appointment", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<AppointmentServiceLine> serviceLines = new ArrayList<>();

@@ -36,6 +36,11 @@ body {
     color: var(--text);
     line-height: 1.5;
     padding: 20px;
+    overflow-y: scroll;
+}
+
+main.container {
+    padding-top: 0;
 }
 
 /* =========================================
@@ -46,21 +51,38 @@ body {
     margin: 0 auto;
     display: grid;
     /* Cột trái 1fr, cột phải 360px */
-    grid-template-columns: 1fr 360px;
-    gap: 30px;
+    grid-template-columns: 1fr 380px;
+    gap: 12px;
     align-items: start;
 }
 
-/* Đẩy Alert và Hero ra chiếm toàn bộ hoặc theo cột */
+/* Alerts */
 .alert {
     grid-column: 1 / -1;
-    padding: 15px;
+    padding: 14px 18px;
     border-radius: 12px;
-    margin-bottom: 20px;
+    margin: 0 0 16px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border: 1px solid;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-.alert-success { background: #e6fffa; border: 1px solid #38b2ac; color: #2c7a7b; }
-.alert-danger { background: #fff5f5; border: 1px solid #feb2b2; color: #c53030; }
+.alert-success { background: #d4edda; border-color: #c3e6cb; color: #155724; }
+.alert-danger { background: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+
+.alert::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.alert-success::before { background: #28a745; }
+.alert-danger::before { background: #dc3545; }
 
 .hero {
     grid-column: 1; /* Nằm bên trái, ngang hàng với Sidebar */
@@ -73,8 +95,32 @@ section.card {
 aside.card {
     grid-column: 2;
     grid-row: 1 / 3; /* Bắt đầu từ hàng 1 kéo dài xuống hàng 2 */
-    position: sticky;
+}
+
+/* Reserve space on the right so main content doesn't touch the fixed summary */
+.hero,
+section.card {
+    margin-right: 24px;
+}
+
+/* Sticky summary inside grid */
+.booking-summary {
+    position: fixed;
     top: 20px;
+    right: calc((100vw - 1200px) / 2);
+    width: 380px;
+    max-height: calc(100vh - 40px);
+    overflow: auto;
+}
+
+@media (max-width: 1200px) {
+    .booking-summary {
+        right: 20px;
+    }
+}
+
+.booking-main {
+    margin-right: 0;
 }
 
 /* =========================================
@@ -88,7 +134,7 @@ aside.card {
     background: linear-gradient(135deg, #fff3e6 0%, #ffe8d1 100%);
     border-radius: var(--radius);
     border: 1px solid var(--primary-light);
-    margin-bottom: 24px;
+    margin-bottom: 16px;
 }
 
 .hero h1 { font-size: 1.5rem; font-weight: 800; }
@@ -119,7 +165,7 @@ aside.card {
 .grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    gap: 16px;
     margin-bottom: 20px;
 }
 
@@ -166,7 +212,7 @@ input:focus, select:focus {
 .svc-list {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 16px;
+    gap: 12px;
 }
 
 .svc-item {
@@ -194,13 +240,13 @@ input:focus, select:focus {
     accent-color: var(--primary);
 }
 
-.svc-name { font-weight: 700; margin-bottom: 4px; }
-.svc-meta { font-size: 0.8rem; color: var(--muted); }
+.svc-name { font-weight: 700; margin-bottom: 4px; font-size: 1rem; }
+.svc-meta { font-size: 0.85rem; color: var(--muted); }
 .svc-price {
     margin-top: 10px;
     color: var(--primary);
     font-weight: 800;
-    font-size: 1rem;
+    font-size: 1.06rem;
 }
 
 .svc-badge {
@@ -282,9 +328,23 @@ input:focus, select:focus {
     .container {
         grid-template-columns: 1fr;
     }
+
+    /* Disable fixed summary on smaller screens */
+    .booking-summary {
+        position: static;
+        width: auto;
+        right: auto;
+        top: auto;
+        max-height: none;
+        overflow: visible;
+    }
+
+    .booking-main {
+        margin-right: 0;
+    }
+
     aside.card {
         grid-column: 1;
-        position: static;
     }
 }
 

@@ -12,19 +12,18 @@ import vn.edu.fpt.petworldplatform.repository.AppointmentServiceLineRepository;
 import vn.edu.fpt.petworldplatform.repository.PetRepository;
 import vn.edu.fpt.petworldplatform.repository.ServiceItemRepository;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class BookingService {
 
     private static final int LEAD_TIME_HOURS = 2;
+    private static final int CANCEL_RESCHEDULE_MIN_HOURS = 1;
     private static final LocalTime OPEN_TIME = LocalTime.of(8, 0);
     private static final LocalTime CLOSE_TIME = LocalTime.of(20, 0);
 
@@ -54,7 +53,6 @@ public class BookingService {
 
     /**
      * BR-17: Booking must be at least 2 hours in advance.
-     * Use case: Selected time outside operating hours (08:00 - 20:00).
      */
     public Optional<String> validateAppointmentDateTime(LocalDateTime dateTime) {
         LocalDateTime now = LocalDateTime.now();
@@ -74,7 +72,7 @@ public class BookingService {
 
     @Transactional
     public Appointment createAppointment(Long customerId, Integer petId, LocalDateTime appointmentDate,
-                                        String note, List<Integer> serviceIds) {
+                                         String note, List<Integer> serviceIds) {
         String code = generateAppointmentCode();
         Appointment appointment = Appointment.builder()
                 .appointmentCode(code)
@@ -101,13 +99,81 @@ public class BookingService {
         return appointment;
     }
 
-    private static final DateTimeFormatter CODE_DATE = DateTimeFormatter.ofPattern("yyyyMMdd");
-    private static final AtomicInteger sequence = new AtomicInteger(1);
-
     private String generateAppointmentCode() {
-        String datePart = LocalDate.now().format(CODE_DATE);
-        int seq = sequence.getAndIncrement();
-        if (seq > 9999) sequence.set(1);
-        return "APT-" + datePart + "-" + String.format("%04d", seq);
+        String uuid = UUID.randomUUID().toString().replace("-", "");
+        String shortUuid = uuid.substring(0, 12);
+        return "APT-" + shortUuid.toUpperCase();
+    }
+
+    public List<Appointment> findAppointmentsByCustomerId(Long customerId) {
+        return appointmentRepository.findByCustomerIdOrderByAppointmentDateDesc(customerId);
+    }
+
+    public List<Appointment> findActiveAppointmentsByCustomerId(Long customerId) {
+        List<String> activeStatuses = List.of("pending", "confirmed");
+        return appointmentRepository.findByCustomerIdAndStatusInOrderByAppointmentDateDesc(customerId, activeStatuses);
+    }
+
+    public Optional<Appointment> findAppointmentByIdAndCustomerId(Integer id, Long customerId) {
+        return appointmentRepository.findById(id)
+                .filter(a -> a.getCustomerId().equals(customerId));
+    }
+
+    public List<AppointmentServiceLine> findServiceLinesByAppointmentId(Integer appointmentId) {
+        return appointmentServiceLineRepository.findByAppointment_Id(appointmentId);
+    }
+
+    public Optional<String> canCancelOrReschedule(Integer appointmentId, Long customerId) {
+        Optional<Appointment> opt = findAppointmentByIdAndCustomerId(appointmentId, customerId);
+        if (opt.isEmpty()) return Optional.of("Appointment not found.");
+        Appointment a = opt.get();
+        if (!List.of("pending", "confirmed").contains(a.getStatus())) {
+            return Optional.of("Cannot cancel/reschedule an appointment with status: " + a.getStatus());
+        }
+        LocalDateTime now = LocalDateTime.now();
+        if (a.getAppointmentDate().isBefore(now.plusHours(CANCEL_RESCHEDULE_MIN_HOURS))) {
+            return Optional.of("Cannot cancel/reschedule within 1 hour of appointment.");
+        }
+        return Optional.empty();
+    }
+
+    @Transactional
+    public void cancelAppointment(Integer appointmentId, Long customerId, String reason) {
+        Optional<String> err = canCancelOrReschedule(appointmentId, customerId);
+        if (err.isPresent()) throw new IllegalArgumentException(err.get());
+        Appointment a = findAppointmentByIdAndCustomerId(appointmentId, customerId).orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
+        a.setStatus("canceled");
+        a.setCancellationReason(reason);
+        a.setCanceledAt(LocalDateTime.now());
+        a.setUpdatedAt(LocalDateTime.now());
+        appointmentRepository.save(a);
+    }
+
+    @Transactional
+    public void rescheduleAppointment(Integer appointmentId, Long customerId, LocalDateTime newDateTime) {
+        Optional<String> err = canCancelOrReschedule(appointmentId, customerId);
+        if (err.isPresent()) throw new IllegalArgumentException(err.get());
+        Appointment a = findAppointmentByIdAndCustomerId(appointmentId, customerId).orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
+        Optional<String> validation = validateAppointmentDateTime(newDateTime);
+        if (validation.isPresent()) throw new IllegalArgumentException(validation.get());
+        a.setPreviousAppointmentDate(a.getAppointmentDate());
+        a.setAppointmentDate(newDateTime);
+        a.setRescheduledAt(LocalDateTime.now());
+        a.setUpdatedAt(LocalDateTime.now());
+        appointmentRepository.save(a);
+    }
+
+    // NEW ---------------------------------------------
+    /**
+     * Delete a canceled appointment owned by customer.
+     */
+    @Transactional
+    public void deleteAppointmentIfCanceled(Integer appointmentId, Long customerId) {
+        Appointment a = appointmentRepository.findById(appointmentId).orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
+        if (!a.getCustomerId().equals(customerId)) throw new IllegalArgumentException("Unauthorized to delete this appointment.");
+        if (!"canceled".equalsIgnoreCase(a.getStatus())) throw new IllegalArgumentException("Only canceled appointments can be deleted.");
+        // delete lines then appointment
+        appointmentServiceLineRepository.deleteAllByAppointment(a);
+        appointmentRepository.delete(a);
     }
 }

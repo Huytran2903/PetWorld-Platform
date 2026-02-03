@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", function() {
     const form = document.getElementById("bookForm");
+    const sumServiceType = document.getElementById("sumServiceType");
     const sumServices = document.getElementById("sumServices");
     const sumDuration = document.getElementById("sumDuration");
     const sumTotal = document.getElementById("sumTotal");
@@ -28,11 +29,14 @@ document.addEventListener("DOMContentLoaded", function() {
         let total = 0;
         let totalDuration = 0;
         let names = [];
+        let serviceTypes = new Set();
 
         selectedInputs.forEach(inp => {
             const price = parseFloat(inp.getAttribute("data-price")) || 0;
             const duration = parseFloat(inp.getAttribute("data-duration")) || 0;
             const name = inp.getAttribute("data-name");
+            const svcType = inp.closest(".svc-item")?.querySelector(".svc-badge")?.textContent?.trim();
+            if (svcType) serviceTypes.add(svcType);
 
             // Nếu là boarding, giá nhân theo số lượng ngày/giờ
             // Nếu không (spa/vaccine), giá là cố định 1 lần
@@ -49,6 +53,11 @@ document.addEventListener("DOMContentLoaded", function() {
         });
 
         // Cập nhật UI
+        if (sumServiceType) {
+            const typesArr = Array.from(serviceTypes);
+            sumServiceType.textContent = typesArr.length > 0 ? typesArr.join(", ") : "—";
+        }
+
         sumServices.textContent = names.length > 0 ? names.join(", ") : "—";
         sumTotal.textContent = names.length > 0 ? formatVND(total) : "—";
 

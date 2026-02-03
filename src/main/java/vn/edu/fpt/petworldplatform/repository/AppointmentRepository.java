@@ -10,6 +10,10 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
 
     List<Appointment> findByCustomerIdOrderByAppointmentDateDesc(Long customerId);
 
+    List<Appointment> findByCustomerIdAndStatusInOrderByAppointmentDateDesc(Long customerId, List<String> statuses);
+
     /** Count appointments at same date/time (for double-booking check). */
     long countByAppointmentDateAndStatusNot(LocalDateTime appointmentDate, String excludedStatus);
+
+    long countByAppointmentDateAndStatusNotIn(LocalDateTime appointmentDate, List<String> excludedStatuses);
 }

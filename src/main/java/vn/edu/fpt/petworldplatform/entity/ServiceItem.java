@@ -2,6 +2,7 @@ package vn.edu.fpt.petworldplatform.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import org.hibernate.annotations.CreationTimestamp;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -48,7 +49,8 @@ public class ServiceItem {
     @Builder.Default
     private Boolean isActive = true;
 
-    @Column(name = "CreatedAt", nullable = false)
+    @CreationTimestamp
+    @Column(name = "CreatedAt", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist

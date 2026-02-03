@@ -55,7 +55,7 @@
     </div>
 
     <!-- Main form card -->
-    <section class="card">
+    <section class="card booking-main">
         <header class="card-header">
             <div>
                 <h2 class="title">Booking Information</h2>
@@ -111,7 +111,7 @@
                     </h3>
 
                     <div class="svc-list">
-                        <label class="svc-item" th:each="svc : ${serviceList}">
+                        <div class="svc-item" th:each="svc : ${serviceList}">
                             <span class="svc-badge" th:text="${svc.serviceType}">TYPE</span>
 
                             <input
@@ -135,7 +135,7 @@
                                         th:text="${#numbers.formatDecimal(svc.basePrice, 0, 'COMMA', 0, 'POINT')} + ' VND'"
                                 ></div>
                             </div>
-                        </label>
+                        </div>
                     </div>
 
                     <!-- Boarding extra fields -->
@@ -189,6 +189,7 @@
                     <button class="btn btn-primary" type="submit">
                         Confirm Booking
                     </button>
+                    <a th:href="@{/customer/appointments}" class="btn btn-secondary">History</a>
                     <button
                             class="btn btn-secondary"
                             type="button"
@@ -202,7 +203,7 @@
     </section>
 
     <!-- Summary card -->
-    <aside class="card">
+    <aside class="card booking-summary">
         <header class="card-header">
             <div>
                 <h2 class="title">Estimated Cost</h2>
@@ -214,7 +215,7 @@
         <div class="card-body">
             <div class="summary-row">
                 <span>Service Type</span>
-                <strong th:text="${currentType}">—</strong>
+                <strong id="sumServiceType" th:text="${currentType}">—</strong>
             </div>
 
             <div class="summary-row">

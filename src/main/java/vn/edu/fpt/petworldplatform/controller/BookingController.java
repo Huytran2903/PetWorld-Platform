@@ -98,6 +98,6 @@ public class BookingController {
         );
 
         redirectAttributes.addFlashAttribute("message", "Your appointment has been booked successfully. We will send you a confirmation shortly.");
-        return "redirect:/appointment/booking";
+        return "redirect:/customer/appointments";
     }
 }

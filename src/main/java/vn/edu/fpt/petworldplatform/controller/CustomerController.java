@@ -11,8 +11,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.petworldplatform.dto.PetCreateDTO;
 import vn.edu.fpt.petworldplatform.dto.ProfileFormDTO;
+import vn.edu.fpt.petworldplatform.entity.Appointment;
 import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.service.*;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Controller
 public class CustomerController {
@@ -149,6 +153,103 @@ public class CustomerController {
         petService.createPet(petDTO);
         redirectAttributes.addFlashAttribute("message", "Pet profile created. You can now book a service appointment.");
         return "redirect:/appointment/booking";
+    }
+
+    @Autowired
+    BookingService bookingService;
+
+    @GetMapping("/customer/appointments")
+    public String appointmentHistory(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+        Customer customer = (Customer) session.getAttribute("loggedInAccount");
+        if (customer == null) {
+            return "redirect:/login";
+        }
+        List<Appointment> appointments = bookingService.findAppointmentsByCustomerId(customer.getCustomerId());
+        model.addAttribute("appointments", appointments);
+        return "customer/appointment-history";
+    }
+
+    @GetMapping("/customer/appointments/{id}")
+    public String appointmentDetail(@PathVariable Integer id,
+                                    HttpSession session,
+                                    Model model,
+                                    RedirectAttributes redirectAttributes) {
+        Customer customer = (Customer) session.getAttribute("loggedInAccount");
+        if (customer == null) {
+            return "redirect:/login";
+        }
+
+        Appointment appt = bookingService.findAppointmentByIdAndCustomerId(id, customer.getCustomerId())
+                .orElse(null);
+        if (appt == null) {
+            redirectAttributes.addFlashAttribute("error", "Appointment not found.");
+            return "redirect:/customer/appointments";
+        }
+
+        model.addAttribute("appointment", appt);
+        model.addAttribute("serviceLines", bookingService.findServiceLinesByAppointmentId(id));
+        return "customer/appointment-detail";
+    }
+
+    @PostMapping("/customer/appointments/{id}/cancel")
+    public String cancelAppointment(@PathVariable Integer id,
+                                   @RequestParam String reason,
+                                   HttpSession session,
+                                   RedirectAttributes redirectAttributes) {
+        Customer customer = (Customer) session.getAttribute("loggedInAccount");
+        if (customer == null) {
+            return "redirect:/login";
+        }
+        try {
+            bookingService.cancelAppointment(id, customer.getCustomerId(), reason);
+            redirectAttributes.addFlashAttribute("message", "Appointment canceled successfully.");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/customer/appointments";
+    }
+
+    @PostMapping("/customer/appointments/{id}/reschedule")
+    public String rescheduleAppointment(@PathVariable Integer id,
+                                       @RequestParam String newDateTime,
+                                       HttpSession session,
+                                       RedirectAttributes redirectAttributes) {
+        Customer customer = (Customer) session.getAttribute("loggedInAccount");
+        if (customer == null) {
+            return "redirect:/login";
+        }
+        try {
+            LocalDateTime parsed;
+            try {
+                parsed = LocalDateTime.parse(newDateTime);
+            } catch (Exception ex) {
+                parsed = LocalDateTime.parse(newDateTime.replace(" ", "T"));
+            }
+            bookingService.rescheduleAppointment(id, customer.getCustomerId(), parsed);
+            redirectAttributes.addFlashAttribute("message", "Appointment rescheduled successfully.");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Invalid date/time format.");
+        }
+        return "redirect:/customer/appointments";
+    }
+
+    @PostMapping("/customer/appointments/{id}/delete")
+    public String deleteCanceledAppointment(@PathVariable Integer id,
+                                           HttpSession session,
+                                           RedirectAttributes redirectAttributes) {
+        Customer customer = (Customer) session.getAttribute("loggedInAccount");
+        if (customer == null) {
+            return "redirect:/login";
+        }
+        try {
+            bookingService.deleteAppointmentIfCanceled(id, customer.getCustomerId());
+            redirectAttributes.addFlashAttribute("message", "Appointment deleted successfully.");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/customer/appointments";
     }
 }
 

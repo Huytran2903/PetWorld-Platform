@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout_user}">
+<head>
+    <title>Appointment History</title>
+    <link rel="stylesheet" th:href="@{/css/appointment-history.css}" />
+</head>
+<body>
+<main layout:fragment="content" class="container">
+    <!-- Alerts -->
+    <div th:if="${message}" class="alert alert-success" role="alert" th:text="${message}"></div>
+    <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}"></div>
+
+    <!-- Hero -->
+    <div class="hero">
+        <div class="hero-inner">
+            <div>
+                <h1>Appointment History</h1>
+                <p>View and manage your service appointments.</p>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <a th:href="@{/}" class="btn btn-secondary btn-sm">Back to Home</a>
+                <div class="type-pill">HISTORY</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- List -->
+    <section class="card">
+        <header class="card-header">
+            <div>
+                <h2 class="title">Your Appointments</h2>
+                <p class="subtitle">All past and upcoming appointments</p>
+            </div>
+            <div class="pill">LIST</div>
+        </header>
+
+        <div class="card-body">
+            <div class="appointment-list">
+                <div th:if="${#lists.isEmpty(appointments)}" class="empty-state">
+                    <p>You have no appointments yet.</p>
+                    <a th:href="@{/appointment/booking}" class="btn btn-primary">Book Appointment</a>
+                </div>
+
+                <article th:each="appt : ${appointments}" class="appointment-item">
+                    <div class="appointment-header">
+                        <div>
+                            <h3 class="appointment-code" th:text="${appt.appointmentCode}">APT-20260101-0001</h3>
+                            <span class="badge"
+                                  th:classappend="${appt.status == 'pending' ? 'badge-warning' : (appt.status == 'confirmed' ? 'badge-success' : (appt.status == 'canceled' ? 'badge-danger' : 'badge-secondary'))}"
+                                  th:text="${#strings.capitalize(appt.status)}">Pending</span>
+                        </div>
+                        <div class="appointment-date">
+                            <strong th:text="${#temporals.format(appt.appointmentDate, 'dd/MM/yyyy HH:mm')}">01/01/2026 09:00</strong>
+                        </div>
+                    </div>
+
+                    <div class="appointment-body">
+                        <div class="appointment-info">
+                            <p><strong>Pet:</strong> <span th:text="${appt.petId}">Pet Name</span></p>
+                            <p><strong>Note:</strong> <span th:text="${appt.note ?: '—'}">—</span></p>
+                            <p th:if="${appt.cancellationReason}">
+                                <strong>Cancellation Reason:</strong> <span th:text="${appt.cancellationReason}">—</span>
+                            </p>
+                            <p th:if="${appt.previousAppointmentDate}">
+                                <strong>Previous Date:</strong> <span th:text="${#temporals.format(appt.previousAppointmentDate, 'dd/MM/yyyy HH:mm')}">—</span>
+                            </p>
+                        </div>
+
+                        <!-- Actions for pending/confirmed -->
+                        <div th:if="${appt.status == 'pending' or appt.status == 'confirmed'}" class="appointment-actions">
+                            <a th:href="@{'/customer/appointments/' + ${appt.id}}" class="btn btn-outline-primary btn-sm">Detail</a>
+                            <button class="btn btn-secondary btn-sm"
+                                    th:onclick="'openCancelModal(' + ${appt.id} + ')'">Cancel</button>
+                            <button class="btn btn-primary btn-sm"
+                                    th:data-id="${appt.id}"
+                                    th:data-datetime="${#temporals.format(appt.appointmentDate, 'yyyy-MM-dd''T''HH:mm')}"
+                                    onclick="openRescheduleModal(this)">Reschedule</button>
+                        </div>
+
+                        <!-- Action for canceled -->
+                        <div th:if="${appt.status == 'canceled'}" class="appointment-actions">
+                            <a th:href="@{'/customer/appointments/' + ${appt.id}}" class="btn btn-outline-primary btn-sm">Detail</a>
+                            <form th:action="@{'/customer/appointments/' + ${appt.id} + '/delete'}" method="post" style="display:inline;">
+                                <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cancel Modal -->
+    <div id="cancelModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4>Cancel Appointment</h4>
+                <span class="close" onclick="closeCancelModal()">&times;</span>
+            </div>
+            <form method="post" action="#">
+                <div class="modal-body">
+                    <label for="cancelReason">Reason for cancellation</label>
+                    <textarea id="cancelReason" name="reason" required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeCancelModal()">Close</button>
+                    <button type="submit" class="btn btn-danger">Confirm Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reschedule Modal -->
+    <div id="rescheduleModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4>Reschedule Appointment</h4>
+                <span class="close" onclick="closeRescheduleModal()">&times;</span>
+            </div>
+            <form method="post" action="#">
+                <div class="modal-body">
+                    <label for="newDateTime">New Date & Time</label>
+                    <input type="datetime-local" id="newDateTime" name="newDateTime" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeRescheduleModal()">Close</button>
+                    <button type="submit" class="btn btn-primary">Confirm Reschedule</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        function openCancelModal(id) {
+            document.getElementById('cancelModal').style.display = 'block';
+            // Update form action dynamically
+            const form = document.querySelector('#cancelModal form');
+            form.action = '/customer/appointments/' + id + '/cancel';
+        }
+
+        function closeCancelModal() {
+            document.getElementById('cancelModal').style.display = 'none';
+        }
+
+        function openRescheduleModal(btn) {
+            const id = btn.getAttribute('data-id');
+            const currentDateTime = btn.getAttribute('data-datetime');
+            document.getElementById('rescheduleModal').style.display = 'block';
+            const form = document.querySelector('#rescheduleModal form');
+            form.action = '/customer/appointments/' + id + '/reschedule';
+            const input = document.getElementById('newDateTime');
+            input.value = currentDateTime;
+        }
+
+        function closeRescheduleModal() {
+            document.getElementById('rescheduleModal').style.display = 'none';
+        }
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const cancelModal = document.getElementById('cancelModal');
+            const rescheduleModal = document.getElementById('rescheduleModal');
+            if (event.target == cancelModal) {
+                cancelModal.style.display = 'none';
+            }
+            if (event.target == rescheduleModal) {
+                rescheduleModal.style.display = 'none';
+            }
+        }
+    </script>
+</main>
+</body>
+</html>
