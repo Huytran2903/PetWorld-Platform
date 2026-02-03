@@ -8,6 +8,7 @@
    - FIX: Orders.Status VARCHAR(20) + CHECK
    - FIX: SQL Server time columns dùng DATETIME2 (không dùng timestamp)
    - FIX: Orders - Payments quan hệ 1-1 (mỗi Order tối đa 1 Payment) bằng UNIQUE filtered index
+   - FIX: Pets - ImgUrl thành MAX để lưu file dạng base64
    ========================================================= */
 
 USE master;
@@ -138,7 +139,7 @@ CREATE TABLE dbo.Pets (
     WeightKg DECIMAL(5,2) NULL CHECK (WeightKg >= 0),
     Color NVARCHAR(40) NULL,
     Note NVARCHAR(500) NULL,
-    ImageUrl VARCHAR(255) NULL,
+    ImageUrl VARCHAR(MAX) NULL,
     Description NVARCHAR(MAX) NULL,
 
     Price DECIMAL(12,2) NULL CHECK (Price IS NULL OR Price >= 0),
