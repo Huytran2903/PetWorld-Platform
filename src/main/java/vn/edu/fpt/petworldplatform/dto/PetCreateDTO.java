@@ -4,18 +4,16 @@ import lombok.Data;
 
 @Data
 public class PetCreateDTO {
-    // Tên biến này đang là createPetOwnerType
-    private String createPetOwnerType;
-
     private String name;
-    private String species;
+    private String species; // Khớp với th:field="*{species}"
     private String breed;
     private Integer age;
+    private String description;
+    private String imageUrl;
 
-    // SỬA Ở ĐÂY: Đổi Integer thành Long
-    private Long ownerId;
+    // Hai trường quan trọng gây lỗi
+    private String createPetOwnerType; // Khớp với th:field="*{createPetOwnerType}" (value="shop" hoặc "customer")
+    private Long ownerId;              // Khớp với th:field="*{ownerId}"
 
     private Double price;
-    private String imageUrl;
-    private String description;
 }

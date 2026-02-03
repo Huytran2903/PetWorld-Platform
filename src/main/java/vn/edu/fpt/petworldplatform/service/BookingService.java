@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.petworldplatform.entity.Appointment;
 import vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine;
-import vn.edu.fpt.petworldplatform.entity.Pet;
+import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.entity.ServiceItem;
 import vn.edu.fpt.petworldplatform.repository.AppointmentRepository;
 import vn.edu.fpt.petworldplatform.repository.AppointmentServiceLineRepository;
@@ -33,7 +33,7 @@ public class BookingService {
     private final PetRepository petRepository;
     private final ServiceItemRepository serviceItemRepository;
 
-    public List<Pet> findPetsByCustomerId(Long customerId) {
+    public List<Pets> findPetsByCustomerId(Long customerId) {
         return petRepository.findByOwner_CustomerId(customerId);
     }
 
