@@ -146,17 +146,23 @@ public interface ServiceExecutionHistoryRepository extends JpaRepository<Appoint
     // NEW: Thống kê tần suất sử dụng dịch vụ (Service Usage Stats)
     // Trả về: ServiceName, UsageCount, Percentage
     // ============================================================
-    @Query(value =
-            "SELECT " +
-            "  s.Name AS ServiceName, " +
-            "  COUNT(aps.AppointmentServiceID) AS UsageCount, " +
-            "  CAST(COUNT(aps.AppointmentServiceID) * 100.0 / SUM(COUNT(aps.AppointmentServiceID)) OVER() AS DECIMAL(5,2)) AS Percentage " +
-            "FROM Services s " +
-            "LEFT JOIN AppointmentServices aps ON s.ServiceID = aps.ServiceID " +
-            "LEFT JOIN Appointments a ON aps.AppointmentID = a.AppointmentID " +
-            "WHERE a.Status IN ('done', 'in_progress') OR a.Status IS NULL " +
-            "GROUP BY s.ServiceID, s.Name " +
-            "ORDER BY UsageCount DESC",
-            nativeQuery = true)
-    List<Object[]> getServiceUsageStatistics();
+@Query(value =
+        "SELECT " +
+        "  s.Name AS ServiceName, " +
+        "  ISNULL(COUNT(aps.AppointmentServiceID), 0) AS UsageCount, " +
+        "  CASE " +
+        "    WHEN SUM(COUNT(aps.AppointmentServiceID)) OVER() > 0 " +
+        "    THEN CAST(COUNT(aps.AppointmentServiceID) * 100.0 / " +
+        "              SUM(COUNT(aps.AppointmentServiceID)) OVER() AS DECIMAL(5,2)) " +
+        "    ELSE 0 " +
+        "  END AS Percentage " +
+        "FROM Services s " +
+        "LEFT JOIN AppointmentServices aps ON s.ServiceID = aps.ServiceID " +
+        "LEFT JOIN Appointments a ON aps.AppointmentID = a.AppointmentID " +
+        "                           AND a.Status IN ('done', 'in_progress') " +
+        "WHERE s.IsActive = 1 " +
+        "GROUP BY s.ServiceID, s.Name " +
+        "ORDER BY UsageCount DESC",
+        nativeQuery = true)
+List<Object[]> getServiceUsageStatistics();
 }
