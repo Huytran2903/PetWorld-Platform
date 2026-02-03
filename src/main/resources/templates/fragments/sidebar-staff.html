@@ -1,19 +1,24 @@
+<!-- Đặt file này vào: src/main/resources/templates/fragments/sidebar-staff.html -->
+
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staff Sidebar</title>
-    
-    <!-- Font Awesome CDN - QUAN TRỌNG! -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
-          integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" 
+
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+          integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
           crossorigin="anonymous" referrerpolicy="no-referrer" />
-    
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Sidebar CSS -->
+    <link rel="stylesheet" th:href="@{/css/sidebar-staff.css}">
 </head>
 <body>
     <!-- Fragment aside cho staff với tham số activePage -->
@@ -25,55 +30,55 @@
         <nav class="sidebar-nav">
             <ul>
                 <li>
-                    <a th:href="@{/staff/dashboard}" 
+                    <a th:href="@{/staff/dashboard}"
                        th:classappend="${activePage == 'dashboard'} ? 'active' : ''">
                         <i class="fas fa-home"></i> Dashboard
                     </a>
                 </li>
                 <li>
-                    <a th:href="@{/staff/services}" 
+                    <a th:href="@{/staff/services}"
                        th:classappend="${activePage == 'services'} ? 'active' : ''">
                         <i class="fas fa-concierge-bell"></i> Dịch vụ
                     </a>
                 </li>
                 <li>
-                    <a th:href="@{/staff/service-execution-history}" 
+                    <a th:href="@{/staff/service-execution-history}"
                        th:classappend="${activePage == 'service-history'} ? 'active' : ''">
                         <i class="fas fa-history"></i> Lịch sử thực hiện
                     </a>
                 </li>
                 <li>
-                    <a th:href="@{/staff/service-stats}" 
+                    <a th:href="@{/staff/service-stats}"
                        th:classappend="${activePage == 'service-stats'} ? 'active' : ''">
                         <i class="fas fa-chart-bar"></i> Thống kê dịch vụ
                     </a>
                 </li>
                 <li>
-                    <a th:href="@{/staff/customers}" 
+                    <a th:href="@{/staff/customers}"
                        th:classappend="${activePage == 'customers'} ? 'active' : ''">
                         <i class="fas fa-users"></i> Khách hàng
                     </a>
                 </li>
                 <li>
-                    <a th:href="@{/staff/appointments}" 
+                    <a th:href="@{/staff/appointments}"
                        th:classappend="${activePage == 'appointments'} ? 'active' : ''">
                         <i class="fas fa-calendar-alt"></i> Lịch hẹn
                     </a>
                 </li>
                 <li>
-                    <a th:href="@{/staff/bookings}" 
+                    <a th:href="@{/staff/bookings}"
                        th:classappend="${activePage == 'bookings'} ? 'active' : ''">
                         <i class="fas fa-book"></i> Đặt chỗ
                     </a>
                 </li>
                 <li>
-                    <a th:href="@{/staff/profile}" 
+                    <a th:href="@{/staff/profile}"
                        th:classappend="${activePage == 'profile'} ? 'active' : ''">
                         <i class="fas fa-user"></i> Hồ sơ
                     </a>
                 </li>
                 <li>
-                    <a th:href="@{/staff/settings}" 
+                    <a th:href="@{/staff/settings}"
                        th:classappend="${activePage == 'settings'} ? 'active' : ''">
                         <i class="fas fa-cog"></i> Cài đặt
                     </a>
@@ -86,190 +91,5 @@
             </ul>
         </nav>
     </aside>
-
-    <!-- INLINE STYLES - Đảm bảo CSS luôn load -->
-    <style>
-        :root {
-            --primary-color: #f59e0b;
-            --secondary-color: #d97706;
-            --accent-color: #ea580c;
-            --bg-light: #f3f4f6;
-            --bg-white: #ffffff;
-            --text-dark: #1f2937;
-            --text-muted: #6b7280;
-            --border-color: #e5e7eb;
-        }
-
-        .sidebar {
-            width: 280px;
-            background: linear-gradient(180deg, var(--bg-white) 0%, #fafafa 100%);
-            color: var(--text-dark);
-            min-height: 100vh;
-            padding: 0;
-            position: fixed;
-            left: 0;
-            top: 0;
-            overflow-y: auto;
-            border-right: 1px solid var(--border-color);
-            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
-            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            z-index: 1000;
-        }
-
-        .sidebar-header {
-            padding: 30px 25px;
-            border-bottom: 2px solid var(--border-color);
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .sidebar-header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -20%;
-            width: 200px;
-            height: 200px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50%;
-            animation: float 6s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0) translateX(0); }
-            50% { transform: translateY(-20px) translateX(10px); }
-        }
-
-        .sidebar-header h3 {
-            margin: 0;
-            color: white;
-            font-size: 24px;
-            font-weight: 800;
-            position: relative;
-            z-index: 1;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .sidebar-header p {
-            color: rgba(255,255,255,0.9);
-            font-size: 13px;
-            margin-top: 5px;
-            font-weight: 600;
-            position: relative;
-            z-index: 1;
-        }
-
-        .sidebar-nav {
-            padding: 15px 0;
-        }
-
-        .sidebar-nav ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .sidebar-nav li {
-            margin: 0;
-        }
-
-        .sidebar-nav a {
-            display: flex;
-            align-items: center;
-            padding: 14px 25px;
-            color: var(--text-dark);
-            text-decoration: none;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border-left: 3px solid transparent;
-            font-weight: 600;
-            font-size: 15px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .sidebar-nav a::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 0;
-            height: 100%;
-            background: linear-gradient(90deg, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.03) 100%);
-            transition: width 0.3s ease;
-            z-index: 0;
-        }
-
-        .sidebar-nav a:hover::before {
-            width: 100%;
-        }
-
-        .sidebar-nav a:hover {
-            background-color: rgba(245, 158, 11, 0.05);
-            border-left: 3px solid var(--primary-color);
-            padding-left: 30px;
-            color: var(--primary-color);
-        }
-
-        .sidebar-nav a.active {
-            background: linear-gradient(90deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.05) 100%);
-            border-left: 3px solid var(--primary-color);
-            color: var(--primary-color);
-            font-weight: 700;
-        }
-
-        .sidebar-nav a.active::after {
-            content: '';
-            position: absolute;
-            right: 20px;
-            width: 6px;
-            height: 6px;
-            background: var(--primary-color);
-            border-radius: 50%;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.3); }
-        }
-
-        .sidebar-nav i {
-            margin-right: 12px;
-            width: 22px;
-            text-align: center;
-            display: inline-block;
-            font-size: 16px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .sidebar::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .sidebar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .sidebar::-webkit-scrollbar-thumb {
-            background: var(--primary-color);
-            border-radius: 3px;
-        }
-
-        .sidebar::-webkit-scrollbar-thumb:hover {
-            background: var(--secondary-color);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                position: relative;
-                border-right: none;
-                border-bottom: 1px solid var(--border-color);
-            }
-        }
-    </style>
 </body>
 </html>

@@ -1,3 +1,5 @@
+<!-- Đặt file này vào: src/main/resources/templates/staff/service-execution-history.html -->
+
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -8,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Sidebar CSS (FIX: load file CSS thật) -->
     <link rel="stylesheet" th:href="@{/css/sidebar-staff.css}">
     <style>
         :root {
@@ -257,6 +260,7 @@
         .btn-secondary {
             background: var(--bg-light);
             color: var(--text-dark);
+            text-decoration: none;
         }
 
         .btn-secondary:hover {
@@ -577,7 +581,7 @@
                                 <span th:unless="${record.appointmentDate != null}">N/A</span>
                             </td>
                             <td>
-                                <span class="status-badge" 
+                                <span class="status-badge"
                                       th:classappend="${record.status}"
                                       th:text="${record.status}">
                                     pending
