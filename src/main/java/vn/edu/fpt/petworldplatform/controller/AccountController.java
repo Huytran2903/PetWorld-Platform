@@ -157,8 +157,21 @@ public class AccountController {
         return "auth/login";
     }
 
-    @GetMapping("/changePassword")
-    public String changePassword() {
-        return "auth/changePassForm"; // changePassForm.html
+    @GetMapping("/profile/change-password")
+    public String showChangePasswordForm(Model model) {
+        model.addAttribute("formMode", "CHANGE");
+        model.addAttribute("pageTitle", "Change password");
+        return "auth/password-form-shared";
+    }
+
+
+    @GetMapping("/reset-password")
+    public String showResetPasswordForm(@RequestParam("token") String token, Model model) {
+
+        model.addAttribute("formMode", "RESET");
+        model.addAttribute("token", token);
+        model.addAttribute("pageTitle", "Reset password");
+
+        return "auth/password-form-shared";
     }
 }

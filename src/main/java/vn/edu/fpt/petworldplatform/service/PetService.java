@@ -25,6 +25,10 @@ public class PetService {
     private CustomerRepo customerRepo;
 
     //OanhTP
+    public List<Pets> getAllPets2() {
+        return petRepository.findAll();
+    }
+
 
     // --- 1. Lấy danh sách ---
     public List<Pet> getAllPets() {

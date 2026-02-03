@@ -41,6 +41,5 @@ public class PetFormDTO {
 
     private String description;
 
-    // ✅ BẮT BUỘC PHẢI CÓ
-    private MultipartFile imageFile;
+    private String imageBase64;
 }

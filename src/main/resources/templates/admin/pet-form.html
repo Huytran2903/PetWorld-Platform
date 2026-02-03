@@ -20,7 +20,7 @@
         </div>
 
         <div class="card pet-card border-0 shadow-lg p-4">
-            <form th:action="@{/admin/pet/save}" method="post" enctype="multipart/form-data" >
+            <form th:action="@{/admin/pet/save}" method="post">
 
                 <!--                <input type="hidden" th:field="*{petID}">-->
 
@@ -29,22 +29,25 @@
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold text-secondary small">
-                                    <i class="bi bi-tag-fill me-1 text-warning"></i> Name <span class="text-danger">*</span>
+                                    <i class="bi bi-tag-fill me-1 text-warning"></i> Name <span
+                                        class="text-danger">*</span>
                                 </label>
-                                <input type="text" name="name" class="form-control shadow-none" placeholder="e.g. LuLu" required>
+                                <input type="text" name="name" class="form-control shadow-none" placeholder="e.g. LuLu"
+                                       required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold text-secondary small">
                                     <i class="fa-solid fa-dog text-warning me-1"></i> Breed
                                 </label>
-                                <input type="text" name="breed" class="form-control shadow-none" placeholder="e.g. Poodle">
+                                <input type="text" name="breed" class="form-control shadow-none"
+                                       placeholder="e.g. Poodle">
                             </div>
 
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold text-secondary small">
                                     <i class="bi bi-grid-fill me-1 text-warning"></i> Categories
                                 </label>
-                                <select class="form-select shadow-none" name="petType" >
+                                <select class="form-select shadow-none" name="petType">
                                     <option value="Dog">Dog</option>
                                     <option value="Cat">Cat</option>
                                 </select>
@@ -53,7 +56,7 @@
                                 <label class="form-label fw-semibold text-secondary small">
                                     <i class="bi bi-gender-ambiguous me-1 text-warning"></i> Gender
                                 </label>
-                                <select class="form-select shadow-none" name="gender" >
+                                <select class="form-select shadow-none" name="gender">
                                     <option value="Male">Male</option>
                                     <option value="Female">Female</option>
                                 </select>
@@ -63,20 +66,21 @@
                                 <label class="form-label fw-semibold text-secondary small">
                                     <i class="bi bi-calendar-event me-1 text-warning"></i> Age (Months)
                                 </label>
-                                <input type="number" min="0" class="form-control shadow-none" name="ageMonth" >
+                                <input type="number" min="0" class="form-control shadow-none" name="ageMonth">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold text-secondary small">
                                     <i class="bi bi-speedometer2 me-1 text-warning"></i> Weight (kg)
                                 </label>
-                                <input type="number" step="0.1" min="0" class="form-control shadow-none" name="weightKg" >
+                                <input type="number" step="0.1" min="0" class="form-control shadow-none"
+                                       name="weightKg">
                             </div>
 
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold text-secondary small">
                                     <i class="bi bi-palette-fill me-1 text-warning"></i> Color
                                 </label>
-                                <input type="text" class="form-control shadow-none" name="color" >
+                                <input type="text" class="form-control shadow-none" name="color">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold text-secondary small">
@@ -87,47 +91,41 @@
                         </div>
                     </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold text-secondary">
-                            <i class="fa-regular fa-image me-1"></i> Pet Image
-                        </label>
+                    <input type="hidden" name="imageBase64" id="imageBase64">
 
-                        <div class="upload-container border rounded-3 d-flex flex-column
-                align-items-center justify-content-center bg-light p-4 text-center"
-                             style="min-height: 320px;">
+                    <div class="upload-container border rounded-3 d-flex flex-column
+        align-items-center justify-content-center bg-light p-4 text-center"
+                         style="min-height: 320px;">
 
-                            <!-- Preview -->
-                            <div id="preview-box" class="mb-3" style="display:none">
-                                <img id="img-preview"
-                                     class="img-thumbnail shadow-sm"
-                                     style="max-height: 200px; max-width: 100%; object-fit: contain;">
-                            </div>
+                        <!-- Preview -->
+                        <div id="preview-box" class="mb-3" style="display:none">
+                            <img id="img-preview"
+                                 class="img-thumbnail shadow-sm"
+                                 style="max-height: 200px; max-width: 100%; object-fit: contain;">
+                        </div>
 
-                            <!-- Placeholder -->
-                            <div id="placeholder-box">
-                                <i class="fa-solid fa-cloud-arrow-up fs-1 text-warning mb-3"></i>
-                                <p class="small text-muted mb-3">
-                                    Click to upload or drag & drop pet image
-                                </p>
-                            </div>
+                        <!-- Placeholder -->
+                        <div id="placeholder-box">
+                            <i class="fa-solid fa-cloud-arrow-up fs-1 text-warning mb-3"></i>
+                            <p class="small text-muted mb-3">
+                                Click to upload or drag & drop pet image
+                            </p>
+                        </div>
 
-                            <!-- Upload -->
-                            <div class="custom-file-upload w-100">
-                                <label for="file-upload"
-                                       class="btn btn-outline-warning btn-sm px-4 shadow-sm">
-                                    Choose File
-                                </label>
+                        <div class="custom-file-upload w-100">
+                            <label for="file-upload"
+                                   class="btn btn-outline-warning btn-sm px-4 shadow-sm">
+                                Choose File
+                            </label>
 
-                                <input id="file-upload"
-                                       type="file"
-                                       name="imageFile"
-                                       class="d-none"
-                                       accept="image/*"
-                                       onchange="previewImage(this)">
+                            <input id="file-upload"
+                                   type="file"
+                                   accept="image/*"
+                                   class="d-none"
+                                   onchange="convertToBase64(this)">
 
-                                <div id="file-name" class="small text-muted mt-2">
-                                    No file chosen
-                                </div>
+                            <div id="file-name" class="small text-muted mt-2">
+                                No file chosen
                             </div>
                         </div>
                     </div>
@@ -137,13 +135,13 @@
                         <label class="form-label fw-semibold text-secondary small">
                             <i class="bi bi-percent me-1 text-warning"></i> Discount (%)
                         </label>
-                        <input type="number" min="0" max="100" class="form-control shadow-none" name="discountPercent" >
+                        <input type="number" min="0" max="100" class="form-control shadow-none" name="discountPercent">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-semibold text-secondary small">
                             <i class="bi bi-info-circle-fill me-1 text-warning"></i> Availability
                         </label>
-                        <select class="form-select shadow-none fw-bold" name="isAvailable" >
+                        <select class="form-select shadow-none fw-bold" name="isAvailable">
                             <option value="true">Available</option>
                             <option value="false">Sold Out</option>
                         </select>
@@ -153,7 +151,8 @@
                         <label class="form-label fw-semibold text-secondary small">
                             <i class="bi bi-chat-left-text-fill me-1 text-warning"></i> Description
                         </label>
-                        <textarea class="form-control shadow-none" rows="3" placeholder="Friendly and well-trained." name="description" ></textarea>
+                        <textarea class="form-control shadow-none" rows="3" placeholder="Friendly and well-trained."
+                                  name="description"></textarea>
                     </div>
 
                     <div class="col-md-12 border-top pt-4 mt-4 d-flex gap-3 justify-content-end">
@@ -169,24 +168,29 @@
 </div>
 
 <script>
-    function previewImage(input) {
-        const previewBox = document.getElementById('preview-box');
-        const imgPreview = document.getElementById('img-preview');
-        const placeholder = document.getElementById('placeholder-box');
-        const fileNameDisplay = document.getElementById('file-name');
 
-        if (input.files && input.files[0]) {
-            const file = input.files[0];
-            fileNameDisplay.textContent = file.name;
+    function convertToBase64(input) {
+        const preview = document.getElementById("img-preview");
+        const previewBox = document.getElementById("preview-box");
+        const placeholder = document.getElementById("placeholder-box");
+        const fileName = document.getElementById("file-name");
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                imgPreview.src = e.target.result;
-                previewBox.style.display = 'block';
-                placeholder.style.display = 'none';
-            };
-            reader.readAsDataURL(file);
-        }
+        if (!input.files || !input.files[0]) return;
+
+        const file = input.files[0];
+        fileName.textContent = file.name;
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            // Set preview
+            preview.src = e.target.result;
+            previewBox.style.display = "block";
+            placeholder.style.display = "none";
+
+            // Save Base64 to hidden input
+            document.getElementById("imageBase64").value = e.target.result;
+        };
+        reader.readAsDataURL(file);
     }
 </script>
 

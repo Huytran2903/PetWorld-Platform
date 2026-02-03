@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/css/managePet.css" />
+    <link rel="stylesheet" href="/css/managePet.css"/>
     <title>Pet Management System</title>
 </head>
 <body>
@@ -14,7 +14,8 @@
             <div>
                 <h1 class="h3 mb-1 fw-bold text-dark">Pet Management System</h1>
             </div>
-            <a th:href="@{/admin/pet/new}" class="btn btn-add-new d-flex align-items-center gap-2 px-4 py-2 shadow-sm text-decoration-none">
+            <a th:href="@{/admin/pet/new}"
+               class="btn btn-add-new d-flex align-items-center gap-2 px-4 py-2 shadow-sm text-decoration-none">
                 <span class="fs-4">+</span> Add New Pet
             </a>
         </div>
@@ -26,7 +27,8 @@
                 <div class="row g-3 align-items-center">
                     <div class="col-md-4">
                         <div class="search-box position-relative">
-                            <input type="text" class="form-control rounded-pill ps-5" placeholder="Search pet by name...">
+                            <input type="text" class="form-control rounded-pill ps-5"
+                                   placeholder="Search pet by name...">
                             <span class="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted">🔍</span>
                         </div>
                     </div>
@@ -57,53 +59,64 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr>
-                        <td class="ps-4 fw-bold">#001</td>
+                    <tr th:each="p : ${pets}">
+<!--                        <td class="ps-4 fw-bold" th:text="${'#' + p.petId}"></td>-->
+
+                        <!-- Image Base64 -->
                         <td>
-                            <img src="https://via.placeholder.com/50" class="rounded-3 border" alt="pet">
+                            <img th:src="${p.imageUrl}" class="rounded-3 border" alt="pet" width="50" height="50">
                         </td>
+
                         <td>
-                            <div class="fw-bold text-dark">Lucky</div>
+                            <div class="fw-bold text-dark" th:text="${p.name}"></div>
                         </td>
-                        <td>Golden Retriever</td>
-                        <td>2 Years</td>
-                        <td><span class="badge bg-info-subtle text-info rounded-pill">Male</span></td>
-                        <td class="fw-bold text-dark">$1,200</td>
-                        <td class="text-danger">-10%</td>
+
+                        <td th:text="${p.breed}"></td>
+                        <td th:text="${p.ageMonths + ' Months'}"></td>
+
+                        <!-- Gender -->
                         <td>
-                            <span class="badge bg-success-subtle text-success rounded-pill px-3">In Stock</span>
+        <span th:class="'badge rounded-pill ' +
+            (p.gender == 'Male' ? 'bg-info-subtle text-info' : 'bg-danger-subtle text-danger')"
+              th:text="${p.gender}">
+        </span>
                         </td>
+
+                        <!-- Price -->
+                        <td class="fw-bold text-dark" th:text="${'$' + p.price}"></td>
+
+                        <!-- Discount -->
+                        <td th:text="${p.discountPercent != null ? '-' + p.discountPercent + '%' : 'None'}"
+                            th:class="${p.discountPercent != null ? 'text-danger' : 'text-muted'}">
+                        </td>
+
+                        <!-- Availability -->
+                        <td>
+        <span th:class="'badge rounded-pill px-3 ' +
+            (p.isAvailable ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning')"
+              th:text="${p.isAvailable ? 'In Stock' : 'Reserved'}">
+        </span>
+                        </td>
+
+                        <!-- Actions -->
                         <td class="text-end pe-4">
                             <div class="btn-group shadow-sm rounded-pill overflow-hidden">
-                                <button class="btn btn-sm btn-outline-secondary border-0 px-3">Edit</button>
-                                <button class="btn btn-sm btn-outline-danger border-0 px-3">Delete</button>
+                                <a th:href="@{'/admin/pet/edit/' + ${p.petID}}"
+                                   class="btn btn-sm btn-outline-secondary border-0 px-3">
+                                    Edit
+                                </a>
+
+                                <a th:href="@{'/admin/pet/delete/' + ${p.petID}}"
+                                   class="btn btn-sm btn-outline-danger border-0 px-3"
+                                   onclick="return confirm('Are you sure you want to delete this pet?')">
+                                    Delete
+                                </a>
                             </div>
                         </td>
-                    </tr>
-                    <tr>
-                        <td class="ps-4 fw-bold">#002</td>
-                        <td>
-                            <img src="https://via.placeholder.com/50" class="rounded-3 border" alt="pet">
-                        </td>
-                        <td>
-                            <div class="fw-bold text-dark">Luna</div>
-                        </td>
-                        <td>Persian Cat</td>
-                        <td>1 Year</td>
-                        <td><span class="badge bg-danger-subtle text-danger rounded-pill">Female</span></td>
-                        <td class="fw-bold text-dark">$850</td>
-                        <td class="text-muted">None</td>
-                        <td>
-                            <span class="badge bg-warning-subtle text-warning rounded-pill px-3">Reserved</span>
-                        </td>
-                        <td class="text-end pe-4">
-                            <div class="btn-group shadow-sm rounded-pill overflow-hidden">
-                                <a th:href="@{'/admin/pet/edit'}" class="btn btn-sm btn-outline-secondary border-0 px-3">Edit</a>
-                                <button class="btn btn-sm btn-outline-danger border-0 px-3">Delete</button>
-                            </div>
-                        </td>
+
                     </tr>
                     </tbody>
+
                 </table>
             </div>
         </div>

@@ -24,11 +24,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.Base64;
 import java.util.List;
+
 import vn.edu.fpt.petworldplatform.entity.ServiceItem;
 import vn.edu.fpt.petworldplatform.entity.ServiceType;
 import vn.edu.fpt.petworldplatform.service.ServiceItemService;
@@ -68,7 +72,7 @@ public class AdminController {
     //List
     @GetMapping("/admin/manage-pet")
     public String managePet(Model model) {
-        model.addAttribute("pets", petService.getAllPets());
+        model.addAttribute("pets", petService.getAllPets2());
         return "admin/managePet";
     }
 
@@ -87,15 +91,12 @@ public class AdminController {
         return "admin/pet-form";
     }
 
-    @PostMapping(
-            value = "/admin/pet/save",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
+    @PostMapping("/admin/pet/save")
     public String savePet(
             @Valid @ModelAttribute("pet") PetFormDTO dto,
             BindingResult br,
             RedirectAttributes ra
-    ) throws IOException {
+    ) {
 
         if (br.hasErrors()) {
             return "admin/pet-form";
@@ -116,24 +117,9 @@ public class AdminController {
         pet.setDescription(dto.getDescription());
         pet.setIsAvailable(dto.getIsAvailable() != null ? dto.getIsAvailable() : true);
 
-        // ✅ LẤY FILE TỪ DTO
-        MultipartFile file = dto.getImageFile();
-
-        if (file != null && !file.isEmpty()) {
-
-            String fileName = System.currentTimeMillis() + "_"
-                    + StringUtils.cleanPath(file.getOriginalFilename());
-
-            Path uploadDir = Paths.get("uploads/pet-images");
-            Files.createDirectories(uploadDir);
-
-            Files.copy(
-                    file.getInputStream(),
-                    uploadDir.resolve(fileName),
-                    StandardCopyOption.REPLACE_EXISTING
-            );
-
-            pet.setImageUrl("/uploads/pet-images/" + fileName);
+        // 👉 NHẬN BASE64
+        if (dto.getImageBase64() != null && !dto.getImageBase64().isBlank()) {
+            pet.setImageUrl(dto.getImageBase64());
         }
 
         petService.savePet(pet);
@@ -141,6 +127,7 @@ public class AdminController {
         ra.addFlashAttribute("message", "Lưu thú cưng thành công!");
         return "redirect:/admin/manage-pet";
     }
+
 
     //Manage Product - OanhTP
     @GetMapping("/admin/manage-product")
@@ -156,7 +143,8 @@ public class AdminController {
         model.addAttribute("categories", categoryService.getAllCategories());
 
         return "admin/manageCategories";
-   }
+    }
+
     //Edit
     @GetMapping("/admin/category/edit/{id}")
     public String editCategory(Model model, @PathVariable("id") Integer id) {
@@ -177,9 +165,9 @@ public class AdminController {
 
     //Save
     @PostMapping("/admin/category/save")
-    public String saveCategory(@Validated @ModelAttribute("selectedCate")Categories cate, BindingResult result, Model model, @RequestParam("mode") String formMode) {
+    public String saveCategory(@Validated @ModelAttribute("selectedCate") Categories cate, BindingResult result, Model model, @RequestParam("mode") String formMode) {
 
-        if(result.hasErrors()) {
+        if (result.hasErrors()) {
             model.addAttribute("formMode", formMode);
             return "admin/category-form";
         }
@@ -284,8 +272,8 @@ public class AdminController {
     // UC-26: Manage Services (service items: price, duration, etc.)
     @GetMapping("/admin/services")
     public String listServices(Model model,
-                              @RequestParam(required = false) String typeFilter,
-                              @RequestParam(required = false) Integer editId) {
+                               @RequestParam(required = false) String typeFilter,
+                               @RequestParam(required = false) Integer editId) {
         model.addAttribute("serviceTypes", serviceTypeService.findAll());
         List<ServiceItem> services = typeFilter != null && !typeFilter.isBlank()
                 ? serviceItemService.findByServiceType(typeFilter)
