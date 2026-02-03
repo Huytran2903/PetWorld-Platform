@@ -86,12 +86,15 @@ public class AccountController {
     }
 
     @PostMapping("/do-login")
-    public String handleLogin(@RequestParam String email,
+    public String handleLogin(@RequestParam String username,
                               @RequestParam String password,
-                              Model model, HttpSession session, HttpServletRequest request,
-                              HttpServletResponse response) {
-
-        Optional<Customer> customerOpt = customerService.login(email, password);
+                              Model model,
+                              HttpSession session,
+                              HttpServletRequest request,
+                              HttpServletResponse response)
+    {
+        // --- XỬ LÝ CUSTOMER ---
+        Optional<Customer> customerOpt = customerService.login(username, password);
 
         if (customerOpt.isPresent()) {
             Customer customer = customerOpt.get();
@@ -102,26 +105,29 @@ public class AccountController {
             }
 
             session.setAttribute("loggedInAccount", customer);
+
+
             List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
 
-            // B2: Tạo thẻ bài (Token) chứa thông tin User
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(customer, null, authorities);
 
-            // B3: Đưa thẻ bài cho Security giữ
             SecurityContext context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(authToken);
             SecurityContextHolder.setContext(context);
 
             securityContextRepository.saveContext(context, request, response);
+
             return "redirect:/";
         }
 
-        Optional<Staff> staffOpt = staffService.login(email, password);
+        // --- XỬ LÝ STAFF (Cũng phải sửa tương tự) ---
+        Optional<Staff> staffOpt = staffService.login(username, password);
 
         if (staffOpt.isPresent()) {
             Staff staff = staffOpt.get();
 
+            // Lưu ý: Nên dùng passwordEncoder.matches() thay vì equals()
             if (staff.getPasswordHash().equals(password)) {
 
                 if (!staff.getIsActive()) {
@@ -140,6 +146,7 @@ public class AccountController {
                 context.setAuthentication(authToken);
                 SecurityContextHolder.setContext(context);
 
+                // Lưu Session cho Staff
                 securityContextRepository.saveContext(context, request, response);
 
                 return "redirect:/admin/dashboard";

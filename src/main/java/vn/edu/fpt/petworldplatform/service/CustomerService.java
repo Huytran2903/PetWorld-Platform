@@ -39,8 +39,8 @@ public class CustomerService {
     }
 
     //Login - HuyTPN
-    public Optional<Customer> login(String email, String rawPassword) {
-        Optional<Customer> customerOpt = customerRepo.findByEmail(email);
+    public Optional<Customer> login(String username, String rawPassword) {
+        Optional<Customer> customerOpt = customerRepo.findByUsername(username);
 
         if (customerOpt.isPresent()) {
             if (passwordEncoder.matches(rawPassword, customerOpt.get().getPasswordHash())) {
