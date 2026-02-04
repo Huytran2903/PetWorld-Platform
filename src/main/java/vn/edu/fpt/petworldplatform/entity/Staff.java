@@ -19,13 +19,13 @@ public class Staff {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "StaffID")
-    private Long staffId;
+    private Integer staffId;
 
     @ManyToOne
     @JoinColumn(name = "RoleID", nullable = false)
     private Role role;
 
-    @Column(name = "Username", nullable = false, unique = true, length = 50)
+    @Column(name = "Username", nullable = false, unique = true, length = 60)
     private String username;
 
     @Column(name = "PasswordHash", nullable = false)

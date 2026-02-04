@@ -44,4 +44,11 @@ public class VerificationToken {
         this.expiryDate = LocalDateTime.now().plusHours(24);
         this.token = UUID.randomUUID().toString();
     }
+
+    public VerificationToken(String tokenString, Customer customer) {
+        this.token = tokenString;
+        this.customer = customer;
+        this.staff = null;
+        this.expiryDate = LocalDateTime.now().plusMinutes(30);
+    }
 }

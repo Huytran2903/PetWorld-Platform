@@ -12,8 +12,7 @@ public class PetCreateDTO {
     private String breed;
     private Integer age;
 
-    // SỬA Ở ĐÂY: Đổi Integer thành Long
-    private Long ownerId;
+    private Integer ownerId;
 
     private Double price;
     private String imageUrl;

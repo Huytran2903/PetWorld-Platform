@@ -7,11 +7,9 @@ import vn.edu.fpt.petworldplatform.entity.Customer;
 import java.util.Optional;
 
 @Repository
-public interface CustomerRepo extends JpaRepository<Customer, Long> {
-    // Tìm kiếm khách hàng theo username để phục vụ Login
+public interface CustomerRepo extends JpaRepository<Customer, Integer> {
     Optional<Customer> findByUsername(String username);
 
-    // Kiểm tra xem email đã tồn tại chưa khi Register
     boolean existsByEmail(String email);
 
     Optional<Customer> findByEmail(String email);

@@ -9,5 +9,5 @@ public interface PetRepository extends JpaRepository<Pet, Integer> {
     List<Pet> findByNameContaining(String name);
 
     /** Pets owned by the given customer (for booking). */
-    List<Pet> findByOwner_CustomerId(Long customerId);
+    List<Pet> findByOwner_CustomerId(Integer customerId);
 }

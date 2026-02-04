@@ -7,6 +7,6 @@ import vn.edu.fpt.petworldplatform.entity.Staff;
 import java.util.Optional;
 
 @Repository
-public interface StaffRepo extends JpaRepository<Staff, Long> {
+public interface StaffRepo extends JpaRepository<Staff, Integer> {
     Optional<Staff> findByUsername(String username);
 }

@@ -10,7 +10,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -37,25 +36,22 @@ public class SecurityConfig {
 
                 // --- PHÂN QUYỀN ---
                 .authorizeHttpRequests(auth -> auth
-                                // A. Link Tĩnh
-                                .requestMatchers("/css/**", "/js/**", "/images/**", "/fonts/**", "/webjars/**").permitAll()
+                        // A. Link Tĩnh
+                        .requestMatchers("/css/**", "/js/**", "/images/**", "/fonts/**", "/webjars/**").permitAll()
 
-                                // B. Link Public
-                                .requestMatchers("/", "/home", "/index").permitAll()
-                                .requestMatchers("/login", "/register", "/do-register", "/verify").permitAll()
+                        // B. Link Public
+                        .requestMatchers("/", "/home", "/index").permitAll()
+                        .requestMatchers("/login", "/register", "/do-register", "/verify").permitAll()
+                        .requestMatchers("/do-login").permitAll()
 
-                                .requestMatchers("/do-login").permitAll()
 
-                                //Xử lí mật khẩu
-                                .requestMatchers("/forgot-password/**", "/changePassword/**").permitAll()
-                                .requestMatchers("/send-reset-email", "/save-new-password").permitAll()
+                        .requestMatchers("/reset-password", "/forgot-password").permitAll()
+                        // --------------------
 
-                                // C. Phân quyền
-//                        .requestMatchers("/admin/**").hasAnyRole("ADMIN", "STAFF") // Chỉ Staff/Admin mới vào được Admin
-//                        .requestMatchers("/profile/**").authenticated() // Đăng nhập là vào được
+                        .requestMatchers("/profile/**").authenticated()
 
-                                // D. Còn lại khóa hết
-                                .anyRequest().authenticated()
+                        // D. Còn lại khóa hết
+                        .anyRequest().authenticated()
                 )
 
                 // --- CẤU HÌNH FORM LOGIN ---

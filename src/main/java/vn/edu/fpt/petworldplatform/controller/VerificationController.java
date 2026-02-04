@@ -1,48 +1,30 @@
 package vn.edu.fpt.petworldplatform.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import vn.edu.fpt.petworldplatform.entity.Customer;
-import vn.edu.fpt.petworldplatform.entity.VerificationToken;
-import vn.edu.fpt.petworldplatform.repository.CustomerRepo;
-import vn.edu.fpt.petworldplatform.repository.VerificationTokenRepo;
-
-import java.time.LocalDateTime;
+import vn.edu.fpt.petworldplatform.service.CustomerService;
 
 @Controller
-
+@RequiredArgsConstructor
 public class VerificationController {
-    @Autowired
-    private VerificationTokenRepo tokenRepo;
-    @Autowired
-    private CustomerRepo customerRepo;
+
+    private final CustomerService customerService;
 
     @GetMapping("/verify")
-    @Transactional
     public String verifyAccount(@RequestParam("token") String token) {
-        VerificationToken verificationToken = tokenRepo.findByToken(token);
 
-        //token k tồn tại
-        if (verificationToken == null) {
-            return "redirect:/login?verification_status=invalid";
+        String result = customerService.verifyEmailToken(token);
+
+        switch (result) {
+            case "success":
+                return "redirect:/login?verified=true"; // Thành công
+            case "expired":
+                return "redirect:/login?error=token_expired"; // Hết hạn
+            case "invalid":
+            default:
+                return "redirect:/login?error=invalid_token"; // Token sai
         }
-
-
-        //token hết hạn
-        if (verificationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-            return "redirect:/login?verification_status=expired";
-        }
-
-        Customer customer = verificationToken.getCustomer();
-
-        customer.setIsActive(true);
-        customerRepo.save(customer);
-
-        tokenRepo.delete(verificationToken);
-
-        return "redirect:/login?verification_status=success";
     }
 }

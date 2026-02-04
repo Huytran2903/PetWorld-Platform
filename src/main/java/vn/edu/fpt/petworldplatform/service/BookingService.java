@@ -17,6 +17,7 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +33,7 @@ public class BookingService {
     private final PetRepository petRepository;
     private final ServiceItemRepository serviceItemRepository;
 
-    public List<Pet> findPetsByCustomerId(Long customerId) {
+    public List<Pet> findPetsByCustomerId(Integer customerId) {
         return petRepository.findByOwner_CustomerId(customerId);
     }
 
