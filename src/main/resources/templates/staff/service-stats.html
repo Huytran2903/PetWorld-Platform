@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -307,10 +307,10 @@
         <!-- Header -->
         <div class="page-header">
             <a th:href="@{/staff/dashboard}" class="back-link">
-                <i class="fas fa-arrow-left"></i> Quay lại Dashboard
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
             </a>
-            <h1>Thống kê sử dụng dịch vụ</h1>
-            <p>Xem thống kê và phân tích mức độ phổ biến của các dịch vụ</p>
+            <h1>Service Usage Statistics</h1>
+            <p>View statistics and analysis of service popularity</p>
         </div>
 
         <!-- Error Alert (if any) -->
@@ -322,20 +322,20 @@
         <!-- Stats Summary -->
         <div class="stats-summary">
             <h2 th:text="${totalBookings}">0</h2>
-            <p>Tổng số lượt đặt dịch vụ</p>
+            <p>Total Service Bookings</p>
         </div>
 
         <!-- Service Usage Chart -->
         <div class="chart-card">
             <h3>
-                <i class="fas fa-chart-bar"></i> Thống kê sử dụng dịch vụ
+                <i class="fas fa-chart-bar"></i> Service Usage Statistics
             </h3>
 
             <!-- Empty State -->
             <div th:if="${#lists.isEmpty(serviceStats)}" class="empty-state">
                 <i class="fas fa-inbox"></i>
-                <h3>Chưa có dữ liệu</h3>
-                <p>Chưa có dịch vụ nào được sử dụng</p>
+                <h3>No Data Available</h3>
+                <p>No services have been used yet</p>
             </div>
 
             <!-- Service Bars -->
@@ -347,7 +347,7 @@
                             <span th:text="${stat.serviceName}">Service Name</span>
                         </span>
                         <div class="service-count">
-                            <span th:text="${stat.usageCount} + ' lượt'">0 lượt</span>
+                            <span th:text="${stat.usageCount} + ' times'">0 times</span>
                             <span class="badge" th:text="${#numbers.formatDecimal(stat.percentage, 1, 2)} + '%'">0%</span>
                         </div>
                     </div>

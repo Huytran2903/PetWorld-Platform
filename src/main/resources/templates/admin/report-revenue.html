@@ -89,19 +89,19 @@
             <a th:href="@{/admin/dashboard}" class="text-decoration-none text-muted mb-2 d-inline-block">
                 <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
             </a>
-            <h2 class="fw-bold text-dark mb-1">Revenue Report (Báo cáo Doanh thu)</h2>
+            <h2 class="fw-bold text-dark mb-1">Revenue Report</h2>
         </div>
 
         <!-- Filter Section -->
         <div class="filter-section mb-4">
             <form th:action="@{/admin/reports/revenue}" method="get" class="row g-3 align-items-end">
                 <div class="col-md-4">
-                    <label for="startDate" class="form-label small fw-bold">Từ ngày</label>
+                    <label for="startDate" class="form-label small fw-bold">From Date</label>
                     <input type="date" class="form-control" id="startDate" name="startDate" 
                            th:value="${startDate}">
                 </div>
                 <div class="col-md-4">
-                    <label for="endDate" class="form-label small fw-bold">Đến ngày</label>
+                    <label for="endDate" class="form-label small fw-bold">To Date</label>
                     <input type="date" class="form-control" id="endDate" name="endDate" 
                            th:value="${endDate}">
                 </div>
@@ -120,7 +120,7 @@
         <div class="row g-4 mb-4">
             <div class="col-md-4">
                 <div class="stat-card">
-                    <p>Doanh thu hôm nay</p>
+                    <p>Today's Revenue</p>
                     <h3 class="text-success" th:text="${#numbers.formatDecimal(todayRevenue, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
                         0 ₫
                     </h3>
@@ -128,28 +128,28 @@
                         <i class="fas" th:classappend="${percentChange >= 0} ? 'fa-arrow-up' : 'fa-arrow-down'"></i>
                         <span th:text="${percentChange >= 0 ? '+' : ''} + ${#numbers.formatDecimal(percentChange, 0, 'COMMA', 2, 'POINT')} + '%'">
                             +0%
-                        </span> so với hôm qua
+                        </span> compared to yesterday
                     </p>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="stat-card">
-                    <p>Doanh thu tháng này</p>
+                    <p>This Month's Revenue</p>
                     <h3 class="text-dark" th:text="${#numbers.formatDecimal(monthlyRevenue, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
                         0 ₫
                     </h3>
-                    <p class="change text-muted" th:text="'Tháng ' + ${currentMonth}">
-                        Tháng 01/2026
+                    <p class="change text-muted" th:text="'Month ' + ${currentMonth}">
+                        Month 01/2026
                     </p>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="stat-card">
-                    <p>Đơn hàng chờ xử lý</p>
+                    <p>Pending Orders</p>
                     <h3 class="text-warning" th:text="${pendingOrders} + ' Orders'">
                         0 Orders
                     </h3>
-                    <p class="change text-muted">Cần xác nhận thanh toán</p>
+                    <p class="change text-muted">Awaiting payment confirmation</p>
                 </div>
             </div>
         </div>
@@ -158,8 +158,8 @@
         <div class="table-card">
             <div class="card-header">
                 <h5 class="fw-bold mb-0">
-                    <span th:if="${filtered}">Kết quả lọc</span>
-                    <span th:unless="${filtered}">Giao dịch gần đây (Recent Transactions)</span>
+                    <span th:if="${filtered}">Filtered Results</span>
+                    <span th:unless="${filtered}">Recent Transactions</span>
                 </h5>
             </div>
             <div class="table-responsive">
@@ -178,7 +178,7 @@
                         <tr th:if="${#lists.isEmpty(transactions)}">
                             <td colspan="6" class="text-center py-4 text-muted">
                                 <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
-                                Không có giao dịch nào
+                                No transactions available
                             </td>
                         </tr>
                         <tr th:each="transaction : ${transactions}">
