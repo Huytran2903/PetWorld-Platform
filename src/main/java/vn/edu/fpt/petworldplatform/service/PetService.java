@@ -4,9 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import vn.edu.fpt.petworldplatform.dto.PetCreateDTO;
 import vn.edu.fpt.petworldplatform.entity.Customer;
-import vn.edu.fpt.petworldplatform.entity.Pets; // Đổi import
+import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.repository.CustomerRepo;
-import vn.edu.fpt.petworldplatform.repository.PetRepository; // Đổi import
+import vn.edu.fpt.petworldplatform.repository.PetRepo;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.List;
 public class PetService {
 
     @Autowired
-    private PetRepository petRepo; // Dùng PetRepo
+    private PetRepo petRepo;
 
     @Autowired
     private CustomerRepo customerRepo;
@@ -24,7 +24,6 @@ public class PetService {
         return petRepo.findAll();
     }
 
-    // ID đổi thành Long
     public Pets getPetById(Long id) {
         return petRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thú cưng ID: " + id));
@@ -40,19 +39,17 @@ public class PetService {
         pet.setDescription(dto.getDescription());
         pet.setImageUrl(dto.getImageUrl());
 
-
         if ("shop".equalsIgnoreCase(dto.getCreatePetOwnerType())) {
-
+            // Pet của shop
             if (dto.getPrice() != null) {
                 pet.setPrice(BigDecimal.valueOf(dto.getPrice()));
             } else {
                 pet.setPrice(BigDecimal.ZERO);
             }
-            pet.setOwner(null);
+            pet.setOwner(null); 
             pet.setIsAvailable(true);
 
         } else {
-
             if (dto.getOwnerId() == null) {
                 throw new IllegalArgumentException("Vui lòng nhập ID Khách hàng (Owner ID)!");
             }
@@ -69,7 +66,7 @@ public class PetService {
     }
 
     public void updatePet(Pets petFromForm) {
-        Pets existingPet = getPetById(petFromForm.getId()); // petFromForm.getId() trả về Long
+        Pets existingPet = getPetById(petFromForm.getPetID());
 
         existingPet.setName(petFromForm.getName());
         existingPet.setPetType(petFromForm.getPetType());
@@ -80,7 +77,7 @@ public class PetService {
         existingPet.setIsAvailable(petFromForm.getIsAvailable());
 
         if (existingPet.getOwner() == null) {
-            existingPet.setPrice(petFromForm.getPrice()); // Cùng là BigDecimal
+            existingPet.setPrice(petFromForm.getPrice());
         }
 
         petRepo.save(existingPet);

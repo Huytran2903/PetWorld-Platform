@@ -19,7 +19,7 @@ public class Pets {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "PetID")
-    private Long petID; // ID là Long
+    private Long petID;
 
     @Column(nullable = false, name = "Name")
     private String name;
@@ -51,11 +51,10 @@ public class Pets {
     @Column(columnDefinition = "TEXT", name = "Description")
     private String description;
 
-    // Dùng BigDecimal theo thiết kế của nhóm
     @Column(precision = 18, scale = 2, name = "Price")
     private BigDecimal price;
 
-    @Column(precision = 18, scale = 2,name = "SalePrice")
+    @Column(precision = 18, scale = 2, name = "SalePrice")
     private BigDecimal salePrice;
 
     @Column(name = "DiscountPercent")
@@ -64,18 +63,29 @@ public class Pets {
     @Column(name = "IsAvailable")
     private Boolean isAvailable;
 
-    @ManyToOne
-    @JoinColumn(name = "OwnerCustomerID")
-    private Customer owner;
+    @Column(name = "OwnerCustomerID", insertable = false, updatable = false)
+    private Long ownerCustomerID;
 
     @Column(name = "PurchasedAt")
     private LocalDateTime purchasedAt;
 
-    @Column(updatable = false,name = "CreatedAt")
+    @Column(updatable = false, name = "CreatedAt")
     private LocalDateTime createdAt;
 
     @Column(name = "UpdatedAt")
     private LocalDateTime updatedAt;
+
+    @ManyToOne
+    @JoinColumn(name = "OwnerCustomerID")
+    private Customer owner;
+
+    public Long getId() {
+        return this.petID;
+    }
+
+    public void setId(Long id) {
+        this.petID = id;
+    }
 
     @PrePersist
     protected void onCreate() {
@@ -86,13 +96,5 @@ public class Pets {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
-    }
-
-    public Long getId() {
-        return this.petID;
-    }
-
-    public void setId(Long id) {
-        this.petID = id;
     }
 }

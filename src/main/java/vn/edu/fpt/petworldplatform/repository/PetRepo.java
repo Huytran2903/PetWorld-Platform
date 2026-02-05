@@ -1,11 +1,12 @@
 package vn.edu.fpt.petworldplatform.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import vn.edu.fpt.petworldplatform.entity.Pets; 
+import vn.edu.fpt.petworldplatform.entity.Pets;
 import java.util.List;
 
-public interface PetRepository extends JpaRepository<Pets, Long> {
+public interface PetRepo extends JpaRepository<Pets, Long> {
 
     List<Pets> findByNameContaining(String name);
-    List<Pets> findByOwner_CustomerId(Long customerId);
+    List<Pets> findByOwnerCustomerID(Long customerId);
+
 }
