@@ -19,7 +19,7 @@ public class Staff {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "StaffID")
-    private Integer staffId;
+    private Long staffId;
 
     @ManyToOne
     @JoinColumn(name = "RoleID", nullable = false)

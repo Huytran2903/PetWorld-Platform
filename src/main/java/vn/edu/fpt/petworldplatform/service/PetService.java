@@ -4,105 +4,90 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import vn.edu.fpt.petworldplatform.dto.PetCreateDTO;
 import vn.edu.fpt.petworldplatform.entity.Customer;
-import vn.edu.fpt.petworldplatform.entity.Pet;
 import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.repository.CustomerRepo;
 import vn.edu.fpt.petworldplatform.repository.PetRepo;
-import vn.edu.fpt.petworldplatform.repository.PetRepository;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
 public class PetService {
 
     @Autowired
-    private PetRepository petRepo;
-
-    @Autowired
-    private PetRepo petRepository;
+    private PetRepo petRepo;
 
     @Autowired
     private CustomerRepo customerRepo;
 
-    //OanhTP
-    public List<Pets> getAllPets2() {
-        return petRepository.findAll();
-    }
-
-
-    // --- 1. Lấy danh sách ---
-    public List<Pet> getAllPets() {
+    public List<Pets> getAllPets() {
         return petRepo.findAll();
     }
 
-    // --- 2. Lấy chi tiết (Dùng cho Detail & Update) ---
-    public Pet getPetById(Integer id) {
-        return petRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy thú cưng với ID: " + id));
+    public List<Pets> getAllPets2() {
+        return petRepo.findAll();
     }
 
-    //OanhTP
     public void savePet(Pets pet) {
-        petRepository.save(pet);
+        petRepo.save(pet);
     }
 
     public Pets getPetById(Long id) {
-        return petRepository.findById(id).get();
+        return petRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thú cưng ID: " + id));
     }
 
-
-    // --- 3. Tạo mới (Create) ---
     public void createPet(PetCreateDTO dto) {
-        Pet pet = new Pet();
+        Pets pet = new Pets();
 
-        // Map dữ liệu từ Form sang Entity
         pet.setName(dto.getName());
-        pet.setPetType(dto.getSpecies()); // Form gửi "dog"/"cat"
+        pet.setPetType(dto.getSpecies());
         pet.setBreed(dto.getBreed());
         pet.setAgeMonths(dto.getAge());
         pet.setDescription(dto.getDescription());
         pet.setImageUrl(dto.getImageUrl());
 
-        // Logic phân loại: Shop vs Customer
-        if ("shop".equals(dto.getCreatePetOwnerType())) {
-            pet.setPrice(dto.getPrice());
+        if ("shop".equalsIgnoreCase(dto.getCreatePetOwnerType())) {
+            // Pet của shop
+            if (dto.getPrice() != null) {
+                pet.setPrice(BigDecimal.valueOf(dto.getPrice()));
+            } else {
+                pet.setPrice(BigDecimal.ZERO);
+            }
             pet.setOwner(null);
-            pet.setAvailable(true);
+            pet.setIsAvailable(true);
+
         } else {
-            // Tìm chủ nhân theo ID (Long)
+            if (dto.getOwnerId() == null) {
+                throw new IllegalArgumentException("Vui lòng nhập ID Khách hàng (Owner ID)!");
+            }
+
             Customer owner = customerRepo.findById(dto.getOwnerId())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng ID: " + dto.getOwnerId()));
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng có ID: " + dto.getOwnerId()));
 
             pet.setOwner(owner);
             pet.setPrice(null);
-            pet.setAvailable(false);
+            pet.setIsAvailable(false);
         }
 
         petRepo.save(pet);
     }
 
-    // --- 4. Cập nhật (Update) - MỚI THÊM ---
-    public void updatePet(Pet petFromForm) {
-        // Bước 1: Lấy dữ liệu gốc từ DB lên để đảm bảo không bị mất thông tin quan trọng (như Owner)
-        Pet existingPet = getPetById(petFromForm.getId());
+    public void updatePet(Pets petFromForm) {
+        Pets existingPet = getPetById(petFromForm.getPetID());
 
-        // Bước 2: Chỉ cập nhật những trường cho phép sửa
         existingPet.setName(petFromForm.getName());
         existingPet.setPetType(petFromForm.getPetType());
         existingPet.setBreed(petFromForm.getBreed());
         existingPet.setAgeMonths(petFromForm.getAgeMonths());
         existingPet.setImageUrl(petFromForm.getImageUrl());
         existingPet.setDescription(petFromForm.getDescription());
-        existingPet.setAvailable(petFromForm.isAvailable()); // Cập nhật trạng thái
+        existingPet.setIsAvailable(petFromForm.getIsAvailable());
 
-        // Bước 3: Logic giá tiền
-        // Nếu là Pet của Shop (không có chủ) thì mới cho sửa giá
         if (existingPet.getOwner() == null) {
             existingPet.setPrice(petFromForm.getPrice());
         }
-        // Lưu ý: Không cập nhật setOwner() để tránh việc form gửi null làm mất chủ nhân
 
-        // Bước 4: Lưu xuống DB
         petRepo.save(existingPet);
     }
 }

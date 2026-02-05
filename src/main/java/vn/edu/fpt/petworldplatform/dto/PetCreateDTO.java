@@ -12,7 +12,7 @@ public class PetCreateDTO {
     private String breed;
     private Integer age;
 
-    private Integer ownerId;
+    private Long ownerId;
 
     private Double price;
     private String imageUrl;

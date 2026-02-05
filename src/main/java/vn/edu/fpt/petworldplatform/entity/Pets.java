@@ -54,7 +54,7 @@ public class Pets {
     @Column(precision = 18, scale = 2, name = "Price")
     private BigDecimal price;
 
-    @Column(precision = 18, scale = 2,name = "SalePrice")
+    @Column(precision = 18, scale = 2, name = "SalePrice")
     private BigDecimal salePrice;
 
     @Column(name = "DiscountPercent")
@@ -63,19 +63,28 @@ public class Pets {
     @Column(name = "IsAvailable")
     private Boolean isAvailable;
 
-    @Column(name = "OwnerCustomerID")
-    private Long ownerCustomerID;
 
     @Column(name = "PurchasedAt")
     private LocalDateTime purchasedAt;
 
-    @Column(updatable = false,name = "CreatedAt")
+    @Column(updatable = false, name = "CreatedAt")
     private LocalDateTime createdAt;
 
     @Column(name = "UpdatedAt")
     private LocalDateTime updatedAt;
 
-    // Tự động gán thời gian khi lưu/cập nhật
+    @ManyToOne
+    @JoinColumn(name = "OwnerCustomerID")
+    private Customer owner;
+
+    public Long getId() {
+        return this.petID;
+    }
+
+    public void setId(Long id) {
+        this.petID = id;
+    }
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

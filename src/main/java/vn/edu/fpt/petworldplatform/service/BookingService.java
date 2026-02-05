@@ -5,11 +5,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.petworldplatform.entity.Appointment;
 import vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine;
-import vn.edu.fpt.petworldplatform.entity.Pet;
+import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.entity.ServiceItem;
 import vn.edu.fpt.petworldplatform.repository.AppointmentRepository;
 import vn.edu.fpt.petworldplatform.repository.AppointmentServiceLineRepository;
-import vn.edu.fpt.petworldplatform.repository.PetRepository;
+import vn.edu.fpt.petworldplatform.repository.PetRepo;
 import vn.edu.fpt.petworldplatform.repository.ServiceItemRepository;
 
 import java.time.LocalDateTime;
@@ -17,7 +17,6 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 @RequiredArgsConstructor
@@ -30,11 +29,11 @@ public class BookingService {
 
     private final AppointmentRepository appointmentRepository;
     private final AppointmentServiceLineRepository appointmentServiceLineRepository;
-    private final PetRepository petRepository;
+    private final PetRepo petRepo;
     private final ServiceItemRepository serviceItemRepository;
 
-    public List<Pet> findPetsByCustomerId(Integer customerId) {
-        return petRepository.findByOwner_CustomerId(customerId);
+    public List<Pets> findPetsByCustomerId(Long customerId) {
+        return petRepo.findByOwner_CustomerId(customerId);
     }
 
     public List<ServiceItem> findActiveServices() {

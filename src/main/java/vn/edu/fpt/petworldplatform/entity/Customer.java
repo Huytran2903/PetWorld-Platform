@@ -20,7 +20,7 @@ public class Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "CustomerID")
-    private Integer customerId;
+    private Long customerId;
 
     @Column(name = "Username", nullable = false, unique = true, length = 50)
     @NotBlank(message = "Username is required")

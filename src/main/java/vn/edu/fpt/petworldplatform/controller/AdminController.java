@@ -122,7 +122,7 @@ public class AdminController {
             pet.setImageUrl(dto.getImageBase64());
         }
 
-        petService.savePet(pet);
+        petService. savePet(pet);
 
         ra.addFlashAttribute("message", "Lưu thú cưng thành công!");
         return "redirect:/admin/manage-pet";

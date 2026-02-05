@@ -7,7 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.petworldplatform.entity.Customer;
-import vn.edu.fpt.petworldplatform.entity.Pet;
+import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.service.BookingService;
 
 import java.time.LocalDateTime;
@@ -30,7 +30,7 @@ public class BookingController {
             return "redirect:/login";
         }
 
-        List<Pet> petList = bookingService.findPetsByCustomerId(customer.getCustomerId());
+        List<Pets> petList = bookingService.findPetsByCustomerId(customer.getCustomerId());
         if (petList.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "Please create a pet profile first.");
             return "redirect:/customer/pet/create";
@@ -58,7 +58,7 @@ public class BookingController {
             return "redirect:/login";
         }
 
-        List<Pet> petList = bookingService.findPetsByCustomerId(customer.getCustomerId());
+        List<Pets> petList = bookingService.findPetsByCustomerId(customer.getCustomerId());
         if (petList.isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "Please create a pet profile first.");
             return "redirect:/customer/pet/create";
