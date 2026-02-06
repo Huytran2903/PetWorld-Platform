@@ -256,9 +256,7 @@ public class CustomerController {
                                         @ModelAttribute PetCreateDTO petDTO,
                                         RedirectAttributes redirectAttributes) {
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
-        if (customer == null) {
-            return "redirect:/login";
-        }
+        if (customer == null) return "redirect:/login";
 
         try {
             petDTO.setCreatePetOwnerType("customer");
@@ -269,29 +267,25 @@ public class CustomerController {
 
             if (imageFile != null && !imageFile.isEmpty()) {
                 String fileName = System.currentTimeMillis() + "_" + imageFile.getOriginalFilename();
+
                 String projectDir = System.getProperty("user.dir");
 
-                java.nio.file.Path pathSrc = java.nio.file.Paths.get(projectDir, "src", "main", "resources", "static", "images");
-                if (!java.nio.file.Files.exists(pathSrc)) java.nio.file.Files.createDirectories(pathSrc);
+                java.nio.file.Path uploadPath = java.nio.file.Paths.get(projectDir, "src", "main", "resources", "static", "images");
 
-                java.nio.file.Path fileSrc = pathSrc.resolve(fileName);
-                try (java.io.InputStream inputStream = imageFile.getInputStream()) {
-                    java.nio.file.Files.copy(inputStream, fileSrc, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                if (!java.nio.file.Files.exists(uploadPath)) {
+                    java.nio.file.Files.createDirectories(uploadPath);
                 }
 
-                java.nio.file.Path pathTarget = java.nio.file.Paths.get(projectDir, "target", "classes", "static", "images");
-                if (!java.nio.file.Files.exists(pathTarget)) java.nio.file.Files.createDirectories(pathTarget);
-
-                java.nio.file.Path fileTarget = pathTarget.resolve(fileName);
-                java.nio.file.Files.copy(fileSrc, fileTarget, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                java.nio.file.Path filePath = uploadPath.resolve(fileName);
+                try (java.io.InputStream inputStream = imageFile.getInputStream()) {
+                    java.nio.file.Files.copy(inputStream, filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                }
 
                 imageUrlPath = "/images/" + fileName;
-
-                System.out.println("DEBUG CREATE: Ảnh đã lưu tại SRC và TARGET: " + fileName);
+                System.out.println("DEBUG: Đã lưu ảnh vào SRC: " + filePath.toAbsolutePath());
             }
 
             petDTO.setImageUrl(imageUrlPath);
-
             petService.createPet(petDTO);
 
             redirectAttributes.addFlashAttribute("message", "Thêm thú cưng thành công!");
