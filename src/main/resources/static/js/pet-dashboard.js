@@ -65,3 +65,17 @@ function switchView(viewName) {
         btnCustomer.classList.remove('inactive-tab');
     }
 }
+
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            // Tìm thẻ img có id="imagePreview" để thay đổi src
+            var imgElement = document.getElementById('imagePreview');
+            if (imgElement) {
+                imgElement.src = e.target.result;
+            }
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}

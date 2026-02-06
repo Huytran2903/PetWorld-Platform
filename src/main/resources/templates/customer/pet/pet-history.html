@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout-customer :: layout(~{::content})}">
+<head>
+    <title>Pet Care History</title>
+</head>
+<section th:fragment="content">
+    <div class="max-w-6xl mx-auto py-10 px-4">
+
+        <div class="flex items-center justify-between mb-8">
+            <h1 class="text-3xl font-extrabold text-gray-800">Care History</h1>
+            <a th:href="@{/customer/pet/my-pets}" class="text-gray-500 hover:text-orange-600 font-bold transition">
+                <i class="fa-solid fa-arrow-left mr-1"></i> Back to List
+            </a>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm p-6 mb-8 border border-gray-100 flex items-center gap-6">
+            <div class="w-20 h-20 rounded-full overflow-hidden border border-gray-200">
+                <img th:src="${pet.imageUrl != null ? pet.imageUrl : '/images/default-pet.png'}" class="w-full h-full object-cover">
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold text-gray-800" th:text="${pet.name}">Milo</h2>
+                <p class="text-gray-500" th:text="${pet.petType} + ' • ' + ${pet.breed}">Dog • Golden</p>
+            </div>
+            <div class="ml-auto flex bg-gray-100 rounded-lg p-1">
+                <a th:href="@{/customer/pet/pet-detail(id=${pet.petID})}" class="px-4 py-2 rounded-md text-gray-500 font-bold hover:bg-white hover:shadow-sm transition">Overview</a>
+                <span class="px-4 py-2 rounded-md bg-white text-orange-600 font-bold shadow-sm cursor-default">History</span>
+            </div>
+        </div>
+
+        <div class="space-y-8">
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-orange-50/30">
+                    <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-check text-orange-500"></i> Service Appointments
+                    </h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-bold">
+                        <tr>
+                            <th class="p-4">Date</th>
+                            <th class="p-4">Service</th>
+                            <th class="p-4">Note</th>
+                            <th class="p-4 text-right">Status</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100 text-sm">
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="p-4 text-gray-700">Feb 10, 2026</td>
+                            <td class="p-4 font-bold text-gray-800">Spa & Grooming</td>
+                            <td class="p-4 text-gray-500 italic">Cắt móng và tắm thơm</td>
+                            <td class="p-4 text-right">
+                                <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Completed</span>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="p-4 text-gray-700">Jan 05, 2026</td>
+                            <td class="p-4 font-bold text-gray-800">Vaccination (Rabies)</td>
+                            <td class="p-4 text-gray-500 italic">Mũi 1</td>
+                            <td class="p-4 text-right">
+                                <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Completed</span>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="p-4 text-gray-700">--</td>
+                            <td class="p-4 text-gray-400 italic" colspan="3">No more records found.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100 bg-blue-50/30">
+                    <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fa-solid fa-heart-pulse text-blue-500"></i> Health Records
+                    </h3>
+                </div>
+                <div class="p-8 text-center text-gray-400">
+                    <i class="fa-solid fa-file-medical text-4xl mb-3 opacity-50"></i>
+                    <p>No specific medical records uploaded by Vet yet.</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+</html>

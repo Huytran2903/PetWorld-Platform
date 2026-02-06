@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.petworldplatform.dto.PetCreateDTO;
 import vn.edu.fpt.petworldplatform.dto.ProfileFormDTO;
@@ -18,7 +19,9 @@ import vn.edu.fpt.petworldplatform.repository.PetRepo;
 import vn.edu.fpt.petworldplatform.service.*;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+
 
 @Controller
 public class CustomerController {
@@ -128,47 +131,6 @@ public class CustomerController {
         return "customer/checkout-order";
     }
 
-    /**
-     * Create Pet Profile (for customer - use case: no pets → redirect here).
-     */
-    @GetMapping("/customer/pet/create")
-    public String showCreatePet(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
-        Customer customer = (Customer) session.getAttribute("loggedInAccount");
-        if (customer == null) {
-            return "redirect:/login";
-        }
-        PetCreateDTO dto = new PetCreateDTO();
-        dto.setCreatePetOwnerType("customer");
-        dto.setOwnerId(customer.getCustomerId());
-        model.addAttribute("petDTO", dto);
-        return "customer/pet-create";
-    }
-
-    @PostMapping("/customer/pet/create")
-    public String handleCreatePet(HttpSession session, @ModelAttribute PetCreateDTO petDTO, RedirectAttributes redirectAttributes) {
-        Customer customer = (Customer) session.getAttribute("loggedInAccount");
-        if (customer == null) {
-            return "redirect:/login";
-        }
-
-        try {
-            petDTO.setCreatePetOwnerType("customer");
-            petDTO.setOwnerId(customer.getCustomerId());
-
-            petService.createPet(petDTO);
-            redirectAttributes.addFlashAttribute("message", "Tạo hồ sơ thú cưng thành công!");
-            return "redirect:/customer/pet/my-pets";
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            redirectAttributes.addFlashAttribute("error", "Lỗi upload ảnh: " + e.getMessage());
-            return "redirect:/customer/pet/create";
-        } catch (Exception e) {
-            e.printStackTrace();
-            redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());
-            return "redirect:/customer/pet/create";
-        }
-    }
     @Autowired
     BookingService bookingService;
 
@@ -281,6 +243,168 @@ public class CustomerController {
         model.addAttribute("myPets", myPets);
 
         return "customer/pet/my-pets";
+    }
+
+    @GetMapping("/customer/pet/pet-create")
+    public String showPetCreatePage(Model model) {
+        model.addAttribute("petDTO", new PetCreateDTO());
+        return "customer/pet/pet-create";
+    }
+
+    @PostMapping("/customer/pet/pet-create")
+    public String handlePetCreateSubmit(HttpSession session,
+                                        @ModelAttribute PetCreateDTO petDTO,
+                                        RedirectAttributes redirectAttributes) {
+        Customer customer = (Customer) session.getAttribute("loggedInAccount");
+        if (customer == null) {
+            return "redirect:/login";
+        }
+
+        try {
+            petDTO.setCreatePetOwnerType("customer");
+            petDTO.setOwnerId(customer.getCustomerId());
+
+            MultipartFile imageFile = petDTO.getImageFile();
+            String imageUrlPath = null;
+
+            if (imageFile != null && !imageFile.isEmpty()) {
+                String fileName = System.currentTimeMillis() + "_" + imageFile.getOriginalFilename();
+                String projectDir = System.getProperty("user.dir");
+
+                java.nio.file.Path pathSrc = java.nio.file.Paths.get(projectDir, "src", "main", "resources", "static", "images");
+                if (!java.nio.file.Files.exists(pathSrc)) java.nio.file.Files.createDirectories(pathSrc);
+
+                java.nio.file.Path fileSrc = pathSrc.resolve(fileName);
+                try (java.io.InputStream inputStream = imageFile.getInputStream()) {
+                    java.nio.file.Files.copy(inputStream, fileSrc, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                }
+
+                java.nio.file.Path pathTarget = java.nio.file.Paths.get(projectDir, "target", "classes", "static", "images");
+                if (!java.nio.file.Files.exists(pathTarget)) java.nio.file.Files.createDirectories(pathTarget);
+
+                java.nio.file.Path fileTarget = pathTarget.resolve(fileName);
+                java.nio.file.Files.copy(fileSrc, fileTarget, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+                imageUrlPath = "/images/" + fileName;
+
+                System.out.println("DEBUG CREATE: Ảnh đã lưu tại SRC và TARGET: " + fileName);
+            }
+
+            petDTO.setImageUrl(imageUrlPath);
+
+            petService.createPet(petDTO);
+
+            redirectAttributes.addFlashAttribute("message", "Thêm thú cưng thành công!");
+            return "redirect:/customer/pet/my-pets";
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());
+            return "redirect:/customer/pet/pet-create";
+        }
+    }
+
+    @GetMapping("/customer/pet/pet-detail")
+    public String showPetDetail(@RequestParam("id") Long id, Model model, HttpSession session) {
+        Customer customer = (Customer) session.getAttribute("loggedInAccount");
+        if (customer == null) return "redirect:/login";
+
+        Pets pet = petService.getPetById(id);
+
+        if (!pet.getOwner().getCustomerId().equals(customer.getCustomerId())) {
+            return "redirect:/access-denied";
+        }
+
+        model.addAttribute("pet", pet);
+        return "customer/pet/pet-detail";
+    }
+
+    @GetMapping("/customer/pet/pet-update")
+    public String showPetUpdatePage(@RequestParam("id") Long id, Model model, HttpSession session) {
+        Customer customer = (Customer) session.getAttribute("loggedInAccount");
+        if (customer == null) return "redirect:/login";
+
+        Pets pet = petService.getPetById(id);
+
+        if (!pet.getOwner().getCustomerId().equals(customer.getCustomerId())) {
+            return "redirect:/access-denied";
+        }
+
+        model.addAttribute("pet", pet);
+        return "customer/pet/pet-update";
+    }
+
+    @PostMapping("/customer/pet/pet-update")
+    public String handlePetUpdateSubmit(@ModelAttribute Pets petFromForm,
+                                        @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
+                                        RedirectAttributes redirectAttributes,
+                                        HttpSession session) {
+        try {
+            Pets existingPet = petService.getPetById(petFromForm.getPetID());
+
+            existingPet.setName(petFromForm.getName());
+            existingPet.setAgeMonths(petFromForm.getAgeMonths());
+            existingPet.setPetType(petFromForm.getPetType());
+            existingPet.setBreed(petFromForm.getBreed());
+            existingPet.setWeightKg(petFromForm.getWeightKg());
+            existingPet.setColor(petFromForm.getColor());
+            existingPet.setNote(petFromForm.getNote());
+            existingPet.setOwner(existingPet.getOwner());
+
+            if (imageFile != null && !imageFile.isEmpty()) {
+                String fileName = System.currentTimeMillis() + "_" + imageFile.getOriginalFilename();
+                String projectDir = System.getProperty("user.dir");
+
+                java.nio.file.Path pathSrc = java.nio.file.Paths.get(projectDir, "src", "main", "resources", "static", "images");
+                if (!java.nio.file.Files.exists(pathSrc)) {
+                    java.nio.file.Files.createDirectories(pathSrc);
+                }
+                java.nio.file.Path fileSrc = pathSrc.resolve(fileName);
+
+                try (java.io.InputStream inputStream = imageFile.getInputStream()) {
+                    java.nio.file.Files.copy(inputStream, fileSrc, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                }
+
+                java.nio.file.Path pathTarget = java.nio.file.Paths.get(projectDir, "target", "classes", "static", "images");
+                if (!java.nio.file.Files.exists(pathTarget)) {
+                    java.nio.file.Files.createDirectories(pathTarget);
+                }
+                java.nio.file.Path fileTarget = pathTarget.resolve(fileName);
+                java.nio.file.Files.copy(fileSrc, fileTarget, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                existingPet.setImageUrl("/images/" + fileName);
+
+                System.out.println("DEBUG: Đã lưu ảnh vào cả SRC và TARGET: " + fileName);
+            }
+
+            petService.savePet(existingPet);
+
+            redirectAttributes.addFlashAttribute("message", "Cập nhật thành công!");
+            return "redirect:/customer/pet/pet-detail?id=" + existingPet.getPetID();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Lỗi cập nhật: " + e.getMessage());
+            return "redirect:/customer/pet/pet-update?id=" + petFromForm.getPetID();
+        }
+    }
+
+    @GetMapping("/customer/pet/pet-history")
+    public String showPetHistory(@RequestParam("id") Long id, Model model, HttpSession session) {
+        Customer customer = (Customer) session.getAttribute("loggedInAccount");
+        if (customer == null) return "redirect:/login";
+
+        Pets pet = petService.getPetById(id);
+
+        if (!pet.getOwner().getCustomerId().equals(customer.getCustomerId())) {
+            return "redirect:/access-denied";
+        }
+
+        model.addAttribute("pet", pet);
+
+        List<Appointment> historyList = new ArrayList<>();
+        model.addAttribute("historyList", historyList);
+
+        return "customer/pet/pet-history";
     }
 }
 

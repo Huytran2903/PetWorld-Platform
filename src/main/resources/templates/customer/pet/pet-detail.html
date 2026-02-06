@@ -1,10 +1,85 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout-customer :: layout(~{::content})}">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Pet Details</title>
 </head>
-<body>
+<section th:fragment="content">
+    <div class="max-w-5xl mx-auto py-10 px-4">
 
-</body>
+        <a th:href="@{/customer/pet/my-pets}" class="inline-flex items-center gap-2 text-gray-500 hover:text-orange-600 mb-6 font-bold transition">
+            <i class="fa-solid fa-arrow-left"></i> Back to My Pets
+        </a>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 text-center">
+                    <div class="w-48 h-48 mx-auto rounded-full overflow-hidden bg-gray-100 border-4 border-white shadow-lg mb-4">
+                        <img th:src="${pet.imageUrl != null ? pet.imageUrl : '/images/default-pet.png'}" class="w-full h-full object-cover">
+                    </div>
+                    <h2 class="text-2xl font-extrabold text-gray-800" th:text="${pet.name}">Milo</h2>
+                    <p class="text-gray-500 font-medium" th:text="${pet.breed}">Golden Retriever</p>
+
+                    <div class="mt-6 flex flex-col gap-3">
+                        <a th:href="@{/booking(petId=${pet.petID})}" class="w-full py-3 rounded-xl bg-orange-600 text-white font-bold hover:bg-orange-700 shadow-lg shadow-orange-200 transition">
+                            <i class="fa-regular fa-calendar-check mr-2"></i> Book Appointment
+                        </a>
+                        <a th:href="@{/customer/pet/pet-update(id=${pet.petID})}" class="w-full py-3 rounded-xl border-2 border-gray-100 text-gray-600 font-bold hover:border-orange-500 hover:text-orange-600 transition">
+                            <i class="fa-solid fa-pen mr-2"></i> Edit Profile
+                        </a>
+                        <a th:href="@{/customer/pet/pet-history(id=${pet.petID})}" class="w-full py-3 rounded-xl bg-blue-50 text-blue-600 font-bold hover:bg-blue-100 transition text-center border border-blue-100">
+                            <i class="fa-solid fa-clock-rotate-left mr-2"></i> Care History
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-2xl shadow-sm p-8 border border-gray-100 h-full">
+                    <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                        <i class="fa-solid fa-paw text-orange-500"></i> Pet Information
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
+                        <div>
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Type</span>
+                            <span class="font-bold text-gray-800 text-lg flex items-center gap-2">
+                                <i class="fa-solid fa-dog" th:if="${pet.petType == 'Dog'}"></i>
+                                <i class="fa-solid fa-cat" th:if="${pet.petType == 'Cat'}"></i>
+                                <span th:text="${pet.petType}">Dog</span>
+                            </span>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Age</span>
+                            <span class="font-bold text-gray-800 text-lg" th:text="${pet.ageMonths} + ' Months'">12 Months</span>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Gender</span>
+                            <span class="font-bold text-gray-800 text-lg" th:text="${pet.gender}">Male</span>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Color</span>
+                            <span class="font-bold text-gray-800 text-lg" th:text="${pet.color}">Golden</span>
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Weight</span>
+                            <span class="font-bold text-gray-800 text-lg" th:text="${pet.weightKg} + ' Kg'">5.5 Kg</span>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-8 border-t border-gray-100">
+                        <h4 class="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-notes-medical text-red-400"></i> Health Notes
+                        </h4>
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100 text-gray-600 leading-relaxed italic">
+                            <p th:if="${pet.note != null && pet.note != ''}" th:text="${pet.note}"></p>
+                            <p th:if="${pet.note == null || pet.note == ''}" class="text-gray-400">No special notes added.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 </html>
