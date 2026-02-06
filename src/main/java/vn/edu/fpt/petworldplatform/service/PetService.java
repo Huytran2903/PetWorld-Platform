@@ -2,14 +2,18 @@ package vn.edu.fpt.petworldplatform.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import vn.edu.fpt.petworldplatform.dto.PetCreateDTO;
 import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.repository.CustomerRepo;
 import vn.edu.fpt.petworldplatform.repository.PetRepo;
+import vn.edu.fpt.petworldplatform.util.FileUploadUtil;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class PetService {
@@ -37,7 +41,7 @@ public class PetService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thú cưng ID: " + id));
     }
 
-    public void createPet(PetCreateDTO dto) {
+    public void createPet(PetCreateDTO dto) throws IOException {
         Pets pet = new Pets();
 
         pet.setName(dto.getName());
@@ -46,6 +50,21 @@ public class PetService {
         pet.setAgeMonths(dto.getAge());
         pet.setDescription(dto.getDescription());
         pet.setImageUrl(dto.getImageUrl());
+
+        pet.setWeightKg(dto.getWeightKg());
+        pet.setColor(dto.getColor());
+        pet.setGender(dto.getGender());
+        pet.setNote(dto.getNote());
+
+        MultipartFile file = dto.getImageFile();
+        if (file != null && !file.isEmpty()) {
+            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+            String uploadDir = "src/main/resources/static/images/";
+
+            FileUploadUtil.saveFile(uploadDir, fileName, file);
+
+            pet.setImageUrl("/images/" + fileName);
+        }
 
         if ("shop".equalsIgnoreCase(dto.getCreatePetOwnerType())) {
             // Pet của shop
@@ -90,4 +109,5 @@ public class PetService {
 
         petRepo.save(existingPet);
     }
+
 }

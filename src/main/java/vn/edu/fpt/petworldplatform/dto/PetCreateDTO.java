@@ -1,10 +1,11 @@
 package vn.edu.fpt.petworldplatform.dto;
 
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 public class PetCreateDTO {
-    // Tên biến này đang là createPetOwnerType
+
     private String createPetOwnerType;
 
     private String name;
@@ -17,4 +18,11 @@ public class PetCreateDTO {
     private Double price;
     private String imageUrl;
     private String description;
+
+    private Double weightKg;
+    private String color;
+    private String gender;
+    private String note;
+
+    private MultipartFile imageFile;
 }

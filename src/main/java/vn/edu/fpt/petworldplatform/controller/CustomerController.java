@@ -13,8 +13,10 @@ import vn.edu.fpt.petworldplatform.dto.PetCreateDTO;
 import vn.edu.fpt.petworldplatform.dto.ProfileFormDTO;
 import vn.edu.fpt.petworldplatform.entity.Appointment;
 import vn.edu.fpt.petworldplatform.entity.Customer;
+import vn.edu.fpt.petworldplatform.entity.Pets;
+import vn.edu.fpt.petworldplatform.repository.PetRepo;
 import vn.edu.fpt.petworldplatform.service.*;
-
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -148,13 +150,25 @@ public class CustomerController {
         if (customer == null) {
             return "redirect:/login";
         }
-        petDTO.setCreatePetOwnerType("customer");
-        petDTO.setOwnerId(customer.getCustomerId());
-        petService.createPet(petDTO);
-        redirectAttributes.addFlashAttribute("message", "Pet profile created. You can now book a service appointment.");
-        return "redirect:/appointment/booking";
-    }
 
+        try {
+            petDTO.setCreatePetOwnerType("customer");
+            petDTO.setOwnerId(customer.getCustomerId());
+
+            petService.createPet(petDTO);
+            redirectAttributes.addFlashAttribute("message", "Tạo hồ sơ thú cưng thành công!");
+            return "redirect:/customer/pet/my-pets";
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Lỗi upload ảnh: " + e.getMessage());
+            return "redirect:/customer/pet/create";
+        } catch (Exception e) {
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());
+            return "redirect:/customer/pet/create";
+        }
+    }
     @Autowired
     BookingService bookingService;
 
@@ -250,6 +264,23 @@ public class CustomerController {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/customer/appointments";
+    }
+    @Autowired
+    private PetRepo petRepo;
+
+    @GetMapping("/customer/pet/my-pets")
+    public String showMyPets(HttpSession session, Model model) {
+
+        Customer customer = (Customer) session.getAttribute("loggedInAccount");
+        if (customer == null) {
+            return "redirect:/login";
+        }
+
+        List<Pets> myPets = petRepo.findByOwner_CustomerId(customer.getCustomerId());
+
+        model.addAttribute("myPets", myPets);
+
+        return "customer/pet/my-pets";
     }
 }
 
