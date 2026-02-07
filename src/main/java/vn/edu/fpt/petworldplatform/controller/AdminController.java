@@ -30,6 +30,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
@@ -328,6 +329,45 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("error", "Cannot delete this service because it has associated appointments.");
         }
         return "redirect:/admin/services";
+    }
+
+    @GetMapping("/admin/statistics/pets")
+    public String showPetStatistics(Model model) {
+        long totalPets = petService.getTotalPets();
+
+        List<Object[]> stats = petService.getPetStatsBySpecies();
+
+        long dogCount = 0;
+        long catCount = 0;
+        long otherCount = 0;
+
+        if (stats != null) {
+            for (Object[] row : stats) {
+                String species = (String) row[0];
+                long count = (Long) row[1];
+
+                if (species != null) {
+                    if (species.equalsIgnoreCase("Dog")) {
+                        dogCount += count;
+                    } else if (species.equalsIgnoreCase("Cat")) {
+                        catCount += count;
+                    } else {
+                        otherCount += count;
+                    }
+                } else {
+                    otherCount += count;
+                }
+            }
+        }
+
+        model.addAttribute("totalPets", totalPets);
+        model.addAttribute("dogCount", dogCount);
+        model.addAttribute("catCount", catCount);
+        model.addAttribute("otherCount", otherCount);
+
+        model.addAttribute("statsBySpecies", stats);
+
+        return "admin/statistics/pet-report";
     }
 
 }

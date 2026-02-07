@@ -95,4 +95,7 @@ public class Pets {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    @Column(name = "Species", length = 50)
+    private String species;
 }

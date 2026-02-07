@@ -110,4 +110,12 @@ public class PetService {
         petRepo.save(existingPet);
     }
 
+    public long getTotalPets() {
+        return petRepo.countTotalPets();
+    }
+
+    public List<Object[]> getPetStatsBySpecies() {
+        return petRepo.countPetsBySpecies();
+    }
+
 }
