@@ -3,6 +3,7 @@ package vn.edu.fpt.petworldplatform.dto;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
+import vn.edu.fpt.petworldplatform.entity.Pets;
 
 import java.math.BigDecimal;
 
@@ -41,5 +42,27 @@ public class PetFormDTO {
 
     private String description;
 
-    private String imageBase64;
+    private String imageUrl;
+
+    public PetFormDTO(Pets pet) {
+        this.petID = pet.getPetID();
+        this.name = pet.getName();
+        this.breed = pet.getBreed();
+        this.petType = pet.getPetType();
+        this.gender = pet.getGender();
+        this.ageMonths = pet.getAgeMonths();
+        this.weightKg = pet.getWeightKg();
+        this.color = pet.getColor();
+        this.price = pet.getPrice();
+        this.discountPercent = pet.getDiscountPercent();
+        this.description = pet.getDescription();
+        this.isAvailable = pet.getIsAvailable();
+        this.imageUrl = pet.getImageUrl();
+
+    }
+
+
+
+    public PetFormDTO() {
+    }
 }

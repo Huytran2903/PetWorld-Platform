@@ -5,6 +5,8 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import jakarta.persistence.*;
+import vn.edu.fpt.petworldplatform.dto.PetFormDTO;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -73,6 +75,9 @@ public class Pets {
     @Column(name = "UpdatedAt")
     private LocalDateTime updatedAt;
 
+    @Column(name = "Species", length = 50)
+    private String species;
+
     @ManyToOne
     @JoinColumn(name = "OwnerCustomerID")
     private Customer owner;
@@ -96,6 +101,23 @@ public class Pets {
         this.updatedAt = LocalDateTime.now();
     }
 
-    @Column(name = "Species", length = 50)
-    private String species;
+    public Pets(PetFormDTO dto) {
+        this.petID = dto.getPetID();
+        this.name = dto.getName();
+        this.breed = dto.getBreed();
+        this.petType = dto.getPetType();
+        this.gender = dto.getGender();
+        this.ageMonths = dto.getAgeMonths();
+        this.weightKg = dto.getWeightKg();
+        this.color = dto.getColor();
+        this.price = dto.getPrice();
+        this.discountPercent = dto.getDiscountPercent();
+        this.description = dto.getDescription();
+        this.isAvailable = dto.getIsAvailable() != null ? dto.getIsAvailable() : true;
+        this.imageUrl = dto.getImageUrl();
+    }
+
 }
+
+
+

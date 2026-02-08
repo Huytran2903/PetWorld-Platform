@@ -14,183 +14,160 @@
 
 <div class="main-wrapper d-flex align-items-center justify-content-center py-5">
     <div class="form-container px-3" style="width: 100%; max-width: 1000px;">
+
         <div class="mb-4 text-start ps-2">
-            <h2 class="fw-bold text-dark mb-0" th:text="${formMode == 'add' ? 'Add New Pet' : 'Edit Pet'}"></h2>
-            <p class="text-secondary small">Enter full details for the pet entry.</p>
+            <h2 th:text="${formMode == 'edit' ? 'Edit a pet' : 'Create a pet'}"></h2>
+            <p class="text-secondary small">Enter full details and upload an image for the pet entry.</p>
         </div>
 
         <div class="card pet-card border-0 shadow-lg p-4">
-            <form th:action="@{/admin/pet/save}" method="post">
+            <form th:action="@{/admin/pet/save}"
+                  method="post"
+                  th:object="${selectedPet}"
+                  enctype="multipart/form-data">
 
-                <!--                <input type="hidden" th:field="*{petID}">-->
+                <input type="hidden" th:field="*{petID}">
 
                 <div class="row g-4">
-                    <div class="col-lg-7">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold text-secondary small">
-                                    <i class="bi bi-tag-fill me-1 text-warning"></i> Name <span
-                                        class="text-danger">*</span>
-                                </label>
-                                <input type="text" name="name" class="form-control shadow-none" placeholder="e.g. LuLu"
-                                       required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold text-secondary small">
-                                    <i class="fa-solid fa-dog text-warning me-1"></i> Breed
-                                </label>
-                                <input type="text" name="breed" class="form-control shadow-none"
-                                       placeholder="e.g. Poodle">
+                    <div class="col-lg-5">
+                        <div class="upload-container border rounded-3 d-flex flex-column align-items-center justify-content-center bg-light p-4 text-center"
+                             style="min-height: 380px; border-style: dashed !important;">
+
+                            <div id="preview-box" class="mb-3" th:style="${selectedPet.imageUrl != null ? 'display:block' : 'display:none'}">
+                                <img id="img-preview"
+                                     th:src="${selectedPet.imageUrl != null ? '/uploads/' + selectedPet.imageUrl : '#'}"
+                                     class="img-thumbnail shadow-sm"
+                                     style="max-height: 250px; max-width: 100%; object-fit: contain;">
                             </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold text-secondary small">
-                                    <i class="bi bi-grid-fill me-1 text-warning"></i> Categories
-                                </label>
-                                <select class="form-select shadow-none" name="petType">
-                                    <option value="Dog">Dog</option>
-                                    <option value="Cat">Cat</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold text-secondary small">
-                                    <i class="bi bi-gender-ambiguous me-1 text-warning"></i> Gender
-                                </label>
-                                <select class="form-select shadow-none" name="gender">
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                </select>
+                            <div id="placeholder-box" th:style="${selectedPet.imageUrl != null ? 'display:none' : 'display:block'}">
+                                <i class="fa-solid fa-cloud-arrow-up fs-1 text-warning mb-3"></i>
+                                <p class="small text-muted mb-3">Click to upload pet image</p>
                             </div>
 
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold text-secondary small">
-                                    <i class="bi bi-calendar-event me-1 text-warning"></i> Age (Months)
-                                </label>
-                                <input type="number" min="0" class="form-control shadow-none" name="ageMonth">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold text-secondary small">
-                                    <i class="bi bi-speedometer2 me-1 text-warning"></i> Weight (kg)
-                                </label>
-                                <input type="number" step="0.1" min="0" class="form-control shadow-none"
-                                       name="weightKg">
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold text-secondary small">
-                                    <i class="bi bi-palette-fill me-1 text-warning"></i> Color
-                                </label>
-                                <input type="text" class="form-control shadow-none" name="color">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold text-secondary small">
-                                    <i class="bi bi-cash-stack me-1 text-warning"></i> Price ($)
-                                </label>
-                                <input type="number" min="0" step="0.01" class="form-control shadow-none" name="price">
-                            </div>
-                        </div>
-                    </div>
-
-                    <input type="hidden" name="imageBase64" id="imageBase64">
-
-                    <div class="upload-container border rounded-3 d-flex flex-column
-        align-items-center justify-content-center bg-light p-4 text-center"
-                         style="min-height: 320px;">
-
-                        <!-- Preview -->
-                        <div id="preview-box" class="mb-3" style="display:none">
-                            <img id="img-preview"
-                                 class="img-thumbnail shadow-sm"
-                                 style="max-height: 200px; max-width: 100%; object-fit: contain;">
-                        </div>
-
-                        <!-- Placeholder -->
-                        <div id="placeholder-box">
-                            <i class="fa-solid fa-cloud-arrow-up fs-1 text-warning mb-3"></i>
-                            <p class="small text-muted mb-3">
-                                Click to upload or drag & drop pet image
-                            </p>
-                        </div>
-
-                        <div class="custom-file-upload w-100">
-                            <label for="file-upload"
-                                   class="btn btn-outline-warning btn-sm px-4 shadow-sm">
+                            <label for="file-upload" class="btn btn-outline-warning btn-sm px-4 shadow-sm">
                                 Choose File
                             </label>
 
                             <input id="file-upload"
                                    type="file"
+                                   name="imageFile"
                                    accept="image/*"
                                    class="d-none"
-                                   onchange="convertToBase64(this)">
+                                   onchange="previewImage(this)">
 
                             <div id="file-name" class="small text-muted mt-2">
-                                No file chosen
+                                <span th:text="${selectedPet.imageUrl != null ? selectedPet.imageUrl : 'No file chosen'}"></span>
                             </div>
                         </div>
                     </div>
 
+                    <div class="col-lg-7">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-secondary">
+                                    <i class="bi bi-tag-fill me-1 text-warning"></i> Name *
+                                </label>
+                                <input type="text" th:field="*{name}" class="form-control shadow-none" required>
+                            </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold text-secondary small">
-                            <i class="bi bi-percent me-1 text-warning"></i> Discount (%)
-                        </label>
-                        <input type="number" min="0" max="100" class="form-control shadow-none" name="discountPercent">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold text-secondary small">
-                            <i class="bi bi-info-circle-fill me-1 text-warning"></i> Availability
-                        </label>
-                        <select class="form-select shadow-none fw-bold" name="isAvailable">
-                            <option value="true">Available</option>
-                            <option value="false">Sold Out</option>
-                        </select>
-                    </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-secondary">
+                                    <i class="fa-solid fa-dog me-1 text-warning"></i> Breed
+                                </label>
+                                <input type="text" th:field="*{breed}" class="form-control shadow-none">
+                            </div>
 
-                    <div class="col-md-12">
-                        <label class="form-label fw-semibold text-secondary small">
-                            <i class="bi bi-chat-left-text-fill me-1 text-warning"></i> Description
-                        </label>
-                        <textarea class="form-control shadow-none" rows="3" placeholder="Friendly and well-trained."
-                                  name="description"></textarea>
-                    </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-secondary">
+                                    <i class="bi bi-grid-fill me-1 text-warning"></i> Category
+                                </label>
+                                <select class="form-select shadow-none" th:field="*{petType}">
+                                    <option value="Dog">Dog</option>
+                                    <option value="Cat">Cat</option>
+                                </select>
+                            </div>
 
-                    <div class="col-md-12 border-top pt-4 mt-4 d-flex gap-3 justify-content-end">
-                        <a th:href="@{/admin/manage-pet}" class="btn btn-secondary px-4 py-2">Cancel</a>
-                        <button type="submit" class="btn btn-warning px-5 py-2 shadow-sm text-white fw-bold">
-                            Save Pet
-                        </button>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-secondary">
+                                    <i class="bi bi-gender-ambiguous me-1 text-warning"></i> Gender
+                                </label>
+                                <select class="form-select shadow-none" th:field="*{gender}" >
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small text-secondary">Age (mo)</label>
+                                <input type="number" min="0" th:field="*{ageMonths}" class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small text-secondary">Weight (kg)</label>
+                                <input type="number" step="0.1" th:field="*{weightKg}" class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small text-secondary">Color</label>
+                                <input type="text" th:field="*{color}" class="form-control shadow-none">
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small text-secondary">Price ($)</label>
+                                <input type="number" step="0.01" th:field="*{price}" class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small text-secondary">Discount (%)</label>
+                                <input type="number" min="0" max="100" th:field="*{discountPercent}" class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small text-secondary">Status</label>
+                                <select th:field="*{isAvailable}" class="form-select shadow-none fw-bold">
+                                    <option value="true">Available</option>
+                                    <option value="false">Sold Out</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <label class="form-label fw-semibold small text-secondary">Description</label>
+                            <textarea rows="3" th:field="*{description}" class="form-control shadow-none"></textarea>
+                        </div>
+
+                        <div class="border-top pt-4 mt-4 d-flex gap-3 justify-content-end">
+                            <a th:href="@{/admin/manage-pet}" class="btn btn-secondary px-4">Cancel</a>
+                            <button type="submit" class="btn btn-warning px-5 shadow-sm text-white fw-bold">
+                                <i class="bi bi-save me-2"></i>Save Pet Details
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </form>
-        </div>
+            </form> </div>
     </div>
 </div>
 
 <script>
-
-    function convertToBase64(input) {
+    function previewImage(input) {
         const preview = document.getElementById("img-preview");
         const previewBox = document.getElementById("preview-box");
         const placeholder = document.getElementById("placeholder-box");
         const fileName = document.getElementById("file-name");
 
-        if (!input.files || !input.files[0]) return;
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            fileName.textContent = file.name;
 
-        const file = input.files[0];
-        fileName.textContent = file.name;
-
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            // Set preview
-            preview.src = e.target.result;
-            previewBox.style.display = "block";
-            placeholder.style.display = "none";
-
-            // Save Base64 to hidden input
-            document.getElementById("imageBase64").value = e.target.result;
-        };
-        reader.readAsDataURL(file);
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.src = e.target.result;
+                previewBox.style.display = "block";
+                placeholder.style.display = "none";
+            };
+            reader.readAsDataURL(file);
+        }
     }
 </script>
 

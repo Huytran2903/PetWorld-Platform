@@ -3,6 +3,7 @@ package vn.edu.fpt.petworldplatform.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,13 +19,13 @@ import vn.edu.fpt.petworldplatform.service.CategoryService;
 import vn.edu.fpt.petworldplatform.service.PetService;
 import org.springframework.util.StringUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +34,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.UUID;
 
 import vn.edu.fpt.petworldplatform.entity.ServiceItem;
 import vn.edu.fpt.petworldplatform.entity.ServiceType;
@@ -72,14 +74,16 @@ public class AdminController {
     //Manage Pet - OanhTP
     //List
     @GetMapping("/admin/manage-pet")
-    public String managePet(Model model) {
+    public String getAllPet(Model model) {
         model.addAttribute("pets", petService.getAllPets2());
         return "admin/managePet";
     }
 
     //Edit Pet
-    @GetMapping("/admin/pet/edit/{id}")
-    public String editPet(Model model) {
+    @GetMapping("admin/pet/edit/{id}")
+    public String updatePet(Model model, @PathVariable("id") Long id) {
+        Pets pet = petService.getPetById(id);
+        model.addAttribute("selectedPet", petService.getPetById(id));
         model.addAttribute("formMode", "edit");
         return "admin/pet-form";
     }
@@ -87,45 +91,50 @@ public class AdminController {
     //Create Pet
     @GetMapping("/admin/pet/new")
     public String createPet(Model model) {
-        model.addAttribute("pet", new PetFormDTO());
+        model.addAttribute("selectedPet", new PetFormDTO());
         model.addAttribute("formMode", "add");
         return "admin/pet-form";
     }
 
+
+
     @PostMapping("/admin/pet/save")
-    public String savePet(
-            @Valid @ModelAttribute("pet") PetFormDTO dto,
-            BindingResult br,
-            RedirectAttributes ra
-    ) {
+    public String savePet(@ModelAttribute("selectedPet") Pets pet,
+                          @RequestParam("imageFile") MultipartFile imageFile) {
+        try {
+            if (imageFile != null && !imageFile.isEmpty()) {
+                // 1. Định nghĩa thư mục lưu trữ (bên ngoài thư mục target/build)
+                String uploadDir = "uploads/pets/";
+                Path uploadPath = Paths.get(uploadDir);
 
-        if (br.hasErrors()) {
-            return "admin/pet-form";
-        }
+                // Tạo thư mục nếu chưa tồn tại
+                if (!Files.exists(uploadPath)) {
+                    Files.createDirectories(uploadPath);
+                }
 
-        Pets pet = new Pets();
+                // 2. Tạo tên file duy nhất để tránh trùng lặp (dùng UUID)
+                String fileName = UUID.randomUUID().toString() + "_" + imageFile.getOriginalFilename();
 
-        pet.setPetID(dto.getPetID());
-        pet.setName(dto.getName());
-        pet.setBreed(dto.getBreed());
-        pet.setPetType(dto.getPetType());
-        pet.setGender(dto.getGender());
-        pet.setAgeMonths(dto.getAgeMonths());
-        pet.setWeightKg(dto.getWeightKg());
-        pet.setColor(dto.getColor());
-        pet.setPrice(dto.getPrice());
-        pet.setDiscountPercent(dto.getDiscountPercent());
-        pet.setDescription(dto.getDescription());
-        pet.setIsAvailable(dto.getIsAvailable() != null ? dto.getIsAvailable() : true);
+                // 3. Lưu file vật lý
+                Path filePath = uploadPath.resolve(fileName);
+                Files.copy(imageFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-        // 👉 NHẬN BASE64
-        if (dto.getImageBase64() != null && !dto.getImageBase64().isBlank()) {
-            pet.setImageUrl(dto.getImageBase64());
-        }
+                // 4. Lưu tên file vào database
+                pet.setImageUrl(fileName);
+            } else {
+                // Nếu không upload ảnh mới, giữ nguyên ảnh cũ (trường hợp Edit)
+                // Bạn có thể lấy ảnh cũ từ Database nếu cần
+            }
 
+            // 5. Lưu thông tin Pet vào database qua Service
+            petService.savePet(pet);
         petService. savePet(pet);
 
-        ra.addFlashAttribute("message", "Lưu thú cưng thành công!");
+        } catch (IOException e) {
+            e.printStackTrace();
+            // Có thể thêm thông báo lỗi ở đây
+        }
+
         return "redirect:/admin/manage-pet";
     }
 
@@ -139,7 +148,7 @@ public class AdminController {
     //Manage Categories - OanhTP
     //List
     @GetMapping("/admin/manage-categories")
-    public String manageCategories(Model model) {
+    public String getAllCategories(Model model) {
 
         model.addAttribute("categories", categoryService.getAllCategories());
 
@@ -154,6 +163,7 @@ public class AdminController {
 
         return "admin/category-form";
     }
+
 
     //Create
     @GetMapping("/admin/category/new")

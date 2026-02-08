@@ -2,6 +2,8 @@ package vn.edu.fpt.petworldplatform.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 import vn.edu.fpt.petworldplatform.dto.PetCreateDTO;
 import vn.edu.fpt.petworldplatform.entity.Customer;
@@ -10,6 +12,11 @@ import vn.edu.fpt.petworldplatform.repository.CustomerRepo;
 import vn.edu.fpt.petworldplatform.repository.PetRepo;
 import vn.edu.fpt.petworldplatform.util.FileUploadUtil;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
@@ -28,7 +35,17 @@ public class PetService {
         return petRepo.findAll();
     }
 
+    private static final String UPLOAD_DIR =
+            "src/main/resources/static/images/uploads/";
+
+
+    //OanhTP
     public List<Pets> getAllPets2() {
+        return petRepository.findAll();
+    }
+
+    // --- 1. Lấy danh sách ---
+    public List<Pets> getAllPets() {
         return petRepo.findAll();
     }
 
@@ -117,5 +134,7 @@ public class PetService {
     public List<Object[]> getPetStatsBySpecies() {
         return petRepo.countPetsBySpecies();
     }
+
+
 
 }

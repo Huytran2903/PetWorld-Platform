@@ -60,11 +60,11 @@
                     </thead>
                     <tbody>
                     <tr th:each="p : ${pets}">
-<!--                        <td class="ps-4 fw-bold" th:text="${'#' + p.petId}"></td>-->
+                        <td class="ps-4 fw-bold" th:text="${p.petID}"></td>
 
                         <!-- Image Base64 -->
                         <td>
-                            <img th:src="${p.imageUrl}" class="rounded-3 border" alt="pet" width="50" height="50">
+                            <img th:src="${p.imageUrl}" class="rounded-3 border" alt="pet" width="70" height="70">
                         </td>
 
                         <td>

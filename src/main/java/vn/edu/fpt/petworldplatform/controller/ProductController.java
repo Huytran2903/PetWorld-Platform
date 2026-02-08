@@ -1,7 +1,6 @@
 package vn.edu.fpt.petworldplatform.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,16 +17,16 @@ public class ProductController {
     @GetMapping("/products")
     public String showProductList(Model model) {
         model.addAttribute("formMode", "product");
-        return "product/product-pet-list";
+        return "/product/petList";
     }
 
     //Pet List
     @GetMapping("/pets")
-    public String showPetList(Model model) {
+    public String getAllPet(Model model) {
 
         //model.addAttribute("pets", petService.getAllPets());
         model.addAttribute("formMode", "pet");
-        return "product/product-pet-list";
+        return "petList";
     }
 
     //Product Detail
