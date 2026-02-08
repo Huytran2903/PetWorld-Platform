@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -97,14 +98,15 @@ public class AdminController {
     }
 
 
-
     @PostMapping("/admin/pet/save")
-    public String savePet(@ModelAttribute("selectedPet") Pets pet,
-                          @RequestParam("imageFile") MultipartFile imageFile) {
+    public String savePet(@ModelAttribute("pet") Pets pet,
+                          @RequestParam("imageFile") MultipartFile imageFile,
+                          RedirectAttributes redirectAttributes) {
         try {
             if (imageFile != null && !imageFile.isEmpty()) {
-                // 1. Định nghĩa thư mục lưu trữ (bên ngoài thư mục target/build)
-                String uploadDir = "uploads/pets/";
+                // 1. Lấy đường dẫn gốc dự án + thư mục uploads
+                // Kết quả sẽ là: C:\TenProjectuploads (ngang hàng với src)
+                String uploadDir = System.getProperty("user.dir") + "/uploads";
                 Path uploadPath = Paths.get(uploadDir);
 
                 // Tạo thư mục nếu chưa tồn tại
@@ -112,27 +114,32 @@ public class AdminController {
                     Files.createDirectories(uploadPath);
                 }
 
-                // 2. Tạo tên file duy nhất để tránh trùng lặp (dùng UUID)
+                // 2. Tạo tên file duy nhất
                 String fileName = UUID.randomUUID().toString() + "_" + imageFile.getOriginalFilename();
 
-                // 3. Lưu file vật lý
-                Path filePath = uploadPath.resolve(fileName);
-                Files.copy(imageFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+                // 3. Lưu file
+                try (InputStream inputStream = imageFile.getInputStream()) {
+                    Path filePath = uploadPath.resolve(fileName);
+                    Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+                }
 
-                // 4. Lưu tên file vào database
+                // 4. Gán tên file cho object
                 pet.setImageUrl(fileName);
             } else {
-                // Nếu không upload ảnh mới, giữ nguyên ảnh cũ (trường hợp Edit)
-                // Bạn có thể lấy ảnh cũ từ Database nếu cần
+                // Logic giữ ảnh cũ khi edit (nếu có)
+                if (pet.getPetID() != null) {
+                    // Giả sử service có hàm lấy thông tin cũ
+                    // Pets oldPet = petService.getPetById(pet.getPetID());
+                    // pet.setImageUrl(oldPet.getImageUrl());
+                }
             }
 
-            // 5. Lưu thông tin Pet vào database qua Service
             petService.savePet(pet);
-        petService. savePet(pet);
+            redirectAttributes.addFlashAttribute("message", "Pet saved successfully!");
 
         } catch (IOException e) {
             e.printStackTrace();
-            // Có thể thêm thông báo lỗi ở đây
+            redirectAttributes.addFlashAttribute("error", "Error saving image: " + e.getMessage());
         }
 
         return "redirect:/admin/manage-pet";

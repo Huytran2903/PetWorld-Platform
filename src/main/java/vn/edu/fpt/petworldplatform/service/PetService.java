@@ -31,17 +31,13 @@ public class PetService {
     @Autowired
     private CustomerRepo customerRepo;
 
-    public List<Pets> getAllPets() {
-        return petRepo.findAll();
-    }
-
     private static final String UPLOAD_DIR =
             "src/main/resources/static/images/uploads/";
 
 
     //OanhTP
     public List<Pets> getAllPets2() {
-        return petRepository.findAll();
+        return petRepo.findAll();
     }
 
     // --- 1. Lấy danh sách ---
