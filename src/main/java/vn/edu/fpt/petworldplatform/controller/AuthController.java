@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Controller
-public class AccountController {
+public class AuthController {
 
     @Autowired
     private CustomerService customerService;
@@ -53,8 +53,8 @@ public class AccountController {
     }
 
 
-    @PostMapping("/do-register")
-    public String handleRegister(@Valid @ModelAttribute Customer customer,
+    @PostMapping("/do-register") // Đảm bảo mapping đúng với form
+    public String handleRegister(@Valid @ModelAttribute("customer") Customer customer,
                                  BindingResult bindingResult,
                                  Model model) {
 
@@ -72,7 +72,14 @@ public class AccountController {
         try {
             customerService.registerNewCustomer(customer);
 
-            return "redirect:/login?success_verify_sent";
+
+            model.addAttribute("showOtpModal", true);
+
+            model.addAttribute("emailRegister", customer.getEmail());
+
+            model.addAttribute("message", "Registration successful! Please check your email for OTP.");
+
+            return "auth/register";
 
         } catch (Exception e) {
             e.printStackTrace();

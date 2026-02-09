@@ -15,8 +15,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.petworldplatform.dto.PetFormDTO;
 import vn.edu.fpt.petworldplatform.entity.Categories;
 import vn.edu.fpt.petworldplatform.entity.Pets;
-import vn.edu.fpt.petworldplatform.service.CategoryService;
-import vn.edu.fpt.petworldplatform.service.PetService;
+import vn.edu.fpt.petworldplatform.service.*;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
@@ -39,8 +38,6 @@ import java.util.UUID;
 
 import vn.edu.fpt.petworldplatform.entity.ServiceItem;
 import vn.edu.fpt.petworldplatform.entity.ServiceType;
-import vn.edu.fpt.petworldplatform.service.ServiceItemService;
-import vn.edu.fpt.petworldplatform.service.ServiceTypeService;
 import org.springframework.web.bind.annotation.PostMapping;
 
 
@@ -53,6 +50,8 @@ public class AdminController {
 
     @Autowired
     private PetService petService;
+
+    private final CustomerService customerService;
 
     private final ServiceTypeService serviceTypeService;
     private final ServiceItemService serviceItemService;
@@ -99,38 +98,43 @@ public class AdminController {
 
 
     @PostMapping("/admin/pet/save")
-    public String savePet(@ModelAttribute("pet") Pets pet,
+    public String savePet(@ModelAttribute("selectedPet") Pets pet,
                           @RequestParam("imageFile") MultipartFile imageFile,
                           RedirectAttributes redirectAttributes) {
         try {
+            // 1. Kiểm tra nếu người dùng CÓ chọn file ảnh mới
             if (imageFile != null && !imageFile.isEmpty()) {
-                // 1. Lấy đường dẫn gốc dự án + thư mục uploads
-                // Kết quả sẽ là: C:\TenProjectuploads (ngang hàng với src)
-                String uploadDir = System.getProperty("user.dir") + "/uploads";
-                Path uploadPath = Paths.get(uploadDir);
+
+                // Tạo đường dẫn tới thư mục "uploads" nằm ngay tại thư mục gốc dự án
+                Path uploadPath = Paths.get("uploads");
 
                 // Tạo thư mục nếu chưa tồn tại
                 if (!Files.exists(uploadPath)) {
                     Files.createDirectories(uploadPath);
                 }
 
-                // 2. Tạo tên file duy nhất
+                // Tạo tên file ngẫu nhiên (UUID) để tránh trùng lặp
                 String fileName = UUID.randomUUID().toString() + "_" + imageFile.getOriginalFilename();
 
-                // 3. Lưu file
+                // Lưu file vật lý vào ổ cứng
                 try (InputStream inputStream = imageFile.getInputStream()) {
-                    Path filePath = uploadPath.resolve(fileName);
-                    Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+                    Files.copy(inputStream, uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
                 }
 
-                // 4. Gán tên file cho object
-                pet.setImageUrl(fileName);
+                // [QUAN TRỌNG] Lưu đường dẫn Web vào Database (Ví dụ: /uploads/abc.jpg)
+                pet.setImageUrl("/uploads/" + fileName);
+
             } else {
-                // Logic giữ ảnh cũ khi edit (nếu có)
+                // 2. Logic Edit: Người dùng KHÔNG chọn ảnh mới -> Giữ nguyên ảnh cũ
                 if (pet.getPetID() != null) {
-                    // Giả sử service có hàm lấy thông tin cũ
-                    // Pets oldPet = petService.getPetById(pet.getPetID());
-                    // pet.setImageUrl(oldPet.getImageUrl());
+                    // Cách 1 (Nhanh): Nếu bên HTML có <input type="hidden" th:field="*{imageUrl}">
+                    // thì pet.getImageUrl() đã có dữ liệu, không cần làm gì cả.
+
+                    // Cách 2 (An toàn nhất): Lấy từ Database ra để chắc chắn không bị mất ảnh
+                    Pets oldPet = petService.getPetById(pet.getPetID());
+                    if (oldPet != null && (pet.getImageUrl() == null || pet.getImageUrl().isEmpty())) {
+                        pet.setImageUrl(oldPet.getImageUrl());
+                    }
                 }
             }
 
@@ -139,7 +143,7 @@ public class AdminController {
 
         } catch (IOException e) {
             e.printStackTrace();
-            redirectAttributes.addFlashAttribute("error", "Error saving image: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Lỗi khi lưu ảnh: " + e.getMessage());
         }
 
         return "redirect:/admin/manage-pet";
@@ -225,9 +229,11 @@ public class AdminController {
     }
 
     @GetMapping("/admin/customer-manage")
-    public String showCustomerList() {
+    public String showCustomerList(Model model) {
+        model.addAttribute("customers", customerService.getAllCustomer());
         return "admin/customer-manage";
     }
+
 
     // Service Manager
     @GetMapping("/admin/service-manager")

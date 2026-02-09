@@ -9,7 +9,9 @@ import vn.edu.fpt.petworldplatform.entity.VerificationToken;
 import vn.edu.fpt.petworldplatform.repository.CustomerRepo;
 import vn.edu.fpt.petworldplatform.repository.VerificationTokenRepo;
 
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,18 +24,47 @@ public class CustomerService {
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
 
+    private String generateOtp() {
+        SecureRandom random = new SecureRandom();
+        int otpValue = 100000 + random.nextInt(900000);
+        return String.valueOf(otpValue);
+    }
+
     @Transactional
     public void registerNewCustomer(Customer customer) {
         customer.setPasswordHash(passwordEncoder.encode(customer.getPasswordHash()));
         customer.setIsActive(false);
-        customerRepo.save(customer);
 
-        String tokenString = UUID.randomUUID().toString();
-        VerificationToken token = new VerificationToken(tokenString, customer);
-        verificationTokenRepo.save(token);
+        Customer savedCustomer = customerRepo.save(customer);
 
-        // Gửi mail
-        emailService.sendVerificationEmail(customer.getEmail(), token.getToken());
+        String otp = generateOtp();
+
+        VerificationToken tokenEntity = new VerificationToken();
+        tokenEntity.setToken(otp);
+        tokenEntity.setCustomer(savedCustomer);
+        tokenEntity.setExpiryDate(LocalDateTime.now().plusMinutes(5));
+
+        verificationTokenRepo.save(tokenEntity);
+
+        emailService.sendVerificationEmail(savedCustomer, otp);
+    }
+
+    public boolean verifyOtp(String email, String otp) {
+        VerificationToken tokenEntity = verificationTokenRepo.findByToken(otp).orElse(null);
+        if (tokenEntity != null
+                && tokenEntity.getCustomer().getEmail().equals(email)
+                && tokenEntity.getExpiryDate().isAfter(LocalDateTime.now())) {
+
+            // Kích hoạt tài khoản
+            Customer customer = tokenEntity.getCustomer();
+            customer.setIsActive(true);
+            customerRepo.save(customer);
+
+            // Xóa token sau khi dùng xong (tuỳ chọn)
+            verificationTokenRepo.delete(tokenEntity);
+            return true;
+        }
+        return false;
     }
 
     public Optional<Customer> login(String usernameOrEmail, String rawPassword) {
@@ -126,6 +157,10 @@ public class CustomerService {
         if (token != null) {
             verificationTokenRepo.delete(token);
         }
+    }
+
+    public List<Customer> getAllCustomer() {
+        return customerRepo.findAll();
     }
 
     public Optional<Customer> findByEmail(String email) {

@@ -4,10 +4,12 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import vn.edu.fpt.petworldplatform.entity.Customer;
 
 import java.io.UnsupportedEncodingException;
 
@@ -30,7 +32,7 @@ public class EmailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom("huytpn.ce190719@gmail.com", "Pet World Support");
+            helper.setFrom("petworldfpt@gmail.com", "Pet World Support");
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(htmlContent, true); // true = cho phép HTML
@@ -47,18 +49,21 @@ public class EmailService {
     /**
      * Gửi mail xác thực tài khoản (Register)
      */
-    public void sendVerificationEmail(String to, String token) {
-        String subject = "Xác thực tài khoản Pet World";
-        String verifyUrl = baseUrl + "/verify?token=" + token;
+    public void sendVerificationEmail(Customer customer, String otp) {
+        SimpleMailMessage message = new SimpleMailMessage();
 
-        String content = "<div style='font-family: Arial; padding: 20px; border: 1px solid #ddd;'>"
-                + "<h2 style='color: #ff9900;'>Chào mừng đến với Pet World!</h2>"
-                + "<p>Cảm ơn bạn đã đăng ký. Vui lòng nhấn vào nút bên dưới để kích hoạt tài khoản:</p>"
-                + "<a href='" + verifyUrl + "' style='background-color: #ff9900; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Xác Thực Ngay</a>"
-                + "<p>Hoặc copy link này: " + verifyUrl + "</p>"
-                + "</div>";
+        message.setFrom("your-shop@example.com");
+        message.setTo(customer.getEmail());
+        message.setSubject("Xác thực tài khoản - Mã OTP của bạn");
 
-        sendEmail(to, subject, content);
+        String content = "Xin chào " + customer.getFullName() + ",\n\n"
+                + "Cảm ơn bạn đã đăng ký. Mã xác thực (OTP) của bạn là: " + otp + "\n"
+                + "Mã này sẽ hết hạn sau 5 phút.\n\n"
+                + "Trân trọng,\nPetWorld Team.";
+
+        message.setText(content);
+
+        mailSender.send(message);
     }
 
     /**

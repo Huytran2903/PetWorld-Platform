@@ -1,56 +1,53 @@
 package vn.edu.fpt.petworldplatform.controller;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.*;
-import java.util.UUID;
 
-@RestController
-@RequestMapping("/api/files")
-public class FileUploadController {
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.HandlerExceptionResolver;
+import org.springframework.web.servlet.ModelAndView;
 
-    // Đường dẫn thư mục lưu file (Nên cấu hình trong application.properties)
-    // "." nghĩa là thư mục gốc của dự án khi chạy
-    private static final String UPLOAD_DIR = "./uploads";
+@Controller
+public class FileUploadController implements HandlerExceptionResolver {
 
-    @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
-        try {
-            // 1. Kiểm tra file rỗng
-            if (file.isEmpty()) {
-                return ResponseEntity.badRequest().body("File không được để trống");
-            }
+    @RequestMapping(value = "/uploadFile", method = RequestMethod.GET)
+    public String getImageView() {
+        return "file";
+    }
 
-            // 2. Tạo thư mục nếu chưa tồn tại
-            Path uploadPath = Paths.get(UPLOAD_DIR);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
+    @RequestMapping(value = "/uploadFile", method = RequestMethod.POST)
+    public ModelAndView uploadFile(MultipartFile file) throws IOException {
+        ModelAndView modelAndView = new ModelAndView("file");
 
-            // 3. Xử lý tên file (Tránh trùng tên bằng UUID)
-            // Lấy tên gốc
-            String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
-            // Tạo tên mới: uuid_tengoc.jpg
-            String fileName = UUID.randomUUID().toString() + "_" + originalFileName;
-
-            // 4. Lưu file
-            try (InputStream inputStream = file.getInputStream()) {
-                Path filePath = uploadPath.resolve(fileName);
-                Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
-
-                // Trả về đường dẫn hoặc tên file để lưu vào Database
-                return ResponseEntity.ok("File đã lưu thành công: " + fileName);
-            }
-
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Lỗi khi upload file: " + e.getMessage());
+        InputStream in = file.getInputStream();
+        File currDir = new File(".");
+        String path = currDir.getAbsolutePath();
+        FileOutputStream f = new FileOutputStream(path.substring(0, path.length() - 1) + file.getOriginalFilename());
+        int ch = 0;
+        while ((ch = in.read()) != -1) {
+            f.write(ch);
         }
+        f.flush();
+        f.close();
+
+        modelAndView.getModel().put("message", "File uploaded successfully!");
+        return modelAndView;
+    }
+
+    @Override
+    public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object object, Exception exc) {
+        ModelAndView modelAndView = new ModelAndView("file");
+        if (exc instanceof MaxUploadSizeExceededException) {
+            modelAndView.getModel().put("message", "File size exceeds limit!");
+        }
+        return modelAndView;
     }
 }

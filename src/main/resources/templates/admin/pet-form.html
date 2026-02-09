@@ -28,19 +28,23 @@
 
                 <input type="hidden" th:field="*{petID}">
 
+                <input type="hidden" th:field="*{imageUrl}">
+
                 <div class="row g-4">
                     <div class="col-lg-5">
                         <div class="upload-container border rounded-3 d-flex flex-column align-items-center justify-content-center bg-light p-4 text-center"
-                             style="min-height: 380px; border-style: dashed !important;">
+                             style="min-height: 380px; border-style: dashed !important; position: relative;">
 
-                            <div id="preview-box" class="mb-3" th:style="${selectedPet.imageUrl != null ? 'display:block' : 'display:none'}">
+                            <div id="preview-box" class="mb-3"
+                                 th:style="${selectedPet.imageUrl != null ? 'display:block' : 'display:none'}">
                                 <img id="img-preview"
                                      th:src="${selectedPet.imageUrl != null ? '/uploads/' + selectedPet.imageUrl : '#'}"
                                      class="img-thumbnail shadow-sm"
                                      style="max-height: 250px; max-width: 100%; object-fit: contain;">
                             </div>
 
-                            <div id="placeholder-box" th:style="${selectedPet.imageUrl != null ? 'display:none' : 'display:block'}">
+                            <div id="placeholder-box"
+                                 th:style="${selectedPet.imageUrl != null ? 'display:none' : 'display:block'}">
                                 <i class="fa-solid fa-cloud-arrow-up fs-1 text-warning mb-3"></i>
                                 <p class="small text-muted mb-3">Click to upload pet image</p>
                             </div>
@@ -52,11 +56,11 @@
                             <input id="file-upload"
                                    type="file"
                                    name="imageFile"
-                                   accept="image/*"
+                                   accept="image/png, image/jpeg, image/jpg"
                                    class="d-none"
                                    onchange="previewImage(this)">
 
-                            <div id="file-name" class="small text-muted mt-2">
+                            <div id="file-name" class="small text-muted mt-2 text-break">
                                 <span th:text="${selectedPet.imageUrl != null ? selectedPet.imageUrl : 'No file chosen'}"></span>
                             </div>
                         </div>
@@ -92,7 +96,7 @@
                                 <label class="form-label fw-semibold small text-secondary">
                                     <i class="bi bi-gender-ambiguous me-1 text-warning"></i> Gender
                                 </label>
-                                <select class="form-select shadow-none" th:field="*{gender}" >
+                                <select class="form-select shadow-none" th:field="*{gender}">
                                     <option value="Male">Male</option>
                                     <option value="Female">Female</option>
                                 </select>
@@ -121,7 +125,8 @@
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold small text-secondary">Discount (%)</label>
-                                <input type="number" min="0" max="100" th:field="*{discountPercent}" class="form-control shadow-none">
+                                <input type="number" min="0" max="100" th:field="*{discountPercent}"
+                                       class="form-control shadow-none">
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold small text-secondary">Status</label>
@@ -145,7 +150,8 @@
                         </div>
                     </div>
                 </div>
-            </form> </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -158,6 +164,14 @@
 
         if (input.files && input.files[0]) {
             const file = input.files[0];
+
+            // [QUAN TRỌNG 3] Kiểm tra kích thước file > 5MB
+            if (file.size > 5 * 1024 * 1024) {
+                alert("File ảnh quá lớn (Max 5MB)! Vui lòng chọn ảnh khác.");
+                input.value = ""; // Reset input
+                return;
+            }
+
             fileName.textContent = file.name;
 
             const reader = new FileReader();

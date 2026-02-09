@@ -4,14 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Customer Management</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
     <link rel="stylesheet" th:href="@{/css/customer-manage.css}"/>
     <link rel="stylesheet" th:href="@{/css/sidebar-admin.css}">
-
 </head>
 <body class="bg-white">
-<div class="d-flex">â
+<div class="d-flex">
     <div th:replace="~{fragments/sidebar-admin :: aside(activePage='customers')}"></div>
 
 
@@ -44,39 +48,40 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr class="border-bottom">
+                <tr th:each="customer : ${customers}" class="border-bottom">
+
                     <td class="ps-4">
-                        <div class="avatar-circle bg-primary-subtle text-primary">JD</div>
-                    </td>
-                    <td class="fw-bold">John Doe</td>
-                    <td>john.doe@gmail.com</td>
-                    <td>+84 9876543210</td>
-                    <td>13-Jan-2026</td>
-                    <td>
-                        <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2">Active</span>
-                    </td>
-                    <td class="text-center">
-                        <div class="d-flex justify-content-center align-items-center gap-2">
-                            <button class="btn btn-orange-pill text-white btn-sm px-3">Edit</button>
-                            <a href="#" class="text-danger mx-1" title="Delete"><i class="far fa-trash-alt"></i></a>
+                        <div class="avatar-circle bg-primary-subtle text-primary"
+                             th:text="${customer.fullName != null and customer.fullName.length() > 0 ? #strings.substring(customer.fullName, 0, 1).toUpperCase() : '?'}">
+                            JD
                         </div>
                     </td>
-                </tr>
-                <tr class="bg-orange-light">
-                    <td class="ps-4">
-                        <div class="avatar-circle bg-danger-subtle text-danger">SW</div>
-                    </td>
-                    <td class="fw-bold">Sarah Williams</td>
-                    <td>sarah.w@gmail.com</td>
-                    <td>+84 912345678</td>
-                    <td>20-Jan-2026</td>
+
+                    <td class="fw-bold" th:text="${customer.fullName}">John Doe</td>
+                    <td th:text="${customer.email}">john.doe@gmail.com</td>
+
+                    <td th:text="${customer.phone != null ? customer.phone : '---'}">+84 9876543210</td>
+
+                    <td th:text="${#temporals.format(customer.createdAt, 'dd-MMM-yyyy')}">13-Jan-2026</td>
+
                     <td>
-                        <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2">Inactive</span>
+        <span class="badge rounded-pill border px-3 py-2"
+              th:classappend="${customer.isActive} ? 'bg-success-subtle text-success border-success-subtle' : 'bg-danger-subtle text-danger border-danger-subtle'"
+              th:text="${customer.isActive} ? 'Active' : 'Inactive'">
+            Active
+        </span>
                     </td>
+
                     <td class="text-center">
                         <div class="d-flex justify-content-center align-items-center gap-2">
-                            <button class="btn btn-orange-pill text-white btn-sm px-3">Edit</button>
-                            <a href="#" class="text-danger mx-1"><i class="far fa-trash-alt"></i></a>
+                            <a th:href="@{/admin/customers/edit/{id}(id=${customer.customerId})}"
+                               class="btn btn-orange-pill text-white btn-sm px-3">Edit</a>
+
+                            <a th:href="@{/admin/customers/delete/{id}(id=${customer.customerId})}"
+                               class="text-danger mx-1" title="Delete"
+                               onclick="return confirm('Are you sure you want to delete this customer?');">
+                                <i class="far fa-trash-alt"></i>
+                            </a>
                         </div>
                     </td>
                 </tr>
