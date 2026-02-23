@@ -8,7 +8,7 @@ import java.util.List;
 public interface PetRepo extends JpaRepository<Pets, Long> {
 
     List<Pets> findByNameContaining(String name);
-    List<Pets> findByOwner_CustomerId(int customerId);
+    List<Pets> findByOwner_CustomerId(Long customerId);
     @Query("SELECT count(p) FROM Pets p")
     long countTotalPets();
 

@@ -53,7 +53,7 @@ public class AuthController {
     }
 
 
-    @PostMapping("/do-register")
+    @PostMapping("/do-register") // Đảm bảo mapping đúng với form
     public String handleRegister(@Valid @ModelAttribute("customer") Customer customer,
                                  BindingResult bindingResult,
                                  Model model) {
@@ -85,25 +85,6 @@ public class AuthController {
             e.printStackTrace();
             model.addAttribute("error", "Registration failed: " + e.getMessage());
             return "auth/register";
-        }
-    }
-    @PostMapping("/do-verify-otp")
-    public String handleVerifyOtp(@RequestParam("email") String email,
-                                  @RequestParam("otp") String otp,
-                                  RedirectAttributes redirectAttributes) {
-
-        boolean isVerified = customerService.verifyOtp(email, otp);
-
-        if (isVerified) {
-            redirectAttributes.addFlashAttribute("message", "Account verified successfully! Please log in.");
-            return "redirect:/login";
-        } else {
-            redirectAttributes.addFlashAttribute("errorOtp", "Invalid or expired OTP code!");
-
-            redirectAttributes.addFlashAttribute("showOtpModal", true);
-            redirectAttributes.addFlashAttribute("emailRegister", email);
-
-            return "redirect:/register";
         }
     }
 
@@ -152,28 +133,29 @@ public class AuthController {
         if (staffOpt.isPresent()) {
             Staff staff = staffOpt.get();
 
-            if (!staff.getIsActive()) {
-                model.addAttribute("error", "Staff account is locked!");
-                return "auth/login";
+            if (staff.getPasswordHash().equals(password)) {
+
+                if (!staff.getIsActive()) {
+                    model.addAttribute("error", "Staff account is locked!");
+                    return "auth/login";
+                }
+
+                session.setAttribute("loggedInStaff", staff);
+                session.setAttribute("role", staff.getRole());
+
+                List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_STAFF"));
+                UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(staff, null, authorities);
+
+                SecurityContext context = SecurityContextHolder.createEmptyContext();
+                context.setAuthentication(authToken);
+                SecurityContextHolder.setContext(context);
+
+                securityContextRepository.saveContext(context, request, response);
+
+                return "redirect:/admin/dashboard";
             }
-
-            session.setAttribute("loggedInAccount", staff);
-
-            String roleName = "ROLE_" + staff.getRole().getRoleName().toUpperCase();
-            List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(roleName));
-
-            UsernamePasswordAuthenticationToken authToken =
-                    new UsernamePasswordAuthenticationToken(staff, null, authorities);
-
-            SecurityContext context = SecurityContextHolder.createEmptyContext();
-            context.setAuthentication(authToken);
-            SecurityContextHolder.setContext(context);
-
-            securityContextRepository.saveContext(context, request, response);
-
-            return "redirect:/";
-
-            }
+        }
 
         model.addAttribute("error", "Invalid username or password");
         return "auth/login";

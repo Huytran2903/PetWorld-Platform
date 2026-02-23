@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title th:text="${formMode == 'create' ? 'Add New Staff' : 'Edit Staff Profile'}">Add New Staff</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Edit Staff Profile</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+
+    <link rel="stylesheet" th:href="@{/css/style.css}" />
 </head>
 <body>
 
@@ -16,102 +17,81 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-12 col-lg-8">
+
                 <div class="card-custom">
+
                     <div class="card-header-custom">
-                        <h2 th:text="${formMode == 'create' ? 'Add New Staff' : 'Edit Staff Profile'}">Staff</h2>
-                        <p th:text="${formMode == 'create' ? 'Create a new staff member account' : 'Update existing staff information'}">
-                            Manage staff</p>
+                        <h2>Staff</h2>
+                        <p>Manage staff information and role</p>
                     </div>
 
                     <div class="card-body p-4 pt-0">
-                        <div class="avatar-section"
-                             style="display: flex; justify-content: center; margin-bottom: 2rem;">
-                            <div class="avatar-circle" id="avatarPreview"
-                                 th:with="hasName=${not #strings.isEmpty(newStaff.fullName)},
-                  firstLetter=${hasName ? #strings.substring(newStaff.fullName, 0, 1).toUpperCase() : 'A'}"
-                                 th:text="${hasName ? firstLetter : ''}"
-                                 th:style="'width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.1); ' +
-                   (${hasName} ? 'background-color: hsl(' + ((${firstLetter.codePointAt(0)} - 65) * 137 % 360) + ', 70%, 60%); color: white;'
-                               : 'background-color: #e9ecef; color: #adb5bd;')">
+
+                        <div class="avatar-section">
+                            <div class="avatar-circle">
                             </div>
                         </div>
 
-                        <form th:action="@{${formMode == 'create' ? '/admin/staff-manage/create' : '/admin/staff-manage/update'}}"
-                              th:object="${newStaff}"
-                              method="POST">
+                        <form action="#" method="POST"> <div class="row g-4">
 
-                            <input type="hidden" th:if="${formMode == 'edit'}" th:field="*{staffId}"/>
-                            <div class="row g-4">
-
-                                <div class="col-md-6">
-                                    <label class="form-label">Full Name</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-person"></i></span>
-                                        <input type="text" class="form-control" th:field="*{fullName}"
-                                               placeholder="Nguyen Van A" required>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <label class="form-label">User Name</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
-                                        <input type="text" class="form-control" th:field="*{username}"
-                                               placeholder="A@123"
-                                               th:readonly="${formMode == 'edit'}" required>
-                                    </div>
-                                </div>
-
-                                <div class="col-12">
-                                    <label class="form-label">Email</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                                        <input type="email" class="form-control" th:field="*{email}"
-                                               placeholder="A.2842@example.com" required>
-                                    </div>
-                                </div>
-
-                                <div class="col-12">
-                                    <label class="form-label">Phone</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-telephone"></i></span>
-                                        <input type="tel" class="form-control" th:field="*{phone}"
-                                               placeholder="(+84) ...">
-                                    </div>
-                                </div>
-
-                                <div class="col-12">
-                                    <label class="form-label">Role</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-briefcase"></i></span>
-                                        <select class="form-select" th:field="*{roleId}" required>
-                                            <option value="" selected disabled>Select Role</option>
-                                            <option th:each="r : ${roles}"
-                                                    th:value="${r.roleId}"
-                                                    th:text="${r.roleName}">Admin
-                                            </option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="col-12 mt-5 d-flex justify-content-center gap-4">
-                                    <button type="submit" class="btn-save"
-                                            th:text="${formMode == 'create' ? 'Create Staff' : 'Save Changes'}">
-                                        Save
-                                    </button>
-                                    <a th:href="@{/admin/staff-manage}" class="btn-cancel">Cancel</a>
+                            <div class="col-md-6">
+                                <label class="form-label">Full Name</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                    <input type="text" class="form-control" value="Nguyen Van A">
                                 </div>
                             </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">User Name</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
+                                    <input type="text" class="form-control" value="A@123">
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label">Email</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                    <input type="email" class="form-control" value="A.2842@example.com">
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label">Phone</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                    <input type="tel" class="form-control" value="(+84)0751546756">
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label">Role</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-briefcase"></i></span>
+                                    <select class="form-select">
+                                        <option selected>Select Role</option>
+                                        <option value="1">Admin</option>
+                                        <option value="2">Staff</option>
+                                        <option value="3">Manager</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-5 d-flex justify-content-center gap-4">
+                                <button type="submit" class="btn-save">Save</button>
+
+                                <a href="/profile" class="btn-cancel">Cancel</a>
+                            </div>
+
+                        </div>
                         </form>
-                    </div>
-                </div>
-            </div>
+                    </div> </div> </div>
         </div>
     </div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script th:src="@{/js/add-editStaffProfile.js}"></script>
-
 </body>
 </html>

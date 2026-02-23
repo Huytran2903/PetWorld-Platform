@@ -126,16 +126,21 @@ public class CustomerService {
     }
 
     public Customer getByResetPasswordToken(String token) {
+        System.out.println("DEBUG: Đang tìm token: " + token);
 
         Optional<VerificationToken> tokenOpt = verificationTokenRepo.findByToken(token);
 
         if (tokenOpt.isEmpty()) {
+            System.out.println("DEBUG: -> Không tìm thấy Token trong bảng verification_tokens!");
             return null;
         }
 
         VerificationToken verificationToken = tokenOpt.get();
+        System.out.println("DEBUG: -> Tìm thấy Token. Hết hạn lúc: " + verificationToken.getExpiryDate());
+        System.out.println("DEBUG: -> Thời gian hiện tại: " + LocalDateTime.now());
 
         if (verificationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            System.out.println("DEBUG: -> Token ĐÃ HẾT HẠN!");
             return null;
         }
 
@@ -158,22 +163,6 @@ public class CustomerService {
         return customerRepo.findAll();
     }
 
-    public void deleteCustomer(int id) {
-        if (!customerRepo.existsById(id)) {
-            throw new RuntimeException("Customer not found with id: " + id);
-        }
-        customerRepo.deleteById(id);
-    }
-
-    public void updateCustomerStatus(int id, boolean newStatus) {
-        Customer customer = customerRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Customer not found with id: " + id));
-
-        customer.setIsActive(newStatus);
-
-        customerRepo.save(customer);
-    }
-
     public Optional<Customer> findByEmail(String email) {
         return customerRepo.findByEmail(email);
     }
@@ -186,7 +175,7 @@ public class CustomerService {
         return customerRepo.existsByEmail(email);
     }
 
-    public Optional<Customer> findById(int id) {
+    public Optional<Customer> findById(Long id) {
         return customerRepo.findById(id);
     }
 

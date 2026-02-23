@@ -24,10 +24,13 @@ public class Appointment {
     private String appointmentCode;
 
     @Column(name = "CustomerID", nullable = false)
-    private Integer customerId;
+    private Long customerId;
 
     @Column(name = "PetID", nullable = false)
-    private Integer petId;
+    private Long petId;
+
+    @Column(name = "StaffID")
+    private Long staffId;
 
     @Column(name = "AppointmentDate", nullable = false)
     private LocalDateTime appointmentDate;
