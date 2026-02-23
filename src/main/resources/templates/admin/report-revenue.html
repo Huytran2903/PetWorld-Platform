@@ -18,6 +18,7 @@
             padding: 1.5rem;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             border: 1px solid #e5e7eb;
+            height: 100%;
         }
         .stat-card h3 {
             font-size: 2rem;
@@ -77,6 +78,15 @@
             border-radius: 10px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
+        .filtered-badge {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1d4ed8;
+            border-radius: 8px;
+            padding: 0.4rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>
@@ -97,19 +107,19 @@
             <form th:action="@{/admin/reports/revenue}" method="get" class="row g-3 align-items-end">
                 <div class="col-md-4">
                     <label for="startDate" class="form-label small fw-bold">From Date</label>
-                    <input type="date" class="form-control" id="startDate" name="startDate" 
+                    <input type="date" class="form-control" id="startDate" name="startDate"
                            th:value="${startDate}">
                 </div>
                 <div class="col-md-4">
                     <label for="endDate" class="form-label small fw-bold">To Date</label>
-                    <input type="date" class="form-control" id="endDate" name="endDate" 
+                    <input type="date" class="form-control" id="endDate" name="endDate"
                            th:value="${endDate}">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-4 d-flex gap-2">
                     <button type="submit" class="btn btn-primary px-4">
                         <i class="fas fa-filter me-2"></i>Filter
                     </button>
-                    <a th:href="@{/admin/reports/revenue}" class="btn btn-outline-secondary px-4 ms-2">
+                    <a th:href="@{/admin/reports/revenue}" class="btn btn-outline-secondary px-4">
                         <i class="fas fa-redo me-2"></i>Reset
                     </a>
                 </div>
@@ -118,49 +128,92 @@
 
         <!-- Statistics Cards -->
         <div class="row g-4 mb-4">
+
+            <!-- Card 1: Today's Revenue (luôn cố định) -->
             <div class="col-md-4">
                 <div class="stat-card">
                     <p>Today's Revenue</p>
-                    <h3 class="text-success" th:text="${#numbers.formatDecimal(todayRevenue, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                    <h3 class="text-success"
+                        th:text="${#numbers.formatDecimal(todayRevenue, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
                         0 ₫
                     </h3>
-                    <p class="change" th:classappend="${percentChange >= 0} ? 'text-success' : 'text-danger'">
+                    <div class="change" th:classappend="${percentChange >= 0} ? 'text-success' : 'text-danger'">
                         <i class="fas" th:classappend="${percentChange >= 0} ? 'fa-arrow-up' : 'fa-arrow-down'"></i>
                         <span th:text="${percentChange >= 0 ? '+' : ''} + ${#numbers.formatDecimal(percentChange, 0, 'COMMA', 2, 'POINT')} + '%'">
                             +0%
-                        </span> compared to yesterday
-                    </p>
+                        </span>
+                        <span class="text-muted text-uppercase"> compared to yesterday</span>
+                    </div>
                 </div>
             </div>
+
+            <!-- Card 2: DYNAMIC — All-time hoặc Filtered Revenue -->
             <div class="col-md-4">
                 <div class="stat-card">
-                    <p>This Month's Revenue</p>
-                    <h3 class="text-dark" th:text="${#numbers.formatDecimal(monthlyRevenue, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
-                        0 ₫
-                    </h3>
-                    <p class="change text-muted" th:text="'Month ' + ${currentMonth}">
-                        Month 01/2026
-                    </p>
+                    <!-- Khi KHÔNG filter: hiện All-Time Revenue -->
+                    <th:block th:unless="${filtered}">
+                        <p>All-Time Revenue</p>
+                        <h3 class="text-dark"
+                            th:text="${#numbers.formatDecimal(filteredRevenue, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                            0 ₫
+                        </h3>
+                        <div class="change text-muted">
+                            <i class="fas fa-infinity me-1"></i> All orders ever
+                        </div>
+                    </th:block>
+
+                    <!-- Khi CÓ filter: hiện Filtered Revenue với date range -->
+                    <th:block th:if="${filtered}">
+                        <p>Filtered Revenue</p>
+                        <h3 class="text-primary"
+                            th:text="${#numbers.formatDecimal(filteredRevenue, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                            0 ₫
+                        </h3>
+                        <div class="change text-muted">
+                            <i class="fas fa-calendar-alt me-1"></i>
+                            <span th:text="${startDate != null ? startDate : 'Begin'}"></span>
+                            <span> → </span>
+                            <span th:text="${endDate != null ? endDate : 'Now'}"></span>
+                        </div>
+                    </th:block>
                 </div>
             </div>
+
+            <!-- Card 3: Pending Orders (luôn cố định) -->
             <div class="col-md-4">
                 <div class="stat-card">
                     <p>Pending Orders</p>
                     <h3 class="text-warning" th:text="${pendingOrders} + ' Orders'">
                         0 Orders
                     </h3>
-                    <p class="change text-muted">Awaiting payment confirmation</p>
+                    <div class="change text-muted text-uppercase">Awaiting payment confirmation</div>
                 </div>
             </div>
         </div>
 
         <!-- Transactions Table -->
         <div class="table-card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="fw-bold mb-0">
-                    <span th:if="${filtered}">Filtered Results</span>
-                    <span th:unless="${filtered}">Recent Transactions</span>
+                    <!-- Khi KHÔNG filter -->
+                    <span th:unless="${filtered}">
+                        <i class="fas fa-list me-2 text-muted"></i>All Transactions
+                    </span>
+                    <!-- Khi CÓ filter -->
+                    <span th:if="${filtered}">
+                        <i class="fas fa-filter me-2 text-primary"></i>Filtered Results
+                    </span>
                 </h5>
+                <!-- Badge hiển thị khoảng thời gian đang filter -->
+                <span th:if="${filtered}" class="filtered-badge">
+                    <i class="fas fa-calendar me-1"></i>
+                    <span th:text="${startDate != null ? startDate : 'Begin'}"></span>
+                    →
+                    <span th:text="${endDate != null ? endDate : 'Now'}"></span>
+                </span>
+                <span th:unless="${filtered}" class="filtered-badge">
+                    <i class="fas fa-database me-1"></i> Showing all records
+                </span>
             </div>
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
@@ -176,9 +229,9 @@
                     </thead>
                     <tbody>
                         <tr th:if="${#lists.isEmpty(transactions)}">
-                            <td colspan="6" class="text-center py-4 text-muted">
-                                <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
-                                No transactions available
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="fas fa-inbox fa-3x mb-3 d-block opacity-25"></i>
+                                No transactions found
                             </td>
                         </tr>
                         <tr th:each="transaction : ${transactions}">
@@ -188,39 +241,38 @@
                             <td class="px-4 py-3" th:text="${transaction.customerName}">
                                 Customer Name
                             </td>
-                            <td class="px-4 py-3" th:text="${#temporals.format(transaction.orderDate, 'dd/MM/yyyy HH:mm')}">
+                            <td class="px-4 py-3"
+                                th:text="${#temporals.format(transaction.orderDate, 'dd/MM/yyyy HH:mm')}">
                                 01/01/2026
                             </td>
-                            <td class="px-4 py-3 fw-bold" 
+                            <td class="px-4 py-3 fw-bold"
                                 th:text="${#numbers.formatDecimal(transaction.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
                                 0 ₫
                             </td>
                             <td class="px-4 py-3">
-                                <span th:if="${transaction.paymentMethod != null}" 
+                                <span th:if="${transaction.paymentMethod != null}"
                                       th:text="${transaction.paymentMethod.toUpperCase()}"
                                       class="badge bg-secondary">
                                     COD
                                 </span>
-                                <span th:unless="${transaction.paymentMethod != null}" class="text-muted">-</span>
+                                <span th:unless="${transaction.paymentMethod != null}" class="text-muted">—</span>
                             </td>
                             <td class="px-4 py-3">
-                                <span th:if="${transaction.status == 'paid' || transaction.status == 'done'}" 
-                                      class="badge-paid">
-                                    <span th:text="${transaction.status.toUpperCase()}">PAID</span>
-                                </span>
-                                <span th:if="${transaction.status == 'pending'}" class="badge-pending">
-                                    PENDING
-                                </span>
-                                <span th:if="${transaction.status != 'paid' && transaction.status != 'done' && transaction.status != 'pending'}" 
-                                      class="badge-done">
-                                    <span th:text="${transaction.status.toUpperCase()}">OTHER</span>
-                                </span>
+                                <span th:if="${transaction.status == 'paid' or transaction.status == 'done'}"
+                                      class="badge-paid"
+                                      th:text="${transaction.status.toUpperCase()}">PAID</span>
+                                <span th:if="${transaction.status == 'pending'}"
+                                      class="badge-pending">PENDING</span>
+                                <span th:if="${transaction.status != 'paid' and transaction.status != 'done' and transaction.status != 'pending'}"
+                                      class="badge-done"
+                                      th:text="${transaction.status.toUpperCase()}">OTHER</span>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
+
     </div>
 </div>
 
