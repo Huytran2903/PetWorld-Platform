@@ -32,7 +32,7 @@ public class BookingService {
     private final PetRepo petRepo;
     private final ServiceItemRepository serviceItemRepository;
 
-    public List<Pets> findPetsByCustomerId(Long customerId) {
+    public List<Pets> findPetsByCustomerId(int customerId) {
         return petRepo.findByOwner_CustomerId(customerId);
     }
 
@@ -97,14 +97,14 @@ public class BookingService {
     }
 
     @Transactional
-    public Appointment createAppointment(Long customerId, Integer petId, LocalDateTime appointmentDate,
+    public Appointment createAppointment(int customerId, Integer petId, LocalDateTime appointmentDate,
                                          String note, List<Integer> serviceIds) {
         String code = generateAppointmentCode();
-        
+
         List<ServiceItem> services = serviceItemRepository.findAllById(serviceIds);
         int totalDuration = 0;
         boolean hasBoarding = false;
-        
+
         for (ServiceItem svc : services) {
             if (Boolean.TRUE.equals(svc.getIsActive())) {
                 totalDuration += (svc.getDurationMinutes() != null ? svc.getDurationMinutes() : 30);
@@ -153,16 +153,16 @@ public class BookingService {
         return "APT-" + shortUuid.toUpperCase();
     }
 
-    public List<Appointment> findAppointmentsByCustomerId(Long customerId) {
+    public List<Appointment> findAppointmentsByCustomerId(int customerId) {
         return appointmentRepository.findByCustomerIdOrderByAppointmentDateDesc(customerId);
     }
 
-    public List<Appointment> findActiveAppointmentsByCustomerId(Long customerId) {
+    public List<Appointment> findActiveAppointmentsByCustomerId(int customerId) {
         List<String> activeStatuses = List.of("pending", "confirmed");
         return appointmentRepository.findByCustomerIdAndStatusInOrderByAppointmentDateDesc(customerId, activeStatuses);
     }
 
-    public Optional<Appointment> findAppointmentByIdAndCustomerId(Integer id, Long customerId) {
+    public Optional<Appointment> findAppointmentByIdAndCustomerId(Integer id, Integer customerId) {
         return appointmentRepository.findById(id)
                 .filter(a -> a.getCustomerId().equals(customerId));
     }
@@ -176,7 +176,7 @@ public class BookingService {
         return appointmentServiceLineRepository.findAllByAppointmentIdsWithService(appointmentIds);
     }
 
-    public Optional<String> canCancelOrReschedule(Integer appointmentId, Long customerId) {
+    public Optional<String> canCancelOrReschedule(Integer appointmentId, Integer customerId) {
         Optional<Appointment> opt = findAppointmentByIdAndCustomerId(appointmentId, customerId);
         if (opt.isEmpty()) return Optional.of("Appointment not found.");
         Appointment a = opt.get();
@@ -191,7 +191,7 @@ public class BookingService {
     }
 
     @Transactional
-    public void cancelAppointment(Integer appointmentId, Long customerId, String reason) {
+    public void cancelAppointment(Integer appointmentId, Integer customerId, String reason) {
         Optional<String> err = canCancelOrReschedule(appointmentId, customerId);
         if (err.isPresent()) throw new IllegalArgumentException(err.get());
         Appointment a = findAppointmentByIdAndCustomerId(appointmentId, customerId).orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
@@ -209,7 +209,7 @@ public class BookingService {
     }
 
     @Transactional
-    public void rescheduleAppointment(Integer appointmentId, Long customerId, LocalDateTime newStart) {
+    public void rescheduleAppointment(Integer appointmentId, Integer customerId, LocalDateTime newStart) {
         Optional<String> err = canCancelOrReschedule(appointmentId, customerId);
         if (err.isPresent()) {
             // Ensure we use the exact BR-18 message from user requirement
@@ -225,8 +225,8 @@ public class BookingService {
         // 1) Compute totalDurationMinutes
         List<AppointmentServiceLine> lines = appointmentServiceLineRepository.findByAppointment_Id(appointmentId);
         int totalMinutes = computeAppointmentDurationMinutes(lines);
-        boolean hasBoarding = lines.stream().anyMatch(l -> 
-            "boarding".equalsIgnoreCase(l.getService().getServiceType()) || 
+        boolean hasBoarding = lines.stream().anyMatch(l ->
+            "boarding".equalsIgnoreCase(l.getService().getServiceType()) ||
             (l.getService().getDurationMinutes() != null && l.getService().getDurationMinutes() >= 1440));
 
         // 2) Define newEnd
@@ -260,7 +260,7 @@ public class BookingService {
      * Delete a canceled appointment owned by customer.
      */
     @Transactional
-    public void deleteAppointmentIfCanceled(Integer appointmentId, Long customerId) {
+    public void deleteAppointmentIfCanceled(Integer appointmentId, Integer customerId) {
         Appointment a = appointmentRepository.findById(appointmentId).orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
         if (!a.getCustomerId().equals(customerId)) throw new IllegalArgumentException("Unauthorized to delete this appointment.");
         if (!"canceled".equalsIgnoreCase(a.getStatus())) throw new IllegalArgumentException("Only canceled appointments can be deleted.");

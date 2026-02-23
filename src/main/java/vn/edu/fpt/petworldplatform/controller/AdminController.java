@@ -1,8 +1,10 @@
 package vn.edu.fpt.petworldplatform.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -11,20 +13,29 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.petworldplatform.dto.PetFormDTO;
+import vn.edu.fpt.petworldplatform.dto.StaffFormDTO;
+import vn.edu.fpt.petworldplatform.entity.*;
+import vn.edu.fpt.petworldplatform.repository.RoleRepo;
 import vn.edu.fpt.petworldplatform.entity.Categories;
 import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.entity.ServiceItem;
 import vn.edu.fpt.petworldplatform.entity.ServiceType;
 import vn.edu.fpt.petworldplatform.service.*;
+import org.springframework.util.StringUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+
 import java.util.List;
 import java.util.UUID;
+
+import org.springframework.web.bind.annotation.PostMapping;
+
 
 @Controller
 @RequiredArgsConstructor
@@ -37,8 +48,13 @@ public class AdminController {
     private PetService petService;
 
     private final CustomerService customerService;
+    private final StaffService staffService;
+    private final RoleService roleService;
+
     private final ServiceTypeService serviceTypeService;
     private final ServiceItemService serviceItemService;
+    @Autowired
+    private RoleRepo roleRepo;
 
     @GetMapping("/admin/dashboard")
     public String viewDashboard() {
@@ -66,6 +82,7 @@ public class AdminController {
     //Edit Pet
     @GetMapping("admin/pet/edit/{id}")
     public String updatePet(Model model, @PathVariable("id") Long id) {
+        Pets pet = petService.getPetById(id);
         model.addAttribute("selectedPet", petService.getPetById(id));
         model.addAttribute("formMode", "edit");
         return "admin/pet-form";
@@ -110,6 +127,10 @@ public class AdminController {
             } else {
                 // 2. Logic Edit: Người dùng KHÔNG chọn ảnh mới -> Giữ nguyên ảnh cũ
                 if (pet.getPetID() != null) {
+                    // Cách 1 (Nhanh): Nếu bên HTML có <input type="hidden" th:field="*{imageUrl}">
+                    // thì pet.getImageUrl() đã có dữ liệu, không cần làm gì cả.
+
+                    // Cách 2 (An toàn nhất): Lấy từ Database ra để chắc chắn không bị mất ảnh
                     Pets oldPet = petService.getPetById(pet.getPetID());
                     if (oldPet != null && (pet.getImageUrl() == null || pet.getImageUrl().isEmpty())) {
                         pet.setImageUrl(oldPet.getImageUrl());
@@ -193,9 +214,84 @@ public class AdminController {
 
 
     @GetMapping("/admin/staff-manage")
-    public String showStaffList() {
+    public String showStaffList(Model model) {
+        model.addAttribute("staffs", staffService.getAllStaffs());
         return "admin/staff-manage";
     }
+
+    @GetMapping("/admin/staff-manage/create")
+    public String showStaffForm(Model model) {
+        model.addAttribute("newStaff", new StaffFormDTO());
+        model.addAttribute("roles", roleService.getAllRoles());
+        model.addAttribute("formMode", "create");
+        return "admin/add-editStaffProfile";
+    }
+
+    @PostMapping("/admin/staff-manage/create")
+    public String createStaff(@ModelAttribute("newStaff") StaffFormDTO staffDTO,
+                              BindingResult bindingResult,
+                              Model model,
+                              RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("roles", roleRepo.findAll());
+            model.addAttribute("formMode", "create");
+
+            return "admin/add-editStaffProfile";
+        }
+
+        try {
+            staffService.createStaff(staffDTO);
+            redirectAttributes.addFlashAttribute("message", "Staff account created and email sent successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error creating staff: " + e.getMessage());
+        }
+
+        return "redirect:/admin/staff-manage";
+    }
+
+
+    @GetMapping("/admin/edit-staff/{id}")
+    public String showEditStaffForm(@PathVariable("id") Integer id, Model model) {
+        model.addAttribute("newStaff", staffService.getStaffDtoById(id));
+        model.addAttribute("roles", roleRepo.findAll());
+        model.addAttribute("formMode", "edit");
+
+        return "admin/add-editStaffProfile";
+    }
+
+    @PostMapping("/admin/staff-manage/update")
+    public String updateStaff(@Valid @ModelAttribute("newStaff") StaffFormDTO staffDTO,
+                              BindingResult bindingResult,
+                              Model model,
+                              RedirectAttributes redirectAttributes) {
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("roles", roleRepo.findAll());
+            model.addAttribute("formMode", "edit");
+            return "admin/add-editStaffProfile";
+        }
+
+        try {
+            staffService.updateStaff(staffDTO);
+            redirectAttributes.addFlashAttribute("message", "Staff updated successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error updating staff: " + e.getMessage());
+        }
+
+        return "redirect:/admin/staff-manage";
+    }
+
+    @PostMapping("/admin/staff-manage/delete")
+    public String deleteStaff(@RequestParam("id") Integer id, RedirectAttributes redirectAttributes) {
+        try {
+            staffService.deleteStaff(id); // Gọi Service
+            redirectAttributes.addFlashAttribute("message", "Staff deleted successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error deleting staff: " + e.getMessage());
+        }
+        return "redirect:/admin/staff-manage";
+    }
+
 
     @GetMapping("/admin/appointment-manage")
     public String showAppointmentList() {
@@ -211,6 +307,36 @@ public class AdminController {
     public String showCustomerList(Model model) {
         model.addAttribute("customers", customerService.getAllCustomer());
         return "admin/customer-manage";
+    }
+
+    // --- Edit Customer ---
+    @GetMapping("/admin/update-status/{id}")
+    public String updateStatus(@PathVariable("id") int id,
+                               @RequestParam("isActive") boolean isActive,
+                               RedirectAttributes redirectAttributes) {
+        try {
+            customerService.updateCustomerStatus(id, isActive);
+            String statusMsg = isActive ? "Unbanned" : "Banned";
+            redirectAttributes.addFlashAttribute("message", "Customer has been " + statusMsg + " successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error updating status: " + e.getMessage());
+        }
+
+        return "redirect:/admin/customer-manage";
+    }
+
+    // --- Delete Customer ---
+    @GetMapping("/admin/delete/{id}")
+    public String deleteCustomer(@PathVariable("id") int id,
+                                 RedirectAttributes redirectAttributes) {
+        try {
+            customerService.deleteCustomer(id);
+            redirectAttributes.addFlashAttribute("message", "Customer deleted successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error deleting customer: " + e.getMessage());
+        }
+
+        return "redirect:/admin/customer-manage";
     }
 
 

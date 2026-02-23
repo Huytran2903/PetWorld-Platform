@@ -7,11 +7,16 @@ import vn.edu.fpt.petworldplatform.entity.Customer;
 import java.util.Optional;
 
 @Repository
-public interface CustomerRepo extends JpaRepository<Customer, Long> {
+public interface CustomerRepo extends JpaRepository<Customer, Integer> {
     Optional<Customer> findByUsername(String username);
 
     boolean existsByEmail(String email);
 
     Optional<Customer> findByEmail(String email);
 
+    boolean existsById(Integer customerId);
+
+    void deleteById(Integer customerId);
+
+    Optional<Customer> findById(Integer customerId);
 }

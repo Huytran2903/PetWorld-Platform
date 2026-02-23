@@ -8,9 +8,9 @@ import java.util.List;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Integer> {
 
-    List<Appointment> findByCustomerIdOrderByAppointmentDateDesc(Long customerId);
+    List<Appointment> findByCustomerIdOrderByAppointmentDateDesc(int customerId);
 
-    List<Appointment> findByCustomerIdAndStatusInOrderByAppointmentDateDesc(Long customerId, List<String> statuses);
+    List<Appointment> findByCustomerIdAndStatusInOrderByAppointmentDateDesc(int customerId, List<String> statuses);
 
     /** Count appointments at same date/time (for double-booking check). */
     long countByAppointmentDateAndStatusNot(LocalDateTime appointmentDate, String excludedStatus);

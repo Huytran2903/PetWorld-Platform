@@ -38,7 +38,7 @@
                             <div id="preview-box" class="mb-3"
                                  th:style="${selectedPet.imageUrl != null ? 'display:block' : 'display:none'}">
                                 <img id="img-preview"
-                                     th:src="${selectedPet.imageUrl != null ? '/uploads/' + selectedPet.imageUrl : '#'}"
+                                     th:src="@{${selectedPet.imageUrl != null && selectedPet.imageUrl.startsWith('/uploads/') ? selectedPet.imageUrl : '/uploads/' + selectedPet.imageUrl}}"
                                      class="img-thumbnail shadow-sm"
                                      style="max-height: 250px; max-width: 100%; object-fit: contain;">
                             </div>
@@ -61,7 +61,10 @@
                                    onchange="previewImage(this)">
 
                             <div id="file-name" class="small text-muted mt-2 text-break">
-                                <span th:text="${selectedPet.imageUrl != null ? selectedPet.imageUrl : 'No file chosen'}"></span>
+                                 <span th:if="${selectedPet.imageUrl != null && !selectedPet.imageUrl.isEmpty()}"
+                                       class="text-success">
+                                    <i class="fa-solid fa-check"></i> Image Loaded
+                            </span>
                             </div>
                         </div>
                     </div>
@@ -157,30 +160,27 @@
 
 <script>
     function previewImage(input) {
-        const preview = document.getElementById("img-preview");
-        const previewBox = document.getElementById("preview-box");
-        const placeholder = document.getElementById("placeholder-box");
-        const fileName = document.getElementById("file-name");
+        const previewBox = document.getElementById('preview-box');
+        const placeholderBox = document.getElementById('placeholder-box');
+        const imgPreview = document.getElementById('img-preview');
+        const fileNameDiv = document.getElementById('file-name');
 
         if (input.files && input.files[0]) {
-            const file = input.files[0];
+            const reader = new FileReader();
 
-            // [QUAN TRỌNG 3] Kiểm tra kích thước file > 5MB
-            if (file.size > 5 * 1024 * 1024) {
-                alert("File ảnh quá lớn (Max 5MB)! Vui lòng chọn ảnh khác.");
-                input.value = ""; // Reset input
-                return;
+            reader.onload = function (e) {
+                // Gán nguồn ảnh vừa đọc được vào thẻ img
+                imgPreview.src = e.target.result;
+
+                // Hiển thị box ảnh, ẩn box đám mây
+                previewBox.style.display = 'block';
+                placeholderBox.style.display = 'none';
+
+                // Hiển thị tên file vừa chọn
+                fileNameDiv.innerText = input.files[0].name;
             }
 
-            fileName.textContent = file.name;
-
-            const reader = new FileReader();
-            reader.onload = e => {
-                preview.src = e.target.result;
-                previewBox.style.display = "block";
-                placeholder.style.display = "none";
-            };
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(input.files[0]);
         }
     }
 </script>

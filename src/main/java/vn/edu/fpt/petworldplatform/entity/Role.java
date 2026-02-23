@@ -22,8 +22,7 @@ public class Role {
     @Column(name = "RoleName", nullable = false, unique = true)
     private String roleName;
 
-    @OneToMany(mappedBy = "role", fetch = FetchType.LAZY)
-    @JsonIgnore // Ngắt vòng lặp khi trả về API JSON
-    @ToString.Exclude // Ngắt vòng lặp khi in log
+    @OneToMany(mappedBy = "role", fetch = FetchType.EAGER)
+    @ToString.Exclude
     private List<Staff> staffs;
 }

@@ -19,9 +19,9 @@ public class Staff {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "StaffID")
-    private Long staffId;
+    private Integer staffId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "RoleID", nullable = false)
     private Role role;
 

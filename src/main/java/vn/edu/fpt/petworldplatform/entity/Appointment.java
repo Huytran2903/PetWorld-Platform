@@ -24,7 +24,7 @@ public class Appointment {
     private String appointmentCode;
 
     @Column(name = "CustomerID", nullable = false)
-    private Long customerId;
+    private Integer customerId;
 
     @Column(name = "PetID", nullable = false)
     private Integer petId;
