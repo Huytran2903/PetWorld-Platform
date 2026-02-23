@@ -35,9 +35,9 @@ public class RevenueService {
     // % thay đổi so với hôm qua
     // ============================================================
     public double getPercentChange() {
-        LocalDateTime startOfToday    = LocalDate.now().atStartOfDay();
+        LocalDateTime startOfToday     = LocalDate.now().atStartOfDay();
         LocalDateTime startOfYesterday = startOfToday.minusDays(1);
-        LocalDateTime startOfTomorrow = startOfToday.plusDays(1);
+        LocalDateTime startOfTomorrow  = startOfToday.plusDays(1);
 
         BigDecimal today     = repo.getTodayRevenue(startOfToday, startOfTomorrow);
         BigDecimal yesterday = repo.getYesterdayRevenue(startOfYesterday, startOfToday);
@@ -45,7 +45,6 @@ public class RevenueService {
         if (yesterday.compareTo(BigDecimal.ZERO) == 0) {
             return today.compareTo(BigDecimal.ZERO) > 0 ? 100.0 : 0.0;
         }
-        // (today - yesterday) / yesterday * 100
         return today.subtract(yesterday)
                     .divide(yesterday, 4, RoundingMode.HALF_UP)
                     .multiply(BigDecimal.valueOf(100))
@@ -62,40 +61,57 @@ public class RevenueService {
     }
 
     // ============================================================
-    // Số đơn chờ
+    // Doanh thu toàn thời gian
+    // ============================================================
+    public BigDecimal getAllTimeRevenue() {
+        return repo.getAllTimeRevenue();
+    }
+
+    // ============================================================
+    // Doanh thu theo date range
+    // ============================================================
+    public BigDecimal getRevenueByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        return repo.getRevenueByDateRange(startDate, endDate);
+    }
+
+    // ============================================================
+    // Số đơn pending toàn hệ thống
     // ============================================================
     public Long getPendingOrdersCount() {
         return repo.getPendingOrdersCount();
     }
 
     // ============================================================
-    // Giao dịch gần đây (không filter)
+    // Số đơn pending theo date range
     // ============================================================
-    public List<RevenueDTO> getRecentTransactions() {
-        List<Object[]> rows = repo.getRecentTransactions();
-        return mapToDTO(rows);
+    public Long getPendingOrdersCountByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        return repo.getPendingOrdersCountByDateRange(startDate, endDate);
     }
 
     // ============================================================
-    // Giao dịch theo date range (có filter)
+    // Tất cả giao dịch (không giới hạn)
+    // ============================================================
+    public List<RevenueDTO> getAllTransactions() {
+        return mapToDTO(repo.getAllTransactions());
+    }
+
+    // ============================================================
+    // Giao dịch theo date range
     // ============================================================
     public List<RevenueDTO> getOrdersByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
-        List<Object[]> rows = repo.getOrdersByDateRange(startDate, endDate);
-        return mapToDTO(rows);
+        return mapToDTO(repo.getOrdersByDateRange(startDate, endDate));
     }
 
     // ============================================================
     // Map Object[] -> RevenueDTO
-    // Thứ tự columns phải khớp với SELECT trong query:
-    //   [0] OrderCode, [1] FullName, [2] CreatedAt,
-    //   [3] TotalAmount, [4] Method, [5] Status
+    // Thứ tự: [0] OrderCode, [1] FullName, [2] CreatedAt,
+    //         [3] TotalAmount, [4] Method, [5] Status
     // ============================================================
     private List<RevenueDTO> mapToDTO(List<Object[]> rows) {
         return rows.stream().map(row -> {
-            String orderCode     = row[0] != null ? row[0].toString() : "";
-            String customerName  = row[1] != null ? row[1].toString() : "";
+            String orderCode    = row[0] != null ? row[0].toString() : "";
+            String customerName = row[1] != null ? row[1].toString() : "";
 
-            // row[2] có thể là Timestamp hoặc LocalDateTime tùy JDBC driver
             LocalDateTime orderDate = null;
             if (row[2] != null) {
                 if (row[2] instanceof java.sql.Timestamp) {
@@ -105,13 +121,11 @@ public class RevenueService {
                 }
             }
 
-            BigDecimal totalAmount = row[3] != null
-                    ? new BigDecimal(row[3].toString()) : BigDecimal.ZERO;
-            String paymentMethod = row[4] != null ? row[4].toString() : null;
-            String status        = row[5] != null ? row[5].toString() : "";
+            BigDecimal totalAmount  = row[3] != null ? new BigDecimal(row[3].toString()) : BigDecimal.ZERO;
+            String paymentMethod    = row[4] != null ? row[4].toString() : null;
+            String status           = row[5] != null ? row[5].toString() : "";
 
-            return new RevenueDTO(orderCode, customerName, orderDate,
-                                  totalAmount, status, paymentMethod);
+            return new RevenueDTO(orderCode, customerName, orderDate, totalAmount, status, paymentMethod);
         }).collect(Collectors.toList());
     }
 }
