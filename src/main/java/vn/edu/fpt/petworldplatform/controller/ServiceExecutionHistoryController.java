@@ -23,10 +23,6 @@ public class ServiceExecutionHistoryController {
         this.service = service;
     }
 
-    /**
-     * Display Service Execution History page
-     * Supports filtering by status and date range
-     */
     @GetMapping("/service-execution-history")
     public String getServiceHistory(
             @RequestParam(required = false) String status,
@@ -35,82 +31,90 @@ public class ServiceExecutionHistoryController {
             Model model) {
 
         try {
-            // Get statistics for dashboard cards
-            Long completedCount = service.getCompletedCount();
-            Long inProgressCount = service.getInProgressCount();
-            Long pendingCount = service.getPendingCount();
+            boolean hasStatus    = isNotEmpty(status);
+            boolean hasStartDate = isNotEmpty(startDate);
+            boolean hasEndDate   = isNotEmpty(endDate);
+            boolean hasDateRange = hasStartDate && hasEndDate;
+            boolean filtered     = hasStatus || hasDateRange;
 
-            model.addAttribute("completedCount", completedCount != null ? completedCount : 0L);
+            // Parse date range nếu có
+            LocalDateTime start = null;
+            LocalDateTime end   = null;
+            if (hasDateRange) {
+                start = parseDate(startDate, true);
+                end   = parseDate(endDate, false);
+            }
+
+            // --------------------------------------------------------
+            // Stats cards: theo date range nếu có, toàn hệ thống nếu không
+            // --------------------------------------------------------
+            Long completedCount;
+            Long inProgressCount;
+            Long pendingCount;
+
+            if (hasDateRange) {
+                // Có chọn ngày → filter stats theo ngày
+                completedCount   = service.getCompletedCountByDateRange(start, end);
+                inProgressCount  = service.getInProgressCountByDateRange(start, end);
+                pendingCount     = service.getPendingCountByDateRange(start, end);
+            } else {
+                // Không chọn ngày → tổng toàn hệ thống
+                completedCount   = service.getCompletedCount();
+                inProgressCount  = service.getInProgressCount();
+                pendingCount     = service.getPendingCount();
+            }
+
+            model.addAttribute("completedCount",  completedCount  != null ? completedCount  : 0L);
             model.addAttribute("inProgressCount", inProgressCount != null ? inProgressCount : 0L);
-            model.addAttribute("pendingCount", pendingCount != null ? pendingCount : 0L);
+            model.addAttribute("pendingCount",    pendingCount    != null ? pendingCount    : 0L);
 
-            // Get history data based on filters
+            // --------------------------------------------------------
+            // History table: filter theo tất cả điều kiện
+            // --------------------------------------------------------
             List<ServiceExecutionHistoryDTO> history;
-            boolean filtered = false;
 
-            // Case 1: Filter by both status and date range
-            if (isNotEmpty(status) && isNotEmpty(startDate) && isNotEmpty(endDate)) {
-                LocalDateTime start = parseDate(startDate, true);
-                LocalDateTime end = parseDate(endDate, false);
+            if (hasStatus && hasDateRange) {
+                // Filter cả status lẫn date range
                 history = service.getHistoryByStatusAndDateRange(status, start, end);
-                filtered = true;
-            }
-            // Case 2: Filter by status only
-            else if (isNotEmpty(status)) {
+            } else if (hasStatus) {
+                // Chỉ filter theo status
                 history = service.getHistoryByStatus(status);
-                filtered = true;
-            }
-            // Case 3: Filter by date range only
-            else if (isNotEmpty(startDate) && isNotEmpty(endDate)) {
-                LocalDateTime start = parseDate(startDate, true);
-                LocalDateTime end = parseDate(endDate, false);
+            } else if (hasDateRange) {
+                // Chỉ filter theo date range
                 history = service.getHistoryByDateRange(start, end);
-                filtered = true;
-            }
-            // Case 4: No filter - get all
-            else {
+            } else {
+                // Không filter → tất cả
                 history = service.getAllHistory();
             }
 
-            // Add data to model
-            model.addAttribute("history", history);
-            model.addAttribute("filtered", filtered);
-            model.addAttribute("status", status);
-            model.addAttribute("startDate", startDate);
-            model.addAttribute("endDate", endDate);
+            model.addAttribute("history",    history);
+            model.addAttribute("filtered",   filtered);
+            model.addAttribute("status",     status);
+            model.addAttribute("startDate",  startDate);
+            model.addAttribute("endDate",    endDate);
 
         } catch (Exception e) {
-            // If error occurs, return empty list
-            model.addAttribute("history", List.of());
-            model.addAttribute("filtered", false);
-            model.addAttribute("error", "Lỗi khi tải dữ liệu: " + e.getMessage());
-            model.addAttribute("completedCount", 0L);
+            model.addAttribute("history",         List.of());
+            model.addAttribute("filtered",        false);
+            model.addAttribute("error",           "Lỗi khi tải dữ liệu: " + e.getMessage());
+            model.addAttribute("completedCount",  0L);
             model.addAttribute("inProgressCount", 0L);
-            model.addAttribute("pendingCount", 0L);
-            
-            // Log error for debugging
+            model.addAttribute("pendingCount",    0L);
             e.printStackTrace();
         }
 
         return "staff/service-execution-history";
     }
 
-    /**
-     * Helper method to check if string is not empty
-     */
+    // ============================================================
+    // Helpers
+    // ============================================================
     private boolean isNotEmpty(String str) {
         return str != null && !str.trim().isEmpty();
     }
 
-    /**
-     * Helper method to parse date string to LocalDateTime
-     * @param dateStr Date string in format yyyy-MM-dd
-     * @param isStartOfDay true for start of day (00:00:00), false for end of day (23:59:59)
-     */
     private LocalDateTime parseDate(String dateStr, boolean isStartOfDay) {
         LocalDate date = LocalDate.parse(dateStr);
-        return isStartOfDay 
-            ? date.atStartOfDay() 
-            : date.atTime(LocalTime.MAX);
+        return isStartOfDay ? date.atStartOfDay() : date.atTime(LocalTime.MAX);
     }
 }
