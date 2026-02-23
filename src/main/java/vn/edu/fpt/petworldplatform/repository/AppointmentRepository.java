@@ -16,4 +16,18 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     long countByAppointmentDateAndStatusNot(LocalDateTime appointmentDate, String excludedStatus);
 
     long countByAppointmentDateAndStatusNotIn(LocalDateTime appointmentDate, List<String> excludedStatuses);
+
+    /** Detect overlapping appointments for a pet.
+     * Overlap condition: existing.start < newEnd AND existing.end > newStart
+     */
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(a) FROM Appointment a " +
+            "WHERE a.petId = :petId " +
+            "AND a.id != :excludeId " +
+            "AND a.status NOT IN ('canceled', 'rejected') " +
+            "AND a.appointmentDate < :newEnd " +
+            "AND a.endTime > :newStart")
+    long countOverlappingAppointments(@org.springframework.data.repository.query.Param("petId") Integer petId,
+                                      @org.springframework.data.repository.query.Param("excludeId") Integer excludeId,
+                                      @org.springframework.data.repository.query.Param("newStart") java.time.LocalDateTime newStart,
+                                      @org.springframework.data.repository.query.Param("newEnd") java.time.LocalDateTime newEnd);
 }

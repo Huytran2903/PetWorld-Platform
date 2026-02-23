@@ -1,10 +1,8 @@
 package vn.edu.fpt.petworldplatform.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.MediaType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -15,31 +13,18 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.petworldplatform.dto.PetFormDTO;
 import vn.edu.fpt.petworldplatform.entity.Categories;
 import vn.edu.fpt.petworldplatform.entity.Pets;
+import vn.edu.fpt.petworldplatform.entity.ServiceItem;
+import vn.edu.fpt.petworldplatform.entity.ServiceType;
 import vn.edu.fpt.petworldplatform.service.*;
-import org.springframework.util.StringUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
-
-import vn.edu.fpt.petworldplatform.entity.ServiceItem;
-import vn.edu.fpt.petworldplatform.entity.ServiceType;
-import org.springframework.web.bind.annotation.PostMapping;
-
 
 @Controller
 @RequiredArgsConstructor
@@ -52,7 +37,6 @@ public class AdminController {
     private PetService petService;
 
     private final CustomerService customerService;
-
     private final ServiceTypeService serviceTypeService;
     private final ServiceItemService serviceItemService;
 
@@ -82,7 +66,6 @@ public class AdminController {
     //Edit Pet
     @GetMapping("admin/pet/edit/{id}")
     public String updatePet(Model model, @PathVariable("id") Long id) {
-        Pets pet = petService.getPetById(id);
         model.addAttribute("selectedPet", petService.getPetById(id));
         model.addAttribute("formMode", "edit");
         return "admin/pet-form";
@@ -127,10 +110,6 @@ public class AdminController {
             } else {
                 // 2. Logic Edit: Người dùng KHÔNG chọn ảnh mới -> Giữ nguyên ảnh cũ
                 if (pet.getPetID() != null) {
-                    // Cách 1 (Nhanh): Nếu bên HTML có <input type="hidden" th:field="*{imageUrl}">
-                    // thì pet.getImageUrl() đã có dữ liệu, không cần làm gì cả.
-
-                    // Cách 2 (An toàn nhất): Lấy từ Database ra để chắc chắn không bị mất ảnh
                     Pets oldPet = petService.getPetById(pet.getPetID());
                     if (oldPet != null && (pet.getImageUrl() == null || pet.getImageUrl().isEmpty())) {
                         pet.setImageUrl(oldPet.getImageUrl());
@@ -284,11 +263,13 @@ public class AdminController {
 
     @PostMapping("/admin/service-type/delete/{id}")
     public String deleteServiceType(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
-        boolean deleted = serviceTypeService.softDelete(id);
-        if (deleted) {
-            redirectAttributes.addFlashAttribute("message", "Service type has been deactivated.");
+        ServiceTypeService.DeleteResult result = serviceTypeService.deleteOrDeactivate(id);
+        if (!result.isOk()) {
+            redirectAttributes.addFlashAttribute("error", "Service type not found.");
+        } else if (result.isDeleted()) {
+            redirectAttributes.addFlashAttribute("message", "Service type has been permanently deleted.");
         } else {
-            redirectAttributes.addFlashAttribute("error", "Cannot delete this Service Type because it has associated services or bookings.");
+            redirectAttributes.addFlashAttribute("message", "Service type is in use (linked to " + result.getUsedServices() + " services or " + result.getUsedAppointments() + " appointments). It has been deactivated instead of deleted.");
         }
         return "redirect:/admin/service-type";
     }
@@ -345,11 +326,13 @@ public class AdminController {
 
     @PostMapping("/admin/service/delete/{id}")
     public String deleteService(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
-        boolean deleted = serviceItemService.softDelete(id);
-        if (deleted) {
-            redirectAttributes.addFlashAttribute("message", "Service has been deactivated.");
+        ServiceItemService.DeleteResult result = serviceItemService.deleteOrDeactivate(id);
+        if (!result.isOk()) {
+            redirectAttributes.addFlashAttribute("error", "Service not found.");
+        } else if (result.isDeleted()) {
+            redirectAttributes.addFlashAttribute("message", "Service has been permanently deleted.");
         } else {
-            redirectAttributes.addFlashAttribute("error", "Cannot delete this service because it has associated appointments.");
+            redirectAttributes.addFlashAttribute("message", "Service is in use (linked to " + result.getUsedAppointments() + " appointments). It has been deactivated instead of deleted.");
         }
         return "redirect:/admin/services";
     }

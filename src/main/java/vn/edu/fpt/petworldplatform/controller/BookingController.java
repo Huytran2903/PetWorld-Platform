@@ -89,13 +89,18 @@ public class BookingController {
             return "redirect:/appointment/booking";
         }
 
-        bookingService.createAppointment(
-                customer.getCustomerId(),
-                petId,
-                dateTime,
-                note != null ? note.trim() : null,
-                mainServices
-        );
+        try {
+            bookingService.createAppointment(
+                    customer.getCustomerId(),
+                    petId,
+                    dateTime,
+                    note != null ? note.trim() : null,
+                    mainServices
+            );
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/appointment/booking";
+        }
 
         redirectAttributes.addFlashAttribute("message", "Your appointment has been booked successfully. We will send you a confirmation shortly.");
         return "redirect:/customer/appointments";

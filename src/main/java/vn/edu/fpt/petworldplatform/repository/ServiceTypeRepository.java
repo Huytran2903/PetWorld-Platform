@@ -20,7 +20,13 @@ public interface ServiceTypeRepository extends JpaRepository<ServiceType, Intege
 
     boolean existsByNameIgnoreCaseAndIdNot(String name, Integer id);
 
-    /** Count services (dbo.Services) that use this type name - for BR-21 delete constraint. */
+    /** Count services (dbo.Services) that use this type name. */
     @Query(value = "SELECT COUNT(*) FROM Services WHERE LOWER(ServiceType) = LOWER(:name)", nativeQuery = true)
     long countServicesByTypeName(@Param("name") String name);
+
+    /** Count appointments (through services) that use this type name. */
+    @Query(value = "SELECT COUNT(*) FROM AppointmentServices AS ans " +
+                   "JOIN Services AS s ON ans.ServiceID = s.ServiceID " +
+                   "WHERE LOWER(s.ServiceType) = LOWER(:name)", nativeQuery = true)
+    long countAppointmentsByServiceTypeName(@Param("name") String name);
 }

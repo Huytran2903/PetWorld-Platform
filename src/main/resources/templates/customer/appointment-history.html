@@ -58,9 +58,8 @@
                     </div>
 
                     <div class="appointment-body">
-                        <div class="appointment-info">
-                            <p><strong>Pet:</strong> <span th:text="${appt.petId}">Pet Name</span></p>
-                            <p><strong>Note:</strong> <span th:text="${appt.note ?: '—'}">—</span></p>
+                        <div class="appointment-meta">
+                            <p><strong>Pet ID:</strong> <span th:text="${appt.petId}">1</span></p>
                             <p th:if="${appt.cancellationReason}">
                                 <strong>Cancellation Reason:</strong> <span th:text="${appt.cancellationReason}">—</span>
                             </p>
@@ -69,23 +68,53 @@
                             </p>
                         </div>
 
-                        <!-- Actions for pending/confirmed -->
-                        <div th:if="${appt.status == 'pending' or appt.status == 'confirmed'}" class="appointment-actions">
-                            <a th:href="@{'/customer/appointments/' + ${appt.id}}" class="btn btn-outline-primary btn-sm">Detail</a>
-                            <button class="btn btn-secondary btn-sm"
-                                    th:onclick="'openCancelModal(' + ${appt.id} + ')'">Cancel</button>
-                            <button class="btn btn-primary btn-sm"
-                                    th:data-id="${appt.id}"
-                                    th:data-datetime="${#temporals.format(appt.appointmentDate, 'yyyy-MM-dd''T''HH:mm')}"
-                                    onclick="openRescheduleModal(this)">Reschedule</button>
+                        <!-- Row for Table + Actions -->
+                        <div class="appointment-row">
+                            <div class="appt-services-inline" th:if="${serviceLinesByAppointmentId != null and serviceLinesByAppointmentId.containsKey(appt.id)}">
+                                <table class="services-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Service</th>
+                                            <th>Type</th>
+                                            <th>Duration</th>
+                                            <th class="text-end">Price</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="line : ${serviceLinesByAppointmentId.get(appt.id)}">
+                                            <td>
+                                                <div class="svc-name" th:text="${line.service.name}">Service Name</div>
+                                            </td>
+                                            <td><span class="badge badge-outline" th:text="${line.service.serviceType}">TYPE</span></td>
+                                            <td th:text="${line.service.durationMinutes} + ' min'">Duration</td>
+                                            <td class="text-end">
+                                                <span class="svc-price" th:text="${#numbers.formatDecimal(line.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">Price</span>
+                                                <small class="d-block text-muted" th:if="${line.quantity > 1}" th:text="'x' + ${line.quantity}"></small>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="appointment-actions">
+                                <th:block th:if="${appt.status == 'pending' or appt.status == 'confirmed'}">
+                                    <button class="btn btn-secondary btn-sm"
+                                            th:onclick="'openCancelModal(' + ${appt.id} + ')'">Cancel</button>
+                                    <button class="btn btn-primary btn-sm"
+                                            th:data-id="${appt.id}"
+                                            th:data-datetime="${#temporals.format(appt.appointmentDate, 'yyyy-MM-dd''T''HH:mm')}"
+                                            onclick="openRescheduleModal(this)">Reschedule</button>
+                                </th:block>
+                                <th:block th:if="${appt.status == 'canceled'}">
+                                    <form th:action="@{'/customer/appointments/' + ${appt.id} + '/delete'}" method="post" style="display:inline;">
+                                        <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+                                    </form>
+                                </th:block>
+                            </div>
                         </div>
 
-                        <!-- Action for canceled -->
-                        <div th:if="${appt.status == 'canceled'}" class="appointment-actions">
-                            <a th:href="@{'/customer/appointments/' + ${appt.id}}" class="btn btn-outline-primary btn-sm">Detail</a>
-                            <form th:action="@{'/customer/appointments/' + ${appt.id} + '/delete'}" method="post" style="display:inline;">
-                                <button class="btn btn-danger btn-sm" type="submit">Delete</button>
-                            </form>
+                        <div class="appointment-note">
+                            <p><strong>Note:</strong> <span th:text="${appt.note ?: '—'}">—</span></p>
                         </div>
                     </div>
                 </article>

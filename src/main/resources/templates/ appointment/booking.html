@@ -110,32 +110,49 @@
                         Service Package
                     </h3>
 
-                    <div class="svc-list">
-                        <div class="svc-item" th:each="svc : ${serviceList}">
-                            <span class="svc-badge" th:text="${svc.serviceType}">TYPE</span>
-
-                            <input
-                                    type="checkbox"
-                                    name="mainServices"
-                                    th:value="${svc.id}"
-                                    th:data-price="${svc.basePrice}"
-                                    th:data-duration="${svc.durationMinutes}"
-                                    th:data-name="${svc.name}"
-                                    th:data-unit="${svc.serviceType == 'boarding' ? 'day' : 'time'}"
-                            />
-
-                            <div>
-                                <p class="svc-name" th:text="${svc.name}">Service Name</p>
-                                <p
-                                        class="svc-meta"
-                                        th:text="'Duration: ' + ${svc.durationMinutes} + ' minutes'"
-                                ></p>
-                                <div
-                                        class="svc-price"
-                                        th:text="${#numbers.formatDecimal(svc.basePrice, 0, 'COMMA', 0, 'POINT')} + ' VND'"
-                                ></div>
-                            </div>
-                        </div>
+                    <div class="svc-table-container">
+                        <table class="svc-table">
+                            <thead>
+                                <tr>
+                                    <th class="col-check"></th>
+                                    <th class="col-type">TYPE</th>
+                                    <th class="col-name">NAME</th>
+                                    <th class="col-desc">DESCRIPTION</th>
+                                    <th class="col-price">PRICE</th>
+                                    <th class="col-duration">DURATION</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="svc : ${serviceList}" class="svc-row">
+                                    <td class="col-check">
+                                        <input
+                                                type="checkbox"
+                                                name="mainServices"
+                                                th:value="${svc.id}"
+                                                th:data-price="${svc.basePrice}"
+                                                th:data-duration="${svc.durationMinutes}"
+                                                th:data-name="${svc.name}"
+                                                th:data-unit="${svc.serviceType == 'boarding' ? 'day' : 'time'}"
+                                        />
+                                    </td>
+                                    <td class="col-type">
+                                        <span class="svc-type-label" th:text="${svc.serviceType}">TYPE</span>
+                                    </td>
+                                    <td class="col-name">
+                                        <span class="fw-bold" th:text="${svc.name}">Service Name</span>
+                                    </td>
+                                    <td class="col-desc">
+                                        <span class="text-muted small" th:text="${svc.description != null ? svc.description : '-'}">Description</span>
+                                    </td>
+                                    <td class="col-price">
+                                        <span class="fw-bold" th:text="${#numbers.formatDecimal(svc.basePrice, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</span>
+                                    </td>
+                                    <td class="col-duration">
+                                        <span th:text="${svc.durationMinutes} + ' min'">0 min</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
 
                     <!-- Boarding extra fields -->

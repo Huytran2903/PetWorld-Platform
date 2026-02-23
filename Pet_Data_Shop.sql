@@ -191,15 +191,20 @@ GO
 
 CREATE TABLE dbo.Appointments (
     AppointmentID INT IDENTITY(1,1) PRIMARY KEY,
-    AppointmentCode VARCHAR(30) NOT NULL UNIQUE,
+    AppointmentCode VARCHAR(100) NOT NULL UNIQUE,
     CustomerID INT NOT NULL,
     PetID INT NOT NULL,
     AppointmentDate DATETIME2 NOT NULL,
+    EndTime DATETIME2 NULL,
     Note NVARCHAR(255) NULL,
     Status VARCHAR(20) NOT NULL DEFAULT 'pending'
         CHECK (Status IN ('pending','confirmed','in_progress','done','canceled','no_show')),
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2 NULL,
+    RescheduledAt DATETIME2 NULL,
+    PreviousAppointmentDate DATETIME2 NULL,
+    CanceledAt DATETIME2 NULL,
+    CancellationReason NVARCHAR(255) NULL,
     CONSTRAINT FK_App_Customer FOREIGN KEY (CustomerID) REFERENCES dbo.Customers(CustomerID),
     CONSTRAINT FK_App_Pet FOREIGN KEY (PetID) REFERENCES dbo.Pets(PetID)
 );

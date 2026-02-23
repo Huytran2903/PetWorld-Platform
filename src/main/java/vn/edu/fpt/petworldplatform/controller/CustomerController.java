@@ -142,6 +142,18 @@ public class CustomerController {
         }
         List<Appointment> appointments = bookingService.findAppointmentsByCustomerId(customer.getCustomerId());
         model.addAttribute("appointments", appointments);
+
+        // Inline service details: batch load all service lines for these appointments
+        List<Integer> apptIds = appointments.stream().map(Appointment::getId).toList();
+        if (apptIds.isEmpty()) {
+            model.addAttribute("serviceLinesByAppointmentId", java.util.Map.of());
+        } else {
+            List<vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine> lines = bookingService.findServiceLinesByAppointmentIds(apptIds);
+            java.util.Map<Integer, List<vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine>> linesByApptId =
+                    lines.stream().collect(java.util.stream.Collectors.groupingBy(l -> l.getAppointment().getId()));
+            model.addAttribute("serviceLinesByAppointmentId", linesByApptId);
+        }
+
         return "customer/appointment-history";
     }
 

@@ -192,73 +192,79 @@ input:focus, select:focus {
 }
 
 /* =========================================
-   SERVICE SELECTION (Sửa lỗi hiển thị)
+   SERVICE SELECTION (Table Layout)
    ========================================= */
-.section-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 25px 0 15px;
-    font-size: 1rem;
-}
-
-.dot {
-    width: 8px;
-    height: 8px;
-    background: var(--primary);
-    border-radius: 50%;
-}
-
-.svc-list {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-}
-
-.svc-item {
-    position: relative;
+.svc-table-container {
+    margin-top: 15px;
     border: 1px solid var(--border);
-    padding: 20px;
     border-radius: 12px;
-    cursor: pointer;
-    display: flex;
-    gap: 12px;
-    transition: 0.2s;
+    overflow: hidden;
+    background: #fff;
 }
 
-/* Hiệu ứng khi được chọn */
-.svc-item:has(input:checked) {
-    border-color: var(--primary);
-    background: var(--primary-pale);
+.svc-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
 }
 
-.svc-item input[type="radio"],
-.svc-item input[type="checkbox"] {
+.svc-table thead {
+    background: #fafbfc;
+    border-bottom: 2px solid var(--border);
+}
+
+.svc-table th {
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 800;
+    color: var(--muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.svc-table td {
+    padding: 15px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+}
+
+.svc-row:last-child td {
+    border-bottom: none;
+}
+
+.svc-row:hover {
+    background-color: #f9f9fb;
+}
+
+.svc-row:has(input:checked) {
+    background-color: var(--primary-pale);
+}
+
+.col-check { width: 50px; text-align: center !important; }
+.col-type { width: 120px; }
+.col-name { font-weight: 700; color: var(--text); }
+.col-desc { color: var(--muted); max-width: 250px; }
+.col-price { width: 130px; color: var(--primary); font-weight: 800; }
+.col-duration { width: 100px; color: var(--muted); }
+
+.svc-type-label {
+    display: inline-block;
+    padding: 4px 10px;
+    background: #f1f3f5;
+    color: #495057;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.fw-bold { font-weight: 700; }
+
+.svc-table input[type="checkbox"] {
     width: 18px;
     height: 18px;
-    margin-top: 3px;
     accent-color: var(--primary);
-}
-
-.svc-name { font-weight: 700; margin-bottom: 4px; font-size: 1rem; }
-.svc-meta { font-size: 0.85rem; color: var(--muted); }
-.svc-price {
-    margin-top: 10px;
-    color: var(--primary);
-    font-weight: 800;
-    font-size: 1.06rem;
-}
-
-.svc-badge {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: var(--primary);
-    color: white;
-    font-size: 0.6rem;
-    padding: 3px 8px;
-    border-radius: 10px;
-    text-transform: uppercase;
+    cursor: pointer;
 }
 
 /* =========================================
@@ -349,7 +355,7 @@ input:focus, select:focus {
 }
 
 @media (max-width: 600px) {
-    .grid, .svc-list {
+    .grid {
         grid-template-columns: 1fr;
     }
 }
