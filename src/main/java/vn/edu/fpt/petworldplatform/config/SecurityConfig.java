@@ -3,7 +3,6 @@ package vn.edu.fpt.petworldplatform.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,16 +10,15 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 
 @Configuration
 @EnableWebSecurity
-@EnableAsync
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final GoogleLoginSuccessHandler googleLoginSuccessHandler;
 
+    // 1. BEAN MỚI (BẮT BUỘC): Để AuthController có thể gọi authenticationManager.authenticate()
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
@@ -35,9 +33,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable()) // Tắt CSRF để dễ test (Production nên bật lại)
-                .securityContext(context -> context
-                        .securityContextRepository(new HttpSessionSecurityContextRepository())
-                )
+
                 // --- PHÂN QUYỀN ---
                 .authorizeHttpRequests(auth -> auth
                         // A. Link Tĩnh
@@ -48,7 +44,6 @@ public class SecurityConfig {
                         .requestMatchers("/login", "/register", "/do-register", "/verify").permitAll()
                         .requestMatchers("/do-login").permitAll()
 
-                        .requestMatchers("/uploads/**").permitAll()
 
                         .requestMatchers("/reset-password", "/forgot-password").permitAll()
                         // --------------------

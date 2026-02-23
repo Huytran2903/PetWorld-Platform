@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Detail - Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/sidebar-admin.css}">
+    <style>
+        .bg-orange { background-color: #f37021; }
+        .btn-orange { background-color: #f37021; color: white; border: none; }
+        .btn-orange:hover { background-color: #d65d1a; color: white; }
+        .status-badge { padding: 0.5rem 1rem; border-radius: 50px; font-weight: 600; font-size: 0.85rem; display: inline-block; }
+        .status-pending { background-color: #fff3cd; color: #856404; }
+        .status-confirmed { background-color: #d1ecf1; color: #0c5460; }
+        .status-in_progress { background-color: #cce5ff; color: #004085; }
+        .status-done { background-color: #d4edda; color: #155724; }
+        .status-canceled { background-color: #f8d7da; color: #721c24; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="bg-light">
+<div class="d-flex">
+    <div th:replace="~{fragments/sidebar-admin :: aside(activePage='appointments')}"></div>
+
+    <div class="container-fluid p-4">
+        <div class="d-flex align-items-center mb-4 gap-3">
+            <a th:href="@{/admin/appointments}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+            <h1 class="h3 mb-0">Appointment Detail: <span th:text="${appointment.appointmentCode}">#CODE</span></h1>
+        </div>
+
+        <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${message}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div class="row g-4">
+            <!-- Left Side: Basic Info -->
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0">General Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small">Status</label>
+                                <div>
+                                    <span th:class="'status-badge status-' + ${appointment.status.toLowerCase()}" 
+                                          th:text="${appointment.status.toUpperCase()}">PENDING</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small">Appointment Date</label>
+                                <div class="fw-bold" th:text="${#temporals.format(appointment.appointmentDate, 'dd-MMM-yyyy HH:mm')}">Date</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small">Expected End Time</label>
+                                <div class="fw-bold" th:text="${#temporals.format(appointment.endTime, 'dd-MMM-yyyy HH:mm')}">End Time</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small">Created At</label>
+                                <div th:text="${#temporals.format(appointment.createdAt, 'dd-MMM-yyyy HH:mm')}">Created</div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label text-muted small">Customer Note</label>
+                                <div class="p-2 bg-light rounded" th:text="${appointment.note ?: 'No note provided.'}">Note</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Services -->
+                <div class="card">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0">Requested Services</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-4">Service Name</th>
+                                        <th>Price</th>
+                                        <th class="pe-4 text-end">Quantity</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="line : ${appointment.serviceLines}">
+                                        <td class="ps-4" th:text="${line.service.name}">Service</td>
+                                        <td th:text="${#numbers.formatDecimal(line.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">0</td>
+                                        <td class="pe-4 text-end" th:text="${line.quantity}">1</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Staff Assignment -->
+            <div class="col-lg-4">
+                <div class="card sticky-top" style="top: 20px;">
+                    <div class="card-header bg-orange text-white py-3">
+                        <h5 class="mb-0">Staff Assignment</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Case 1: Already Assigned -->
+                        <div th:if="${appointment.staffId != null}" class="mb-4">
+                            <div class="alert alert-info">
+                                <i class="bi bi-person-check-fill me-2"></i>
+                                Currently assigned to Staff ID: <strong th:text="${appointment.staffId}">#ID</strong>
+                            </div>
+                            
+                            <h6>Change Staff (Reassign)</h6>
+                            <form th:action="@{/admin/appointments/{id}/reassign(id=${appointment.id})}" method="POST">
+                                <div class="mb-3">
+                                    <select name="staffId" class="form-select" required>
+                                        <option value="" disabled selected>Select new staff...</option>
+                                        <option th:each="staff : ${availableStaff}" 
+                                                th:value="${staff.staffId}" 
+                                                th:text="${staff.fullName + ' (' + staff.role.roleName + ')'}">
+                                        </option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-orange w-100" 
+                                        th:disabled="${appointment.status == 'done' || appointment.status == 'canceled'}">
+                                    Confirm Change
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Case 2: Not Assigned Yet (Pending) -->
+                        <div th:if="${appointment.staffId == null}">
+                            <div th:if="${appointment.status == 'pending'}">
+                                <p class="text-muted small">This appointment is pending. Please assign an available staff member to confirm it.</p>
+                                <form th:action="@{/admin/appointments/{id}/assign(id=${appointment.id})}" method="POST">
+                                    <div class="mb-3">
+                                        <label class="form-label">Available Staff Members</label>
+                                        <select name="staffId" class="form-select" required>
+                                            <option value="" disabled selected>Select a staff member...</option>
+                                            <option th:each="staff : ${availableStaff}" 
+                                                    th:value="${staff.staffId}" 
+                                                    th:text="${staff.fullName + ' (' + staff.role.roleName + ')'}">
+                                            </option>
+                                        </select>
+                                        <div class="form-text">Only active staff with no schedule conflicts are shown.</div>
+                                    </div>
+                                    <button type="submit" class="btn btn-success w-100 py-2 fw-bold">
+                                        Confirm Assignment
+                                    </button>
+                                </form>
+                            </div>
+                            <div th:unless="${appointment.status == 'pending'}" class="alert alert-warning">
+                                Cannot assign staff to an appointment with status: <strong th:text="${appointment.status}">STATUS</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

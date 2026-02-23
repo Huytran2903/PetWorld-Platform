@@ -49,9 +49,14 @@
 
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
         <h2 class="fw-bold mb-0">Dashboard Overview</h2>
-        <a th:href="@{/admin/service-manager}" class="btn btn-primary d-flex align-items-center gap-2">
-            <i class="bi bi-briefcase-medical"></i> Service Manager
-        </a>
+        <div class="d-flex gap-2">
+            <a th:href="@{/admin/appointments}" class="btn btn-warning d-flex align-items-center gap-2 text-white">
+                <i class="bi bi-calendar-check"></i> Appointment Manager
+            </a>
+            <a th:href="@{/admin/service-manager}" class="btn btn-primary d-flex align-items-center gap-2">
+                <i class="bi bi-briefcase-medical"></i> Service Manager
+            </a>
+        </div>
     </div>
 
     <div class="row g-4">

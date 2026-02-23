@@ -17,7 +17,6 @@ import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.repository.PetRepo;
 import vn.edu.fpt.petworldplatform.service.*;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -257,13 +256,14 @@ public class CustomerController {
         return "customer/pet/my-pets";
     }
 
-    @GetMapping("/customer/pet/pet-create")
+    // Backward-compatible mapping: some pages might still link to /customer/pet/create
+    @GetMapping({"/customer/pet/pet-create", "/customer/pet/create"})
     public String showPetCreatePage(Model model) {
         model.addAttribute("petDTO", new PetCreateDTO());
         return "customer/pet/pet-create";
     }
 
-    @PostMapping("/customer/pet/pet-create")
+    @PostMapping({"/customer/pet/pet-create", "/customer/pet/create"})
     public String handlePetCreateSubmit(HttpSession session,
                                         @ModelAttribute PetCreateDTO petDTO,
                                         RedirectAttributes redirectAttributes) {

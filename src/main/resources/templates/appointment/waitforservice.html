@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout_user}">
+<head>
+    <title th:text="'Tracking #' + ${appointment.appointmentCode}">Wait For Service</title>
+    <link rel="stylesheet" th:href="@{/css/tracking.css}" />
+</head>
+
+<body>
+<main layout:fragment="content" class="container">
+
+    <div class="hero">
+        <div class="hero-inner">
+            <div>
+                <h1>Track Appointment</h1>
+                <p>The system will update the status when staff confirms or starts the service.</p>
+            </div>
+            <div class="type-pill">CUSTOMER</div>
+        </div>
+    </div>
+
+    <div class="container" style="padding: 0; margin-top: 18px; display: grid; grid-template-columns: 1.25fr .75fr; gap: 18px;">
+
+        <section class="card">
+            <header class="card-header">
+                <div>
+                    <h2 class="title">Current Status</h2>
+                    <p class="subtitle">Last updated: <span th:text="${#temporals.format(appointment.updatedAt, 'HH:mm dd/MM')}">10:00</span></p>
+                </div>
+                <div class="pill"
+                     th:text="${appointment.status.toUpperCase()}"
+                     th:classappend="${appointment.status == 'canceled' ? 'canceled' : ''}">
+                    PENDING
+                </div>
+            </header>
+
+            <div class="card-body">
+                <div class="status-chip">
+                    <span class="dot"
+                          th:classappend="${appointment.status == 'canceled' ? 'canceled' : 'active'}"></span>
+                    <span th:text="${appointment.status}">Pending confirmation</span>
+                </div>
+
+                <div class="small">
+                    <span th:if="${appointment.status == 'pending'}">Waiting for the shop to confirm your appointment.</span>
+                    <span th:if="${appointment.status == 'confirmed'}">Appointment confirmed. Please arrive on time.</span>
+                    <span th:if="${appointment.status == 'in_progress'}">Staff is currently performing the service.</span>
+                    <span th:if="${appointment.status == 'done'}">Service completed. Thank you.</span>
+                    <span th:if="${appointment.status == 'canceled'}">Appointment has been canceled.</span>
+                </div>
+
+                <div class="timeline">
+
+                    <div class="step" th:classappend="${appointment.status != 'canceled' ? 'active' : ''}">
+                        <div class="mark">1</div>
+                        <div>
+                            <div style="font-weight:950;">Booked</div>
+                            <div class="meta">Appointment created successfully.</div>
+                        </div>
+                    </div>
+
+                    <div class="step" th:classappend="${
+                            #lists.contains({'confirmed', 'in_progress', 'done'}, appointment.status)
+                            ? 'active' : ''}">
+                        <div class="mark">2</div>
+                        <div>
+                            <div style="font-weight:950;">Confirmed</div>
+                            <div class="meta">Staff has accepted the appointment.</div>
+                        </div>
+                    </div>
+
+                    <div class="step" th:classappend="${
+                            #lists.contains({'in_progress', 'done'}, appointment.status)
+                            ? 'active' : ''}">
+                        <div class="mark">3</div>
+                        <div>
+                            <div style="font-weight:950;">In Progress</div>
+                            <div class="meta">Service is being performed.</div>
+                        </div>
+                    </div>
+
+                    <div class="step" th:classappend="${appointment.status == 'done' ? 'active' : ''}">
+                        <div class="mark">4</div>
+                        <div>
+                            <div style="font-weight:950;">Completed</div>
+                            <div class="meta">Service finished.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button class="btn btn-secondary" type="button" onclick="location.reload()">Refresh</button>
+                    <button class="btn btn-ghost" type="button" onclick="history.back()">Back</button>
+
+                    <a th:if="${#lists.contains({'pending', 'confirmed'}, appointment.status)}"
+                       th:href="@{/appointment/cancel/{id}(id=${appointment.appointmentID})}"
+                       class="btn btn-ghost" style="color: #e31b23; border-color: #e31b23;">
+                        Cancel
+                    </a>
+
+                    <a th:if="${appointment.status == 'done'}"
+                       th:href="@{/review/submit(appointmentId=${appointment.appointmentID})}"
+                       class="btn btn-primary">
+                        Review Service
+                    </a>
+                </div>
+
+                <div class="note">
+                    <strong>Note:</strong> Health check is a default step performed by staff and is not listed in your selected services.
+                </div>
+            </div>
+        </section>
+
+        <aside class="card">
+            <header class="card-header">
+                <div>
+                    <h2 class="title" style="font-size:17px;">Appointment Details</h2>
+                    <p class="subtitle">Code: <span th:text="${appointment.appointmentCode}">APP-123</span></p>
+                </div>
+                <div class="pill">DETAILS</div>
+            </header>
+
+            <div class="card-body">
+                <div class="info-grid">
+                    <div class="info-box">
+                        <div class="k">Time</div>
+                        <div class="v" th:text="${#temporals.format(appointment.appointmentDate, 'HH:mm dd/MM/yyyy')}">...</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="k">Pet</div>
+                        <div class="v" th:text="${appointment.pet.name} + ' (' + ${appointment.pet.petType} + ')'">...</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="k">Assigned Staff</div>
+                        <div class="v" th:text="${appointmentAssignments != null ? appointmentAssignments.staff.fullName : 'Not assigned yet'}">...</div>
+                    </div>
+                </div>
+
+                <div style="margin-top:14px; font-weight:950;">Selected Services</div>
+                <div class="svc-list">
+                    <div class="svc-item" th:each="svcItem : ${appointment.appointmentServices}">
+                        <div>
+                            <div class="name" th:text="${svcItem.service.name}">Service Name</div>
+                            <div class="meta">
+                                Qty: <span th:text="${svcItem.quantity}">1</span> •
+                                Duration: <span th:text="${svcItem.service.durationMinutes * svcItem.quantity}">60</span> mins
+                            </div>
+                        </div>
+                        <div class="price" th:text="${#numbers.formatDecimal(svcItem.price * svcItem.quantity, 0, 'COMMA', 0, 'POINT')} + ' VND'">
+                            100,000 VND
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed var(--border); display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-size: 13px; font-weight: 800; color: var(--muted);">TOTAL</div>
+                    <div style="font-size: 18px; font-weight: 950; color: var(--primary);"
+                         th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')} + ' VND'">
+                        0 VND
+                    </div>
+                </div>
+
+            </div>
+        </aside>
+    </div>
+
+</main>
+</body>
+</html>

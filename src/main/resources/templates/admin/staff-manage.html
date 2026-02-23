@@ -7,8 +7,6 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
 
     <link rel="stylesheet" th:href="@{/css/staff-manage.css}"/>
     <link rel="stylesheet" th:href="@{/css/sidebar-admin.css}">
@@ -19,27 +17,17 @@
     <div th:replace="~{fragments/sidebar-admin :: aside(activePage='staffs')}"></div>
 
     <div class="container py-5">
-        <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
-            <span th:text="${message}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-            <span th:text="${error}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h2 class="fw-bold text-dark mb-1">Staff Management</h2>
                 <p class="text-secondary mb-0">Manage staff members and system permissions</p>
             </div>
             <div class="d-flex gap-3 align-items-center">
-                <form th:action="@{/admin/staff-manage}" method="get" class="input-group search-box shadow-sm">
+                <div class="input-group search-box shadow-sm">
                     <span class="input-group-text border-end-0"><i class="bi bi-search text-warning"></i></span>
-                    <input type="text" name="keyword" th:value="${keyword}" class="form-control border-start-0"
-                           placeholder="Search staff...">
-                </form>
-                <a th:href="@{/admin/staff-manage/create}" class="btn btn-add-custom px-4 py-2 shadow-sm">
+                    <input type="text" class="form-control border-start-0" placeholder="Search staff...">
+                </div>
+                <a th:href="@{/admin/add-staff}" class="btn btn-add-custom px-4 py-2 shadow-sm">
                     + Add New Staff
                 </a>
             </div>
@@ -58,47 +46,60 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="staff : ${staffs}" class="border-bottom">
+                    <tr class="border-bottom">
                         <td class="ps-4">
                             <div class="d-flex align-items-center gap-3">
-                                <div class="avatar-circle shadow-sm text-white d-flex align-items-center justify-content-center"
-                                     th:with="firstLetter=${not #strings.isEmpty(staff.fullName) ? #strings.substring(staff.fullName, 0, 1).toUpperCase() : 'U'}"
-                                     th:style="'width: 45px; height: 45px; border-radius: 50%; font-size: 1.2rem; background-color: hsl(' + ((${firstLetter.codePointAt(0)} - 65) * 137 % 360) + ', 70%, 60%);'"
-                                     th:text="${firstLetter}">
-                                </div>
-
+                                <div class="avatar-circle bg-gradient-purple shadow-sm">JD</div>
                                 <div>
-                                    <div class="fw-bold text-dark" th:text="${staff.fullName}">John Doe</div>
-                                    <div class="small text-muted" th:text="'ID: #STF' + ${staff.staffId}">ID: #STF001
-                                    </div>
+                                    <div class="fw-bold text-dark">John Doe</div>
+                                    <div class="small text-muted">ID: #STF001</div>
                                 </div>
                             </div>
                         </td>
                         <td>
-                            <div class="small" th:text="${staff.email}">john.doe@gmail.com</div>
-                            <div class="small text-muted" th:text="${staff.phone != null ? staff.phone : 'No phone'}">
-                                +84852006418
-                            </div>
+                            <div class="small">john.doe@gmail.com</div>
+                            <div class="small text-muted">+1 234-567-8900</div>
                         </td>
                         <td>
-                            <span class="badge rounded-pill px-3 py-2 border"
-                                  th:classappend="${staff.role.roleName == 'Admin' ? 'bg-danger-subtle text-danger border-danger-subtle' :
-                                                 (staff.role.roleName == 'Manager' ? 'bg-info-subtle text-info border-info-subtle' : 'bg-warning-subtle text-warning-emphasis border-warning-subtle')}"
-                                  th:text="${staff.role.roleName}">Admin</span>
+                            <span class="badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle px-3 py-2">Admin</span>
                         </td>
                         <td>
-                            <span class="badge rounded-pill px-3 py-2 border"
-                                  th:classappend="${staff.isActive} ? 'bg-success-subtle text-success border-success-subtle' : 'bg-secondary-subtle text-secondary border-secondary-subtle'"
-                                  th:text="${staff.isActive} ? 'Active' : 'Inactive'">Active</span>
+                            <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2">Active</span>
                         </td>
                         <td class="text-center">
                             <div class="d-flex justify-content-center align-items-center gap-2">
-                                <a th:href="@{/admin/edit-staff/{id}(id=${staff.staffId})}"
-                                   class="btn btn-pill btn-blue-pill">Edit</a>
-                                <a href="#" class="text-danger mx-1"
-                                   th:onclick="'confirmDelete(' + ${staff.staffId} + ')'">
+                                <a th:href="@{/admin/edit-staff}" class="btn btn-pill btn-blue-pill">Edit</a>
+                                <a href="#" class="text-danger mx-1" onclick="confirmDelete('John Doe')">
                                     <i class="bi bi-trash fs-5"></i>
                                 </a>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr class="bg-orange-light">
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="avatar-circle bg-gradient-orange shadow-sm">SW</div>
+                                <div>
+                                    <div class="fw-bold text-dark">Sarah Williams</div>
+                                    <div class="small text-muted">ID: #STF003</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="small">sarah.w@gmail.com</div>
+                            <div class="small text-muted">+1 234-567-8903</div>
+                        </td>
+                        <td>
+                            <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-2">Staff</span>
+                        </td>
+                        <td>
+                            <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2">Inactive</span>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex justify-content-center align-items-center gap-2">
+                                <a href="#" class="btn btn-pill btn-blue-pill">Edit</a>
+                                <a href="#" class="text-danger mx-1"><i class="bi bi-trash fs-5"></i></a>
                             </div>
                         </td>
                     </tr>
@@ -107,7 +108,13 @@
             </div>
 
             <div class="card-footer bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-                <span class="small text-muted" th:text="'Total Staffs: ' + ${staffs.size()}"></span>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item disabled"><a class="page-link border-0" href="#">Previous</a></li>
+                        <li class="page-item active"><a class="page-link border-0 bg-warning" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link border-0" href="#">Next</a></li>
+                    </ul>
+                </nav>
             </div>
         </div>
     </div>

@@ -34,7 +34,7 @@ public class StaffProfileController {
     // -------------------------------------------------------
     // Helper: lấy StaffID từ Authentication
     // -------------------------------------------------------
-    private Integer getStaffIdFromAuth() {
+    private Long getStaffIdFromAuth() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof Staff) {
             return ((Staff) auth.getPrincipal()).getStaffId();
@@ -47,7 +47,7 @@ public class StaffProfileController {
     // -------------------------------------------------------
     @GetMapping("/profile")
     public String showProfile(Model model) {
-        Integer staffId = getStaffIdFromAuth();
+        Long staffId = getStaffIdFromAuth();
         Staff staff = service.getStaffById(staffId);
 
         // Nếu chưa có form trong model (không phải redirect sau lỗi), tạo mới từ entity
@@ -79,7 +79,7 @@ public class StaffProfileController {
                                 Model model) {
         if (result.hasErrors()) {
             // Trả về view trực tiếp (không redirect) để giữ BindingResult
-            Integer staffId = getStaffIdFromAuth();
+            Long staffId = getStaffIdFromAuth();
             Staff staff = service.getStaffById(staffId);
 
             // Thêm passwordForm rỗng cho section đổi mật khẩu
@@ -90,7 +90,7 @@ public class StaffProfileController {
         }
 
         try {
-            Integer staffId = getStaffIdFromAuth();
+            Long staffId = getStaffIdFromAuth();
             service.updateProfile(staffId, form);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật hồ sơ thành công!");
         } catch (IllegalArgumentException e) {
@@ -114,7 +114,7 @@ public class StaffProfileController {
         }
 
         try {
-            Integer staffId = getStaffIdFromAuth();
+            Long staffId = getStaffIdFromAuth();
             service.changePassword(staffId, form);
             redirectAttributes.addFlashAttribute("successMessage", "Đổi mật khẩu thành công!");
         } catch (IllegalArgumentException e) {

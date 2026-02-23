@@ -13,7 +13,7 @@ public class PetCreateDTO {
     private String breed;
     private Integer age;
 
-    private Integer ownerId;
+    private Long ownerId;
 
     private Double price;
     private String imageUrl;
@@ -25,8 +25,4 @@ public class PetCreateDTO {
     private String note;
 
     private MultipartFile imageFile;
-
-    public void setOwnerId(Integer customerId) {
-
-    }
 }

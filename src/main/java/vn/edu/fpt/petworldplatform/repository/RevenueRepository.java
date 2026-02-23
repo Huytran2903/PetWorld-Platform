@@ -15,6 +15,7 @@ public interface RevenueRepository extends JpaRepository<Order, Integer> {
 
     // ============================================================
     // 1) Doanh thu hôm nay
+    //    Dùng >= startOfDay AND < startOfNextDay thay CAST AS DATE
     // ============================================================
     @Query(value =
             "SELECT COALESCE(SUM(o.TotalAmount), 0) " +
@@ -41,6 +42,7 @@ public interface RevenueRepository extends JpaRepository<Order, Integer> {
 
     // ============================================================
     // 3) Doanh thu tháng này
+    //    Dùng DATEPART thay YEAR()/MONTH() (MySQL syntax, ko hợp SQL Server)
     // ============================================================
     @Query(value =
             "SELECT COALESCE(SUM(o.TotalAmount), 0) " +
@@ -53,30 +55,7 @@ public interface RevenueRepository extends JpaRepository<Order, Integer> {
                                  @Param("month") int month);
 
     // ============================================================
-    // 4) Doanh thu toàn thời gian
-    // ============================================================
-    @Query(value =
-            "SELECT COALESCE(SUM(o.TotalAmount), 0) " +
-            "FROM Orders o " +
-            "WHERE o.Status IN ('paid', 'done')",
-            nativeQuery = true)
-    BigDecimal getAllTimeRevenue();
-
-    // ============================================================
-    // 5) Doanh thu theo date range
-    // ============================================================
-    @Query(value =
-            "SELECT COALESCE(SUM(o.TotalAmount), 0) " +
-            "FROM Orders o " +
-            "WHERE o.Status IN ('paid', 'done') " +
-            "  AND o.CreatedAt >= :startDate " +
-            "  AND o.CreatedAt <= :endDate",
-            nativeQuery = true)
-    BigDecimal getRevenueByDateRange(@Param("startDate") LocalDateTime startDate,
-                                     @Param("endDate")   LocalDateTime endDate);
-
-    // ============================================================
-    // 6) Số đơn pending toàn hệ thống
+    // 4) Số đơn chờ xử lý
     // ============================================================
     @Query(value =
             "SELECT COUNT(*) FROM Orders o WHERE o.Status = 'pending'",
@@ -84,19 +63,29 @@ public interface RevenueRepository extends JpaRepository<Order, Integer> {
     Long getPendingOrdersCount();
 
     // ============================================================
-    // 7) Số đơn pending theo date range
+    // 5) Giao dịch gần đây (10 đơn mới nhất)
+    //    JOIN Customers lấy FullName, LEFT JOIN Payments lấy Method
+    //    Trả Object[] rồi map sang DTO ở Service
     // ============================================================
-    @Query(value =
-            "SELECT COUNT(*) FROM Orders o " +
-            "WHERE o.Status = 'pending' " +
-            "  AND o.CreatedAt >= :startDate " +
-            "  AND o.CreatedAt <= :endDate",
-            nativeQuery = true)
-    Long getPendingOrdersCountByDateRange(@Param("startDate") LocalDateTime startDate,
-                                          @Param("endDate")   LocalDateTime endDate);
+// Trong RevenueRepository — query này không filter theo Status cũng được để debug
+@Query(value =
+        "SELECT TOP 10 " +
+        "  o.OrderCode, " +
+        "  c.FullName, " +
+        "  o.CreatedAt, " +
+        "  o.TotalAmount, " +
+        "  p.Method, " +
+        "  o.Status " +
+        "FROM Orders o " +
+        "JOIN Customers c ON o.CustomerID = c.CustomerID " +
+        "LEFT JOIN Payments p ON p.OrderID = o.OrderID " +
+        "ORDER BY o.CreatedAt DESC",
+        nativeQuery = true)
+List<Object[]> getRecentTransactions();
 
     // ============================================================
-    // 8) Tất cả giao dịch (không giới hạn)
+    // 6) Filter theo date range
+    //    Dùng COALESCE để handle null param
     // ============================================================
     @Query(value =
             "SELECT " +
@@ -110,27 +99,8 @@ public interface RevenueRepository extends JpaRepository<Order, Integer> {
             "JOIN Customers c ON o.CustomerID = c.CustomerID " +
             "LEFT JOIN Payments p ON p.OrderID = o.OrderID " +
             "WHERE o.Status IN ('paid', 'done', 'pending') " +
-            "ORDER BY o.CreatedAt DESC",
-            nativeQuery = true)
-    List<Object[]> getAllTransactions();
-
-    // ============================================================
-    // 9) Giao dịch theo date range
-    // ============================================================
-    @Query(value =
-            "SELECT " +
-            "  o.OrderCode, " +
-            "  c.FullName, " +
-            "  o.CreatedAt, " +
-            "  o.TotalAmount, " +
-            "  p.Method, " +
-            "  o.Status " +
-            "FROM Orders o " +
-            "JOIN Customers c ON o.CustomerID = c.CustomerID " +
-            "LEFT JOIN Payments p ON p.OrderID = o.OrderID " +
-            "WHERE o.Status IN ('paid', 'done', 'pending') " +
-            "  AND o.CreatedAt >= :startDate " +
-            "  AND o.CreatedAt <= :endDate " +
+            "  AND o.CreatedAt >= COALESCE(:startDate, '1900-01-01 00:00:00') " +
+            "  AND o.CreatedAt <= COALESCE(:endDate,   '2099-12-31 23:59:59') " +
             "ORDER BY o.CreatedAt DESC",
             nativeQuery = true)
     List<Object[]> getOrdersByDateRange(@Param("startDate") LocalDateTime startDate,

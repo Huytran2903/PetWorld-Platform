@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import vn.edu.fpt.petworldplatform.dto.RevenueDTO;
 import vn.edu.fpt.petworldplatform.service.RevenueService;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -36,47 +35,38 @@ public class RevenueController {
 
             Model model) {
 
-        // --- Stats cố định (luôn theo hôm nay) ---
-        model.addAttribute("todayRevenue",  service.getTodayRevenue());
-        model.addAttribute("percentChange", service.getPercentChange());
+        // --- Stats cards ---
+        model.addAttribute("todayRevenue",    service.getTodayRevenue());
+        model.addAttribute("percentChange",   service.getPercentChange());
+        model.addAttribute("monthlyRevenue",  service.getMonthlyRevenue());
+        model.addAttribute("pendingOrders",   service.getPendingOrdersCount());
 
+        // Tháng hiện tại dạng "MM/yyyy" để hiển thị
         String currentMonth = String.format("%02d/%d",
                 LocalDate.now().getMonthValue(), LocalDate.now().getYear());
         model.addAttribute("currentMonth", currentMonth);
 
-        // --- Xử lý filter ---
+        // --- Transactions table ---
+        List<RevenueDTO> transactions;
         boolean filtered = (startDate != null || endDate != null);
 
-        BigDecimal filteredRevenue;
-        Long pendingOrders;
-        List<RevenueDTO> transactions;
-
         if (filtered) {
-            // fallback nếu chỉ chọn 1 trong 2
-            LocalDateTime start = (startDate != null)
-                    ? startDate.atStartOfDay()
-                    : LocalDateTime.of(1900, 1, 1, 0, 0, 0);
-
-            LocalDateTime end = (endDate != null)
-                    ? endDate.atTime(23, 59, 59)
-                    : LocalDateTime.now();
-
-            filteredRevenue = service.getRevenueByDateRange(start, end);
-            pendingOrders   = service.getPendingOrdersCountByDateRange(start, end);
-            transactions    = service.getOrdersByDateRange(start, end);
+            // Chuyển LocalDate -> LocalDateTime cho query
+            LocalDateTime start = startDate != null
+                    ? startDate.atStartOfDay()                          // 00:00:00
+                    : null;
+            LocalDateTime end   = endDate != null
+                    ? endDate.atTime(23, 59, 59)                        // 23:59:59
+                    : null;
+            transactions = service.getOrdersByDateRange(start, end);
         } else {
-            // Không filter → toàn thời gian
-            filteredRevenue = service.getAllTimeRevenue();
-            pendingOrders   = service.getPendingOrdersCount();
-            transactions    = service.getAllTransactions();
+            transactions = service.getRecentTransactions();
         }
 
-        model.addAttribute("filteredRevenue", filteredRevenue);
-        model.addAttribute("pendingOrders",   pendingOrders);
-        model.addAttribute("transactions",    transactions);
-        model.addAttribute("filtered",        filtered);
-        model.addAttribute("startDate",       startDate);
-        model.addAttribute("endDate",         endDate);
+        model.addAttribute("transactions", transactions);
+        model.addAttribute("filtered",     filtered);
+        model.addAttribute("startDate",    startDate);  
+        model.addAttribute("endDate",      endDate);
 
         return "admin/report-revenue";
     }

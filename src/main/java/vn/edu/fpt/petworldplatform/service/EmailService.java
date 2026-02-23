@@ -22,6 +22,7 @@ public class EmailService {
     private String baseUrl = "http://localhost:8080";
 
     /**
+     * Phương thức gửi mail chung (Hỗ trợ HTML)
      *
      * @Async: Giúp chạy ngầm, không làm người dùng phải chờ mail gửi xong mới load trang web.
      */
