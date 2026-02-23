@@ -1,0 +1,124 @@
+:root {
+    --primary-orange: #ff9f43;
+    --primary-orange-hover: #ee8e32;
+    --dark-blue: #2e66ff;
+    --dark-blue-hover: #1b52ee;
+    --bg-soft-orange: #fff8f1;
+    --text-gray: #444444;
+}
+
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: var(--text-gray);
+}
+
+/* Header & Search Box */
+.btn-add-custom {
+    background-color: var(--primary-orange);
+    border-radius: 10px;
+    border: none;
+    color: white;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-add-custom:hover {
+    background-color: var(--primary-orange-hover);
+    color: white;
+    transform: translateY(-1px);
+}
+
+.search-box {
+    width: 280px;
+}
+
+.search-box .input-group-text {
+    border-radius: 10px 0 0 10px;
+    background-color: white;
+    border-color: #dee2e6;
+}
+
+.search-box .form-control {
+    border-radius: 0 10px 10px 0;
+    border-color: #dee2e6;
+}
+
+/* Avatar Styling */
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.bg-gradient-purple {
+    background: linear-gradient(117deg, #f6339a 0%, #c800de 100%);
+}
+
+.bg-gradient-blue {
+    background: linear-gradient(117deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.bg-gradient-orange {
+    background: linear-gradient(117deg, #fa709a 0%, #fee140 100%);
+}
+
+/* Table Styling */
+.table thead th {
+    background-color: #fdfdfd;
+    padding: 1.25rem 0.75rem;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #6c757d;
+}
+
+/* Badge & Action Buttons */
+.badge {
+    font-weight: 600;
+    min-width: 85px;
+    font-size: 0.75rem;
+}
+
+.btn-pill {
+    border-radius: 50px;
+    border: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.4rem 1.2rem;
+    transition: all 0.2s ease;
+}
+
+.btn-blue-pill {
+    background-color: var(--dark-blue);
+    color: white;
+}
+
+.btn-blue-pill:hover {
+    background-color: var(--dark-blue-hover);
+    color: white;
+}
+
+
+.bg-orange-light {
+    background-color: var(--bg-soft-orange) !important;
+}
+.flex-grow-1 {
+    background-color: #ffffff !important;
+    min-height: 100vh;
+}
+
+.container {
+    background-color: #ffffff;
+}
+
+.card {
+    border: 1px solid #f0f0f0;
+    background-color: #ffffff;
+}

@@ -1,0 +1,62 @@
+/* Import Font */
+body {
+    font-family: "Arimo", Helvetica, Arial, sans-serif;
+    background-color: #ffa54f; /* Màu nền cam của bạn */
+    margin: 0;
+}
+
+/* Header Section */
+.header-section {
+    background-color: #ffa54f;
+    color: #0f1112;
+}
+
+/* Main Content Area */
+.order-list-wrapper {
+    background-color: #ffa54f;
+    width: 100%;
+}
+
+/* Custom Card Styling */
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    width: 100%; /* Full width trong container */
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Badges custom colors based on your design */
+.badge {
+    font-weight: 400;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+}
+
+.bg-delivered {
+    background-color: #a09a78;
+    color: #0f1112;
+}
+
+/* Typography Overrides */
+.text-price {
+    color: #a09a78;
+    font-size: 18px;
+}
+
+.text-secondary {
+    color: #0f1011b2 !important;
+}
+
+/* Icon sizing */
+.order-icon {
+    object-fit: contain;
+}
+
+.arrow-icon img {
+    width: 12px;
+    height: auto;
+}

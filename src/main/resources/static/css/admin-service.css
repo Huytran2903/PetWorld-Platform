@@ -1,0 +1,17 @@
+/* Admin Service / Service Types - Primary color override (orange #FFA54F) */
+:root {
+    --bs-primary: #FFA54F;
+    --bs-primary-rgb: 255, 165, 79;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: #e8943a;
+    border-color: #e8943a;
+}
+
+.btn-outline-primary:hover {
+    background-color: #FFA54F;
+    border-color: #FFA54F;
+    color: #fff;
+}

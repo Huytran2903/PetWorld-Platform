@@ -1,0 +1,84 @@
+/* Tổng thể nền tảng */
+body {
+    background-color: #f9fafb;
+    font-family: "Arimo", Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+}
+
+.app-container {
+    background-color: #f9fafb;
+    min-height: 100vh;
+}
+
+/* Header mượt mà */
+.page-header {
+    background-color: #ffa54f; /* Màu cam chủ đạo */
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.page-header h1 {
+    color: #0a0a0a !important;
+}
+
+/* Nút Add New Pet */
+.btn-add-new {
+    background-color: #101727;
+    color: #ffffff;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-add-new:hover {
+    background-color: #1f2937;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Table Styling */
+.card {
+    border-radius: 20px !important;
+}
+
+.table thead th {
+    background-color: #f8f9fa;
+    color: #6b7280;
+    font-size: 0.75rem;
+    padding: 1rem 0.5rem;
+    border-bottom: 2px solid #edf2f7;
+}
+
+.table tbody td {
+    padding: 1.25rem 0.5rem;
+}
+
+/* Các trường Badge màu sắc */
+.badge {
+    padding: 0.5em 1em;
+    font-weight: 500;
+}
+
+/* Hiệu ứng các nút Action (Edit/Delete) */
+.btn-group .btn {
+    font-size: 0.85rem;
+    background-color: #ffffff;
+}
+
+.btn-group .btn:hover {
+    background-color: #f3f4f6;
+    transform: none; /* Không nhích lên trong group */
+}
+
+/* Thanh tìm kiếm */
+.search-box .form-control {
+    background-color: #f3f4f5;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+}
+
+.search-box .form-control:focus {
+    background-color: #ffffff;
+    border-color: #ffa54f;
+    box-shadow: 0 0 0 4px rgba(255, 165, 79, 0.15);
+}

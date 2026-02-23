@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pet World - E-commerce</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <link rel="stylesheet" th:href="@{/css/style.css}" />
+</head>
+<body>
+
+<div class="pet-world-container">
+
+  <header class="pw-header">
+    <div class="container-fluid px-lg-5">
+      <div class="row align-items-center py-2">
+        <div class="col-auto">
+          <img class="logo-petshop" th:src="@{/images/logo-petshop.png}"
+               alt="logo-petshop"/>
+          <div class="pw-logo">Pet World</div>
+        </div>
+        <div class="col">
+          <div class="pw-search-wrapper">
+            <i class="bi bi-search pw-search-icon"></i>
+            <input type="text" class="form-control pw-input" placeholder="Search products...">
+          </div>
+        </div>
+        <div class="col-auto">
+          <div class="pw-cart">
+            <i class="bi bi-cart3"></i> <span>Cart</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="pw-filter-bar">
+    <div class="container-fluid px-lg-5">
+      <div class="d-flex gap-2">
+        <button class="pw-btn-filter active">All</button>
+        <button class="pw-btn-filter">Type <i class="bi bi-chevron-down"></i></button>
+        <button class="pw-btn-filter">Price <i class="bi bi-chevron-down"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container-fluid px-lg-5 py-4">
+    <div class="pw-product-heading mb-4">
+      <h2 th:if="${formMode == 'product'}">Product</h2>
+      <h2 th:if="${formMode == 'pet'}">Pet</h2>
+      <span class="text-secondary">8 products found</span>
+    </div>
+
+    <div class="row g-4">
+
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+        <div class="pw-card">
+          <div class="pw-img-box" style="background-image: url('https://via.placeholder.com/250');"></div>
+          <div class="pw-card-body">
+            <p class="pw-product-name">Food</p>
+            <div class="pw-rating">⭐ 4.8 <span class="text-muted small">(125)</span></div>
+            <div class="pw-price-row">
+              <span class="pw-price">$19.99</span>
+              <span class="pw-stock-label">In Stock</span>
+            </div>
+            <button class="pw-btn-add">🛒 Add to Cart</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+        <div class="pw-card">
+          <div class="pw-img-box out-of-stock" style="background-image: url('https://via.placeholder.com/250');">
+            <div class="pw-overlay">Out of Stock</div>
+          </div>
+          <div class="pw-card-body">
+            <p class="pw-product-name">Buble</p>
+            <div class="pw-rating">⭐ 4.6 <span class="text-muted small">(156)</span></div>
+            <div class="pw-price-row">
+              <span class="pw-price">$4.99</span>
+            </div>
+            <button class="pw-btn-add disabled-btn" disabled>Out of Stock</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

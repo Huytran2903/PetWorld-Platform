@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Stats - PetShop DB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: { colors: { primary: '#0d9488', primaryHover: '#0f766e', secondary: '#f97316', bgLight: '#f3f4f6' }, fontFamily: { sans: ['Nunito', 'sans-serif'] } }
+            }
+        }
+    </script>
+</head>
+<body class="bg-bgLight font-sans text-gray-700">
+    <div class="flex h-screen overflow-hidden">
+        <aside class="w-64 bg-white shadow-xl flex flex-col z-10 hidden md:flex border-r border-gray-100">
+            <div class="p-6 flex items-center gap-3 border-b border-gray-100">
+                <i class="fa-solid fa-paw text-3xl text-primary"></i>
+                <span class="text-2xl font-extrabold text-gray-800">PetShop<span class="text-secondary">DB</span></span>
+            </div>
+            <nav class="flex-1 overflow-y-auto py-4">
+                <ul class="space-y-1">
+                    <li><a href="staff-dashboard.html" class="flex items-center gap-3 px-6 py-3 text-gray-600 hover:bg-gray-50"><i class="fa-solid fa-chart-line w-5 text-center"></i><span class="font-semibold">Dashboard</span></a></li>
+                    <li><a href="assigned-appointments.html" class="flex items-center gap-3 px-6 py-3 text-gray-600 hover:bg-gray-50"><i class="fa-solid fa-list-check w-5 text-center"></i><span class="font-semibold">My Appointments</span></a></li>
+                    <li><a th:href="@{/admin/service-manager}" href="/admin/service-manager" class="flex items-center gap-3 px-6 py-3 text-gray-600 hover:bg-gray-50"><i class="fa-solid fa-briefcase-medical w-5 text-center"></i><span class="font-semibold">Service Manager</span></a></li>
+                    <li><a href="report-center.html" class="flex items-center gap-3 px-6 py-3 bg-teal-50 text-primary border-r-4 border-primary"><i class="fa-solid fa-chart-pie w-5 text-center"></i><span class="font-semibold">Reports</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <div class="flex-1 flex flex-col h-screen overflow-hidden">
+            <main class="flex-1 overflow-x-hidden overflow-y-auto p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <a href="report-center.html" class="text-gray-500 hover:text-primary mb-2 inline-block"><i class="fa-solid fa-arrow-left mr-2"></i>Back to Reports</a>
+                        <h2 class="text-2xl font-bold text-gray-800">Service Usage Stats (Tần suất Dịch vụ)</h2>
+                        <p class="text-sm text-gray-500">Source: <code>dbo.AppointmentServices</code> (Count usage)</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                    <h3 class="font-bold text-gray-800 mb-6">Top Dịch vụ phổ biến (Top Used Services)</h3>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="font-bold text-gray-700">Tắm Spa cao cấp</span>
+                                <span class="text-gray-500">120 bookings (45%)</span>
+                            </div>
+                            <div class="w-full bg-gray-100 rounded-full h-4">
+                                <div class="bg-pink-500 h-4 rounded-full" style="width: 45%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="font-bold text-gray-700">Cắt tỉa lông chuyên nghiệp</span>
+                                <span class="text-gray-500">85 bookings (30%)</span>
+                            </div>
+                            <div class="w-full bg-gray-100 rounded-full h-4">
+                                <div class="bg-purple-500 h-4 rounded-full" style="width: 30%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="font-bold text-gray-700">Tiêm phòng dại</span>
+                                <span class="text-gray-500">40 bookings (15%)</span>
+                            </div>
+                            <div class="w-full bg-gray-100 rounded-full h-4">
+                                <div class="bg-blue-500 h-4 rounded-full" style="width: 15%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="font-bold text-gray-700">Khám sức khỏe</span>
+                                <span class="text-gray-500">25 bookings (10%)</span>
+                            </div>
+                            <div class="w-full bg-gray-100 rounded-full h-4">
+                                <div class="bg-green-500 h-4 rounded-full" style="width: 10%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</body>
+</html>

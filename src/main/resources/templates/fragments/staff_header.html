@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="header_sidebar">
+
+    <div class="topbar">
+        Staff portal — See latest <a href="#">Tasks</a> and schedule updates
+    </div>
+
+    <div class="navbar">
+        <div class="wrap">
+            <div class="brand">
+                <div class="logo">Pets</div>
+                <div>PetShop Staff</div>
+            </div>
+
+            <nav class="navlinks">
+                <a th:href="@{/staff/assignments}"
+                   th:classappend="${currentPage == 'assignments'} ? 'active' : ''">
+                    Assigned Appointments
+                </a>
+                <a href="#">Work Schedule</a>
+                <a href="#">Notifications</a>
+            </nav>
+
+            <div class="navright">
+                <span>👤 <span th:text="${session.currentUser != null ? session.currentUser.username : 'Staff Demo'}">Staff</span></span>
+                <span class="role-pill">STAFF</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

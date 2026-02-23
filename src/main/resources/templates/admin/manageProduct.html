@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/managePet.css" />
+    <title>Pet Management System</title>
+</head>
+<body>
+<div class="app-container">
+    <header class="page-header py-4 shadow-sm mb-4">
+        <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3 mb-1 fw-bold text-dark">Product Management System</h1>
+            </div>
+            <button class="btn btn-add-new d-flex align-items-center gap-2 px-4 py-2 shadow-sm">
+                <span class="fs-4">+</span> Add New Product
+            </button>
+        </div>
+    </header>
+
+    <main class="container-fluid px-4">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-header bg-white py-3 border-0">
+                <div class="row g-3 align-items-center">
+                    <div class="col-md-4">
+                        <div class="search-box position-relative">
+                            <input type="text" class="form-control rounded-pill ps-5" placeholder="Search product by name...">
+                            <span class="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted">🔍</span>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select rounded-pill">
+                            <option selected>Categories</option>
+                            <option>Dogs</option>
+                            <option>Cats</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-uppercase small fw-bold">
+                    <tr>
+                        <th class="ps-4">ID</th>
+                        <th>Image</th>
+                        <th>Product Name</th>
+                        <th>Price</th>
+                        <th>Discount</th>
+                        <th>Description</th>
+                        <th>Category_Id</th>
+                        <th>Stock</th>
+                        <th class="text-end pe-4">Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td class="ps-4 fw-bold">#001</td>
+                        <td>
+                            <img src="https://via.placeholder.com/50" class="rounded-3 border" alt="pet">
+                        </td>
+                        <td>
+                            <div class="fw-bold text-dark">Food</div>
+                        </td>
+                        <td class="fw-bold text-dark">$1,200</td>
+                        <td class="text-danger">-10%</td>
+                        <td>Description...</td>
+                        <td>
+                            <span class="badge bg-primary-subtle text-primary rounded-pill px-3">3</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-warning-subtle text-warning rounded-pill px-3">30</span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="btn-group shadow-sm rounded-pill overflow-hidden">
+                                <button class="btn btn-sm btn-outline-secondary border-0 px-3">Edit</button>
+                                <button class="btn btn-sm btn-outline-danger border-0 px-3">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

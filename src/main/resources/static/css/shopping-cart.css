@@ -1,0 +1,83 @@
+body {
+    font-family: "Arimo", Helvetica, Arial, sans-serif;
+    background-color: #ffa54f;
+}
+
+/* 1. GIẢM KÍCH THƯỚC ẢNH (Từ 96px -> 72px) */
+.product-img {
+    width: 60px;
+    height: 60px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 8px; /* Bo góc nhỏ hơn xíu cho cân đối */
+    background-color: #f3f4f6;
+}
+
+/* 2. THU NHỎ NÚT SỐ LƯỢNG (Chiều cao 36px -> 30px) */
+.quantity-control {
+    background-color: white;
+    width: 85px;  /* Giảm chiều rộng */
+    height: 20px;  /* Giảm chiều cao */
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2px;
+}
+
+.quantity-control button {
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+/* Chỉnh icon trong nút số lượng nhỏ lại */
+.quantity-control i {
+    font-size: 0.6rem;
+}
+
+.quantity-control button:hover {
+    background-color: #e9ecef;
+}
+
+.btn-remove {
+    color: #9ca3af;
+    transition: color 0.2s;
+    padding: 0;
+}
+
+.btn-remove:hover {
+    color: #dc3545;
+}
+
+.card {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.bg-summary {
+    background-color: #f9fafb;
+}
+
+.btn-dark-custom {
+    background-color: #030213;
+    color: white;
+    border: none;
+}
+
+.btn-dark-custom:hover {
+    background-color: #1a1a2e;
+    color: white;
+}
+
+/* Padding nhỏ hơn cho Card Body */
+.compact-padding {
+    padding: 1rem !important; /* Force padding 16px */
+}

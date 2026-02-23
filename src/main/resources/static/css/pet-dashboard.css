@@ -1,0 +1,31 @@
+/* Màu nền body */
+body { 
+    background-color: #f3f4f6; 
+}
+
+/* Sidebar Active - Giữ nguyên màu cam #FFA54F */
+.sidebar-link.active {
+    background-color: #FFF3E6;
+    color: #FFA54F; /* Cam chủ đạo */
+    border-right: 4px solid #FFA54F; /* Viền cam */
+}
+
+/* Tab Active - Giữ nguyên màu cam #FFA54F */
+.tab-btn.active {
+    border-bottom: 3px solid #FFA54F;
+    color: #FFA54F;
+    font-weight: 700;
+}
+
+.hide-section { 
+    display: none; 
+}
+
+.fade-in { 
+    animation: fadeIn 0.3s ease-in-out; 
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}

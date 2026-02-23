@@ -1,0 +1,289 @@
+:root {
+    --primary-orange: #FFA54F;
+    --status-green-bg: #EBF9F1;
+    --status-green-text: #41BC63;
+    --status-gold-bg: #FBF8F3;
+    --status-gold-text: #BC9241;
+    --status-red-bg: #FBF3F3;
+    --status-red-text: #BC4141;
+    --bg-gray: #F5F7FA;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: var(--bg-gray);
+    font-size: 14px;
+}
+
+.container-fluid {
+    padding-left: 2rem;
+    padding-right: 2rem;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+
+/* Main Content Styling */
+.page-title {
+    font-weight: 700;
+    font-size: 32px;
+    color: #000;
+    letter-spacing: -0.5px;
+}
+
+/* Search Box */
+.search-box .input-group-text {
+    background-color: #fff;
+    border-right: none;
+}
+
+.search-box .form-control {
+    border-left: none;
+    box-shadow: none;
+}
+
+.search-box {
+    width: 350px !important;
+}
+
+/* Custom Buttons */
+.btn-orange {
+    background-color: var(--primary-orange);
+    color: white;
+    font-weight: 700;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+}
+
+.btn-orange:hover {
+    background-color: #e69547;
+    color: white;
+}
+
+
+.btn-action-pay {
+    background-color: var(--primary-orange);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 8px;
+    padding: 6px 12px;
+    border: none;
+    white-space: nowrap;
+    display: inline-block;
+    transition: all 0.2s;
+}
+
+.btn-action-pay:hover {
+    background-color: #e69547;
+    color: white;
+}
+
+
+.btn-action-assign {
+    background-color: #1D64FD;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 8px;
+    padding: 6px 12px;
+    border: none;
+    white-space: nowrap;
+    display: inline-block;
+    transition: all 0.2s;
+}
+
+.d-flex.gap-2.justify-content-center {
+    gap: 15px !important;
+}
+
+.btn-action-pay, .btn-action-assign {
+    padding: 8px 20px;
+    font-size: 13px;
+}
+
+.btn-action-assign:hover {
+    background-color: #1557d8;
+    color: white;
+}
+
+.btn-action-gray {
+    background-color: #DEDEDE;
+    color: #838383;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 8px;
+    padding: 6px 12px;
+    border: none;
+    white-space: nowrap;
+}
+
+/* Table Styling */
+.table-card {
+    border: none;
+    margin-top: 10px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.table thead th {
+    font-weight: 700;
+    font-size: 15px;
+    background-color: #fcfcfc;
+    padding: 20px 16px;
+    white-space: nowrap;
+}
+
+.table tbody td {
+    vertical-align: middle;
+    padding: 20px 16px;
+    font-weight: 500;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14.5px;
+}
+
+/* Status Badges */
+/* Tìm và sửa class này trong thẻ <style> */
+.status-badge {
+    padding: 6px 20px;
+
+    border-radius: 50px;
+
+    font-size: 12px;
+    font-weight: 700;
+    display: inline-block;
+    text-align: center;
+    min-width: 100px;
+    border: 1px solid transparent;
+}
+
+/* 1. Pending (Chờ xử lý)*/
+.status-pending {
+    background-color: #FFF8E1;
+    color: #F57C00;
+    border-color: #FFE0B2;
+}
+
+/* 2. Confirmed (Đã xác nhận)*/
+.status-confirmed {
+    background-color: #E3F2FD;
+    color: #1976D2;
+    border-color: #BBDEFB;
+}
+
+/* 3. In Progress (Đang thực hiện)*/
+.status-in_progress {
+    background-color: #E8EAF6;
+    color: #3F51B5;
+    border-color: #C5CAE9;
+    animation: pulse 2s infinite;
+}
+
+/* 4. Done (Hoàn thành) */
+.status-done {
+    background-color: #E8F5E9;
+    color: #388E3C;
+    border-color: #C8E6C9;
+}
+
+/* 5. Canceled (Đã hủy)*/
+.status-canceled {
+    background-color: #FFEBEE;
+    color: #D32F2F;
+    border-color: #FFCDD2;
+}
+
+/* 6. No Show (Vắng mặt) */
+.status-no_show {
+    background-color: #F5F5F5;
+    color: #616161;
+    border-color: #E0E0E0;
+    text-decoration: line-through;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Icon Buttons in Table */
+.btn-icon {
+    border: none;
+    background: none;
+    padding: 4px;
+    transition: transform 0.2s;
+}
+
+.btn-icon:hover {
+    transform: scale(1.1);
+}
+
+/* Pagination */
+.pagination .page-link {
+    border: none;
+    color: #000;
+    font-weight: 500;
+    border-radius: 8px;
+    margin: 0 4px;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #FFA54F;
+    color: white;
+}
+
+
+.table-alternating tbody tr:nth-of-type(even) td {
+    background-color: #FFF4E9;
+    border-bottom: 1px solid #fff;
+}
+
+
+.table-alternating tbody tr:nth-of-type(odd) td {
+    background-color: #ffffff;
+    border-bottom: 1px solid #FFF4E9;
+}
+
+.table-alternating tbody tr:hover td {
+    background-color: #ffe6cc !important;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.table-card .table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.bg-orange {
+    background-color: #FFA54F;
+    color: white;
+}
+
+.btn-close-white {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.btn-confirm-green {
+    background-color: #EBF9F1;
+    color: #41BC63;
+    border: 1px solid #41BC63;
+    border-radius: 50px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-confirm-green:hover {
+    background-color: #41BC63;
+    color: white;
+}

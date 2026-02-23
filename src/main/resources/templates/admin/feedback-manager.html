@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Manager</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/pet-dashboard.css}">
+    <script th:src="@{/js/pet-dashboard.js}"></script>
+</head>
+<body class="bg-gray-50">
+
+<div class="min-h-screen p-6">
+    <div class="max-w-7xl mx-auto fade-in">
+        <div class="flex justify-between items-end mb-6">
+            <div>
+                <h2 class="text-3xl font-extrabold text-gray-800">Feedback Manager</h2>
+                <p class="text-sm text-gray-500 mt-1">Review and respond to customer feedback (Feature 7).</p>
+            </div>
+            <div class="flex gap-2">
+                <button class="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-50 font-medium">All Reviews</button>
+                <button class="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-50 font-medium">Pending Only</button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+            <table class="w-full text-left">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="p-5 text-sm font-bold text-gray-600 uppercase tracking-wide">Type / Info</th>
+                    <th class="p-5 text-sm font-bold text-gray-600 uppercase tracking-wide">Rating</th>
+                    <th class="p-5 text-sm font-bold text-gray-600 uppercase tracking-wide w-1/3">Content</th>
+                    <th class="p-5 text-sm font-bold text-gray-600 uppercase tracking-wide">Status</th>
+                    <th class="p-5 text-right text-sm font-bold text-gray-600 uppercase tracking-wide">Action</th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                <tr class="hover:bg-blue-50/50 transition duration-200">
+                    <td class="p-5 align-top">
+                        <span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase">Service</span>
+                        <div class="mt-2 font-bold text-gray-800">Spa Bathing</div>
+                        <div class="text-xs text-gray-500">by Customer #101</div>
+                    </td>
+                    <td class="p-5 align-top">
+                        <div class="flex text-yellow-400 text-sm gap-1"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                        <span class="text-xs font-bold text-gray-400 mt-1 block">5.0 / 5.0</span>
+                    </td>
+                    <td class="p-5 align-top">
+                        <div class="font-bold text-gray-800 mb-1">"Very satisfied!"</div>
+                        <p class="text-sm text-gray-600 italic">"The groomer was very gentle with LuLu. Highly recommend!"</p>
+                    </td>
+                    <td class="p-5 align-top">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span> Pending
+                                </span>
+                    </td>
+                    <td class="p-5 align-top text-right">
+                        <div class="flex justify-end gap-2">
+                            <button class="w-8 h-8 rounded bg-green-100 text-green-600 hover:bg-green-600 hover:text-white transition flex items-center justify-center" title="Approve"><i class="fa-solid fa-check"></i></button>
+                            <button class="w-8 h-8 rounded bg-red-100 text-red-500 hover:bg-red-500 hover:text-white transition flex items-center justify-center" title="Reject"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

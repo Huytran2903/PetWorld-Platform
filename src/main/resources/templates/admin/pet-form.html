@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${formMode == 'add' ? 'Add New Pet' : 'Edit Pet'} + ' - Admin'"></title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/pet-form.css}">
+</head>
+<body>
+
+<div class="main-wrapper d-flex align-items-center justify-content-center py-5">
+    <div class="form-container px-3" style="width: 100%; max-width: 1000px;">
+
+        <div class="mb-4 text-start ps-2">
+            <h2 th:text="${formMode == 'edit' ? 'Edit a pet' : 'Create a pet'}"></h2>
+            <p class="text-secondary small">Enter full details and upload an image for the pet entry.</p>
+        </div>
+
+        <div class="card pet-card border-0 shadow-lg p-4">
+            <form th:action="@{/admin/pet/save}"
+                  method="post"
+                  th:object="${selectedPet}"
+                  enctype="multipart/form-data">
+
+                <input type="hidden" th:field="*{petID}">
+
+                <input type="hidden" th:field="*{imageUrl}">
+
+                <div class="row g-4">
+                    <div class="col-lg-5">
+                        <div class="upload-container border rounded-3 d-flex flex-column align-items-center justify-content-center bg-light p-4 text-center"
+                             style="min-height: 380px; border-style: dashed !important; position: relative;">
+
+                            <div id="preview-box" class="mb-3"
+                                 th:style="${selectedPet.imageUrl != null ? 'display:block' : 'display:none'}">
+                                <img id="img-preview"
+                                     th:src="${selectedPet.imageUrl != null ? '/uploads/' + selectedPet.imageUrl : '#'}"
+                                     class="img-thumbnail shadow-sm"
+                                     style="max-height: 250px; max-width: 100%; object-fit: contain;">
+                            </div>
+
+                            <div id="placeholder-box"
+                                 th:style="${selectedPet.imageUrl != null ? 'display:none' : 'display:block'}">
+                                <i class="fa-solid fa-cloud-arrow-up fs-1 text-warning mb-3"></i>
+                                <p class="small text-muted mb-3">Click to upload pet image</p>
+                            </div>
+
+                            <label for="file-upload" class="btn btn-outline-warning btn-sm px-4 shadow-sm">
+                                Choose File
+                            </label>
+
+                            <input id="file-upload"
+                                   type="file"
+                                   name="imageFile"
+                                   accept="image/png, image/jpeg, image/jpg"
+                                   class="d-none"
+                                   onchange="previewImage(this)">
+
+                            <div id="file-name" class="small text-muted mt-2 text-break">
+                                <span th:text="${selectedPet.imageUrl != null ? selectedPet.imageUrl : 'No file chosen'}"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-7">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-secondary">
+                                    <i class="bi bi-tag-fill me-1 text-warning"></i> Name *
+                                </label>
+                                <input type="text" th:field="*{name}" class="form-control shadow-none" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-secondary">
+                                    <i class="fa-solid fa-dog me-1 text-warning"></i> Breed
+                                </label>
+                                <input type="text" th:field="*{breed}" class="form-control shadow-none">
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-secondary">
+                                    <i class="bi bi-grid-fill me-1 text-warning"></i> Category
+                                </label>
+                                <select class="form-select shadow-none" th:field="*{petType}">
+                                    <option value="Dog">Dog</option>
+                                    <option value="Cat">Cat</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-secondary">
+                                    <i class="bi bi-gender-ambiguous me-1 text-warning"></i> Gender
+                                </label>
+                                <select class="form-select shadow-none" th:field="*{gender}">
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small text-secondary">Age (mo)</label>
+                                <input type="number" min="0" th:field="*{ageMonths}" class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small text-secondary">Weight (kg)</label>
+                                <input type="number" step="0.1" th:field="*{weightKg}" class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small text-secondary">Color</label>
+                                <input type="text" th:field="*{color}" class="form-control shadow-none">
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small text-secondary">Price ($)</label>
+                                <input type="number" step="0.01" th:field="*{price}" class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small text-secondary">Discount (%)</label>
+                                <input type="number" min="0" max="100" th:field="*{discountPercent}"
+                                       class="form-control shadow-none">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small text-secondary">Status</label>
+                                <select th:field="*{isAvailable}" class="form-select shadow-none fw-bold">
+                                    <option value="true">Available</option>
+                                    <option value="false">Sold Out</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <label class="form-label fw-semibold small text-secondary">Description</label>
+                            <textarea rows="3" th:field="*{description}" class="form-control shadow-none"></textarea>
+                        </div>
+
+                        <div class="border-top pt-4 mt-4 d-flex gap-3 justify-content-end">
+                            <a th:href="@{/admin/manage-pet}" class="btn btn-secondary px-4">Cancel</a>
+                            <button type="submit" class="btn btn-warning px-5 shadow-sm text-white fw-bold">
+                                <i class="bi bi-save me-2"></i>Save Pet Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function previewImage(input) {
+        const preview = document.getElementById("img-preview");
+        const previewBox = document.getElementById("preview-box");
+        const placeholder = document.getElementById("placeholder-box");
+        const fileName = document.getElementById("file-name");
+
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+
+            // [QUAN TRỌNG 3] Kiểm tra kích thước file > 5MB
+            if (file.size > 5 * 1024 * 1024) {
+                alert("File ảnh quá lớn (Max 5MB)! Vui lòng chọn ảnh khác.");
+                input.value = ""; // Reset input
+                return;
+            }
+
+            fileName.textContent = file.name;
+
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.src = e.target.result;
+                previewBox.style.display = "block";
+                placeholder.style.display = "none";
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pet History | Staff View</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/pet-dashboard.css}">
+</head>
+<body class="bg-gray-50">
+
+<div class="min-h-screen p-6">
+    <div class="max-w-6xl mx-auto fade-in">
+
+        <a th:href="@{/staff/pet/list}" class="inline-flex items-center gap-2 text-gray-500 hover:text-orange-600 mb-6 font-medium transition">
+            <i class="fa-solid fa-arrow-left"></i> Back to Pet List
+        </a>
+
+        <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-4">
+                <div class="w-16 h-16 rounded-lg overflow-hidden border border-gray-200">
+                    <img th:src="${pet.imageUrl != null ? pet.imageUrl : '/images/default-pet.png'}" class="w-full h-full object-cover">
+                </div>
+                <div>
+                    <h1 class="text-2xl font-extrabold text-gray-800" th:text="${pet.name}">Pet Name</h1>
+                    <p class="text-sm text-gray-500" th:text="${pet.petType} + ' - ' + ${pet.breed}"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm min-h-[500px] border border-gray-100 overflow-hidden">
+            <div class="flex border-b border-gray-100">
+                <a th:href="@{/staff/pet/detail(id=${pet.id})}" class="px-8 py-4 font-bold text-gray-500 hover:text-orange-500 hover:bg-gray-50 transition">
+                    <i class="fa-solid fa-circle-info mr-2"></i> Description & Notes
+                </a>
+                <button class="px-8 py-4 font-bold text-orange-600 border-b-2 border-orange-500 bg-orange-50/50">
+                    <i class="fa-solid fa-clock-rotate-left mr-2"></i> Care History
+                </button>
+            </div>
+
+            <div class="p-8 space-y-10">
+
+                <div>
+                    <h4 class="text-lg font-bold text-gray-800 mb-4 pl-3 border-l-4 border-blue-500">Service History</h4>
+                    <div class="overflow-x-auto rounded-xl border border-gray-200">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                            <tr>
+                                <th class="p-4 font-semibold">Date</th>
+                                <th class="p-4 font-semibold">Service Name</th>
+                                <th class="p-4 font-semibold">Note</th>
+                                <th class="p-4 font-semibold text-right">Status</th>
+                            </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="p-4 text-gray-700">Feb 01, 2026</td>
+                                <td class="p-4 font-bold text-gray-800">Full Spa Package</td>
+                                <td class="p-4 text-gray-500 italic">User requested spicy perfume (Example)</td>
+                                <td class="p-4 text-right"><span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Completed</span></td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="p-4 text-gray-700">Jan 15, 2026</td>
+                                <td class="p-4 font-bold text-gray-800">Basic Grooming</td>
+                                <td class="p-4 text-gray-500 italic">First visit</td>
+                                <td class="p-4 text-right"><span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Completed</span></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-bold text-gray-800 mb-4 pl-3 border-l-4 border-green-500">Medical / Vaccination Records</h4>
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center text-gray-500">
+                        <i class="fa-solid fa-file-medical text-3xl mb-2 text-gray-300"></i>
+                        <p>No medical records found for this pet.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+</body>
+</html>

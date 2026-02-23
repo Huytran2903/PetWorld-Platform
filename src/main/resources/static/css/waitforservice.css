@@ -1,0 +1,172 @@
+/* =========================================
+   VARIABLES (Đồng bộ với các file trước)
+   ========================================= */
+:root {
+    --primary: #FFA54F;
+    --primary-2: #FFBE7A;
+    --primary-3: #FFF3E6;
+    --primary-text: #1c1c1c;
+    --focus: rgba(255,165,79,.22);
+    --navy: #143a66;
+    --navy2: #0f2f55;
+    --bg: #f6f8fc;
+    --card: #ffffff;
+    --text: #132238;
+    --muted: #6b7686;
+    --border: #e7ecf4;
+    --shadow: 0 14px 28px rgba(16,32,51,.08);
+}
+
+/* =========================================
+   LAYOUT SPECIFIC
+   ========================================= */
+.hero {
+    margin-top: 0; /* Override để khớp layout chung */
+}
+
+.hero-inner {
+    background: linear-gradient(135deg, rgba(20,58,102,.10) 0%, rgba(255,165,79,.22) 45%, rgba(255,215,179,.35) 100%);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 16px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.hero h1 { margin: 0; font-size: 20px; color: var(--navy); }
+.hero p { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+
+.type-pill {
+    background: #fff;
+    padding: 6px 12px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 800;
+    border: 1px solid var(--border);
+}
+
+/* =========================================
+   STATUS CHIP & TIMELINE
+   ========================================= */
+.status-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 12px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: #fff;
+    font-weight: 950;
+    margin-bottom: 8px;
+}
+
+.dot {
+    width: 10px; height: 10px; border-radius: 99px;
+    background: var(--muted); /* Mặc định xám */
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.05);
+}
+
+/* Dot colors by status */
+.dot.active { background: var(--primary); box-shadow: 0 0 10px var(--primary); }
+.dot.canceled { background: #e31b23; }
+
+.timeline {
+    margin-top: 14px;
+    border-top: 1px dashed #e9eef7;
+    padding-top: 14px;
+    display: grid;
+    gap: 10px;
+}
+
+.step {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%);
+    opacity: 0.5; /* Mờ mặc định */
+    transition: all 0.3s ease;
+}
+
+.step .mark {
+    width: 28px; height: 28px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 950;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--muted);
+    flex: 0 0 auto;
+}
+
+/* Active Step Style */
+.step.active {
+    opacity: 1;
+    border-color: rgba(255,165,79,.35);
+    background: linear-gradient(180deg, #ffffff 0%, rgba(255,165,79,.10) 100%);
+}
+
+.step.active .mark {
+    border-color: rgba(255,165,79,.30);
+    background: rgba(255,165,79,.16);
+    color: #7a3f00;
+}
+
+/* =========================================
+   SIDEBAR & INFO
+   ========================================= */
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+@media (max-width: 680px){ .info-grid{ grid-template-columns:1fr; } }
+
+.info-box {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 12px;
+    background: #fff;
+}
+.info-box .k { font-size: 12px; color: var(--muted); font-weight: 800; text-transform: uppercase; }
+.info-box .v { margin-top: 6px; font-weight: 950; color: var(--navy2); font-size: 14px; }
+
+.svc-list { margin-top: 12px; display: grid; gap: 10px; }
+.svc-item {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 12px;
+    background: #fff;
+    display: flex; justify-content: space-between; gap: 10px;
+}
+.svc-item .name { font-weight: 950; font-size: 14px; }
+.svc-item .meta { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.svc-item .price { font-weight: 950; color: var(--navy2); white-space: nowrap; }
+
+/* =========================================
+   ACTIONS
+   ========================================= */
+.actions {
+    margin-top: 14px;
+    display: flex; gap: 10px; flex-wrap: wrap;
+}
+
+.btn {
+    border: none; border-radius: 14px;
+    padding: 10px 16px; font-weight: 950; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    font-size: 14px; text-decoration: none;
+}
+.btn:hover { filter: brightness(0.98); }
+
+.btn-primary {
+    background: linear-gradient(180deg, var(--primary-2) 0%, var(--primary) 100%);
+    color: var(--primary-text);
+    box-shadow: 0 4px 12px rgba(255,165,79,.28);
+}
+.btn-secondary {
+    background: linear-gradient(180deg, #184173 0%, var(--navy2) 100%);
+    color: #fff;
+}
+.btn-ghost {
+    background: #fff; border: 1px solid var(--border); color: var(--text);
+}

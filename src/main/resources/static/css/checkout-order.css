@@ -1,0 +1,71 @@
+/* Đảm bảo toàn bộ tầng HTML/Body đều chiếm hết chiều cao màn hình */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: #ffa54f; /* Đặt màu nền mặc định là màu cam luôn */
+    font-family: "Arimo", sans-serif;
+}
+
+.app-wrapper {
+    background-color: #ffa54f;
+    min-height: 100vh; /* Chiều cao tối thiểu bằng 100% màn hình */
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.header-nav {
+    background-color: #ffa54f;
+    border-color: rgba(0,0,0,0.1) !important;
+}
+
+.order-icon {
+    width: 32px; /* Kích thước icon nhỏ gọn */
+    height: 32px;
+    object-fit: contain; /* Đảm bảo hình nằm gọn trong khung không bị méo */
+}
+
+/* Biểu tượng thành công tròn */
+.success-icon {
+    width: 80px;
+    height: 80px;
+    background-color: #dcfce7;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Card Styling */
+.card {
+    border-radius: 10px !important; /* Tăng độ bo từ 12px lên 20px */
+    overflow: hidden; /* Đảm bảo nội dung bên trong không đè lên góc bo */
+    border: none !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Hiệu ứng cho nút - Làm cho các nút "động" hơn khi rê chuột */
+.btn {
+    transition: all 0.3s ease;
+    border-radius: 8px;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Badge tùy chỉnh */
+.badge {
+    font-weight: 400;
+    padding: 0.4em 0.8em;
+}
+

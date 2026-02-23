@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Pet World - Home</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+
+    <link rel="stylesheet" th:href="@{/css/home.css}"/>
+    <link rel="stylesheet" th:href="@{/css/vendor.css}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chilanka&family=Montserrat:wght@300;400;500&display=swap"
+          rel="stylesheet">
+</head>
+<body>
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+    <defs>
+        <symbol xmlns="http://www.w3.org/2000/svg" id="link" viewBox="0 0 24 24">
+            <path fill="currentColor"
+                  d="M12 19a1 1 0 1 0-1-1a1 1 0 0 0 1 1Zm5 0a1 1 0 1 0-1-1a1 1 0 0 0 1 1Zm0-4a1 1 0 1 0-1-1a1 1 0 0 0 1 1Zm-5 0a1 1 0 1 0-1-1a1 1 0 0 0 1 1Zm7-12h-1V2a1 1 0 0 0-2 0v1H8V2a1 1 0 0 0-2 0v1H5a3 3 0 0 0-3 3v14a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3Zm1 17a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-9h16Zm0-11H4V6a1 1 0 0 1 1-1h1v1a1 1 0 0 0 2 0V5h8v1a1 1 0 0 0 2 0V5h1a1 1 0 0 1 1 1ZM7 15a1 1 0 1 0-1-1a1 1 0 0 0 1 1Zm0 4a1 1 0 1 0-1-1a1 1 0 0 0 1 1Z"/>
+        </symbol>
+        <symbol xmlns="http://www.w3.org/2000/svg" id="arrow-right" viewBox="0 0 24 24">
+            <path fill="currentColor"
+                  d="M17.92 11.62a1 1 0 0 0-.21-.33l-5-5a1 1 0 0 0-1.42 1.42l3.3 3.29H7a1 1 0 0 0 0 2h7.59l-3.3 3.29a1 1 0 0 0 0 1.42a1 1 0 0 0 1.42 0l5-5a1 1 0 0 0 .21-.33a1 1 0 0 0 0-.76Z"/>
+        </symbol>
+    </defs>
+</svg>
+
+<div class="preloader-wrapper">
+    <div class="preloader"></div>
+</div>
+
+<div class="offcanvas offcanvas-end" data-bs-scroll="true" tabindex="-1" id="offcanvasSearch" aria-labelledby="Search">
+    <div class="offcanvas-header justify-content-center">
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div class="order-md-last">
+            <h4 class="text-primary text-uppercase mb-3">Search</h4>
+            <div class="search-bar border rounded-2 border-dark-subtle">
+                <form id="searchForm" class="text-center d-flex align-items-center" action="" method="">
+                    <input type="text" class="form-control border-0 bg-transparent" placeholder="Search Here"/>
+                    <iconify-icon icon="tabler:search" class="fs-4 me-3"></iconify-icon>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<header>
+    <div class="container-fluid" style="background-color: #FFA54F;">
+        <div class="container py-2">
+            <div class="row py-4 pb-0 pb-sm-4 align-items-center ">
+                <div class="col-sm-4 col-lg-3 text-center text-sm-start">
+                    <div class="main-logo">
+                        <a th:href="@{/}">
+                            <img th:src="@{/images/logo-petshop.png}" alt="logo" class="img-fluid">
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 offset-sm-2 offset-md-0 col-lg-5 d-none d-lg-block">
+                    <div class="slogan-box text-center">
+                        <h5 class="slogan-title mb-1 text-white">We Care Your Pets</h5>
+                        <p class="slogan-sub mb-0 text-white">Healthy • Happy • Loved</p>
+                    </div>
+                </div>
+
+                <div class="col-sm-8 col-lg-4 d-flex justify-content-end gap-5 align-items-center mt-4 mt-sm-0 justify-content-center justify-content-sm-end">
+                    <div class="support-box text-end d-none d-xl-block">
+                        <span class="fs-6 secondary-font text-white">Address</span>
+                        <h5 class="mb-0 text-white">Fpt Can Tho</h5>
+                    </div>
+                    <div class="support-box text-end d-none d-xl-block">
+                        <span class="fs-6 secondary-font text-white">Email</span>
+                        <h5 class="mb-0 text-white">Petworldfpt@gmail.com</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <hr class="m-0">
+    </div>
+
+    <div class="container">
+        <nav class="main-menu d-flex navbar navbar-expand-lg ">
+
+            <div class="d-flex d-lg-none align-items-end mt-3">
+                <ul class="d-flex justify-content-end list-unstyled m-0 align-items-center">
+                    <li>
+                        <a th:href="@{/profile}" class="mx-3">
+                            <iconify-icon icon="healthicons:person" class="fs-4"></iconify-icon>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="mx-3">
+                            <iconify-icon icon="mdi:heart" class="fs-4"></iconify-icon>
+                        </a>
+                    </li>
+                    <li>
+                        <a th:href="@{/customer/shopping-cart}"
+                           class="mx-3 text-decoration-none text-dark position-relative">
+                            <iconify-icon icon="mdi:cart" class="fs-4"></iconify-icon>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-primary pt-1"
+                                  style="font-size: 10px; padding: 4px 6px;">03</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="mx-3" data-bs-toggle="offcanvas" data-bs-target="#offcanvasSearch">
+                            <iconify-icon icon="tabler:search" class="fs-4"></iconify-icon>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar"
+                    aria-controls="offcanvasNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar"
+                 aria-labelledby="offcanvasNavbarLabel">
+                <div class="offcanvas-header justify-content-center">
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+
+                <div class="offcanvas-body justify-content-between">
+                    <select class="filter-categories border-0 mb-0 me-5">
+                        <option>Shop by Category</option>
+                        <option>Products</option>
+                        <option>Pets</option>
+                    </select>
+
+                    <ul class="navbar-nav menu-list list-unstyled d-flex gap-md-3 mb-0">
+                        <li class="nav-item">
+                            <a th:href="@{/}" class="nav-link active">Home</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" role="button" id="pages" data-bs-toggle="dropdown"
+                               aria-expanded="false">Pages</a>
+                            <ul class="dropdown-menu" aria-labelledby="pages">
+                                <li><a th:href="@{/appointment/booking}" class="dropdown-item">Book Service Appointment</a></li>
+                                <li><a href="#" class="dropdown-item">About Us</a></li>
+                                <li><a href="#" class="dropdown-item">Shop</a></li>
+                                <li><a th:href="@{/customer/shopping-cart}" class="dropdown-item">Cart</a></li>
+                                <li><a href="#" class="dropdown-item">Checkout</a></li>
+                                <li><a href="#" class="dropdown-item">Contact</a></li>
+                                <li><a th:href="@{/profile}" class="dropdown-item">Account</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item"><a href="#" class="nav-link">Shop</a></li>
+                        <li class="nav-item"><a href="#" class="nav-link">Blog</a></li>
+                        <li class="nav-item"><a href="#" class="nav-link">Contact</a></li>
+                        <li class="nav-item"><a href="#" class="nav-link">Others</a></li>
+                    </ul>
+
+                    <div class="d-none d-lg-flex align-items-end">
+                        <ul class="d-flex justify-content-end list-unstyled m-0 align-items-center">
+
+                            <li th:if="${session.loggedInAccount != null}" class="d-flex align-items-center">
+
+                                <a th:href="@{/profile}"
+                                   class="mx-3 d-flex align-items-center gap-2 text-decoration-none text-dark"
+                                   title="Hồ sơ">
+                                    <iconify-icon icon="healthicons:person" class="fs-4"></iconify-icon>
+
+                                    <span class="fw-bold" th:text="${session.loggedInAccount.fullName}">
+            User
+        </span>
+                                </a>
+
+                                <a href="#" class="mx-2" style="color: #FFA54F;" data-bs-toggle="modal"
+                                   data-bs-target="#logoutModal" title="Đăng xuất">
+                                    <iconify-icon icon="mdi:logout" class="fs-4"></iconify-icon>
+                                </a>
+                            </li>
+
+                            <li th:if="${session.loggedInAccount == null}">
+                                <a th:href="@{/login}" class="btn btn-primary btn-sm rounded-pill px-4 mx-3">Login</a>
+                            </li>
+
+                            <li>
+                                <a href="wishlist.html" class="mx-3">
+                                    <iconify-icon icon="mdi:heart" class="fs-4"></iconify-icon>
+                                </a>
+                            </li>
+                            <li>
+                                <a th:href="@{/customer/shopping-cart}"
+                                   class="mx-3 text-decoration-none text-dark position-relative">
+                                    <iconify-icon icon="mdi:cart" class="fs-4"></iconify-icon>
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle bg-primary pt-1"
+                                          style="font-size: 10px; padding: 4px 6px;">03</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </div>
+</header>
+
+<section id="banner" style="background: #F9F3EC ;">
+    <div class="container">
+        <div class="swiper main-swiper">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide py-5">
+                    <div class="row banner-content align-items-center">
+                        <div class="img-wrapper col-md-5">
+                            <img th:src="@{/images/banner-img.png}" class="img-fluid">
+                        </div>
+                        <div class="content-wrapper col-md-7 p-5 mb-5">
+                            <div class="secondary-font text-primary text-uppercase mb-4">Save 10 - 20 % off</div>
+                            <h2 class="banner-title display-1 fw-normal">Best destination for <span
+                                    class="text-primary">your pets</span></h2>
+                            <div class="d-flex flex-wrap gap-3">
+                                <a th:href="@{/appointment/booking}" class="btn btn-primary btn-lg text-uppercase fs-6 rounded-1">
+                                    Book Service Appointment
+                                    <svg width="24" height="24" viewBox="0 0 24 24" class="mb-1">
+                                        <use xlink:href="#arrow-right"></use>
+                                    </svg>
+                                </a>
+                                <a href="#" class="btn btn-outline-dark btn-lg text-uppercase fs-6 rounded-1">
+                                    shop now
+                                    <svg width="24" height="24" viewBox="0 0 24 24" class="mb-1">
+                                        <use xlink:href="#arrow-right"></use>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="swiper-slide py-5">
+                    <div class="row banner-content align-items-center">
+                        <div class="img-wrapper col-md-5">
+                            <img th:src="@{/images/banner-img3.png}" class="img-fluid">
+                        </div>
+                        <div class="content-wrapper col-md-7 p-5 mb-5">
+                            <div class="secondary-font text-primary text-uppercase mb-4">Save 10 - 20 % off</div>
+                            <h2 class="banner-title display-1 fw-normal">Best destination for <span
+                                    class="text-primary">your pets</span></h2>
+                            <a href="#" class="btn btn-outline-dark btn-lg text-uppercase fs-6 rounded-1">
+                                shop now
+                                <svg width="24" height="24" viewBox="0 0 24 24" class="mb-1">
+                                    <use xlink:href="#arrow-right"></use>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-pagination mb-5"></div>
+        </div>
+    </div>
+</section>
+
+<section id="clothing" class="my-5 overflow-hidden">
+    <div class="container pb-5">
+        <div class="section-header d-md-flex justify-content-between align-items-center mb-5">
+            <h2 class="display-3 fw-normal">Products</h2>
+            <div>
+                <a href="#" class="btn btn-outline-dark btn-lg text-uppercase fs-6 rounded-1">
+                    shop now
+                    <svg width="24" height="24" viewBox="0 0 24 24" class="mb-1">
+                        <use xlink:href="#arrow-right"></use>
+                    </svg>
+                </a>
+            </div>
+        </div>
+        <div class="products-carousel swiper">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <div class="card product-card position-relative">
+                        <div class="z-1 position-absolute top-0 start-0 m-3">
+                            <span class="badge bg-white text-dark border shadow-sm px-3 py-2">New</span>
+                        </div>
+                        <a href="single-product.html"><img th:src="@{/images/item1.jpg}" class="img-fluid w-100"
+                                                           alt="Grey hoodie"></a>
+                        <div class="card-body p-0 d-flex flex-column">
+                            <a href="single-product.html" class="text-decoration-none"><h5 class="product-title">Grey
+                                Hoodie</h5></a>
+                            <div class="d-flex align-items-center gap-2 product-rating">
+                                <iconify-icon icon="clarity:star-solid" class="text-warning"></iconify-icon>
+                                <span>5.0 (125)</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="product-price">$18.00</span>
+                                <span class="badge-stock">In Stock</span>
+                            </div>
+                            <a href="#" class="btn-add-cart-full">
+                                <iconify-icon icon="mdi:cart" class="fs-5"></iconify-icon>
+                                Add to Cart
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="services-circle" class="my-5 py-5 overflow-hidden">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-4">
+                <div class="service-item d-flex align-items-center justify-content-lg-end mb-5 mb-lg-5 text-lg-end text-center flex-column-reverse flex-lg-row">
+                    <div class="text-content me-lg-4 mt-3 mt-lg-0">
+                        <h5>Vaccination</h5>
+                        <p>High-quality vaccines and safe procedures to ensure your pet's health.</p>
+                    </div>
+                    <div class="service-icon-box">
+                        <iconify-icon icon="mdi:needle"></iconify-icon>
+                    </div>
+                </div>
+                <div class="service-item d-flex align-items-center justify-content-lg-end text-lg-end text-center flex-column-reverse flex-lg-row">
+                    <div class="text-content me-lg-4 mt-3 mt-lg-0">
+                        <h5>Pet Hotel & Boarding</h5>
+                        <p>Clean, airy accommodation with dedicated 24/7 care.</p>
+                    </div>
+                    <div class="service-icon-box">
+                        <iconify-icon icon="mdi:home-heart"></iconify-icon>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 text-center my-5 my-lg-0">
+                <div class="center-circle-img mb-4">
+                    <img th:src="@{/images/logo-petshop.png}" alt="Pet Services" class="shadow-sm">
+                </div>
+                <div>
+                    <h2 class="text-primary fw-bold" style="font-family: var(--secondary-font),sans-serif;">Pet
+                        World</h2>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="service-item d-flex align-items-center justify-content-lg-start mb-5 mb-lg-5 text-lg-start text-center flex-column flex-lg-row">
+                    <div class="service-icon-box">
+                        <iconify-icon icon="mdi:sparkles"></iconify-icon>
+                    </div>
+                    <div class="text-content ms-lg-4 mt-3 mt-lg-0">
+                        <h5>Spa & Grooming</h5>
+                        <p>Professional bathing and grooming services to transform your pet's look.</p>
+                    </div>
+                </div>
+                <div class="service-item d-flex align-items-center justify-content-lg-start text-lg-start text-center flex-column flex-lg-row">
+                    <div class="service-icon-box">
+                        <iconify-icon icon="mdi:shopping"></iconify-icon>
+                    </div>
+                    <div class="text-content ms-lg-4 mt-3 mt-lg-0">
+                        <h5>Pet Shop</h5>
+                        <p>A wide variety of food, accessories, and toys at the most reasonable prices.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="latest-blog" class="my-5">
+    <div class="container py-5 my-5">
+        <div class="row mt-5">
+            <div class="section-header d-md-flex justify-content-between align-items-center mb-3">
+                <h2 class="display-3 fw-normal">Latest Blog Post</h2>
+                <div>
+                    <a href="#" class="btn btn-outline-dark btn-lg text-uppercase fs-6 rounded-1">Read all
+                        <svg width="24" height="24" viewBox="0 0 24 24" class="mb-1">
+                            <use xlink:href="#arrow-right"></use>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 my-4 my-md-0">
+                <div class="z-1 position-absolute rounded-3 m-2 px-3 pt-1 bg-light">
+                    <h3 class="secondary-font text-primary m-0">20</h3>
+                    <p class="secondary-font fs-6 m-0">Feb</p>
+                </div>
+                <div class="card position-relative">
+                    <a href="single-post.html"><img th:src="@{/images/blog1.jpg}" class="img-fluid rounded-4"
+                                                    alt="image"></a>
+                    <div class="card-body p-0">
+                        <a href="single-post.html"><h3 class="card-title pt-4 pb-3 m-0">10 Reasons to be helpful towards
+                            any animals</h3></a>
+                        <div class="card-text">
+                            <p class="blog-paragraph fs-6">At the core of our practice is the idea that cities are the
+                                incubators of our greatest achievements...</p>
+                            <a href="single-post.html" class="blog-read">read more</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer id="footer" class="my-5">
+    <div class="container py-5 my-5">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="footer-menu">
+                    <img th:src="@{/images/logo-petshop.png}" alt="logo" class="footer-logo">
+                    <p class="blog-paragraph fs-6 mt-3">Subscribe to our newsletter to get updates about our grand
+                        offers.</p>
+                    <div class="social-links">
+                        <ul class="d-flex list-unstyled gap-2">
+                            <li class="social"><a href="#">
+                                <iconify-icon class="social-icon" icon="ri:facebook-fill"></iconify-icon>
+                            </a></li>
+                            <li class="social"><a href="#">
+                                <iconify-icon class="social-icon" icon="ri:twitter-fill"></iconify-icon>
+                            </a></li>
+                            <li class="social"><a href="#">
+                                <iconify-icon class="social-icon" icon="ri:instagram-fill"></iconify-icon>
+                            </a></li>
+                            <li class="social"><a href="#">
+                                <iconify-icon class="social-icon" icon="ri:youtube-fill"></iconify-icon>
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<div id="footer-bottom">
+    <div class="container">
+        <hr class="m-0">
+        <div class="row mt-3">
+            <div class="col-md-6 copyright">
+                <p class="secondary-font">© 2023 Waggy. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="logoutModalLabel">Xác nhận đăng xuất</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <iconify-icon icon="mdi:alert-circle-outline" class="text-warning mb-3"
+                              style="font-size: 3rem;"></iconify-icon>
+                <p class="mb-0 fs-5">Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?</p>
+            </div>
+            <div class="modal-footer border-0 justify-content-center pb-4">
+                <button type="button" class="btn btn-secondary px-4 rounded-pill" data-bs-dismiss="modal">Hủy</button>
+                <a th:href="@{/logout}" class="btn btn-danger px-4 rounded-pill">Đăng xuất</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
+        crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+<script th:src="@{/js/plugins.js}"></script>
+<script th:src="@{/js/script.js}"></script>
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+
+</body>
+</html>

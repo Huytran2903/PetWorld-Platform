@@ -1,0 +1,118 @@
+:root {
+    --primary-orange: #FFA54F;
+    --input-bg: #E2E2E2;
+    --text-label: #000000;
+    --text-value: #6B6666;
+    --status-green: #41BC63;
+    --status-bg: #EBF9F1;
+}
+
+body {
+    background-color: #f5f5f5;
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Card Container Styling */
+.appointment-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border: none;
+    overflow: hidden;
+    width: 100%;
+    max-width: 800px;
+}
+
+/* Header Styling */
+.card-header-custom {
+    background-color: var(--primary-orange);
+    color: white;
+    padding: 20px 30px;
+    border: none;
+}
+
+.header-title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 20px;
+    margin: 0;
+}
+
+.btn-close-custom {
+    color: white;
+    opacity: 1;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-size: 16px;
+}
+.btn-close-custom:hover {
+    color: #f0f0f0;
+}
+
+/* Form Styling */
+.form-label {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    color: var(--text-label);
+    margin-bottom: 8px;
+}
+
+.form-control-custom {
+    background-color: var(--input-bg);
+    border: none;
+    border-radius: 6px;
+    padding: 12px 15px;
+    color: var(--text-value);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+}
+
+/* Input Readonly Styling */
+.form-control-custom:read-only {
+    background-color: var(--input-bg);
+    color: var(--text-value);
+}
+
+/* Status Badge */
+.status-badge {
+    background-color: var(--status-bg);
+    color: var(--status-green);
+    border: 1px solid var(--status-green);
+    padding: 6px 25px;
+    border-radius: 50px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    display: inline-block;
+}
+
+/* Confirm Button */
+.btn-confirm {
+    background-color: var(--primary-orange);
+    color: white;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 18px;
+    padding: 10px 40px;
+    border-radius: 8px;
+    border: none;
+    transition: all 0.3s;
+    width: 100%;
+}
+
+.btn-confirm:hover {
+    background-color: #e69547;
+    color: white;
+    transform: translateY(-1px);
+}
