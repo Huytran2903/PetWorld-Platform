@@ -199,7 +199,7 @@ public class AdminController {
 
     @GetMapping("/admin/appointment-manage")
     public String showAppointmentList() {
-        return "admin/appt-manage";
+        return "redirect:/admin/appointments";
     }
 
     @GetMapping("/admin/appointment-manage/detail")
