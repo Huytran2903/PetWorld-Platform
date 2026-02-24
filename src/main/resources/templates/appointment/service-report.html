@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/staff_layout :: layout(~{::report_content})}">
+
+<head>
+    <title>Service Result Report</title>
+    <link rel="stylesheet" th:href="@{/css/service_report.css}" />
+</head>
+
+<body>
+<div th:fragment="report_content">
+
+    <div class="hero">
+        <div class="hero-inner">
+            <div>
+                <h1>Service Report</h1>
+                <p>Submit final results, notes, and evidence images for Appointment <span th:text="${appointment.appointmentCode}">APP-123</span>.</p>
+            </div>
+            <div class="pill">REPORT</div>
+        </div>
+    </div>
+
+    <main class="container">
+        <section class="card">
+            <header class="card-header">
+                <div>
+                    <h2 class="title">Final result report</h2>
+                    <p class="subtitle">Feature 39: submitServiceResultReport</p>
+                </div>
+                <div class="tag">FORM</div>
+            </header>
+
+            <div class="card-body">
+
+                <form th:action="@{/staff/report/submit}"
+                      th:object="${reportDTO}"
+                      method="post"
+                      enctype="multipart/form-data">
+
+                    <input type="hidden" th:field="*{appointmentId}" />
+                    <input type="hidden" th:field="*{petId}" />
+
+                    <div class="summary">
+                        <div class="kv">
+                            <div class="k">Appointment</div>
+                            <div class="v" th:text="${appointment.appointmentCode}">APP-000123</div>
+                            <div class="mono" style="margin-top:6px; font-size:12px;">
+                                ID: <span th:text="${appointment.appointmentID}">123</span>
+                            </div>
+                        </div>
+                        <div class="kv">
+                            <div class="k">Pet</div>
+                            <div class="v" th:text="${appointment.pet.name} + ' (' + ${appointment.pet.petType} + ')'">Lucky (Dog)</div>
+                            <div class="mono" style="margin-top:6px; font-size:12px;">
+                                ID: <span th:text="${appointment.pet.petID}">5</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid2" style="margin-top:12px;">
+                        <div>
+                            <label for="serviceType">Service type</label>
+                            <select id="serviceType" th:field="*{serviceType}">
+                                <option value="hygiene">Spa (Hygiene)</option>
+                                <option value="vaccination">Vaccination</option>
+                                <option value="boarding">Boarding</option>
+                                <option value="checkup">Health Checkup</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="completedAt">Completion time</label>
+                            <input type="datetime-local" id="completedAt" th:field="*{completedAt}" />
+                        </div>
+                    </div>
+
+                    <div style="margin-top:12px;">
+                        <label for="finalNotes">Findings / Health Notes</label>
+                        <textarea id="finalNotes" th:field="*{notes}"
+                                  placeholder="Detailed findings regarding pet health or behavior..."></textarea>
+                        <div class="info-box">
+                            Will be saved to <strong>PetHealthRecords</strong>.
+                        </div>
+                    </div>
+
+                    <div class="grid2" style="margin-top:12px;">
+                        <div>
+                            <label for="outcome">Outcome Summary</label>
+                            <textarea id="outcome" th:field="*{outcome}"
+                                      placeholder="Short summary (e.g., Successful, Aggressive behavior)..."></textarea>
+                        </div>
+                        <div>
+                            <label for="followup">Recommendations</label>
+                            <textarea id="followup" th:field="*{recommendations}"
+                                      placeholder="Advice for the customer..."></textarea>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:12px;" class="upload">
+                        <label for="evidenceInput">Evidence images</label>
+
+                        <input id="evidenceInput" name="evidenceImages" type="file" accept="image/*" multiple />
+                        <small>Select up to 5 images.</small>
+
+                        <div class="thumbs" id="thumbs">
+                            <div class="thumb">Preview</div>
+                            <div class="thumb">Preview</div>
+                            <div class="thumb">Preview</div>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button class="btn btn-primary" type="submit">Submit Report</button>
+
+                        <a class="btn btn-ghost"
+                           th:href="@{/staff/execution/{id}(id=${appointment.appointmentID})}">
+                            Back
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <aside class="card">
+            <header class="card-header">
+                <h2 class="title" style="font-size:17px;">Quick Info</h2>
+                <div class="tag">INFO</div>
+            </header>
+
+            <div class="card-body">
+                <div class="row">
+                    <div class="h">
+                        <span>Reporting Staff</span>
+                        <span class="badge">YOU</span>
+                    </div>
+                    <div class="d" th:text="'Logged in as: ' + ${session.user != null ? session.user.fullName : 'Staff'}">
+                        Staff Name
+                    </div>
+                </div>
+
+                <div class="row" style="margin-top:10px;">
+                    <div class="h">
+                        <span>Workflow Step</span>
+                    </div>
+                    <div class="d">
+                        1. Check-in<br/>
+                        2. Execution<br/>
+                        <strong>3. Report (Current)</strong><br/>
+                        4. Update Status to Done
+                    </div>
+                </div>
+
+                <div class="info-box" style="margin-top:12px;">
+
+                    <br>
+                    <strong>Data Flow:</strong><br/>
+                    Submitting this form creates a <strong>PetHealthRecord</strong> and optionally a <strong>ServiceReport</strong> entry, allowing the customer to view results later.
+                </div>
+                <div class="info-box">
+
+                </div>
+            </div>
+        </aside>
+    </main>
+
+    <script th:src="@{/js/service_report.js}"></script>
+</div>
+</body>
+</html>

@@ -42,13 +42,13 @@ public class BookingController {
         model.addAttribute("currentType", currentType);
         model.addAttribute("pageTitle", "Book Service Appointment");
         model.addAttribute("heroTitle", "Book Service Appointment");
-        return " appointment/booking";
+        return "appointment/booking";
     }
 
     /** Confirm booking - validates lead time (BR-17) and operating hours (08:00–20:00). */
     @PostMapping("/create")
     public String createBooking(HttpSession session,
-                                @RequestParam Integer petId,
+                                @RequestParam Long petId,
                                 @RequestParam String appointmentDate,
                                 @RequestParam(required = false) List<Integer> mainServices,
                                 @RequestParam(required = false) String note,
@@ -64,7 +64,8 @@ public class BookingController {
             return "redirect:/customer/pet/create";
         }
 
-        boolean petBelongsToCustomer = petList.stream().anyMatch(p -> p.getId().equals(petId));
+        boolean petBelongsToCustomer = petList.stream()
+                .anyMatch(p -> p.getId() != null && p.getId().equals(Long.valueOf(petId)));
         if (!petBelongsToCustomer) {
             redirectAttributes.addFlashAttribute("error", "Invalid pet selected.");
             return "redirect:/appointment/booking";
@@ -89,13 +90,18 @@ public class BookingController {
             return "redirect:/appointment/booking";
         }
 
-        bookingService.createAppointment(
-                customer.getCustomerId(),
-                petId,
-                dateTime,
-                note != null ? note.trim() : null,
-                mainServices
-        );
+        try {
+            bookingService.createAppointment(
+                    customer.getCustomerId(),
+                    petId,
+                    dateTime,
+                    note != null ? note.trim() : null,
+                    mainServices
+            );
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/appointment/booking";
+        }
 
         redirectAttributes.addFlashAttribute("message", "Your appointment has been booked successfully. We will send you a confirmation shortly.");
         return "redirect:/customer/appointments";

@@ -80,7 +80,7 @@
                                     <i class="bi bi-pencil"></i> Edit
                                 </a>
                                 <th:block th:if="${svc.isActive}">
-                                    <form th:action="@{/admin/service/delete/{id}(id=${svc.id})}" method="post" class="d-inline" onsubmit="return confirm('Deactivate this service? It will be hidden from new bookings.');">
+                                    <form th:action="@{/admin/service/delete/{id}(id=${svc.id})}" method="post" class="d-inline" onsubmit="return confirm('Delete this service? If it is currently in use, the system will deactivate it instead of deleting permanently.');">
                                         <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Delete</button>
                                     </form>
                                 </th:block>

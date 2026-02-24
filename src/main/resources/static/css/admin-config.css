@@ -1,0 +1,81 @@
+
+:root {
+    --bs-primary: #FFB25B;
+    --bs-primary-dark: #e69a42;
+    --bs-primary-text: #212529;
+}
+
+.text-primary {
+    color: var(--bs-primary) !important;
+}
+
+.btn-primary {
+    background-color: var(--bs-primary) !important;
+    border-color: var(--bs-primary) !important;
+    color: var(--bs-primary-text) !important;
+    font-weight: 600;
+}
+
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active {
+    background-color: var(--bs-primary-dark) !important;
+    border-color: var(--bs-primary-dark) !important;
+    color: var(--bs-primary-text) !important;
+}
+
+.btn-outline-primary {
+    color: var(--bs-primary) !important;
+    border-color: var(--bs-primary) !important;
+    font-weight: 600;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--bs-primary) !important;
+    border-color: var(--bs-primary) !important;
+    color: var(--bs-primary-text) !important;
+}
+
+
+body {
+    background-color: #f4f6f9;
+}
+
+.card {
+    border-radius: 0.5rem;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f1f5f9;
+}
+
+.empty-state {
+    padding: 4rem 2rem;
+    text-align: center;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    color: #dee2e6;
+}
+
+.config-key-badge {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    font-weight: bold;
+    background: #e9ecef;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+}

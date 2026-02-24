@@ -32,7 +32,7 @@ public class BookingService {
     private final PetRepo petRepo;
     private final ServiceItemRepository serviceItemRepository;
 
-    public List<Pets> findPetsByCustomerId(Long customerId) {
+    public List<Pets> findPetsByCustomerId(Integer customerId) {
         return petRepo.findByOwner_CustomerId(customerId);
     }
 
@@ -66,25 +66,73 @@ public class BookingService {
         return Optional.empty();
     }
 
+    /**
+     * Validate operating hours for a time range.
+     */
+    public void validateOperatingHoursRange(LocalDateTime start, LocalDateTime end, boolean hasBoarding) {
+        LocalTime startTime = start.toLocalTime();
+        LocalTime endTime = end.toLocalTime();
+
+        // Check start time
+        if (startTime.isBefore(OPEN_TIME) || !startTime.isBefore(CLOSE_TIME)) {
+            throw new IllegalArgumentException("New time violates operating hours / lead time.");
+        }
+
+        // Check if it crosses to next day
+        if (!start.toLocalDate().equals(end.toLocalDate())) {
+            if (!hasBoarding) {
+                throw new IllegalArgumentException("New time slot does not fit the required service duration (crosses to next day).");
+            }
+            // For boarding, we assume it's allowed but could add specific cross-day rules here if needed
+        } else {
+            // Same day - check end time
+            if (endTime.isAfter(CLOSE_TIME)) {
+                throw new IllegalArgumentException("New time slot does not fit the required service duration (ends after closing).");
+            }
+        }
+    }
+
     public Optional<Appointment> findById(Integer id) {
         return appointmentRepository.findById(id);
     }
 
     @Transactional
-    public Appointment createAppointment(Long customerId, Integer petId, LocalDateTime appointmentDate,
+    public Appointment createAppointment(Integer customerId, Long petId, LocalDateTime appointmentDate,
                                          String note, List<Integer> serviceIds) {
         String code = generateAppointmentCode();
+        
+        List<ServiceItem> services = serviceItemRepository.findAllById(serviceIds);
+        int totalDuration = 0;
+        boolean hasBoarding = false;
+        
+        for (ServiceItem svc : services) {
+            if (Boolean.TRUE.equals(svc.getIsActive())) {
+                totalDuration += (svc.getDurationMinutes() != null ? svc.getDurationMinutes() : 30);
+                if ("boarding".equalsIgnoreCase(svc.getServiceType()) || (svc.getDurationMinutes() != null && svc.getDurationMinutes() >= 1440)) {
+                    hasBoarding = true;
+                }
+            }
+        }
+
+        LocalDateTime endTime = appointmentDate.plusMinutes(totalDuration);
+        validateOperatingHoursRange(appointmentDate, endTime, hasBoarding);
+
+        // Check overlap for new appointment
+        if (appointmentRepository.countOverlappingAppointments(petId, -1, appointmentDate, endTime) > 0) {
+            throw new IllegalArgumentException("New time slot overlaps with an existing booking.");
+        }
+
         Appointment appointment = Appointment.builder()
                 .appointmentCode(code)
                 .customerId(customerId)
                 .petId(petId)
                 .appointmentDate(appointmentDate)
+                .endTime(endTime)
                 .note(note)
                 .status("pending")
                 .build();
         appointment = appointmentRepository.save(appointment);
 
-        List<ServiceItem> services = serviceItemRepository.findAllById(serviceIds);
         for (ServiceItem svc : services) {
             if (Boolean.TRUE.equals(svc.getIsActive())) {
                 AppointmentServiceLine line = AppointmentServiceLine.builder()
@@ -105,7 +153,7 @@ public class BookingService {
         return "APT-" + shortUuid.toUpperCase();
     }
 
-    public List<Appointment> findAppointmentsByCustomerId(Long customerId) {
+    public List<Appointment> findAppointmentsByCustomerId(Integer customerId) {
         return appointmentRepository.findByCustomerIdOrderByAppointmentDateDesc(customerId);
     }
 
@@ -114,7 +162,7 @@ public class BookingService {
         return appointmentRepository.findByCustomerIdAndStatusInOrderByAppointmentDateDesc(customerId, activeStatuses);
     }
 
-    public Optional<Appointment> findAppointmentByIdAndCustomerId(Integer id, Long customerId) {
+    public Optional<Appointment> findAppointmentByIdAndCustomerId(Integer id, Integer customerId) {
         return appointmentRepository.findById(id)
                 .filter(a -> a.getCustomerId().equals(customerId));
     }
@@ -123,7 +171,12 @@ public class BookingService {
         return appointmentServiceLineRepository.findByAppointment_Id(appointmentId);
     }
 
-    public Optional<String> canCancelOrReschedule(Integer appointmentId, Long customerId) {
+    public List<AppointmentServiceLine> findServiceLinesByAppointmentIds(List<Integer> appointmentIds) {
+        if (appointmentIds == null || appointmentIds.isEmpty()) return List.of();
+        return appointmentServiceLineRepository.findAllByAppointmentIdsWithService(appointmentIds);
+    }
+
+    public Optional<String> canCancelOrReschedule(Integer appointmentId, Integer customerId) {
         Optional<Appointment> opt = findAppointmentByIdAndCustomerId(appointmentId, customerId);
         if (opt.isEmpty()) return Optional.of("Appointment not found.");
         Appointment a = opt.get();
@@ -132,13 +185,13 @@ public class BookingService {
         }
         LocalDateTime now = LocalDateTime.now();
         if (a.getAppointmentDate().isBefore(now.plusHours(CANCEL_RESCHEDULE_MIN_HOURS))) {
-            return Optional.of("Cannot cancel/reschedule within 1 hour of appointment.");
+            return Optional.of("Cannot reschedule within 1 hour of the appointment.");
         }
         return Optional.empty();
     }
 
     @Transactional
-    public void cancelAppointment(Integer appointmentId, Long customerId, String reason) {
+    public void cancelAppointment(Integer appointmentId, Integer customerId, String reason) {
         Optional<String> err = canCancelOrReschedule(appointmentId, customerId);
         if (err.isPresent()) throw new IllegalArgumentException(err.get());
         Appointment a = findAppointmentByIdAndCustomerId(appointmentId, customerId).orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
@@ -149,15 +202,54 @@ public class BookingService {
         appointmentRepository.save(a);
     }
 
+    public int computeAppointmentDurationMinutes(List<AppointmentServiceLine> lines) {
+        return lines.stream()
+                .mapToInt(line -> (line.getService().getDurationMinutes() != null ? line.getService().getDurationMinutes() : 30) * (line.getQuantity() != null ? line.getQuantity() : 1))
+                .sum();
+    }
+
     @Transactional
-    public void rescheduleAppointment(Integer appointmentId, Long customerId, LocalDateTime newDateTime) {
+    public void rescheduleAppointment(Integer appointmentId, Integer customerId, LocalDateTime newStart) {
         Optional<String> err = canCancelOrReschedule(appointmentId, customerId);
-        if (err.isPresent()) throw new IllegalArgumentException(err.get());
-        Appointment a = findAppointmentByIdAndCustomerId(appointmentId, customerId).orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
-        Optional<String> validation = validateAppointmentDateTime(newDateTime);
-        if (validation.isPresent()) throw new IllegalArgumentException(validation.get());
+        if (err.isPresent()) {
+            // Ensure we use the exact BR-18 message from user requirement
+            if (err.get().contains("within 1 hour")) {
+                throw new IllegalArgumentException("Cannot reschedule within 1 hour of the appointment.");
+            }
+            throw new IllegalArgumentException(err.get());
+        }
+
+        Appointment a = findAppointmentByIdAndCustomerId(appointmentId, customerId)
+                .orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
+
+        // 1) Compute totalDurationMinutes
+        List<AppointmentServiceLine> lines = appointmentServiceLineRepository.findByAppointment_Id(appointmentId);
+        int totalMinutes = computeAppointmentDurationMinutes(lines);
+        boolean hasBoarding = lines.stream().anyMatch(l -> 
+            "boarding".equalsIgnoreCase(l.getService().getServiceType()) || 
+            (l.getService().getDurationMinutes() != null && l.getService().getDurationMinutes() >= 1440));
+
+        // 2) Define newEnd
+        LocalDateTime newEnd = newStart.plusMinutes(totalMinutes);
+
+        // 3) Validate operating hours and duration fit
+        validateOperatingHoursRange(newStart, newEnd, hasBoarding);
+
+        // 4) Lead time check (reusing existing method logic but for newStart)
+        Optional<String> leadTimeErr = validateAppointmentDateTime(newStart);
+        if (leadTimeErr.isPresent()) {
+            throw new IllegalArgumentException("New time violates operating hours / lead time.");
+        }
+
+        // 5) Prevent overlaps
+        if (appointmentRepository.countOverlappingAppointments(a.getPetId(), a.getId(), newStart, newEnd) > 0) {
+            throw new IllegalArgumentException("New time slot overlaps with an existing booking.");
+        }
+
+        // 6) Persist
         a.setPreviousAppointmentDate(a.getAppointmentDate());
-        a.setAppointmentDate(newDateTime);
+        a.setAppointmentDate(newStart);
+        a.setEndTime(newEnd);
         a.setRescheduledAt(LocalDateTime.now());
         a.setUpdatedAt(LocalDateTime.now());
         appointmentRepository.save(a);
@@ -168,7 +260,7 @@ public class BookingService {
      * Delete a canceled appointment owned by customer.
      */
     @Transactional
-    public void deleteAppointmentIfCanceled(Integer appointmentId, Long customerId) {
+    public void deleteAppointmentIfCanceled(Integer appointmentId, Integer customerId) {
         Appointment a = appointmentRepository.findById(appointmentId).orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
         if (!a.getCustomerId().equals(customerId)) throw new IllegalArgumentException("Unauthorized to delete this appointment.");
         if (!"canceled".equalsIgnoreCase(a.getStatus())) throw new IllegalArgumentException("Only canceled appointments can be deleted.");

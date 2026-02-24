@@ -37,8 +37,7 @@ public class AuthController {
     @Autowired
     private StaffService staffService;
 
-    private final SecurityContextRepository securityContextRepository =
-            new HttpSessionSecurityContextRepository();
+    private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
 
     @GetMapping("/login")
@@ -54,9 +53,7 @@ public class AuthController {
 
 
     @PostMapping("/do-register") // Đảm bảo mapping đúng với form
-    public String handleRegister(@Valid @ModelAttribute("customer") Customer customer,
-                                 BindingResult bindingResult,
-                                 Model model) {
+    public String handleRegister(@Valid @ModelAttribute("customer") Customer customer, BindingResult bindingResult, Model model) {
 
         if (bindingResult.hasErrors()) {
             String errorMessage = bindingResult.getFieldError().getDefaultMessage();
@@ -88,6 +85,24 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/do-verify-otp")
+    public String handleVerifyOtp(@RequestParam("email") String email, @RequestParam("otp") String otp, RedirectAttributes redirectAttributes) {
+
+        boolean isVerified = customerService.verifyOtp(email, otp);
+
+        if (isVerified) {
+            redirectAttributes.addFlashAttribute("message", "Account verified successfully! Please log in.");
+            return "redirect:/login";
+        } else {
+            redirectAttributes.addFlashAttribute("errorOtp", "Invalid or expired OTP code!");
+
+            redirectAttributes.addFlashAttribute("showOtpModal", true);
+            redirectAttributes.addFlashAttribute("emailRegister", email);
+
+            return "redirect:/register";
+        }
+    }
+
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
@@ -95,12 +110,7 @@ public class AuthController {
     }
 
     @PostMapping("/do-login")
-    public String handleLogin(@RequestParam String username,
-                              @RequestParam String password,
-                              Model model,
-                              HttpSession session,
-                              HttpServletRequest request,
-                              HttpServletResponse response) {
+    public String handleLogin(@RequestParam String username, @RequestParam String password, Model model, HttpSession session, HttpServletRequest request, HttpServletResponse response) {
         Optional<Customer> customerOpt = customerService.login(username, password);
 
         if (customerOpt.isPresent()) {
@@ -116,8 +126,7 @@ public class AuthController {
 
             List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
 
-            UsernamePasswordAuthenticationToken authToken =
-                    new UsernamePasswordAuthenticationToken(customer, null, authorities);
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(customer, null, authorities);
 
             SecurityContext context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(authToken);
@@ -133,28 +142,26 @@ public class AuthController {
         if (staffOpt.isPresent()) {
             Staff staff = staffOpt.get();
 
-            if (staff.getPasswordHash().equals(password)) {
-
-                if (!staff.getIsActive()) {
-                    model.addAttribute("error", "Staff account is locked!");
-                    return "auth/login";
-                }
-
-                session.setAttribute("loggedInStaff", staff);
-                session.setAttribute("role", staff.getRole());
-
-                List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_STAFF"));
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(staff, null, authorities);
-
-                SecurityContext context = SecurityContextHolder.createEmptyContext();
-                context.setAuthentication(authToken);
-                SecurityContextHolder.setContext(context);
-
-                securityContextRepository.saveContext(context, request, response);
-
-                return "redirect:/admin/dashboard";
+            if (!staff.getIsActive()) {
+                model.addAttribute("error", "Staff account is locked!");
+                return "auth/login";
             }
+
+            session.setAttribute("loggedInAccount", staff);
+
+            String roleName = "ROLE_" + staff.getRole().getRoleName().toUpperCase();
+            List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(roleName));
+
+            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(staff, null, authorities);
+
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(authToken);
+            SecurityContextHolder.setContext(context);
+
+            securityContextRepository.saveContext(context, request, response);
+
+            return "redirect:/";
+
         }
 
         model.addAttribute("error", "Invalid username or password");
@@ -173,12 +180,7 @@ public class AuthController {
     }
 
     @PostMapping("/profile/change-password")
-    public String processChangePassword(@AuthenticationPrincipal Customer authUser,
-                                        @RequestParam("oldPassword") String oldPassword,
-                                        @RequestParam("newPassword") String newPassword,
-                                        @RequestParam("confirmPassword") String confirmPassword,
-                                        Model model,
-                                        RedirectAttributes redirectAttributes) {
+    public String processChangePassword(@AuthenticationPrincipal Customer authUser, @RequestParam("oldPassword") String oldPassword, @RequestParam("newPassword") String newPassword, @RequestParam("confirmPassword") String confirmPassword, Model model, RedirectAttributes redirectAttributes) {
 
         if (authUser == null) return "redirect:/login";
 
@@ -206,8 +208,7 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public String processForgotPassword(@RequestParam("email") String email,
-                                        RedirectAttributes redirectAttributes) {
+    public String processForgotPassword(@RequestParam("email") String email, RedirectAttributes redirectAttributes) {
         try {
             customerService.sendResetPasswordEmail(email);
             redirectAttributes.addFlashAttribute("message", "Link for reset password has been sent: " + email);
@@ -234,11 +235,7 @@ public class AuthController {
     }
 
     @PostMapping("/reset-password")
-    public String processResetPassword(@RequestParam("token") String token,
-                                       @RequestParam("newPassword") String newPassword,
-                                       @RequestParam("confirmPassword") String confirmPassword,
-                                       Model model,
-                                       RedirectAttributes redirectAttributes) {
+    public String processResetPassword(@RequestParam("token") String token, @RequestParam("newPassword") String newPassword, @RequestParam("confirmPassword") String confirmPassword, Model model, RedirectAttributes redirectAttributes) {
 
         Customer customer = customerService.getByResetPasswordToken(token);
         if (customer == null) {

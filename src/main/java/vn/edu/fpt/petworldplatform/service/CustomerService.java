@@ -163,6 +163,22 @@ public class CustomerService {
         return customerRepo.findAll();
     }
 
+    public void deleteCustomer(int id) {
+        if (!customerRepo.existsById(id)) {
+            throw new RuntimeException("Customer not found with id: " + id);
+        }
+        customerRepo.deleteById(id);
+    }
+
+    public void updateCustomerStatus(int id, boolean newStatus) {
+        Customer customer = customerRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Customer not found with id: " + id));
+
+        customer.setIsActive(newStatus);
+
+        customerRepo.save(customer);
+    }
+
     public Optional<Customer> findByEmail(String email) {
         return customerRepo.findByEmail(email);
     }
@@ -175,7 +191,7 @@ public class CustomerService {
         return customerRepo.existsByEmail(email);
     }
 
-    public Optional<Customer> findById(Long id) {
+    public Optional<Customer> findById(int id) {
         return customerRepo.findById(id);
     }
 

@@ -23,11 +23,26 @@ public class Appointment {
     @Column(name = "AppointmentCode", nullable = false, unique = true, length = 30)
     private String appointmentCode;
 
-    @Column(name = "CustomerID", nullable = false)
-    private Long customerId;
+    @Column(name = "CustomerID", nullable = false, insertable = false, updatable = false)
+    private Integer customerId;
 
-    @Column(name = "PetID", nullable = false)
-    private Integer petId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "CustomerID", nullable = false)
+    private Customer customer;
+
+    @Column(name = "PetID", nullable = false, insertable = false, updatable = false)
+    private Long petId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "PetID", nullable = false)
+    private Pets pet;
+
+    @Column(name = "StaffID", insertable = false, updatable = false)
+    private Integer staffId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "StaffID")
+    private Staff staff;
 
     @Column(name = "AppointmentDate", nullable = false)
     private LocalDateTime appointmentDate;
@@ -56,6 +71,9 @@ public class Appointment {
 
     @Column(name = "PreviousAppointmentDate")
     private LocalDateTime previousAppointmentDate;
+
+    @Column(name = "EndTime")
+    private LocalDateTime endTime;
 
     @OneToMany(mappedBy = "appointment", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

@@ -46,16 +46,71 @@ public class ServiceItemService {
         return serviceItemRepository.save(entity);
     }
 
-    /** Soft delete: set IsActive = false. Block if has associated appointments (BR-21). */
+    /**
+     * Delete behavior:
+     * - If service is NOT used by any appointment: hard delete.
+     * - If it IS used: set isActive = false (soft delete) and return deactivated result.
+     */
     @Transactional
-    public boolean softDelete(Integer id) {
+    public DeleteResult deleteOrDeactivate(Integer id) {
         Optional<ServiceItem> opt = serviceItemRepository.findById(id);
-        if (opt.isEmpty()) return false;
-        long used = serviceItemRepository.countAppointmentsByServiceId(id);
-        if (used > 0) return false;
+        if (opt.isEmpty()) {
+            return DeleteResult.notFound();
+        }
+
         ServiceItem s = opt.get();
-        s.setIsActive(false);
-        serviceItemRepository.save(s);
-        return true;
+
+        long usedAppointments = serviceItemRepository.countAppointmentsByServiceId(id);
+        if (usedAppointments > 0) {
+            s.setIsActive(false);
+            serviceItemRepository.save(s);
+            return DeleteResult.successDeactivatedBecauseInUse(usedAppointments);
+        }
+
+        // Not in use -> Hard delete
+        try {
+            serviceItemRepository.delete(s);
+            serviceItemRepository.flush();
+            return DeleteResult.successDeleted();
+        } catch (RuntimeException ex) {
+            // Fallback to deactivate if unexpected constraint occurs
+            s.setIsActive(false);
+            serviceItemRepository.save(s);
+            return DeleteResult.successDeactivatedBecauseInUse(usedAppointments);
+        }
+    }
+
+    public static final class DeleteResult {
+        private final boolean ok;
+        private final boolean existed;
+        private final boolean deleted;
+        private final boolean deactivated;
+        private final long usedAppointments;
+
+        private DeleteResult(boolean ok, boolean existed, boolean deleted, boolean deactivated, long usedAppointments) {
+            this.ok = ok;
+            this.existed = existed;
+            this.deleted = deleted;
+            this.deactivated = deactivated;
+            this.usedAppointments = usedAppointments;
+        }
+
+        public static DeleteResult notFound() {
+            return new DeleteResult(false, false, false, false, 0);
+        }
+
+        public static DeleteResult successDeleted() {
+            return new DeleteResult(true, true, true, false, 0);
+        }
+
+        public static DeleteResult successDeactivatedBecauseInUse(long usedAppointments) {
+            return new DeleteResult(true, true, false, true, usedAppointments);
+        }
+
+        public boolean isOk() { return ok; }
+        public boolean isExisted() { return existed; }
+        public boolean isDeleted() { return deleted; }
+        public boolean isDeactivated() { return deactivated; }
+        public long getUsedAppointments() { return usedAppointments; }
     }
 }

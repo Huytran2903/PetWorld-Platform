@@ -65,7 +65,7 @@
                                     <i class="bi bi-pencil"></i> Edit
                                 </a>
                                 <th:block th:if="${st.isActive}">
-                                    <form th:action="@{/admin/service-type/delete/{id}(id=${st.id})}" method="post" class="d-inline" th:data-name="${st.name}" onsubmit="return confirm('Deactivate this service type? It will be hidden from new bookings.');">
+                                    <form th:action="@{/admin/service-type/delete/{id}(id=${st.id})}" method="post" class="d-inline" th:data-name="${st.name}" onsubmit="return confirm('Delete this service type? If it is currently in use, the system will deactivate it instead of deleting permanently.');">
                                         <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> Delete</button>
                                     </form>
                                 </th:block>
