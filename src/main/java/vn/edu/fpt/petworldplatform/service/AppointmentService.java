@@ -2,11 +2,23 @@ package vn.edu.fpt.petworldplatform.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import vn.edu.fpt.petworldplatform.dto.AppointmentFilterRequest;
 import vn.edu.fpt.petworldplatform.entity.Appointment;
 import vn.edu.fpt.petworldplatform.entity.Staff;
 import vn.edu.fpt.petworldplatform.repository.AppointmentRepository;
 import vn.edu.fpt.petworldplatform.repository.StaffRepository;
+import vn.edu.fpt.petworldplatform.repository.spec.AppointmentSpecifications;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,7 +31,86 @@ public class AppointmentService implements IAppointmentService {
 
     @Override
     public List<Appointment> getAllAppointments() {
-        return appointmentRepository.findAll();
+        return appointmentRepository.findAll(Sort.by(Sort.Direction.DESC, "appointmentDate"));
+    }
+
+    @Override
+    public Page<Appointment> getAppointments(AppointmentFilterRequest filter) {
+        Specification<Appointment> spec = Specification.where(AppointmentSpecifications.hasStatus(filter.getStatus()))
+                .and(AppointmentSpecifications.appointmentDateFrom(filter.getFromDate()))
+                .and(AppointmentSpecifications.appointmentDateTo(filter.getToDate()))
+                .and(AppointmentSpecifications.keywordLike(filter.getKeyword()));
+
+        return appointmentRepository.findAll(spec, PageRequest.of(filter.getPage(), filter.getSize(), Sort.by(Sort.Direction.DESC, "appointmentDate")));
+    }
+
+    @Override
+    public void cancelAppointment(Integer id, String reason) {
+        Appointment appointment = getAppointmentById(id);
+        
+        // Business Rule: Can only cancel if not already done/canceled/no_show
+        String status = appointment.getStatus().toLowerCase();
+        if ("done".equals(status) || "canceled".equals(status) || "no_show".equals(status)) {
+            throw new IllegalStateException("Cannot cancel an appointment that is already " + status);
+        }
+
+        appointment.setStatus("canceled");
+        appointment.setCancellationReason(reason);
+        appointment.setCanceledAt(LocalDateTime.now());
+        appointment.setUpdatedAt(LocalDateTime.now());
+        appointmentRepository.save(appointment);
+    }
+
+    @Override
+    public void deleteAppointment(Integer id) {
+        Appointment appointment = getAppointmentById(id);
+        String status = appointment.getStatus() != null ? appointment.getStatus().toLowerCase() : "";
+        if (!"canceled".equals(status)) {
+            throw new IllegalStateException("Only canceled appointments can be deleted.");
+        }
+        appointmentRepository.delete(appointment);
+    }
+
+    @Override
+    public ByteArrayInputStream exportToExcel(AppointmentFilterRequest filter) {
+        // Use the same filter logic but without pagination (or large page size)
+        filter.setSize(Integer.MAX_VALUE);
+        List<Appointment> appointments = getAppointments(filter).getContent();
+
+        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Sheet sheet = workbook.createSheet("Appointments");
+
+            // Header Row
+            Row headerRow = sheet.createRow(0);
+            String[] columns = {"Code", "Customer ID", "Pet ID", "Date", "Status", "Note", "Cancel Reason"};
+            for (int i = 0; i < columns.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(columns[i]);
+                CellStyle headerStyle = workbook.createCellStyle();
+                Font font = workbook.createFont();
+                font.setBold(true);
+                headerStyle.setFont(font);
+                cell.setCellStyle(headerStyle);
+            }
+
+            // Data Rows
+            int rowIdx = 1;
+            for (Appointment appt : appointments) {
+                Row row = sheet.createRow(rowIdx++);
+                row.createCell(0).setCellValue(appt.getAppointmentCode());
+                row.createCell(1).setCellValue(appt.getCustomerId());
+                row.createCell(2).setCellValue(appt.getPetId());
+                row.createCell(3).setCellValue(appt.getAppointmentDate().toString());
+                row.createCell(4).setCellValue(appt.getStatus());
+                row.createCell(5).setCellValue(appt.getNote());
+                row.createCell(6).setCellValue(appt.getCancellationReason());
+            }
+
+            workbook.write(out);
+            return new ByteArrayInputStream(out.toByteArray());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to export data to Excel", e);
+        }
     }
 
     @Override
