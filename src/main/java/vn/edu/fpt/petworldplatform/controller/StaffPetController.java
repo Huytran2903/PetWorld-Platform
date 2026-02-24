@@ -69,7 +69,7 @@ public class StaffPetController {
 
     // Đổi Integer -> Long
     @GetMapping("/detail")
-    public String showPetDetail(@RequestParam("id") Long id, Model model) {
+    public String showPetDetail(@RequestParam("id") Integer id, Model model) {
         Pets pet = petService.getPetById(id);
         model.addAttribute("pet", pet);
         return "staff/pet/pet-detail";
@@ -77,7 +77,7 @@ public class StaffPetController {
 
     // Đổi Integer -> Long
     @GetMapping("/update")
-    public String showUpdatePet(@RequestParam("id") Long id, Model model) {
+    public String showUpdatePet(@RequestParam("id") Integer id, Model model) {
         Pets pet = petService.getPetById(id);
         model.addAttribute("pet", pet);
         return "staff/pet/pet-update";
@@ -91,7 +91,7 @@ public class StaffPetController {
 
     // Đổi Integer -> Long
     @GetMapping("/history")
-    public String showPetHistory(@RequestParam("id") Long id, Model model) {
+    public String showPetHistory(@RequestParam("id") Integer id, Model model) {
         Pets pet = petService.getPetById(id);
         model.addAttribute("pet", pet);
         return "staff/pet/pet-history";

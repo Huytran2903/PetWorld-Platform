@@ -8,12 +8,16 @@ body {
 .app-container {
     background-color: #f9fafb;
     min-height: 100vh;
+    flex-grow: 1;
+    min-width: 0;
 }
 
 /* Header mượt mà */
 .page-header {
-    background-color: #ffa54f; /* Màu cam chủ đạo */
+    background-color: #ffead1; /* Màu cam chủ đạo */
     border-bottom: 1px solid rgba(0,0,0,0.05);
+    width: 100%;
+    margin-top: 0;
 }
 
 .page-header h1 {

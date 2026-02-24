@@ -16,12 +16,21 @@
 <div class="main-wrapper d-flex align-items-center justify-content-center py-5">
   <div class="form-container px-3">
     <div class="mb-4 text-start ps-2">
-      <h2 class="fw-bold text-dark mb-0">Add New Product</h2>
+      <h2 th:if="${formMode == 'edit'}">Edit a product</h2>
+      <h2 th:if="${formMode == 'add'}">Create a product</h2>
       <p class="text-secondary small">Provide information and description for the new shop item.</p>
     </div>
 
     <div class="card pet-card border-0 shadow-lg p-4">
-      <form th:action="@{/admin/products/save}" method="POST" enctype="multipart/form-data">
+      <form th:action="@{/admin/product/save}"
+            method="POST"
+            th:object="${selectedPro}"
+            enctype="multipart/form-data">
+
+        <input type="hidden" th:field="*{productId}">
+
+        <input type="hidden" th:field="*{imageUrl}">
+
         <div class="row g-4">
 
           <div class="col-lg-7">
@@ -30,18 +39,19 @@
                 <label class="form-label fw-semibold text-secondary small">
                   <i class="fa-solid fa-box-open text-warning me-1"></i> Product Name <span class="text-danger">*</span>
                 </label>
-                <input type="text" class="form-control shadow-none" placeholder="e.g. Premium Cat Dry Food" required>
+                <input type="text" class="form-control shadow-none" placeholder="e.g. Premium Cat Dry Food" required th:field="*{name}">
               </div>
 
               <div class="col-md-12">
-                <label class="form-label fw-semibold text-secondary small">
+                <label class="form-label fw-semibold text-secondary small" for="cates">
                   <i class="fa-solid fa-layer-group text-warning me-1"></i> Category
                 </label>
-                <select class="form-select shadow-none">
-                  <option value="" selected disabled>Select Category</option>
-                  <option value="1">Food</option>
-                  <option value="2">Toys</option>
-                  <option value="3">Accessories</option>
+                <select class="form-select shadow-none" id="cates" th:field="*{category}">
+                  <option th:each="x : ${cates}"
+                          th:value="${x.categoryID}"
+                          th:text="${x.name}"
+                          th:selected="${selectedPro.category != null and selectedPro.category.categoryID == x.categoryID}"
+                  >Select Category </option>
                 </select>
               </div>
 
@@ -49,21 +59,40 @@
                 <label class="form-label fw-semibold text-secondary small">
                   <i class="fa-solid fa-warehouse text-warning me-1"></i> Stock Quantity
                 </label>
-                <input type="number" class="form-control shadow-none" value="0">
+                <input type="number" class="form-control shadow-none"
+                       value=""
+                       min="0"
+                       max="100"
+                       th:field="*{stock}">
               </div>
               <div class="col-md-6">
                 <label class="form-label fw-semibold text-secondary small">
                   <i class="fa-solid fa-tag text-warning me-1"></i> Price ($)
                 </label>
-                <input type="number" step="0.01" class="form-control shadow-none" placeholder="0.00">
+                <input type="number"
+                       step="0.01"
+                       class="form-control shadow-none"
+                       placeholder="100.00"
+                       th:field="*{price}">
               </div>
 
               <div class="col-md-12">
                 <label class="form-label fw-semibold text-secondary small">
                   <i class="bi bi-percent text-warning me-1"></i> Discount (%)
                 </label>
-                <input type="number" class="form-control shadow-none" value="0">
+                <input type="number" class="form-control shadow-none" value="0" th:field="*{discountPercent}">
               </div>
+
+              <div class="col-md-6" th:if="${formMode == 'edit'}">
+                <label class="form-label fw-semibold text-secondary small">
+                  <i class="fa-solid fa-toggle-on text-warning me-1"></i> Product Status
+                </label>
+                <select class="form-select shadow-none" th:field="*{isActive}">
+                  <option value="true">Active</option>
+                  <option value="false">Inactive</option>
+                </select>
+              </div>
+
             </div>
           </div>
 
@@ -71,20 +100,43 @@
             <label class="form-label fw-semibold text-secondary small">
               <i class="bi bi-image me-1 text-warning"></i> Product Image
             </label>
-            <div class="upload-container border border-dashed rounded-3 d-flex flex-column align-items-center justify-content-center bg-light p-4 text-center h-100" style="min-height: 280px;">
-              <i class="fa-solid fa-cloud-arrow-up fs-1 text-warning mb-3"></i>
-              <p class="small text-muted mb-3">Click to upload or drag & drop image</p>
 
-              <div class="custom-file-upload w-100">
-                <label for="file-upload" class="btn btn-outline-warning btn-sm px-4 shadow-sm">
-                  Choose File
-                </label>
-                <input id="file-upload" type="file" class="d-none" accept="image/*" onchange="previewFile(this)">
-                <div id="file-name" class="small text-muted mt-2">No file chosen</div>
+            <div class="upload-container border rounded-3 d-flex flex-column align-items-center justify-content-center bg-light p-4 text-center h-100"
+                 style="min-height: 380px; border-style: dashed !important; position: relative;">
+
+              <div id="preview-box" class="mb-3"
+                   th:style="${selectedPro.imageUrl != null && !selectedPro.imageUrl.isEmpty() ? 'display:block' : 'display:none'}">
+                <img id="img-preview"
+                     th:src="@{${selectedPro.imageUrl != null && selectedPro.imageUrl.startsWith('/uploads/') ? selectedPro.imageUrl : '/uploads/' + selectedPro.imageUrl}}"
+                     class="img-thumbnail shadow-sm"
+                     style="max-height: 250px; max-width: 100%; object-fit: contain;" alt="Product Preview">
               </div>
 
-              <div class="mt-3 d-none" id="preview-box">
-                <img src="" id="img-preview" class="img-fluid rounded shadow-sm" style="max-height: 120px;">
+              <div id="placeholder-box"
+                   th:style="${selectedPro.imageUrl != null && !selectedPro.imageUrl.isEmpty() ? 'display:none' : 'display:block'}">
+                <i class="fa-solid fa-cloud-arrow-up fs-1 text-warning mb-3"></i>
+                <p class="small text-muted mb-3">Click to upload product image</p>
+              </div>
+
+              <label for="file-upload" class="btn btn-outline-warning btn-sm px-4 shadow-sm mt-auto">
+                Choose File
+              </label>
+
+              <input id="file-upload"
+                     type="file"
+                     name="imageFile"
+                     accept="image/png, image/jpeg, image/jpg"
+                     class="d-none"
+                     onchange="previewImage(this)">
+
+              <div id="file-name" class="small text-muted mt-3 text-break">
+         <span th:if="${selectedPro.imageUrl != null && !selectedPro.imageUrl.isEmpty()}"
+               class="text-success fw-medium">
+            <i class="fa-solid fa-check-circle"></i> Image Loaded
+         </span>
+                <span th:unless="${selectedPro.imageUrl != null && !selectedPro.imageUrl.isEmpty()}">
+            No file chosen
+         </span>
               </div>
             </div>
           </div>
@@ -93,15 +145,19 @@
             <label class="form-label fw-semibold text-secondary small">
               <i class="bi bi-chat-left-text-fill text-warning me-1"></i> Description
             </label>
-            <textarea class="form-control shadow-none" rows="4" placeholder="Provide detailed information about the product..."></textarea>
+            <textarea class="form-control shadow-none" rows="4" placeholder="Provide detailed information about the product..." th:field="*{description}"></textarea>
           </div>
 
           <div class="col-md-12 border-top pt-4 mt-2 d-flex gap-3 justify-content-end">
-            <button type="button" class="btn btn-pill-cancel px-4 py-2">Cancel</button>
+            <a th:href="@{/admin/manage-product}" class="btn btn-pill-cancel px-4 py-2 text-decoration-none text-dark">Cancel</a>
             <button type="submit" class="btn btn-save-pill px-5 py-2 shadow-sm text-white fw-bold">
               Save Product
             </button>
           </div>
+
+          <p>
+            <input type="hidden" name="mode" th:value="${formMode}">
+          </p>
 
         </div>
       </form>
@@ -110,22 +166,28 @@
 </div>
 
 <script>
-  function previewFile(input) {
+  function previewImage(input) {
     const fileName = document.getElementById('file-name');
     const previewBox = document.getElementById('preview-box');
+    const placeholderBox = document.getElementById('placeholder-box');
     const imgPreview = document.getElementById('img-preview');
 
     if (input.files && input.files[0]) {
-      fileName.textContent = input.files[0].name;
+      // Cập nhật tên file và đổi màu xanh
+      fileName.innerHTML = `<span class="text-success fw-medium"><i class="fa-solid fa-check-circle"></i> ${input.files[0].name}</span>`;
+
       const reader = new FileReader();
       reader.onload = function(e) {
         imgPreview.src = e.target.result;
-        previewBox.classList.remove('d-none');
+        previewBox.style.display = 'block'; // Hiện ảnh
+        if(placeholderBox) placeholderBox.style.display = 'none'; // Ẩn đám mây
       }
       reader.readAsDataURL(input.files[0]);
     } else {
-      fileName.textContent = "No file chosen";
-      previewBox.classList.add('d-none');
+      // Trường hợp user ấn cancel, không chọn file nữa
+      fileName.innerHTML = '<span>No file chosen</span>';
+      previewBox.style.display = 'none'; // Ẩn ảnh
+      if(placeholderBox) placeholderBox.style.display = 'block'; // Hiện lại đám mây
     }
   }
 </script>

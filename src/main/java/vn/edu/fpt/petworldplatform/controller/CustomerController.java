@@ -299,7 +299,7 @@ public class CustomerController {
     }
 
     @GetMapping("/customer/pet/pet-detail")
-    public String showPetDetail(@RequestParam("id") Long id, Model model, HttpSession session) {
+    public String showPetDetail(@RequestParam("id") Integer id, Model model, HttpSession session) {
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
         if (customer == null) return "redirect:/login";
 
@@ -314,7 +314,7 @@ public class CustomerController {
     }
 
     @GetMapping("/customer/pet/pet-update")
-    public String showPetUpdatePage(@RequestParam("id") Long id, Model model, HttpSession session) {
+    public String showPetUpdatePage(@RequestParam("id") Integer id, Model model, HttpSession session) {
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
         if (customer == null) return "redirect:/login";
 
@@ -383,7 +383,7 @@ public class CustomerController {
     }
 
     @GetMapping("/customer/pet/pet-history")
-    public String showPetHistory(@RequestParam("id") Long id, Model model, HttpSession session) {
+    public String showPetHistory(@RequestParam("id") Integer id, Model model, HttpSession session) {
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
         if (customer == null) return "redirect:/login";
 

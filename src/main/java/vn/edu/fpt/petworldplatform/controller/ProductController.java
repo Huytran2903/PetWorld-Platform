@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import vn.edu.fpt.petworldplatform.service.PetService;
+import vn.edu.fpt.petworldplatform.service.ProductService;
 //import vn.edu.fpt.petworldplatform.service.PetService;
 
 @Controller
@@ -13,11 +14,14 @@ public class ProductController {
     @Autowired
     private PetService petService;
 
+    @Autowired
+    private ProductService productService;
+
     //Product List
     @GetMapping("/products")
-    public String showProductList(Model model) {
-        model.addAttribute("formMode", "product");
-        return "/product/petList";
+    public String getAllProducts(Model model) {
+        model.addAttribute("product", productService.getAllProducts());
+        return "/product/productList";
     }
 
     //Pet List

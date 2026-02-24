@@ -1,22 +1,32 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
     <link rel="stylesheet" href="/css/managePet.css" />
+    <link rel="stylesheet" th:href="@{/css/sidebar-admin.css}">
     <title>Pet Management System</title>
 </head>
 <body>
-<div class="app-container">
+
+<div class="d-flex min-vh-100">
+
+    <div th:replace="~{fragments/sidebar-admin :: aside(activePage='products')}"></div>
+
+<div class="app-container flex-grow-1 w-100">
     <header class="page-header py-4 shadow-sm mb-4">
         <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
             <div>
                 <h1 class="h3 mb-1 fw-bold text-dark">Product Management System</h1>
             </div>
-            <button class="btn btn-add-new d-flex align-items-center gap-2 px-4 py-2 shadow-sm">
-                <span class="fs-4">+</span> Add New Product
-            </button>
+            <a th:href="@{/admin/product/new}" class="btn btn-add-new d-flex align-items-center gap-2 px-4 py-2 shadow-sm text-decoration-none">
+                <i class="bi bi-plus-circle fs-4"></i>
+                 Add New Product
+            </a>
         </div>
     </header>
 
@@ -52,31 +62,50 @@
                         <th>Description</th>
                         <th>Category_Id</th>
                         <th>Stock</th>
+                        <th>Status</th>
                         <th class="text-end pe-4">Action</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr>
-                        <td class="ps-4 fw-bold">#001</td>
+                    <tr th:each="p: ${products}">
+                        <td class="ps-4 fw-bold" th:text="${p.productId}"></td>
                         <td>
-                            <img src="https://via.placeholder.com/50" class="rounded-3 border" alt="pet">
+                            <img th:src="${p.imageUrl}" class="rounded-3 border" alt="product" width="80" height="90">
                         </td>
                         <td>
-                            <div class="fw-bold text-dark">Food</div>
+                            <div class="fw-bold text-dark" th:text="${p.name}">Food</div>
                         </td>
-                        <td class="fw-bold text-dark">$1,200</td>
-                        <td class="text-danger">-10%</td>
-                        <td>Description...</td>
+                        <td class="fw-bold text-dark" th:text="${p.price}"></td>
+                        <td class="text-danger" th:text="${p.discountPercent}"></td>
+                        <td th:text="${p.description}"></td>
                         <td>
-                            <span class="badge bg-primary-subtle text-primary rounded-pill px-3">3</span>
+                            <span class="badge bg-primary-subtle text-primary rounded-pill px-3" th:text="${p.category.name}"></span>
                         </td>
                         <td>
-                            <span class="badge bg-warning-subtle text-warning rounded-pill px-3">30</span>
+                            <span class="badge bg-warning-subtle text-warning rounded-pill px-3" th:text="${p.stock}"></span>
                         </td>
+
+                        <td>
+                            <span class="badge rounded-pill px-3"
+                                  th:classappend="${p.isActive ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'}"
+                                  th:text="${p.isActive ? 'Active' : 'Inactive'}">
+                             </span>
+                        </td>
+
                         <td class="text-end pe-4">
                             <div class="btn-group shadow-sm rounded-pill overflow-hidden">
-                                <button class="btn btn-sm btn-outline-secondary border-0 px-3">Edit</button>
-                                <button class="btn btn-sm btn-outline-danger border-0 px-3">Delete</button>
+                            <a th:href="@{'/admin/product/edit/' + ${p.productId}}"
+                               class="btn btn-sm btn-outline-secondary border-0 px-3">
+                                <i class="bi bi-pencil-square me-1"></i> Edit
+                            </a>
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger border-0 px-3"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#deleteConfirmationModal"
+                                    th:data-action="@{'/admin/product/delete/' + ${p.productId}}"
+                                    th:data-name="${p.name}">
+                                <i class="bi bi-trash3 me-1"></i> Delete
+                            </button>
                             </div>
                         </td>
                     </tr>
@@ -86,7 +115,51 @@
         </div>
     </main>
 </div>
+</div>
+
+<div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title fw-bold text-danger" id="deleteModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4 text-center">
+                <div class="mb-3">
+                    <i class="bi bi-exclamation-circle text-danger display-1"></i>
+                </div>
+                <p class="mb-1 text-secondary">Are you sure you want to delete this product?</p>
+                <p class="fw-bold fs-5 text-dark" id="productNamePlaceholder"></p>
+                <p class="small text-muted">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer border-top-0 justify-content-center pb-4">
+                <button type="button" class="btn btn-light px-4 rounded-pill" data-bs-dismiss="modal">
+                    Cancel
+                </button>
+                <a id="confirmDeleteBtn" href="#" class="btn btn-danger px-4 rounded-pill">
+                    <i class="bi bi-trash3-fill me-2"></i> Yes, Delete
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const deleteModal = document.getElementById('deleteConfirmationModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget;
+            const deleteUrl = button.getAttribute('data-action');
+            const productName = button.getAttribute('data-name');
+            const confirmBtn = document.getElementById('confirmDeleteBtn');
+            confirmBtn.href = deleteUrl;
+            const modalBodyName = document.getElementById('productNamePlaceholder');
+            modalBodyName.textContent = productName ? '"' + productName + '"' : '';
+        });
+    }
+</script>
 </body>
 </html>

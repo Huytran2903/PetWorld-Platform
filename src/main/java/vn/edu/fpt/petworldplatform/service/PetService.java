@@ -36,7 +36,7 @@ public class PetService {
 
 
     //OanhTP
-    public List<Pets> getAllPets2() {
+    public List<Pets> findAllPets() {
         return petRepo.findAll();
     }
 
@@ -49,9 +49,13 @@ public class PetService {
         petRepo.save(pet);
     }
 
-    public Pets getPetById(Long id) {
+    public Pets getPetById(Integer id) {
         return petRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy thú cưng ID: " + id));
+                .orElseThrow(() -> new RuntimeException("No pet found with this ID: " + id));
+    }
+
+    public void removePet(Integer id) {
+        petRepo.deleteById(id);
     }
 
     public void createPet(PetCreateDTO dto) throws IOException {

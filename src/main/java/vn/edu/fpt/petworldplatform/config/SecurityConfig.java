@@ -46,6 +46,7 @@ public class SecurityConfig {
 
 
                         .requestMatchers("/reset-password", "/forgot-password").permitAll()
+                        .requestMatchers("/uploads").permitAll()
                         // --------------------
 
                         .requestMatchers("/profile/**").authenticated()

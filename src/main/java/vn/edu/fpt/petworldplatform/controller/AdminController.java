@@ -13,8 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.petworldplatform.dto.PetFormDTO;
-import vn.edu.fpt.petworldplatform.entity.Categories;
-import vn.edu.fpt.petworldplatform.entity.Pets;
+import vn.edu.fpt.petworldplatform.entity.*;
 import vn.edu.fpt.petworldplatform.service.*;
 import org.springframework.util.StringUtils;
 
@@ -36,8 +35,6 @@ import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 
-import vn.edu.fpt.petworldplatform.entity.ServiceItem;
-import vn.edu.fpt.petworldplatform.entity.ServiceType;
 import org.springframework.web.bind.annotation.PostMapping;
 
 
@@ -50,6 +47,11 @@ public class AdminController {
 
     @Autowired
     private PetService petService;
+
+    @Autowired
+    private ProductService productService;
+
+
 
     private final CustomerService customerService;
 
@@ -74,15 +76,14 @@ public class AdminController {
     //Manage Pet - OanhTP
     //List
     @GetMapping("/admin/manage-pet")
-    public String getAllPet(Model model) {
-        model.addAttribute("pets", petService.getAllPets2());
+    public String getAllPets(Model model) {
+        model.addAttribute("pets", petService.findAllPets());
         return "admin/managePet";
     }
 
     //Edit Pet
     @GetMapping("admin/pet/edit/{id}")
-    public String updatePet(Model model, @PathVariable("id") Long id) {
-        Pets pet = petService.getPetById(id);
+    public String updatePet(Model model, @PathVariable("id") Integer id) {
         model.addAttribute("selectedPet", petService.getPetById(id));
         model.addAttribute("formMode", "edit");
         return "admin/pet-form";
@@ -96,11 +97,27 @@ public class AdminController {
         return "admin/pet-form";
     }
 
+    //Delete Pet
+    @GetMapping("/admin/pet/delete/{id}")
+    public String deletePet(@PathVariable("id") Integer id) {
+        petService.removePet(id);
+        return "redirect:/admin/manage-pet";
+    }
+
 
     @PostMapping("/admin/pet/save")
-    public String savePet(@ModelAttribute("selectedPet") Pets pet,
+    public String savePet(@Validated @ModelAttribute("selectedPet") Pets pet,
+                          BindingResult result, // Đưa lên ngay sau 'pet'
                           @RequestParam("imageFile") MultipartFile imageFile,
-                          RedirectAttributes redirectAttributes) {
+                          RedirectAttributes redirectAttributes,
+                          @RequestParam("mode") String formMode,
+                          Model model) {
+
+        if(result.hasErrors()) {
+            model.addAttribute("formMode", formMode);
+            return "admin/pet-form";
+        }
+
         try {
             // 1. Kiểm tra nếu người dùng CÓ chọn file ảnh mới
             if (imageFile != null && !imageFile.isEmpty()) {
@@ -147,13 +164,6 @@ public class AdminController {
         }
 
         return "redirect:/admin/manage-pet";
-    }
-
-
-    //Manage Product - OanhTP
-    @GetMapping("/admin/manage-product")
-    public String manageProduct() {
-        return "admin/manageProduct";
     }
 
     //Manage Categories - OanhTP
@@ -206,10 +216,105 @@ public class AdminController {
     }
 
 
-    //Create Product - OanhTP
+    //Manage Product - OanhTP
+    @GetMapping("/admin/manage-product")
+    public String getAllProducts(Model model) {
+        model.addAttribute("products", productService.getAllProducts());
+        return "admin/manageProduct";
+    }
+
+    //Create
     @GetMapping("/admin/product/new")
-    public String saveProduct() {
+    public String createProduct(Model model) {
+        model.addAttribute("selectedPro", new Product());
+
+        model.addAttribute("cates", categoryService.getAllCategories());
+
+        model.addAttribute("formMode", "add");
         return "admin/product-form";
+    }
+
+    @PostMapping("/admin/product/save")
+    public String saveProduct(@Validated @ModelAttribute("selectedPro") Product product,
+                              BindingResult result,
+                              @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
+                              RedirectAttributes redirectAttributes,
+                              @RequestParam(value = "mode", required = false) String formMode,
+                              Model model) {
+
+        // NẾU CÓ LỖI VALIDATION (Ví dụ: để trống tên sản phẩm)
+        if(result.hasErrors()) {
+            model.addAttribute("formMode", formMode);
+
+            model.addAttribute("cates", categoryService.getAllCategories());
+
+            return "admin/product-form"; // Thay bằng tên file HTML form Product của bạn
+        }
+
+        try {
+            // 1. Kiểm tra nếu người dùng CÓ chọn file ảnh mới
+            if (imageFile != null && !imageFile.isEmpty()) {
+
+                // Tạo đường dẫn tới thư mục "uploads" nằm ngay tại thư mục gốc dự án
+                Path uploadPath = Paths.get("uploads");
+
+                // Tạo thư mục nếu chưa tồn tại
+                if (!Files.exists(uploadPath)) {
+                    Files.createDirectories(uploadPath);
+                }
+
+                // Tạo tên file ngẫu nhiên (UUID) để tránh trùng lặp
+                String fileName = UUID.randomUUID().toString() + "_" + imageFile.getOriginalFilename();
+
+                // Lưu file vật lý vào ổ cứng
+                try (InputStream inputStream = imageFile.getInputStream()) {
+                    Files.copy(inputStream, uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
+                }
+
+                // [QUAN TRỌNG] Lưu đường dẫn Web vào Database (Ví dụ: /uploads/abc.jpg)
+                product.setImageUrl("/uploads/" + fileName);
+
+            } else {
+                // 2. Logic Edit: Người dùng KHÔNG chọn ảnh mới -> Giữ nguyên ảnh cũ
+                if (product.getProductId() != null) {
+                    // Lấy sản phẩm cũ từ Database ra để lấy lại đường dẫn ảnh cũ
+                    // Tuỳ vào cách bạn đặt tên hàm trong Service mà thay đổi cho phù hợp nhé:
+                    Product oldProduct = productService.getProductById(product.getProductId());
+
+                    if (oldProduct != null && (product.getImageUrl() == null || product.getImageUrl().isEmpty())) {
+                        product.setImageUrl(oldProduct.getImageUrl());
+                    }
+                }
+            }
+
+            // Lưu sản phẩm vào Database
+            productService.saveProduct(product);
+            redirectAttributes.addFlashAttribute("message", "Product saved successfully!");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Lỗi khi lưu ảnh: " + e.getMessage());
+        }
+
+
+        return "redirect:/admin/manage-product";
+    }
+
+    @GetMapping("/admin/product/edit/{id}")
+    public String updateProduct(Model model, @PathVariable("id") Integer id) {
+        model.addAttribute("selectedPro", productService.getProductById(id));
+
+        model.addAttribute("cates", categoryService.getAllCategories());
+
+        model.addAttribute("formMode", "edit");
+
+        return "admin/product-form";
+    }
+
+    @GetMapping("/admin/product/delete/{id}")
+    public String deleteProduct(@PathVariable("id") Integer id) {
+        productService.deleteById(id);
+        return "redirect:/admin/manage-product";
     }
 
 

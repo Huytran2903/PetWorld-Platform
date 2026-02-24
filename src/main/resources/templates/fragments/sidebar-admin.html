@@ -15,9 +15,16 @@
             <i class="bi bi-mic-fill me-3 fs-5"></i> Appointment management
         </a>
 
-        <a th:href="@{/locations}" class="nav-link-custom d-flex align-items-center"
-           th:classappend="${activePage == 'locations' ? 'active-state' : ''}">
-            <i class="bi bi-geo-alt-fill me-3 fs-5"></i> Locations
+        <a th:href="@{/admin/manage-pet}" class="nav-link-custom d-flex align-items-center"
+           th:classappend="${activePage == 'pets' ? 'active-state' : ''}">
+            <i class="fa-solid fa-paw me-3 fs-5"></i>
+            Pets Management
+        </a>
+
+        <a th:href="@{/admin/manage-product}" class="nav-link-custom d-flex align-items-center"
+           th:classappend="${activePage == 'products' ? 'active-state' : ''}">
+            <i class="fa-solid fa-box me-3 fs-5"></i>
+            Products Management
         </a>
 
         <a th:href="@{/admin/customer-manage}" class="nav-link-custom d-flex align-items-center"

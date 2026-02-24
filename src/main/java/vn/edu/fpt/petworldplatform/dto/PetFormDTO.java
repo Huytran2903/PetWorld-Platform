@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 @Data
 public class PetFormDTO {
 
-    private Long petID;
+    private Integer petID;
 
     @NotBlank(message = "Name is required")
     private String name;

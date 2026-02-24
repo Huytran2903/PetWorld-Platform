@@ -1,53 +1,65 @@
 package vn.edu.fpt.petworldplatform.controller;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.HandlerExceptionResolver;
-import org.springframework.web.servlet.ModelAndView;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.UUID;
 
 @Controller
-public class FileUploadController implements HandlerExceptionResolver {
+public class FileUploadController {
 
-    @RequestMapping(value = "/uploadFile", method = RequestMethod.GET)
-    public String getImageView() {
-        return "file";
+    private static final String UPLOAD_DIR = "uploads";
+
+    // Bỏ hàm getImageView vì bạn không cần trang HTML
+
+    @PostMapping("/uploadFile")
+    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
+
+        // Kiểm tra file rỗng
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body("Please select a file to upload!");
+        }
+
+        try {
+            // Tạo thư mục uploads
+            Path uploadPath = Paths.get(UPLOAD_DIR);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+
+            // Lưu file
+            try (InputStream inputStream = file.getInputStream()) {
+                Path filePath = uploadPath.resolve(fileName);
+                Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+
+            return ResponseEntity.ok("/uploads/" + fileName);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Upload failed: " + e.getMessage());
+        }
     }
 
-    @RequestMapping(value = "/uploadFile", method = RequestMethod.POST)
-    public ModelAndView uploadFile(MultipartFile file) throws IOException {
-        ModelAndView modelAndView = new ModelAndView("file");
-
-        InputStream in = file.getInputStream();
-        File currDir = new File(".");
-        String path = currDir.getAbsolutePath();
-        FileOutputStream f = new FileOutputStream(path.substring(0, path.length() - 1) + file.getOriginalFilename());
-        int ch = 0;
-        while ((ch = in.read()) != -1) {
-            f.write(ch);
-        }
-        f.flush();
-        f.close();
-
-        modelAndView.getModel().put("message", "File uploaded successfully!");
-        return modelAndView;
-    }
-
-    @Override
-    public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object object, Exception exc) {
-        ModelAndView modelAndView = new ModelAndView("file");
-        if (exc instanceof MaxUploadSizeExceededException) {
-            modelAndView.getModel().put("message", "File size exceeds limit!");
-        }
-        return modelAndView;
+    // Xử lý lỗi quá dung lượng (Dùng @ExceptionHandler gọn hơn implement interface)
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<String> handleMaxSizeException(MaxUploadSizeExceededException exc) {
+        return ResponseEntity.status(HttpStatus.EXPECTATION_FAILED)
+                .body("File size exceeds limit!");
     }
 }
