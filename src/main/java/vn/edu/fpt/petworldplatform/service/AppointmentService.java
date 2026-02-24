@@ -120,7 +120,7 @@ public class AppointmentService implements IAppointmentService {
     }
 
     @Override
-    public void assignStaffToAppointment(Integer appointmentId, Long staffId) {
+    public void assignStaffToAppointment(Integer appointmentId, Integer staffId) {
         Appointment appointment = getAppointmentById(appointmentId);
 
         if (!"pending".equalsIgnoreCase(appointment.getStatus())) {
@@ -153,7 +153,7 @@ public class AppointmentService implements IAppointmentService {
     }
 
     @Override
-    public void reassignStaff(Integer appointmentId, Long newStaffId) {
+    public void reassignStaff(Integer appointmentId, Integer newStaffId) {
         Appointment appointment = getAppointmentById(appointmentId);
 
         if (!"confirmed".equalsIgnoreCase(appointment.getStatus())) {

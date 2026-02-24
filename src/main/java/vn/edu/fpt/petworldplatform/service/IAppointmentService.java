@@ -12,8 +12,8 @@ public interface IAppointmentService {
     List<Appointment> getAllAppointments();
     Page<Appointment> getAppointments(AppointmentFilterRequest filter);
     Appointment getAppointmentById(Integer id);
-    void assignStaffToAppointment(Integer appointmentId, Long staffId);
-    void reassignStaff(Integer appointmentId, Long newStaffId);
+    void assignStaffToAppointment(Integer appointmentId, Integer staffId);
+    void reassignStaff(Integer appointmentId, Integer newStaffId);
     void cancelAppointment(Integer id, String reason);
     void deleteAppointment(Integer id);
     ByteArrayInputStream exportToExcel(AppointmentFilterRequest filter);

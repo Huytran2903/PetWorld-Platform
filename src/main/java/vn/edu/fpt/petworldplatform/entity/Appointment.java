@@ -24,7 +24,7 @@ public class Appointment {
     private String appointmentCode;
 
     @Column(name = "CustomerID", nullable = false, insertable = false, updatable = false)
-    private Long customerId;
+    private Integer customerId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "CustomerID", nullable = false)
@@ -38,7 +38,7 @@ public class Appointment {
     private Pets pet;
 
     @Column(name = "StaffID", insertable = false, updatable = false)
-    private Long staffId;
+    private Integer staffId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "StaffID")

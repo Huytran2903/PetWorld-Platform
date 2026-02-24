@@ -24,7 +24,7 @@ public class StaffProfileService {
     // -------------------------------------------------------
     // Lấy Staff theo ID
     // -------------------------------------------------------
-    public Staff getStaffById(Long staffId) {
+    public Staff getStaffById(Integer staffId) {
         return staffRepository.findById(staffId)
                 .orElseThrow(() -> new RuntimeException("Staff không tìm thấy"));
     }
@@ -33,7 +33,7 @@ public class StaffProfileService {
     // Update profile (email, phone, fullName, hireDate, bio)
     // -------------------------------------------------------
     @Transactional
-    public Staff updateProfile(Long staffId, StaffProfileForm form) {
+    public Staff updateProfile(Integer staffId, StaffProfileForm form) {
         Staff staff = getStaffById(staffId);
 
         // Kiểm tra email đã dùng bởi người khác chưa
@@ -57,7 +57,7 @@ public class StaffProfileService {
     // Đổi mật khẩu
     // -------------------------------------------------------
     @Transactional
-    public void changePassword(Long staffId, ChangePasswordForm form) {
+    public void changePassword(Integer staffId, ChangePasswordForm form) {
         Staff staff = getStaffById(staffId);
 
         // Verify mật khẩu hiện tại

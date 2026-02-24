@@ -2,7 +2,6 @@ package vn.edu.fpt.petworldplatform.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import vn.edu.fpt.petworldplatform.entity.Appointment;
 
@@ -11,7 +10,7 @@ import java.util.List;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Integer>, JpaSpecificationExecutor<Appointment> {
 
-    List<Appointment> findByCustomerIdOrderByAppointmentDateDesc(Long customerId);
+    List<Appointment> findByCustomerIdOrderByAppointmentDateDesc(Integer customerId);
 
     List<Appointment> findByCustomerIdAndStatusInOrderByAppointmentDateDesc(Long customerId, List<String> statuses);
 
@@ -41,8 +40,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             "AND a.status NOT IN ('canceled', 'rejected') " +
             "AND a.appointmentDate < :newEnd " +
             "AND a.endTime > :newStart")
-    long countOverlappingStaffAppointments(@org.springframework.data.repository.query.Param("staffId") Long staffId,
-                                            @org.springframework.data.repository.query.Param("excludeId") Integer excludeId,
-                                            @org.springframework.data.repository.query.Param("newStart") java.time.LocalDateTime newStart,
-                                            @org.springframework.data.repository.query.Param("newEnd") java.time.LocalDateTime newEnd);
+    long countOverlappingStaffAppointments(@Param("staffId") Integer staffId,
+                                            @Param("excludeId") Integer excludeId,
+                                            @Param("newStart") LocalDateTime newStart,
+                                            @Param("newEnd") LocalDateTime newEnd);
 }

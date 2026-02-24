@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.petworldplatform.dto.PetFormDTO;
+import vn.edu.fpt.petworldplatform.dto.StaffFormDTO;
 import vn.edu.fpt.petworldplatform.entity.Categories;
 import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.entity.ServiceItem;
@@ -36,6 +37,8 @@ public class AdminController {
     @Autowired
     private PetService petService;
 
+    private final StaffService staffService;
+    private final RoleService roleService;
     private final CustomerService customerService;
     private final ServiceTypeService serviceTypeService;
     private final ServiceItemService serviceItemService;
@@ -81,9 +84,7 @@ public class AdminController {
 
 
     @PostMapping("/admin/pet/save")
-    public String savePet(@ModelAttribute("selectedPet") Pets pet,
-                          @RequestParam("imageFile") MultipartFile imageFile,
-                          RedirectAttributes redirectAttributes) {
+    public String savePet(@ModelAttribute("selectedPet") Pets pet, @RequestParam("imageFile") MultipartFile imageFile, RedirectAttributes redirectAttributes) {
         try {
             // 1. Kiểm tra nếu người dùng CÓ chọn file ảnh mới
             if (imageFile != null && !imageFile.isEmpty()) {
@@ -192,11 +193,6 @@ public class AdminController {
     }
 
 
-    @GetMapping("/admin/staff-manage")
-    public String showStaffList() {
-        return "admin/staff-manage";
-    }
-
     @GetMapping("/admin/appointment-manage")
     public String showAppointmentList() {
         return "redirect:/admin/appointments";
@@ -211,6 +207,106 @@ public class AdminController {
     public String showCustomerList(Model model) {
         model.addAttribute("customers", customerService.getAllCustomer());
         return "admin/customer-manage";
+    }
+
+    @GetMapping("/admin/staff-manage")
+    public String showStaffList(Model model) {
+        model.addAttribute("staffs", staffService.getAllStaffs());
+        return "admin/staff-manage";
+    }
+
+    @GetMapping("/admin/staff-manage/create")
+    public String showStaffForm(Model model) {
+        model.addAttribute("newStaff", new StaffFormDTO());
+        model.addAttribute("roles", roleService.getAllRoles());
+        model.addAttribute("formMode", "create");
+        return "admin/add-editStaffProfile";
+    }
+
+    @PostMapping("/admin/staff-manage/create")
+    public String createStaff(@ModelAttribute("newStaff") StaffFormDTO staffDTO, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("roles", roleService.getAllRoles());
+            model.addAttribute("formMode", "create");
+
+            return "admin/add-editStaffProfile";
+        }
+
+        try {
+            staffService.createStaff(staffDTO);
+            redirectAttributes.addFlashAttribute("message", "Staff account created and email sent successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error creating staff: " + e.getMessage());
+        }
+
+        return "redirect:/admin/staff-manage";
+    }
+
+
+    @GetMapping("/admin/edit-staff/{id}")
+    public String showEditStaffForm(@PathVariable("id") Integer id, Model model) {
+        model.addAttribute("newStaff", staffService.getStaffDtoById(id));
+        model.addAttribute("roles", roleService.getAllRoles());
+        model.addAttribute("formMode", "edit");
+
+        return "admin/add-editStaffProfile";
+    }
+
+    @PostMapping("/admin/staff-manage/update")
+    public String updateStaff(@Valid @ModelAttribute("newStaff") StaffFormDTO staffDTO, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("roles", roleService.getAllRoles());
+            model.addAttribute("formMode", "edit");
+            return "admin/add-editStaffProfile";
+        }
+
+        try {
+            staffService.updateStaff(staffDTO);
+            redirectAttributes.addFlashAttribute("message", "Staff updated successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error updating staff: " + e.getMessage());
+        }
+
+        return "redirect:/admin/staff-manage";
+    }
+
+    @GetMapping("/admin/staff-manage/delete/{id}")
+    public String deleteStaff(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) {
+        try {
+            staffService.deleteStaff(id);
+            redirectAttributes.addFlashAttribute("message", "Staff deleted successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error deleting staff: " + e.getMessage());
+        }
+        return "redirect:/admin/staff-manage";
+    }
+
+    // --- Edit Customer ---
+    @GetMapping("/admin/customer/update-status/{id}")
+    public String updateStatus(@PathVariable("id") int id, @RequestParam("isActive") boolean isActive, RedirectAttributes redirectAttributes) {
+        try {
+            customerService.updateCustomerStatus(id, isActive);
+            String statusMsg = isActive ? "Unbanned" : "Banned";
+            redirectAttributes.addFlashAttribute("message", "Customer has been " + statusMsg + " successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error updating status: " + e.getMessage());
+        }
+
+        return "redirect:/admin/customer-manage";
+    }
+
+    // --- Delete Customer ---
+    @GetMapping("/admin/customer/delete/{id}")
+    public String deleteCustomer(@PathVariable("id") int id, RedirectAttributes redirectAttributes) {
+        try {
+            customerService.deleteCustomer(id);
+            redirectAttributes.addFlashAttribute("message", "Customer deleted successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Error deleting customer: " + e.getMessage());
+        }
+
+        return "redirect:/admin/customer-manage";
     }
 
 
@@ -237,11 +333,7 @@ public class AdminController {
     }
 
     @PostMapping("/admin/service-type/save")
-    public String saveServiceType(
-            @Valid @ModelAttribute("serviceType") ServiceType serviceType,
-            BindingResult bindingResult,
-            Model model,
-            RedirectAttributes redirectAttributes) {
+    public String saveServiceType(@Valid @ModelAttribute("serviceType") ServiceType serviceType, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
         Integer id = serviceType.getId();
         if (id != null && id == 0) serviceType.setId(null);
         if (!bindingResult.hasFieldErrors("name")) {
@@ -276,13 +368,9 @@ public class AdminController {
 
     // UC-26: Manage Services (service items: price, duration, etc.)
     @GetMapping("/admin/services")
-    public String listServices(Model model,
-                               @RequestParam(required = false) String typeFilter,
-                               @RequestParam(required = false) Integer editId) {
+    public String listServices(Model model, @RequestParam(required = false) String typeFilter, @RequestParam(required = false) Integer editId) {
         model.addAttribute("serviceTypes", serviceTypeService.findAll());
-        List<ServiceItem> services = typeFilter != null && !typeFilter.isBlank()
-                ? serviceItemService.findByServiceType(typeFilter)
-                : serviceItemService.findAll();
+        List<ServiceItem> services = typeFilter != null && !typeFilter.isBlank() ? serviceItemService.findByServiceType(typeFilter) : serviceItemService.findAll();
         model.addAttribute("services", services);
         model.addAttribute("typeFilter", typeFilter != null ? typeFilter : "");
         if (editId != null) {
@@ -298,11 +386,7 @@ public class AdminController {
     }
 
     @PostMapping("/admin/service/save")
-    public String saveService(
-            @Valid @ModelAttribute("service") ServiceItem service,
-            BindingResult bindingResult,
-            Model model,
-            RedirectAttributes redirectAttributes) {
+    public String saveService(@Valid @ModelAttribute("service") ServiceItem service, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
         Integer id = service.getId();
         if (id != null && id == 0) service.setId(null);
         if (service.getServiceType() != null && !service.getServiceType().isBlank() && !bindingResult.hasFieldErrors("name")) {

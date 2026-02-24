@@ -94,7 +94,7 @@ public class AdminAppointmentController {
 
     /** UC-33: Assign Staff */
     @PostMapping("/{id}/assign")
-    public String assignStaff(@PathVariable Integer id, @RequestParam Long staffId, RedirectAttributes redirectAttributes) {
+    public String assignStaff(@PathVariable Integer id, @RequestParam Integer staffId, RedirectAttributes redirectAttributes) {
         try {
             appointmentService.assignStaffToAppointment(id, staffId);
             redirectAttributes.addFlashAttribute("message", "Staff assigned successfully and appointment confirmed.");
@@ -106,7 +106,7 @@ public class AdminAppointmentController {
 
     /** UC-33: Re-assign Staff */
     @PostMapping("/{id}/reassign")
-    public String reassignStaff(@PathVariable Integer id, @RequestParam Long staffId, RedirectAttributes redirectAttributes) {
+    public String reassignStaff(@PathVariable Integer id, @RequestParam Integer staffId, RedirectAttributes redirectAttributes) {
         try {
             appointmentService.reassignStaff(id, staffId);
             redirectAttributes.addFlashAttribute("message", "Staff reassigned successfully.");

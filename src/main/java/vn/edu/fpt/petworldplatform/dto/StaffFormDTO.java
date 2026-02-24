@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class StaffFormDTO {
-    private Integer staffId; // Used for Update mode
+    private Integer staffId;
 
     @NotBlank(message = "Full name is required")
     private String fullName;

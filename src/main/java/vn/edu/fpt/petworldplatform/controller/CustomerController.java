@@ -3,7 +3,9 @@ package vn.edu.fpt.petworldplatform.controller;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -17,6 +19,7 @@ import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.repository.PetRepo;
 import vn.edu.fpt.petworldplatform.service.*;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,10 +35,15 @@ public class CustomerController {
     PetService petService;
 
     @GetMapping("/profile")
-    public String profileShow(@AuthenticationPrincipal Customer authUser, Model model) {
-        if (authUser == null) {
+    public String profileShow(Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated() ||
+                authentication.getPrincipal().equals("anonymousUser")) {
             return "redirect:/login";
         }
+
+        Customer authUser = (Customer) authentication.getPrincipal();
 
         Customer currentFreshUser = customerService.findById(authUser.getCustomerId()).orElse(null);
 
@@ -180,9 +188,9 @@ public class CustomerController {
 
     @PostMapping("/customer/appointments/{id}/cancel")
     public String cancelAppointment(@PathVariable Integer id,
-                                   @RequestParam String reason,
-                                   HttpSession session,
-                                   RedirectAttributes redirectAttributes) {
+                                    @RequestParam String reason,
+                                    HttpSession session,
+                                    RedirectAttributes redirectAttributes) {
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
         if (customer == null) {
             return "redirect:/login";
@@ -198,9 +206,9 @@ public class CustomerController {
 
     @PostMapping("/customer/appointments/{id}/reschedule")
     public String rescheduleAppointment(@PathVariable Integer id,
-                                       @RequestParam String newDateTime,
-                                       HttpSession session,
-                                       RedirectAttributes redirectAttributes) {
+                                        @RequestParam String newDateTime,
+                                        HttpSession session,
+                                        RedirectAttributes redirectAttributes) {
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
         if (customer == null) {
             return "redirect:/login";
@@ -224,8 +232,8 @@ public class CustomerController {
 
     @PostMapping("/customer/appointments/{id}/delete")
     public String deleteCanceledAppointment(@PathVariable Integer id,
-                                           HttpSession session,
-                                           RedirectAttributes redirectAttributes) {
+                                            HttpSession session,
+                                            RedirectAttributes redirectAttributes) {
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
         if (customer == null) {
             return "redirect:/login";
@@ -238,6 +246,7 @@ public class CustomerController {
         }
         return "redirect:/customer/appointments";
     }
+
     @Autowired
     private PetRepo petRepo;
 

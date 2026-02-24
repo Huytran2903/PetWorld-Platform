@@ -1,17 +1,37 @@
-function confirmDelete(name) {
-    if (confirm(`Bạn có chắc chắn muốn xóa nhân viên ${name} không?`)) {
-        alert(`Đã xóa nhân viên ${name} thành công!`);
-
+// ==========================================
+// 1. LOGIC CHO TÍNH NĂNG THÊM NHÂN VIÊN
+// ==========================================
+function saveStaff() {
+    const modalEl = document.getElementById('addStaffModal');
+    if (modalEl) {
+        let modal = bootstrap.Modal.getInstance(modalEl);
+        if (!modal) {
+            modal = new bootstrap.Modal(modalEl);
+        }
+        alert("Đã thêm nhân viên mới thành công!");
+        modal.hide();
+        document.getElementById('addStaffForm').reset();
     }
 }
 
+// ==========================================
+// 2. LOGIC CHO TÍNH NĂNG XÓA NHÂN VIÊN
+// ==========================================
+document.addEventListener('DOMContentLoaded', function () {
 
-function saveStaff() {
-    const modalEl = document.getElementById('addStaffModal');
-    const modal = bootstrap.Modal.getInstance(modalEl);
+    const deleteStaffModal = document.getElementById('deleteStaffModal');
 
-    alert("Đã thêm nhân viên mới thành công!");
-    modal.hide();
-    // Reset form
-    document.getElementById('addStaffForm').reset();
-}
+    if (deleteStaffModal) {
+        deleteStaffModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+
+            const deleteUrl = button.getAttribute('data-href');
+
+            const confirmBtn = document.getElementById('btnConfirmDeleteStaff');
+
+            if (confirmBtn && deleteUrl) {
+                confirmBtn.setAttribute('href', deleteUrl);
+            }
+        });
+    }
+});
