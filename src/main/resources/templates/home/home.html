@@ -68,19 +68,24 @@
 
                 <div class="col-sm-6 offset-sm-2 offset-md-0 col-lg-5 d-none d-lg-block">
                     <div class="slogan-box text-center">
-                        <h5 class="slogan-title mb-1 text-white">We Care Your Pets</h5>
-                        <p class="slogan-sub mb-0 text-white">Healthy • Happy • Loved</p>
+                        <h5 class="slogan-title mb-1 text-white"
+                            th:text="${globalConfigs['SLOGAN_MAIN'] ?: 'We Care Your Pets'}">We Care Your Pets</h5>
+                        <p class="slogan-sub mb-0 text-white"
+                           th:text="${globalConfigs['SLOGAN_SUB'] ?: 'Healthy • Happy • Loved'}">Healthy • Happy •
+                            Loved</p>
                     </div>
                 </div>
 
                 <div class="col-sm-8 col-lg-4 d-flex justify-content-end gap-5 align-items-center mt-4 mt-sm-0 justify-content-center justify-content-sm-end">
                     <div class="support-box text-end d-none d-xl-block">
                         <span class="fs-6 secondary-font text-white">Address</span>
-                        <h5 class="mb-0 text-white">Fpt Can Tho</h5>
+                        <h5 class="mb-0 text-white" th:text="${globalConfigs['SHOP_ADDRESS'] ?: 'Fpt Can Tho'}">Fpt Can
+                            Tho</h5>
                     </div>
                     <div class="support-box text-end d-none d-xl-block">
                         <span class="fs-6 secondary-font text-white">Email</span>
-                        <h5 class="mb-0 text-white">Petworldfpt@gmail.com</h5>
+                        <h5 class="mb-0 text-white" th:text="${globalConfigs['SHOP_EMAIL'] ?: 'Petworldfpt@gmail.com'}">
+                            Petworldfpt@gmail.com</h5>
                     </div>
                 </div>
             </div>
@@ -148,7 +153,8 @@
                             <a class="nav-link dropdown-toggle" role="button" id="pages" data-bs-toggle="dropdown"
                                aria-expanded="false">Pages</a>
                             <ul class="dropdown-menu" aria-labelledby="pages">
-                                <li><a th:href="@{/appointment/booking}" class="dropdown-item">Book Service Appointment</a></li>
+                                <li><a th:href="@{/appointment/booking}" class="dropdown-item">Book Service
+                                    Appointment</a></li>
                                 <li><a href="#" class="dropdown-item">About Us</a></li>
                                 <li><a href="#" class="dropdown-item">Shop</a></li>
                                 <li><a th:href="@{/customer/shopping-cart}" class="dropdown-item">Cart</a></li>
@@ -223,7 +229,8 @@
                             <h2 class="banner-title display-1 fw-normal">Best destination for <span
                                     class="text-primary">your pets</span></h2>
                             <div class="d-flex flex-wrap gap-3">
-                                <a th:href="@{/appointment/booking}" class="btn btn-primary btn-lg text-uppercase fs-6 rounded-1">
+                                <a th:href="@{/appointment/booking}"
+                                   class="btn btn-primary btn-lg text-uppercase fs-6 rounded-1">
                                     Book Service Appointment
                                     <svg width="24" height="24" viewBox="0 0 24 24" class="mb-1">
                                         <use xlink:href="#arrow-right"></use>
@@ -414,18 +421,29 @@
                         offers.</p>
                     <div class="social-links">
                         <ul class="d-flex list-unstyled gap-2">
-                            <li class="social"><a href="#">
-                                <iconify-icon class="social-icon" icon="ri:facebook-fill"></iconify-icon>
-                            </a></li>
-                            <li class="social"><a href="#">
-                                <iconify-icon class="social-icon" icon="ri:twitter-fill"></iconify-icon>
-                            </a></li>
-                            <li class="social"><a href="#">
-                                <iconify-icon class="social-icon" icon="ri:instagram-fill"></iconify-icon>
-                            </a></li>
-                            <li class="social"><a href="#">
-                                <iconify-icon class="social-icon" icon="ri:youtube-fill"></iconify-icon>
-                            </a></li>
+                            <li class="social">
+                                <a th:href="${globalConfigs['LINK_FACEBOOK'] ?: '#'}" target="_blank">
+                                    <iconify-icon class="social-icon" icon="ri:facebook-fill"></iconify-icon>
+                                </a>
+                            </li>
+
+                            <li class="social">
+                                <a th:href="${globalConfigs['LINK_TWITTER'] ?: '#'}" target="_blank">
+                                    <iconify-icon class="social-icon" icon="ri:twitter-fill"></iconify-icon>
+                                </a>
+                            </li>
+
+                            <li class="social">
+                                <a th:href="${globalConfigs['LINK_INSTAGRAM'] ?: '#'}" target="_blank">
+                                    <iconify-icon class="social-icon" icon="ri:instagram-fill"></iconify-icon>
+                                </a>
+                            </li>
+
+                            <li class="social">
+                                <a th:href="${globalConfigs['LINK_YOUTUBE'] ?: '#'}" target="_blank">
+                                    <iconify-icon class="social-icon" icon="ri:youtube-fill"></iconify-icon>
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -439,8 +457,10 @@
         <hr class="m-0">
         <div class="row mt-3">
             <div class="col-md-6 copyright">
-                <p class="secondary-font">© 2023 Waggy. All rights reserved.</p>
-            </div>
+                <p class="secondary-font"
+                   th:text="${globalConfigs['FOOTER_COPYRIGHT'] ?: '© 2026 Pet World. All rights reserved.'}">
+                    © 2023 Waggy. All rights reserved.
+                </p></div>
         </div>
     </div>
 </div>

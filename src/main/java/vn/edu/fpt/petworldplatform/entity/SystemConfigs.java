@@ -27,8 +27,12 @@ public class SystemConfigs {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @PrePersist
     @PreUpdate
-    public void preUpdate() {
+    public void preSave() {
         this.updatedAt = LocalDateTime.now();
+        if (this.updatedByStaffId == null) {
+            this.updatedByStaffId = 1;
+        }
     }
 }
