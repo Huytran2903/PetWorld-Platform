@@ -198,7 +198,7 @@ CREATE TABLE dbo.Appointments (
     EndTime DATETIME2 NULL,
     Note NVARCHAR(255) NULL,
     Status VARCHAR(20) NOT NULL DEFAULT 'pending'
-        CHECK (Status IN ('pending','confirmed','in_progress','done','canceled','no_show')),
+        CHECK (Status IN ('pending','confirmed','checked_in','in_progress','done','canceled','no_show')),
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2 NULL,
     RescheduledAt DATETIME2 NULL,
