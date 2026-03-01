@@ -6,14 +6,57 @@
 <head>
     <title>Appointment History</title>
     <link rel="stylesheet" th:href="@{/css/appointment-history.css}" />
+    <style>
+        .health-snippet {
+            margin-top: 10px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #fcfdff;
+            padding: 10px;
+        }
+        .health-snippet .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .health-snippet .title { font-weight: 800; color: var(--navy); font-size: 1.15rem; }
+        .health-snippet .warning {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+            border-radius: 999px;
+            padding: 2px 8px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+        .health-kv {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 14px;
+            font-size: 15px;
+            line-height: 1.45;
+        }
+        .health-photos-mini {
+            margin-top: 8px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 8px;
+        }
+        .health-photos-mini img {
+            width: 100%;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+    </style>
 </head>
 <body>
 <main layout:fragment="content" class="container">
-    <!-- Alerts -->
     <div th:if="${message}" class="alert alert-success" role="alert" th:text="${message}"></div>
     <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}"></div>
 
-    <!-- Hero -->
     <div class="hero">
         <div class="hero-inner">
             <div>
@@ -27,7 +70,6 @@
         </div>
     </div>
 
-    <!-- List -->
     <section class="card">
         <header class="card-header">
             <div>
@@ -48,50 +90,55 @@
                     <div class="appointment-header">
                         <div>
                             <h3 class="appointment-code" th:text="${appt.appointmentCode}">APT-20260101-0001</h3>
-                            <span class="badge"
-                                  th:classappend="${appt.status == 'pending' ? 'badge-warning' : (appt.status == 'confirmed' ? 'badge-success' : (appt.status == 'canceled' ? 'badge-danger' : 'badge-secondary'))}"
-                                  th:text="${#strings.capitalize(appt.status)}">Pending</span>
+                            <p><strong>Status:</strong>
+                                <span class="badge"
+                                      th:classappend="${'status-' + appt.status.toLowerCase()}"
+                                      th:text="${#strings.capitalize(appt.status)}">Pending</span>
+                            </p>
                         </div>
                         <div class="appointment-date">
-                            <strong th:text="${#temporals.format(appt.appointmentDate, 'dd/MM/yyyy HH:mm')}">01/01/2026 09:00</strong>
+                            <strong th:text="${#temporals.format(appt.appointmentDate, 'dd/MM/yyyy')}">01/01/2026 09:00</strong>
                         </div>
                     </div>
 
                     <div class="appointment-body">
                         <div class="appointment-meta">
-                            <p><strong>Pet ID:</strong> <span th:text="${appt.petId}">1</span></p>
+                            <p><strong>Pet Name:</strong> <span th:text="${appt.pet != null ? appt.pet.name : 'N/A'}">Lucky</span></p>
+                            <p th:if="${appt.status != null and appt.status.toLowerCase() == 'done'}">
+                                <strong>Staff:</strong>
+                                <span th:text="${serviceStaffByAppointmentId != null and serviceStaffByAppointmentId.containsKey(appt.id) ? serviceStaffByAppointmentId.get(appt.id) : 'N/A'}">Staff Name</span>
+                            </p>
                             <p th:if="${appt.cancellationReason}">
                                 <strong>Cancellation Reason:</strong> <span th:text="${appt.cancellationReason}">—</span>
                             </p>
                             <p th:if="${appt.previousAppointmentDate}">
-                                <strong>Previous Date:</strong> <span th:text="${#temporals.format(appt.previousAppointmentDate, 'dd/MM/yyyy HH:mm')}">—</span>
+                                <strong>Previous Date:</strong> <span th:text="${#temporals.format(appt.previousAppointmentDate, 'dd/MM/yyyy')}">—</span>
                             </p>
                         </div>
 
-                        <!-- Row for Table + Actions -->
                         <div class="appointment-row">
                             <div class="appt-services-inline" th:if="${serviceLinesByAppointmentId != null and serviceLinesByAppointmentId.containsKey(appt.id)}">
                                 <table class="services-table">
                                     <thead>
-                                        <tr>
-                                            <th>Service</th>
-                                            <th>Type</th>
-                                            <th>Duration</th>
-                                            <th class="text-end">Price</th>
-                                        </tr>
+                                    <tr>
+                                        <th>Service</th>
+                                        <th>Type</th>
+                                        <th>Duration</th>
+                                        <th class="text-end">Price</th>
+                                    </tr>
                                     </thead>
                                     <tbody>
-                                        <tr th:each="line : ${serviceLinesByAppointmentId.get(appt.id)}">
-                                            <td>
-                                                <div class="svc-name" th:text="${line.service.name}">Service Name</div>
-                                            </td>
-                                            <td><span class="badge badge-outline" th:text="${line.service.serviceType}">TYPE</span></td>
-                                            <td th:text="${line.service.durationMinutes} + ' min'">Duration</td>
-                                            <td class="text-end">
-                                                <span class="svc-price" th:text="${#numbers.formatDecimal(line.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">Price</span>
-                                                <small class="d-block text-muted" th:if="${line.quantity > 1}" th:text="'x' + ${line.quantity}"></small>
-                                            </td>
-                                        </tr>
+                                    <tr th:each="line : ${serviceLinesByAppointmentId.get(appt.id)}">
+                                        <td>
+                                            <div class="svc-name" th:text="${line.service.name}">Service Name</div>
+                                        </td>
+                                        <td><span class="badge badge-outline" th:text="${line.service.serviceType}">TYPE</span></td>
+                                        <td th:text="${line.service.durationMinutes} + ' min'">Duration</td>
+                                        <td class="text-end">
+                                            <span class="svc-price" th:text="${#numbers.formatDecimal(line.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">Price</span>
+                                            <small class="d-block text-muted" th:if="${line.quantity > 1}" th:text="'x' + ${line.quantity}"></small>
+                                        </td>
+                                    </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -113,6 +160,25 @@
                             </div>
                         </div>
 
+                        <div class="health-snippet"
+                             th:if="${appt.status != null and appt.status.toLowerCase() == 'done' and healthRecordByAppointmentId != null and healthRecordByAppointmentId.containsKey(appt.id)}">
+                            <div class="top">
+                                <div class="title">Health Report Summary</div>
+                                <span class="warning" th:if="${healthRecordByAppointmentId.get(appt.id).warningFlag}">Warning</span>
+                            </div>
+                            <div class="health-kv">
+                                <div><strong>Weight:</strong> <span th:text="${healthRecordByAppointmentId.get(appt.id).weightKg} + ' kg'"></span></div>
+                                <div><strong>Temperature:</strong> <span th:text="${healthRecordByAppointmentId.get(appt.id).temperature} + ' °C'"></span></div>
+                                <div><strong>Condition After:</strong> <span th:text="${healthRecordByAppointmentId.get(appt.id).conditionAfter ?: '-'}"></span></div>
+                                <div><strong>Findings:</strong> <span th:text="${healthRecordByAppointmentId.get(appt.id).findings ?: '-'}"></span></div>
+                            </div>
+                            <div class="health-photos-mini"
+                                 th:if="${healthPhotosByAppointmentId != null and healthPhotosByAppointmentId.containsKey(appt.id)}">
+                                <img th:each="photo : ${healthPhotosByAppointmentId.get(appt.id)}"
+                                     th:src="@{${photo.imageUrl}}" alt="evidence" />
+                            </div>
+                        </div>
+
                         <div class="appointment-note">
                             <p><strong>Note:</strong> <span th:text="${appt.note ?: '—'}">—</span></p>
                         </div>
@@ -122,7 +188,6 @@
         </div>
     </section>
 
-    <!-- Cancel Modal -->
     <div id="cancelModal" class="modal" style="display:none;">
         <div class="modal-content">
             <div class="modal-header">
@@ -142,7 +207,6 @@
         </div>
     </div>
 
-    <!-- Reschedule Modal -->
     <div id="rescheduleModal" class="modal" style="display:none;">
         <div class="modal-content">
             <div class="modal-header">
@@ -165,7 +229,6 @@
     <script th:inline="javascript">
         function openCancelModal(id) {
             document.getElementById('cancelModal').style.display = 'block';
-            // Update form action dynamically
             const form = document.querySelector('#cancelModal form');
             form.action = '/customer/appointments/' + id + '/cancel';
         }
@@ -188,7 +251,6 @@
             document.getElementById('rescheduleModal').style.display = 'none';
         }
 
-        // Close modal on outside click
         window.onclick = function(event) {
             const cancelModal = document.getElementById('cancelModal');
             const rescheduleModal = document.getElementById('rescheduleModal');

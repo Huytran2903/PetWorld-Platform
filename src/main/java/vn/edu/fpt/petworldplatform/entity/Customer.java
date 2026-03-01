@@ -44,12 +44,14 @@ public class Customer {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "AuthProvider", length = 20)
+    @Builder.Default
     private AuthProvider authProvider = AuthProvider.LOCAL;
 
-    @Column(name = "FullName")
+    @Column(name = "FullName", columnDefinition = "NVARCHAR(120)")
     private String fullName;
 
     @Column(name = "IsActive", nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
 
     @CreationTimestamp

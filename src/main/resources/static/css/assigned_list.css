@@ -59,7 +59,7 @@ body {
     margin: 0 auto;
     padding: 0 18px 40px;
     display: grid;
-    grid-template-columns: 1fr 300px; /* Main content + Sidebar */
+    grid-template-columns: 1fr 300px;
     gap: 20px;
 }
 
@@ -92,42 +92,38 @@ body {
 .card-body { padding: 20px; }
 
 /* =========================================
-   4. APPOINTMENT LIST ITEMS
+   4. TABLE
    ========================================= */
-.list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px;
+.table-wrap {
     border: 1px solid var(--border);
     border-radius: 12px;
+    overflow: hidden;
+}
+
+.assigned-table {
+    width: 100%;
+    border-collapse: collapse;
     background: #fff;
-    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.item:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    border-color: var(--primary);
+.assigned-table thead th {
+    text-align: left;
+    padding: 12px 14px;
+    background: #f8fafc;
+    color: var(--navy2);
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
 }
 
-.item .left {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.assigned-table tbody td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+    vertical-align: middle;
 }
 
-.row-top {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
+.assigned-table tbody tr:hover {
+    background: #fcfdff;
 }
 
 .code {
@@ -135,6 +131,18 @@ body {
     color: var(--navy);
     font-family: monospace;
     font-size: 14px;
+}
+
+.ta-right {
+    text-align: right;
+}
+
+.ta-center {
+    text-align: center;
+}
+
+.action-cell .btn {
+    min-width: 110px;
 }
 
 /* Chips & Badges */
@@ -149,25 +157,15 @@ body {
     text-transform: capitalize;
 }
 
-/* Status Colors (From your prompt) */
-.status { border-width: 1px; border-style: solid; }
-.status-pending     { background: #edf2f7; color: #4a5568; border-color: #cbd5e0; }
-.status-confirmed   { background: #e6fffa; color: #276749; border-color: #38a169; }
-.status-in_progress { background: #ebf8ff; color: #2c5282; border-color: #4299e1; }
-.status-done        { background: #f0fff4; color: #22543d; border-color: #48bb78; }
-.status-canceled    { background: #fff5f5; color: #9b2c2c; border-color: #f56565; }
-.status-no_show     { background: #fffaf0; color: #9c4221; border-color: #ed8936; }
+.status { border-width: 1px; border-style: solid; font-weight: 700; }
+.status-pending     { background: #fef3c7; color: #92400e; border-color: #f59e0b; }
+.status-confirmed   { background: #eff6ff; color: #1e40af; border-color: #3b82f6; }
+.status-checked_in  { background: #eef2ff; color: #3730a3; border-color: #818cf8; }
+.status-in_progress { background: #fff7ed; color: #9a3412; border-color: #f97316; }
+.status-done        { background: #ecfdf5; color: #065f46; border-color: #10b981; }
+.status-canceled    { background: #fef2f2; color: #991b1b; border-color: #ef4444; }
+.status-no_show     { background: #f9fafb; color: #374151; border-color: #d1d5db; }
 
-.meta {
-    display: flex;
-    gap: 20px;
-    font-size: 13px;
-    color: var(--text);
-}
-
-.meta strong { color: var(--muted); font-weight: 500; }
-
-/* Empty State */
 .empty-state {
     text-align: center;
     padding: 40px;
@@ -203,7 +201,6 @@ input, select {
 
 input:focus, select:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px var(--focus); /* Define focus var if needed or inherit */
 }
 
 .actions {

@@ -16,7 +16,11 @@ import vn.edu.fpt.petworldplatform.dto.PetCreateDTO;
 import vn.edu.fpt.petworldplatform.dto.ProfileFormDTO;
 import vn.edu.fpt.petworldplatform.entity.Appointment;
 import vn.edu.fpt.petworldplatform.entity.Customer;
+import vn.edu.fpt.petworldplatform.entity.PetHealthPhoto;
+import vn.edu.fpt.petworldplatform.entity.PetHealthRecord;
 import vn.edu.fpt.petworldplatform.entity.Pets;
+import vn.edu.fpt.petworldplatform.repository.PetHealthPhotoRepository;
+import vn.edu.fpt.petworldplatform.repository.PetHealthRecordRepository;
 import vn.edu.fpt.petworldplatform.repository.PetRepo;
 import vn.edu.fpt.petworldplatform.service.*;
 
@@ -141,6 +145,12 @@ public class CustomerController {
     @Autowired
     BookingService bookingService;
 
+    @Autowired
+    private PetHealthRecordRepository petHealthRecordRepository;
+
+    @Autowired
+    private PetHealthPhotoRepository petHealthPhotoRepository;
+
     @GetMapping("/customer/appointments")
     public String appointmentHistory(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
@@ -154,11 +164,38 @@ public class CustomerController {
         List<Integer> apptIds = appointments.stream().map(Appointment::getId).toList();
         if (apptIds.isEmpty()) {
             model.addAttribute("serviceLinesByAppointmentId", java.util.Map.of());
+            model.addAttribute("healthRecordByAppointmentId", java.util.Map.of());
+            model.addAttribute("healthPhotosByAppointmentId", java.util.Map.of());
         } else {
             List<vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine> lines = bookingService.findServiceLinesByAppointmentIds(apptIds);
             java.util.Map<Integer, List<vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine>> linesByApptId =
                     lines.stream().collect(java.util.stream.Collectors.groupingBy(l -> l.getAppointment().getId()));
             model.addAttribute("serviceLinesByAppointmentId", linesByApptId);
+
+            java.util.Map<Integer, PetHealthRecord> recordByAppointmentId = new java.util.HashMap<>();
+            java.util.Map<Integer, List<PetHealthPhoto>> photosByAppointmentId = new java.util.HashMap<>();
+            java.util.Map<Integer, String> serviceStaffByAppointmentId = new java.util.HashMap<>();
+
+            for (Appointment appt : appointments) {
+                Integer apptId = appt.getId();
+                String fallbackStaff = (appt.getStaff() != null && appt.getStaff().getFullName() != null)
+                        ? appt.getStaff().getFullName()
+                        : "N/A";
+
+                petHealthRecordRepository.findByAppointment_Id(apptId).ifPresentOrElse(record -> {
+                    recordByAppointmentId.put(apptId, record);
+                    photosByAppointmentId.put(apptId, petHealthPhotoRepository.findByRecord_Id(record.getId()));
+
+                    String performedStaff = (record.getPerformedByStaff() != null && record.getPerformedByStaff().getFullName() != null)
+                            ? record.getPerformedByStaff().getFullName()
+                            : fallbackStaff;
+                    serviceStaffByAppointmentId.put(apptId, performedStaff);
+                }, () -> serviceStaffByAppointmentId.put(apptId, fallbackStaff));
+            }
+
+            model.addAttribute("healthRecordByAppointmentId", recordByAppointmentId);
+            model.addAttribute("healthPhotosByAppointmentId", photosByAppointmentId);
+            model.addAttribute("serviceStaffByAppointmentId", serviceStaffByAppointmentId);
         }
 
         return "customer/appointment-history";
@@ -183,6 +220,21 @@ public class CustomerController {
 
         model.addAttribute("appointment", appt);
         model.addAttribute("serviceLines", bookingService.findServiceLinesByAppointmentId(id));
+
+        PetHealthRecord healthRecord = petHealthRecordRepository.findByAppointment_Id(id).orElse(null);
+        model.addAttribute("healthRecord", healthRecord);
+        model.addAttribute("healthPhotos", healthRecord == null
+                ? java.util.List.of()
+                : petHealthPhotoRepository.findByRecord_Id(healthRecord.getId()));
+
+        String serviceStaffName = "N/A";
+        if (healthRecord != null && healthRecord.getPerformedByStaff() != null && healthRecord.getPerformedByStaff().getFullName() != null) {
+            serviceStaffName = healthRecord.getPerformedByStaff().getFullName();
+        } else if (appt.getStaff() != null && appt.getStaff().getFullName() != null) {
+            serviceStaffName = appt.getStaff().getFullName();
+        }
+        model.addAttribute("serviceStaffName", serviceStaffName);
+
         return "customer/appointment-detail";
     }
 

@@ -18,4 +18,6 @@ public interface IAppointmentService {
     void deleteAppointment(Integer id);
     ByteArrayInputStream exportToExcel(AppointmentFilterRequest filter);
     List<Staff> getAvailableStaffForAppointment(Integer appointmentId);
+    List<Appointment> getStaffAppointments(Integer staffId, String status);
+    void updateStatus(Integer id, String status);
 }

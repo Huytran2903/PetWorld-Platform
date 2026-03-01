@@ -60,7 +60,7 @@
                     </a>
                 </li>
                 <li>
-                    <a th:href="@{/staff/appointments}"
+                    <a th:href="@{/staff/assigned_list(staffId=${session.currentStaffId})}"
                        th:classappend="${activePage == 'appointments'} ? 'active' : ''">
                         <i class="fas fa-calendar-alt"></i> Appointments
                     </a>
@@ -69,6 +69,12 @@
                     <a th:href="@{/staff/bookings}"
                        th:classappend="${activePage == 'bookings'} ? 'active' : ''">
                         <i class="fas fa-book"></i> Bookings
+                    </a>
+                </li>
+                <li>
+                    <a th:href="@{/staff/work-schedule}"
+                       th:classappend="${activePage == 'work-schedule'} ? 'active' : ''">
+                        <i class="fas fa-calendar-week"></i> Work Schedule
                     </a>
                 </li>
                 <li>

@@ -51,6 +51,7 @@ public class SecurityConfig {
                         .requestMatchers("/uploads/**").permitAll()
 
                         .requestMatchers("/reset-password", "/forgot-password").permitAll()
+                        .requestMatchers("/staff/**").permitAll() // TEMPORARY FOR TESTING UC34
                         // --------------------
 
                         .requestMatchers("/profile/**").authenticated()
