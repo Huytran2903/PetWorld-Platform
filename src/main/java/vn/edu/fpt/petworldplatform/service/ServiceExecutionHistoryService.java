@@ -71,7 +71,7 @@ public class ServiceExecutionHistoryService {
     }
 
     // ============================================================
-    // NEW: Lấy thống kê sử dụng dịch vụ (Service Usage Statistics)
+    // Lấy thống kê sử dụng dịch vụ - TOÀN THỜI GIAN (không filter)
     // ============================================================
     public List<ServiceUsageStatsDTO> getServiceUsageStats() {
         List<Object[]> rows = repo.getServiceUsageStatistics();
@@ -79,9 +79,19 @@ public class ServiceExecutionHistoryService {
     }
 
     // ============================================================
+    // NEW: Lấy thống kê sử dụng dịch vụ - CÓ FILTER THEO NGÀY
+    // Dùng cho service-stats page khi user chọn fromDate/toDate
+    // ============================================================
+    public List<ServiceUsageStatsDTO> getServiceUsageStatsByDateRange(LocalDateTime startDate,
+                                                                       LocalDateTime endDate) {
+        List<Object[]> rows = repo.getServiceUsageStatisticsByDateRange(startDate, endDate);
+        return mapToServiceUsageDTO(rows);
+    }
+
+    // ============================================================
     // Map Object[] -> ServiceExecutionHistoryDTO
     // [0] AppointmentCode, [1] CustomerName, [2] PetName,
-    // [3] ServiceNames (từ STRING_AGG), [4] AppointmentDate, 
+    // [3] ServiceNames (từ STRING_AGG), [4] AppointmentDate,
     // [5] Status, [6] AssignedStaff (từ STRING_AGG)
     // ============================================================
     private List<ServiceExecutionHistoryDTO> mapToDTO(List<Object[]> rows) {
@@ -91,7 +101,6 @@ public class ServiceExecutionHistoryService {
             String petName         = row[2] != null ? row[2].toString() : "";
             String serviceName     = row[3] != null ? row[3].toString() : "N/A";
 
-            // Handle LocalDateTime or Timestamp
             LocalDateTime appointmentDate = null;
             if (row[4] != null) {
                 if (row[4] instanceof java.sql.Timestamp) {
@@ -116,7 +125,7 @@ public class ServiceExecutionHistoryService {
     private List<ServiceUsageStatsDTO> mapToServiceUsageDTO(List<Object[]> rows) {
         return rows.stream().map(row -> {
             String serviceName = row[0] != null ? row[0].toString() : "Unknown";
-            
+
             Long usageCount = 0L;
             if (row[1] != null) {
                 if (row[1] instanceof Integer) {
