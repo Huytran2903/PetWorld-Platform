@@ -594,3 +594,12 @@ INSERT INTO dbo.AccessControl(RoleID, PermissionCode, IsAllowed) VALUES
 (@StaffRoleID, 'SYSTEM.CONFIG', 0),
 (@StaffRoleID, 'SYSTEM.ACL', 0);
 GO
+
+-- Drop old constraint
+ALTER TABLE dbo.Appointments
+DROP CONSTRAINT CK__Appointme__Statu__7D439ABD;
+
+-- Recreate with checked_in added
+ALTER TABLE dbo.Appointments
+ADD CONSTRAINT CK_Appointments_Status
+CHECK (Status IN ('pending','confirmed','checked_in','in_progress','done','canceled','no_show'));
