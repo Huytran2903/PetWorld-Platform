@@ -132,4 +132,8 @@ public class StaffService {
     public void deleteStaff(Integer id) {
         staffRepo.deleteById(id);
     }
+
+    public Optional<Staff> findById(Integer id) {
+        return staffRepo.findById(id);
+    }
 }

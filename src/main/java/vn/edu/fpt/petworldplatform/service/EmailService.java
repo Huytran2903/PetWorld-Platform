@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import vn.edu.fpt.petworldplatform.entity.Customer;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -66,21 +67,7 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    /**
-     * Gửi mail quên mật khẩu (Forgot Password)
-     * Hàm này tương thích với cách gọi ở CustomerService bước trước
-     */
-    public void sendResetPasswordEmail(String to, String token) {
-        String subject = "Yêu cầu đặt lại mật khẩu";
-        String resetUrl = baseUrl + "/reset-password?token=" + token;
 
-        String content = "<div style='font-family: Arial; padding: 20px; border: 1px solid #ddd;'>"
-                + "<h2 style='color: #dc3545;'>Đặt Lại Mật Khẩu</h2>"
-                + "<p>Bạn vừa yêu cầu đổi mật khẩu. Nhấn vào nút dưới đây để tạo mật khẩu mới:</p>"
-                + "<a href='" + resetUrl + "' style='background-color: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Đổi Mật Khẩu</a>"
-                + "<p>Link này sẽ hết hạn sau 24 giờ.</p>"
-                + "</div>";
 
-        sendEmail(to, subject, content);
-    }
+
 }

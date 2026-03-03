@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.edu.fpt.petworldplatform.entity.AuthProvider;
 import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.VerificationToken;
 import vn.edu.fpt.petworldplatform.repository.CustomerRepo;
@@ -13,6 +14,7 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -109,20 +111,39 @@ public class CustomerService {
 
     public void sendResetPasswordEmail(String email) throws Exception {
         Customer customer = customerRepo.findByEmail(email)
-                .orElseThrow(() -> new Exception("Email has not exist"));
+                .orElseThrow(() -> new Exception("Email không tồn tại trong hệ thống"));
+
+        if (customer.getAuthProvider() == AuthProvider.GOOGLE) {
+            throw new Exception("Email này được liên kết với Google. Vui lòng đăng nhập bằng nút Google!");
+        }
 
         VerificationToken oldToken = verificationTokenRepo.findByCustomer(customer);
         if (oldToken != null) {
             verificationTokenRepo.delete(oldToken);
         }
 
-        String tokenString = UUID.randomUUID().toString();
-        VerificationToken newToken = new VerificationToken(tokenString, customer);
+        String otp = String.format("%06d", new Random().nextInt(1000000));
+
+        VerificationToken newToken = new VerificationToken(otp, customer);
         verificationTokenRepo.save(newToken);
 
-        String resetLink = "http://localhost:8080/reset-password?token=" + tokenString;
-        emailService.sendEmail(customer.getEmail(), "Đặt lại mật khẩu",
-                "Click vào link sau để đặt lại mật khẩu: " + resetLink);
+        // 4. Chuẩn bị giao diện Email HTML có chứa OTP
+        String subject = "Mã xác thực (OTP) đặt lại mật khẩu - Pet World";
+        String htmlContent = "<div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; max-width: 600px; margin: 0 auto; border-radius: 8px;'>"
+                + "<div style='text-align: center; margin-bottom: 20px;'>"
+                + "  <h2 style='color: #dc3545; margin: 0;'>Đặt Lại Mật Khẩu</h2>"
+                + "</div>"
+                + "<p>Xin chào <strong>" + customer.getFullName() + "</strong>,</p>"
+                + "<p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản tại <strong>Pet World</strong>. Đây là mã xác thực (OTP) của bạn:</p>"
+                + "<div style='text-align: center; margin: 30px 0;'>"
+                + "  <span style='font-size: 28px; font-weight: bold; background-color: #f8f9fa; padding: 12px 24px; border-radius: 6px; color: #dc3545; letter-spacing: 5px; border: 1px dashed #dc3545;'>" + otp + "</span>"
+                + "</div>"
+                + "<p style='color: #555;'>Mã OTP này có hiệu lực trong vòng <strong>"
+                + newToken.getExpiryDate()
+                + " phút</strong>. Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>"
+                + "</div>";
+
+        emailService.sendEmail(customer.getEmail(), subject, htmlContent);
     }
 
     public Customer getByResetPasswordToken(String token) {
