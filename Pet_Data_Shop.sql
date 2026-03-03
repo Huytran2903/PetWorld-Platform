@@ -198,7 +198,7 @@ CREATE TABLE dbo.Appointments (
     EndTime DATETIME2 NULL,
     Note NVARCHAR(255) NULL,
     Status VARCHAR(20) NOT NULL DEFAULT 'pending'
-        CHECK (Status IN ('pending','confirmed','in_progress','done','canceled','no_show')),
+        CHECK (Status IN ('pending','confirmed','in_progress','done','canceled','no_show', 'check_in')),
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2 NULL,
     RescheduledAt DATETIME2 NULL,
@@ -594,3 +594,12 @@ INSERT INTO dbo.AccessControl(RoleID, PermissionCode, IsAllowed) VALUES
 (@StaffRoleID, 'SYSTEM.CONFIG', 0),
 (@StaffRoleID, 'SYSTEM.ACL', 0);
 GO
+
+-- Drop old constraint
+ALTER TABLE dbo.Appointments
+DROP CONSTRAINT CK__Appointme__Statu__7D439ABD;
+
+-- Recreate with checked_in added
+ALTER TABLE dbo.Appointments
+ADD CONSTRAINT CK_Appointments_Status
+CHECK (Status IN ('pending','confirmed','checked_in','in_progress','done','canceled','no_show'));

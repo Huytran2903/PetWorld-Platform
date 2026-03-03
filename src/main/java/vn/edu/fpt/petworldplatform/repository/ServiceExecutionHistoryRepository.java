@@ -12,34 +12,15 @@ import java.util.List;
 @Repository
 public interface ServiceExecutionHistoryRepository extends JpaRepository<Appointment, Integer> {
 
-    // ============================================================
-    // Tổng số appointments đã hoàn thành (done)
-    // ============================================================
-    @Query(value =
-            "SELECT COUNT(*) FROM Appointments WHERE Status = 'done'",
-            nativeQuery = true)
+    @Query(value = "SELECT COUNT(*) FROM Appointments WHERE Status = 'done'", nativeQuery = true)
     Long getCompletedAppointmentsCount();
 
-    // ============================================================
-    // Tổng số appointments đang in_progress
-    // ============================================================
-    @Query(value =
-            "SELECT COUNT(*) FROM Appointments WHERE Status = 'in_progress'",
-            nativeQuery = true)
+    @Query(value = "SELECT COUNT(*) FROM Appointments WHERE Status = 'in_progress'", nativeQuery = true)
     Long getInProgressAppointmentsCount();
 
-    // ============================================================
-    // Tổng số appointments pending
-    // ============================================================
-    @Query(value =
-            "SELECT COUNT(*) FROM Appointments WHERE Status = 'pending'",
-            nativeQuery = true)
+    @Query(value = "SELECT COUNT(*) FROM Appointments WHERE Status = 'pending'", nativeQuery = true)
     Long getPendingAppointmentsCount();
 
-    // ============================================================
-    // FIXED: Lấy lịch sử thực hiện dịch vụ (tất cả appointments)
-    // Sử dụng STRING_AGG để gộp nhiều services và staff vào 1 row
-    // ============================================================
     @Query(value =
             "SELECT TOP 100 " +
             "  a.AppointmentCode, " +
@@ -61,9 +42,6 @@ public interface ServiceExecutionHistoryRepository extends JpaRepository<Appoint
             nativeQuery = true)
     List<Object[]> getAllServiceExecutionHistory();
 
-    // ============================================================
-    // FIXED: Filter theo status
-    // ============================================================
     @Query(value =
             "SELECT " +
             "  a.AppointmentCode, " +
@@ -86,9 +64,6 @@ public interface ServiceExecutionHistoryRepository extends JpaRepository<Appoint
             nativeQuery = true)
     List<Object[]> getServiceExecutionHistoryByStatus(@Param("status") String status);
 
-    // ============================================================
-    // FIXED: Filter theo date range
-    // ============================================================
     @Query(value =
             "SELECT " +
             "  a.AppointmentCode, " +
@@ -113,9 +88,6 @@ public interface ServiceExecutionHistoryRepository extends JpaRepository<Appoint
     List<Object[]> getServiceExecutionHistoryByDateRange(@Param("startDate") LocalDateTime startDate,
                                                           @Param("endDate") LocalDateTime endDate);
 
-    // ============================================================
-    // FIXED: Filter theo cả status VÀ date range
-    // ============================================================
     @Query(value =
             "SELECT " +
             "  a.AppointmentCode, " +
@@ -143,26 +115,53 @@ public interface ServiceExecutionHistoryRepository extends JpaRepository<Appoint
                                                                    @Param("endDate") LocalDateTime endDate);
 
     // ============================================================
-    // NEW: Thống kê tần suất sử dụng dịch vụ (Service Usage Stats)
-    // Trả về: ServiceName, UsageCount, Percentage
+    // Thống kê tần suất - TOÀN THỜI GIAN
     // ============================================================
-@Query(value =
-        "SELECT " +
-        "  s.Name AS ServiceName, " +
-        "  ISNULL(COUNT(aps.AppointmentServiceID), 0) AS UsageCount, " +
-        "  CASE " +
-        "    WHEN SUM(COUNT(aps.AppointmentServiceID)) OVER() > 0 " +
-        "    THEN CAST(COUNT(aps.AppointmentServiceID) * 100.0 / " +
-        "              SUM(COUNT(aps.AppointmentServiceID)) OVER() AS DECIMAL(5,2)) " +
-        "    ELSE 0 " +
-        "  END AS Percentage " +
-        "FROM Services s " +
-        "LEFT JOIN AppointmentServices aps ON s.ServiceID = aps.ServiceID " +
-        "LEFT JOIN Appointments a ON aps.AppointmentID = a.AppointmentID " +
-        "                           AND a.Status IN ('done', 'in_progress') " +
-        "WHERE s.IsActive = 1 " +
-        "GROUP BY s.ServiceID, s.Name " +
-        "ORDER BY UsageCount DESC",
-        nativeQuery = true)
-List<Object[]> getServiceUsageStatistics();
+    @Query(value =
+            "SELECT " +
+            "  s.Name AS ServiceName, " +
+            "  ISNULL(COUNT(aps.AppointmentServiceID), 0) AS UsageCount, " +
+            "  CASE " +
+            "    WHEN SUM(COUNT(aps.AppointmentServiceID)) OVER() > 0 " +
+            "    THEN CAST(COUNT(aps.AppointmentServiceID) * 100.0 / " +
+            "              SUM(COUNT(aps.AppointmentServiceID)) OVER() AS DECIMAL(5,2)) " +
+            "    ELSE 0 " +
+            "  END AS Percentage " +
+            "FROM Services s " +
+            "LEFT JOIN AppointmentServices aps ON s.ServiceID = aps.ServiceID " +
+            "LEFT JOIN Appointments a ON aps.AppointmentID = a.AppointmentID " +
+            "                        AND a.Status IN ('done', 'in_progress') " +
+            "WHERE s.IsActive = 1 " +
+            "GROUP BY s.ServiceID, s.Name " +
+            "ORDER BY UsageCount DESC",
+            nativeQuery = true)
+    List<Object[]> getServiceUsageStatistics();
+
+    // ============================================================
+    // FIX: Thống kê tần suất - CÓ FILTER NGÀY
+    // Điều kiện lọc ngày đặt trong WHERE (không phải JOIN)
+    // để SQL thực sự loại bỏ các appointment ngoài khoảng ngày
+    // ============================================================
+    @Query(value =
+            "SELECT " +
+            "  s.Name AS ServiceName, " +
+            "  COUNT(aps.AppointmentServiceID) AS UsageCount, " +
+            "  CASE " +
+            "    WHEN SUM(COUNT(aps.AppointmentServiceID)) OVER() > 0 " +
+            "    THEN CAST(COUNT(aps.AppointmentServiceID) * 100.0 / " +
+            "              SUM(COUNT(aps.AppointmentServiceID)) OVER() AS DECIMAL(5,2)) " +
+            "    ELSE 0 " +
+            "  END AS Percentage " +
+            "FROM Services s " +
+            "INNER JOIN AppointmentServices aps ON s.ServiceID = aps.ServiceID " +
+            "INNER JOIN Appointments a ON aps.AppointmentID = a.AppointmentID " +
+            "WHERE s.IsActive = 1 " +
+            "  AND a.Status IN ('done', 'in_progress') " +
+            "  AND a.AppointmentDate >= :startDate " +
+            "  AND a.AppointmentDate <= :endDate " +
+            "GROUP BY s.ServiceID, s.Name " +
+            "ORDER BY UsageCount DESC",
+            nativeQuery = true)
+    List<Object[]> getServiceUsageStatisticsByDateRange(@Param("startDate") LocalDateTime startDate,
+                                                         @Param("endDate") LocalDateTime endDate);
 }

@@ -1,138 +1,100 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{fragments/staff_layout :: layout(~{::postcheck_content})}">
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="~{fragments/staff_layout :: layout(~{::postcheck_content})}">
 
-<head>
-    <title>Post Check</title>
-    <link rel="stylesheet" th:href="@{/css/post_check.css}" />
-</head>
+    <div th:fragment="postcheck_content">
+        <link rel="stylesheet" th:href="@{/css/post-check.css}" />
 
-<body>
-<div th:fragment="postcheck_content">
-
-    <div class="hero">
-        <div class="hero-inner">
-            <div>
-                <h1>Post Check</h1>
-                <p>Record the pet's condition immediately after the service is finished.</p>
+        <div class="hero">
+            <div class="hero-inner">
+                <div>
+                    <h1>Perform Service Spa</h1>
+                    <p>Enter weight, temperature, visible conditions, and upload pet photos.</p>
+                </div>
             </div>
-            <div class="pill">POST-CHECK</div>
         </div>
+
+        <main class="container">
+            <section class="card">
+                <header class="card-header">
+                    <div>
+                        <h2 class="title">Post Check / Report</h2>
+                    </div>
+                    <div class="tag">FORM</div>
+                </header>
+
+                <div class="card-body">
+                    <div th:if="${message}" class="note note-success" th:text="${message}"></div>
+                    <div th:if="${error}" class="note note-error" th:text="${error}"></div>
+
+                    <div class="summary" style="margin-bottom: 16px;">
+                        <div class="kv">
+                            <div class="k">Appointment</div>
+                            <div class="v" th:text="${context.appointmentCode}">APP-000123</div>
+                        </div>
+                        <div class="kv">
+                            <div class="k">Pet</div>
+                            <div class="v" th:text="${context.petName}">Lucky</div>
+                        </div>
+                    </div>
+
+                    <form th:action="@{'/staff/health-check/' + ${context.appointmentId} + '/submit'}"
+                          th:object="${submitRequest}"
+                          method="post"
+                          enctype="multipart/form-data">
+
+                        <div class="grid2">
+                            <div>
+                                <label for="weightKg">Weight (kg)</label>
+                                <input id="weightKg" type="number" step="0.01" min="0" th:field="*{weightKg}" required>
+                            </div>
+                            <div>
+                                <label for="temperature">Temperature (°C)</label>
+                                <input id="temperature" type="number" step="0.01" min="30" max="45" th:field="*{temperature}" required>
+                            </div>
+                        </div>
+
+                        <div class="grid2" style="margin-top:12px;">
+                            <div>
+                                <label for="conditionBefore">Condition Before</label>
+                                <textarea id="conditionBefore" th:field="*{conditionBefore}" placeholder="e.g. Skin normal, eyes clear"></textarea>
+                            </div>
+                            <div>
+                                <label for="conditionAfter">Condition After / Visual Check</label>
+                                <textarea id="conditionAfter" th:field="*{conditionAfter}" placeholder="e.g. Slight redness in left ear"></textarea>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:12px;">
+                            <label for="findings">Condition Notes / Findings</label>
+                            <textarea id="findings" th:field="*{findings}" placeholder="Detailed findings from basic check"></textarea>
+                        </div>
+
+                        <div style="margin-top:12px;">
+                            <label for="recommendations">Recommendations (for warning/abnormal cases)</label>
+                            <textarea id="recommendations" th:field="*{recommendations}" placeholder="e.g. Needs further blood test"></textarea>
+                        </div>
+
+                        <div style="margin-top:12px;" class="upload">
+                            <label for="photos">Evidence image(s)</label>
+                            <input id="photos" name="photos" type="file" accept="image/*" multiple />
+                            <small>At least one photo is required for Submit Report. Save Draft can be without photo.</small>
+                        </div>
+
+                        <div class="actions">
+                            <button class="btn btn-primary" type="submit">Submit Report</button>
+                            <button class="btn btn-ghost" type="submit"
+                                    th:formaction="@{'/staff/health-check/' + ${context.appointmentId} + '/draft'}"
+                                    formnovalidate>
+                                Save Draft
+                            </button>
+                            <a class="btn btn-secondary" th:href="@{/staff/appointment_detail(id=${context.appointmentId})}">Back</a>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </main>
     </div>
 
-    <main class="container">
-        <section class="card">
-            <header class="card-header">
-                <div>
-                    <h2 class="title">After-service condition</h2>
-                    <p class="subtitle">Feature 31: recordPostServiceCondition</p>
-                </div>
-                <div class="tag">FORM</div>
-            </header>
-
-            <div class="card-body">
-                <div class="summary">
-                    <div class="kv">
-                        <div class="k">Appointment</div>
-                        <div class="v" th:text="${appointment.appointmentCode}">APP-000123</div>
-                        <div class="mono" style="margin-top:6px; font-size:12px;">
-                            ID: <span th:text="${appointment.appointmentID}">123</span>
-                        </div>
-                    </div>
-                    <div class="kv">
-                        <div class="k">Pet</div>
-                        <div class="v" th:text="${appointment.pet.name}">Lucky (Dog)</div>
-                        <div class="mono" style="margin-top:6px; font-size:12px;">
-                            ID: <span th:text="${appointment.pet.petID}">5</span>
-                        </div>
-                    </div>
-                </div>
-
-                <form th:action="@{/staff/postcheck/submit}" method="post" th:object="${healthRecordDTO}">
-
-                    <input type="hidden" th:field="*{appointmentId}" />
-                    <input type="hidden" th:field="*{petId}" />
-
-                    <div style="margin-top:12px;">
-                        <label>Condition after service</label>
-                        <textarea th:field="*{conditionAfter}" placeholder="Describe the pet's condition right after the service..."></textarea>
-                    </div>
-
-                    <div class="grid2" style="margin-top:12px;">
-                        <div>
-                            <label>Findings</label>
-                            <textarea th:field="*{findings}" placeholder="Any observations (skin, ears, behavior)..."></textarea>
-                        </div>
-                        <div>
-                            <label>Recommendations</label>
-                            <textarea th:field="*{recommendations}" placeholder="Suggestions for the owner..."></textarea>
-                        </div>
-                    </div>
-
-                    <div style="margin-top:12px;">
-                        <label>Note</label>
-                        <textarea th:field="*{note}" placeholder="Additional notes (optional)"></textarea>
-                    </div>
-
-                    <div class="actions">
-                        <button class="btn btn-primary" type="submit">Save Post Check</button>
-
-                        <a class="btn btn-secondary"
-                           th:href="@{/staff/report/{id}(id=${appointment.appointmentID})}">
-                            Next: Service Report
-                        </a>
-
-                        <a class="btn btn-ghost"
-                           th:href="@{/staff/execution/{id}(id=${appointment.appointmentID})}">
-                            Back to Execution
-                        </a>
-                    </div>
-                </form>
-
-                <div th:if="${param.success}" class="info-box" style="border-color: #48bb78; background: #f0fff4; color: #22543d;">
-                    <strong>Saved!</strong> Post-check record created successfully.
-                </div>
-            </div>
-        </section>
-
-        <aside class="card">
-            <header class="card-header">
-                <div>
-                    <h2 class="title" style="font-size:17px;">Recent records</h2>
-                    <p class="subtitle">History preview.</p>
-                </div>
-                <div class="tag">HISTORY</div>
-            </header>
-
-            <div class="card-body">
-                <div class="list">
-                    <div class="row" th:each="rec : ${recentRecords}">
-                        <div class="h">
-                            <span>Health record</span>
-                            <span class="badge" th:text="${#temporals.format(rec.checkDate, 'yyyy-MM-dd')}">Date</span>
-                        </div>
-                        <div class="d">
-                            <strong>Condition:</strong> <span th:text="${rec.conditionAfter}">...</span><br/>
-                            <strong>Recs:</strong> <span th:text="${rec.recommendations}">...</span>
-                        </div>
-                    </div>
-
-                    <div th:if="${#lists.isEmpty(recentRecords)}" class="info-box">
-                        No previous records found.
-                    </div>
-                </div>
-
-                <div class="info-box" style="margin-top:12px;">
-
-                    <br>
-                    <strong>DB Action:</strong> INSERT into <strong>PetHealthRecords</strong>.
-                </div>
-            </div>
-        </aside>
-    </main>
-
-    <script th:src="@{/js/post_check.js}"></script>
-</div>
-</body>
+</th:block>
 </html>

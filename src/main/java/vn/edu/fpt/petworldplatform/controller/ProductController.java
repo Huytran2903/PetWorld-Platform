@@ -1,17 +1,11 @@
 package vn.edu.fpt.petworldplatform.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import vn.edu.fpt.petworldplatform.service.PetService;
-//import vn.edu.fpt.petworldplatform.service.PetService;
 
 @Controller
 public class ProductController {
-
-    @Autowired
-    private PetService petService;
 
     //Product List
     @GetMapping("/products")
@@ -23,8 +17,6 @@ public class ProductController {
     //Pet List
     @GetMapping("/pets")
     public String getAllPet(Model model) {
-
-        //model.addAttribute("pets", petService.getAllPets());
         model.addAttribute("formMode", "pet");
         return "petList";
     }
@@ -40,7 +32,4 @@ public class ProductController {
     public String petDetail() {
         return "product/pet-detail";
     }
-
-
-
 }

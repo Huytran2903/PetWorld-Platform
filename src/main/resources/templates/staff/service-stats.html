@@ -4,16 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Usage Statistics - PetShop</title>
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/sidebar-staff.css}">
     <style>
         :root {
             --primary-color: #f59e0b;
             --secondary-color: #d97706;
-            --accent-color: #ea580c;
             --bg-light: #f3f4f6;
             --bg-white: #ffffff;
             --text-dark: #1f2937;
@@ -21,11 +18,12 @@
             --border-color: #e5e7eb;
         }
 
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
             background-color: var(--bg-light);
             font-family: 'Nunito', sans-serif;
-            margin: 0;
-            padding: 0;
+            color: var(--text-dark);
         }
 
         .main-content {
@@ -34,20 +32,15 @@
             min-height: 100vh;
         }
 
+        /* Header */
         .page-header {
             margin-bottom: 30px;
             animation: slideDown 0.5s ease-out;
         }
 
         @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .back-link {
@@ -66,9 +59,7 @@
             transform: translateX(-5px);
         }
 
-        .back-link i {
-            margin-right: 8px;
-        }
+        .back-link i { margin-right: 8px; }
 
         .page-header h1 {
             color: var(--text-dark);
@@ -83,7 +74,7 @@
             margin: 0;
         }
 
-        /* Stats Summary Card */
+        /* Summary Banner */
         .stats-summary {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             border-radius: 15px;
@@ -93,6 +84,12 @@
             box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
             position: relative;
             overflow: hidden;
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .stats-summary::before {
@@ -108,12 +105,8 @@
         }
 
         @keyframes float {
-            0%, 100% {
-                transform: translateY(0) translateX(0);
-            }
-            50% {
-                transform: translateY(-20px) translateX(10px);
-            }
+            0%, 100% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(-20px) translateX(10px); }
         }
 
         .stats-summary h2 {
@@ -132,6 +125,99 @@
             z-index: 1;
         }
 
+        /* Filter Section — same style as service-execution-history */
+        .filter-section {
+            background: var(--bg-white);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            animation: fadeInUp 0.5s ease-out;
+        }
+
+        .filter-section h3 {
+            color: var(--text-dark);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .form-group input[type="date"] {
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: 'Nunito', sans-serif;
+            transition: all 0.3s ease;
+            background: var(--bg-white);
+        }
+
+        .form-group input[type="date"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Nunito', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-light);
+            color: var(--text-dark);
+            text-decoration: none;
+        }
+
+        .btn-secondary:hover { background: var(--border-color); }
+
         /* Chart Card */
         .chart-card {
             background: var(--bg-white);
@@ -139,51 +225,37 @@
             padding: 30px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             border: 1px solid var(--border-color);
-            margin-bottom: 30px;
-            animation: fadeIn 0.6s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            animation: fadeInUp 0.6s ease-out;
         }
 
         .chart-card h3 {
             color: var(--text-dark);
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 700;
-            margin: 0 0 25px 0;
+            margin-bottom: 25px;
             padding-bottom: 15px;
             border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        /* Service Bar Chart */
+        /* Service Bars */
         .service-bar {
-            margin-bottom: 20px;
+            margin-bottom: 22px;
             animation: slideInLeft 0.5s ease-out backwards;
         }
 
-        .service-bar:nth-child(1) { animation-delay: 0.1s; }
-        .service-bar:nth-child(2) { animation-delay: 0.2s; }
-        .service-bar:nth-child(3) { animation-delay: 0.3s; }
-        .service-bar:nth-child(4) { animation-delay: 0.4s; }
-        .service-bar:nth-child(5) { animation-delay: 0.5s; }
+        .service-bar:nth-child(1) { animation-delay: 0.05s; }
+        .service-bar:nth-child(2) { animation-delay: 0.1s; }
+        .service-bar:nth-child(3) { animation-delay: 0.15s; }
+        .service-bar:nth-child(4) { animation-delay: 0.2s; }
+        .service-bar:nth-child(5) { animation-delay: 0.25s; }
+        .service-bar:nth-child(6) { animation-delay: 0.3s; }
 
         @keyframes slideInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         .service-info {
@@ -198,6 +270,8 @@
             color: var(--text-dark);
             font-size: 15px;
         }
+
+        .service-name i { margin-right: 6px; color: var(--primary-color); }
 
         .service-count {
             display: flex;
@@ -222,7 +296,6 @@
             background: var(--bg-light);
             border-radius: 15px;
             overflow: hidden;
-            position: relative;
         }
 
         .bar-fill {
@@ -237,7 +310,7 @@
             font-weight: 700;
             font-size: 13px;
             transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            min-width: 50px;
         }
 
         /* Empty State */
@@ -251,6 +324,7 @@
             font-size: 64px;
             color: var(--border-color);
             margin-bottom: 20px;
+            display: block;
         }
 
         .empty-state h3 {
@@ -258,10 +332,6 @@
             font-size: 20px;
             font-weight: 700;
             margin-bottom: 10px;
-        }
-
-        .empty-state p {
-            font-size: 15px;
         }
 
         /* Error Alert */
@@ -277,33 +347,21 @@
             gap: 10px;
         }
 
-        .error-alert i {
-            font-size: 20px;
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
-            .main-content {
-                margin-left: 0;
-                padding: 20px;
-            }
-
-            .page-header h1 {
-                font-size: 24px;
-            }
-
-            .stats-summary h2 {
-                font-size: 36px;
-            }
+            .main-content { margin-left: 0; padding: 20px; }
+            .page-header h1 { font-size: 24px; }
+            .stats-summary h2 { font-size: 36px; }
+            .filter-form { grid-template-columns: 1fr; }
+            .filter-actions { flex-direction: column; }
+            .btn { width: 100%; justify-content: center; }
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
     <div th:replace="~{fragments/sidebar-staff :: aside(activePage='service-stats')}"></div>
 
-    <!-- Main Content -->
     <main class="main-content">
+
         <!-- Header -->
         <div class="page-header">
             <a th:href="@{/staff/dashboard}" class="back-link">
@@ -313,34 +371,80 @@
             <p>View statistics and analysis of service popularity</p>
         </div>
 
-        <!-- Error Alert (if any) -->
+        <!-- Error -->
         <div th:if="${error}" class="error-alert">
             <i class="fas fa-exclamation-triangle"></i>
             <span th:text="${error}">Error message</span>
         </div>
 
-        <!-- Stats Summary -->
+        <!-- Summary Banner -->
         <div class="stats-summary">
             <h2 th:text="${totalBookings}">0</h2>
-            <p>Total Service Bookings</p>
+            <p>
+                Total Service Bookings
+                <span th:if="${filtered}">
+                    &nbsp;·&nbsp;
+                    <span th:if="${fromDate != null}" th:text="'From: ' + ${fromDate}"></span>
+                    <span th:if="${fromDate != null and toDate != null}"> → </span>
+                    <span th:if="${toDate != null}" th:text="'To: ' + ${toDate}"></span>
+                </span>
+                <span th:unless="${filtered}">&nbsp;· All time</span>
+            </p>
         </div>
 
-        <!-- Service Usage Chart -->
+        <!-- Filter Section -->
+        <div class="filter-section">
+            <h3><i class="fas fa-filter"></i> Filters</h3>
+            <form th:action="@{/staff/service-stats}" method="get" class="filter-form">
+
+                <div class="form-group">
+                    <label for="fromDate">From Date</label>
+                    <input type="date" id="fromDate" name="fromDate"
+                           th:value="${fromDate}">
+                </div>
+
+                <div class="form-group">
+                    <label for="toDate">To Date</label>
+                    <input type="date" id="toDate" name="toDate"
+                           th:value="${toDate}">
+                </div>
+
+                <div class="form-group filter-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                    <a th:href="@{/staff/service-stats}" class="btn btn-secondary">
+                        <i class="fas fa-redo"></i> Reset
+                    </a>
+                </div>
+
+            </form>
+        </div>
+
+        <!-- Chart Card -->
         <div class="chart-card">
             <h3>
                 <i class="fas fa-chart-bar"></i> Service Usage Statistics
+                <span th:if="${filtered}"
+                      style="color: var(--primary-color); font-size: 14px; margin-left: 10px;">
+                    (Filtered)
+                </span>
             </h3>
 
             <!-- Empty State -->
             <div th:if="${#lists.isEmpty(serviceStats)}" class="empty-state">
                 <i class="fas fa-inbox"></i>
                 <h3>No Data Available</h3>
-                <p>No services have been used yet</p>
+                <p th:text="${filtered}
+                    ? 'No services were used in the selected date range'
+                    : 'No services have been used yet'">
+                    No services have been used yet
+                </p>
             </div>
 
-            <!-- Service Bars -->
+            <!-- Bars -->
             <div th:unless="${#lists.isEmpty(serviceStats)}">
-                <div th:each="stat, iterStat : ${serviceStats}" class="service-bar">
+                <div th:each="stat : ${serviceStats}" class="service-bar">
                     <div class="service-info">
                         <span class="service-name">
                             <i class="fas fa-concierge-bell"></i>
@@ -348,11 +452,12 @@
                         </span>
                         <div class="service-count">
                             <span th:text="${stat.usageCount} + ' times'">0 times</span>
-                            <span class="badge" th:text="${#numbers.formatDecimal(stat.percentage, 1, 2)} + '%'">0%</span>
+                            <span class="badge"
+                                  th:text="${#numbers.formatDecimal(stat.percentage, 1, 2)} + '%'">0%</span>
                         </div>
                     </div>
                     <div class="bar-container">
-                        <div class="bar-fill" 
+                        <div class="bar-fill"
                              th:style="'width: ' + ${stat.percentage} + '%'"
                              th:text="${#numbers.formatDecimal(stat.percentage, 1, 2)} + '%'">
                             0%
@@ -361,18 +466,16 @@
                 </div>
             </div>
         </div>
+
     </main>
 
     <script>
-        // Animate bars on load
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const bars = document.querySelectorAll('.bar-fill');
             bars.forEach((bar, index) => {
-                const width = bar.style.width;
+                const targetWidth = bar.style.width;
                 bar.style.width = '0%';
-                setTimeout(() => {
-                    bar.style.width = width;
-                }, 100 + (index * 100));
+                setTimeout(() => { bar.style.width = targetWidth; }, 100 + index * 80);
             });
         });
     </script>

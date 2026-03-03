@@ -101,6 +101,9 @@ public class BookingController {
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/appointment/booking";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Unable to create appointment right now. Please try again.");
+            return "redirect:/appointment/booking";
         }
 
         redirectAttributes.addFlashAttribute("message", "Your appointment has been booked successfully. We will send you a confirmation shortly.");

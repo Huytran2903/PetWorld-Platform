@@ -26,13 +26,11 @@ import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.Staff;
 import vn.edu.fpt.petworldplatform.service.CustomerService;
 import vn.edu.fpt.petworldplatform.service.StaffService;
-import vn.edu.fpt.petworldplatform.util.SecuritySupport;
 
 import java.util.List;
 import java.util.Optional;
 
 @Controller
-@RequiredArgsConstructor
 public class AuthController {
 
     @Autowired
@@ -58,8 +56,10 @@ public class AuthController {
     }
 
 
-    @PostMapping("/do-register")
-    public String handleRegister(@Valid @ModelAttribute("customer") Customer customer, BindingResult bindingResult, Model model) {
+    @PostMapping("/do-register") // Đảm bảo mapping đúng với form
+    public String handleRegister(@Valid @ModelAttribute("customer") Customer customer,
+                                 BindingResult bindingResult,
+                                 Model model) {
 
         if (bindingResult.hasErrors()) {
             String errorMessage = bindingResult.getFieldError().getDefaultMessage();
@@ -116,7 +116,12 @@ public class AuthController {
     }
 
     @PostMapping("/do-login")
-    public String handleLogin(@RequestParam String username, @RequestParam String password, Model model, HttpSession session, HttpServletRequest request, HttpServletResponse response) {
+    public String handleLogin(@RequestParam String username,
+                              @RequestParam String password,
+                              Model model,
+                              HttpSession session,
+                              HttpServletRequest request,
+                              HttpServletResponse response) {
         Optional<Customer> customerOpt = customerService.login(username, password);
 
         if (customerOpt.isPresent()) {
@@ -132,7 +137,8 @@ public class AuthController {
 
             List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
 
-            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(customer, null, authorities);
+            UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(customer, null, authorities);
 
             SecurityContext context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(authToken);
@@ -153,7 +159,10 @@ public class AuthController {
                 return "auth/login";
             }
 
-            session.setAttribute("loggedInAccount", staff);
+            if (staff.getRole() == null || staff.getRole().getRoleName() == null || staff.getRole().getRoleName().isBlank()) {
+                model.addAttribute("error", "Staff account has no valid role. Please contact administrator.");
+                return "auth/login";
+            }
 
             String roleName = "ROLE_" + staff.getRole().getRoleName().toUpperCase();
             List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(roleName));
@@ -166,8 +175,11 @@ public class AuthController {
 
             securityContextRepository.saveContext(context, request, response);
 
-            return "redirect:/";
+            if ("ADMIN".equals(normalizedRole)) {
+                return "redirect:/admin/dashboard";
+            }
 
+            return "redirect:/staff/assigned_list";
         }
 
         model.addAttribute("error", "Invalid username or password");

@@ -1,8 +1,9 @@
+/* =========================================
+   1. VARIABLES & BASE (Match staff pages)
+   ========================================= */
 :root {
     --primary: #FFA54F;
-    --primary-2: #FFBE7A;
-    --primary-3: #FFF3E6;
-    --focus: rgba(255,165,79,.22);
+    --primary-text: #1c1c1c;
     --navy: #143a66;
     --navy2: #0f2f55;
     --bg: #f6f8fc;
@@ -10,64 +11,238 @@
     --text: #132238;
     --muted: #6b7686;
     --border: #e7ecf4;
-    --shadow: 0 14px 28px rgba(16,32,51,.08);
+    --shadow: 0 14px 28px rgba(16, 32, 51, .08);
 }
 
-/* ... (Standard Layout Styles inherited) ... */
+body {
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, sans-serif;
+}
 
-/* Specific Styles for Post Check */
+/* =========================================
+   2. HERO SECTION
+   ========================================= */
+.hero {
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    padding: 24px 0;
+    margin-bottom: 24px;
+}
+
+.hero-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.hero h1 {
+    margin: 0;
+    font-size: 24px;
+    color: var(--navy);
+}
+
+.hero p {
+    margin: 5px 0 0;
+    color: var(--muted);
+}
+
+/* =========================================
+   3. LAYOUT & CARD
+   ========================================= */
+.container {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 18px 40px;
+}
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fdfdfd;
+}
+
+.card-header .title {
+    margin: 0;
+    font-size: 18px;
+    color: var(--navy2);
+}
+
+.tag {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--muted);
+    letter-spacing: 1px;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+/* =========================================
+   4. SUMMARY BOX
+   ========================================= */
 .summary {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
 }
-@media (max-width: 680px){ .summary{ grid-template-columns:1fr; } }
+
+@media (max-width: 680px) {
+    .summary {
+        grid-template-columns: 1fr;
+    }
+}
 
 .kv {
     border: 1px solid var(--border);
-    border-radius: 18px;
+    border-radius: 14px;
     padding: 14px;
-    background: linear-gradient(180deg,#ffffff 0%, #fbfcff 100%);
-}
-.kv .k { font-size: 12px; font-weight: 950; color: var(--muted); }
-.kv .v { margin-top: 6px; font-size: 15px; font-weight: 950; }
-.mono { font-family: ui-monospace, SFMono-Regular, monospace; }
-
-/* Form Elements */
-label {
-    font-size: 13px; font-weight: 900; display: block; margin-bottom: 6px;
-}
-textarea {
-    width: 100%; padding: 11px 12px;
-    border: 1px solid var(--border); border-radius: 14px;
-    outline: none; font-size: 14px; background: #fff;
-    transition: box-shadow .15s, border-color .15s;
-    min-height: 120px; resize: vertical;
-}
-textarea:focus {
-    border-color: rgba(255,165,79,.55);
-    box-shadow: 0 0 0 4px var(--focus);
+    background: #fff;
 }
 
+.kv .k {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+}
+
+.kv .v {
+    margin-top: 6px;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--navy2);
+}
+
+/* =========================================
+   5. FORM ELEMENTS
+   ========================================= */
 .grid2 {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
 }
-@media (max-width: 680px){ .grid2{ grid-template-columns:1fr; } }
 
-.actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+@media (max-width: 680px) {
+    .grid2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--navy2);
+}
+
+input[type="number"],
+input[type="file"],
+textarea,
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    outline: none;
+    font-size: 14px;
+    background: #fff;
+}
+
+textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+input[type="number"]:focus,
+input[type="file"]:focus,
+textarea:focus,
+select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(255, 165, 79, 0.18);
+}
+
+.upload small {
+    display: block;
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+/* =========================================
+   6. ALERTS
+   ========================================= */
+.note {
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    font-size: 14px;
+}
+
+.note-success {
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.note-error {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+/* =========================================
+   7. ACTION BUTTONS
+   ========================================= */
+.actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+}
 
 .btn {
-    border: none; border-radius: 14px; padding: 11px 14px;
-    font-weight: 950; cursor: pointer; display: inline-flex;
-    align-items: center; justify-content: center; gap: 8px;
-    font-size: 14px; text-decoration: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    display: inline-block;
 }
-.btn-primary { background: linear-gradient(180deg, var(--primary-2) 0%, var(--primary) 100%); color: #1c1c1c; }
-.btn-secondary { background: linear-gradient(180deg, #184173 0%, var(--navy2) 100%); color: #fff; }
-.btn-ghost { background: #fff; border: 1px solid var(--border); color: var(--text); }
 
-.info-box {
-    margin-top: 12px; padding: 12px;
-    border: 1px solid var(--border); border-radius: 16px;
-    background: linear-gradient(180deg,#ffffff 0%, #fbfcff 100%);
-    color: var(--muted); font-size: 13px; line
+.btn-primary {
+    background: var(--navy);
+    color: #fff;
+}
+
+.btn-secondary {
+    background: #1f2937;
+    color: #fff;
+}
+
+.btn-ghost {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+}
+
+.btn:hover {
+    opacity: 0.92;
+}

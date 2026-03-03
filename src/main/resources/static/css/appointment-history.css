@@ -163,6 +163,15 @@
 .badge-danger { background: #f8d7da; color: #721c24; }
 .badge-secondary { background: #e2e3e5; color: #383d41; }
 
+/* Unified appointment status palette across roles */
+.status-pending { background: #fef3c7; color: #92400e; border: 1px solid #f59e0b; }
+.status-confirmed { background: #eff6ff; color: #1e40af; border: 1px solid #3b82f6; }
+.status-checked_in { background: #eef2ff; color: #3730a3; border: 1px solid #818cf8; }
+.status-in_progress { background: #fff7ed; color: #9a3412; border: 1px solid #f97316; }
+.status-done { background: #ecfdf5; color: #065f46; border: 1px solid #10b981; }
+.status-canceled { background: #fef2f2; color: #991b1b; border: 1px solid #ef4444; }
+.status-no_show { background: #f9fafb; color: #374151; border: 1px solid #d1d5db; }
+
 /* Alerts */
 .alert {
     padding: 14px 18px;

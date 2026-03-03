@@ -19,6 +19,35 @@
         .status-done { background-color: #d4edda; color: #155724; }
         .status-canceled { background-color: #f8d7da; color: #721c24; }
         .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .health-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px 16px;
+        }
+        .health-item .k { color: #6b7280; font-size: 12px; font-weight: 700; }
+        .health-item .v { font-weight: 700; margin-top: 2px; }
+        .warning-chip {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+        .health-photos {
+            margin-top: 10px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 8px;
+        }
+        .health-photos img {
+            width: 100%;
+            height: 95px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -48,7 +77,6 @@
             </button>
         </div>
 
-        <!-- Cancel Modal -->
         <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -73,7 +101,6 @@
         </div>
 
         <div class="row g-4">
-            <!-- Left Side: Basic Info -->
             <div class="col-lg-8">
                 <div class="card mb-4">
                     <div class="card-header bg-white py-3">
@@ -84,21 +111,21 @@
                             <div class="col-md-6">
                                 <label class="form-label text-muted small">Status</label>
                                 <div>
-                                    <span th:class="'status-badge status-' + ${appointment.status.toLowerCase()}" 
+                                    <span th:class="'status-badge status-' + ${appointment.status.toLowerCase()}"
                                           th:text="${appointment.status.toUpperCase()}">PENDING</span>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-muted small">Appointment Date</label>
-                                <div class="fw-bold" th:text="${#temporals.format(appointment.appointmentDate, 'dd-MMM-yyyy HH:mm')}">Date</div>
+                                <div class="fw-bold" th:text="${#temporals.format(appointment.appointmentDate, 'dd/MM/yyyy')}">Date</div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-muted small">Expected End Time</label>
-                                <div class="fw-bold" th:text="${#temporals.format(appointment.endTime, 'dd-MMM-yyyy HH:mm')}">End Time</div>
+                                <div class="fw-bold" th:text="${#temporals.format(appointment.endTime, 'dd/MM/yyyy')}">End Time</div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-muted small">Created At</label>
-                                <div th:text="${#temporals.format(appointment.createdAt, 'dd-MMM-yyyy HH:mm')}">Created</div>
+                                <div th:text="${#temporals.format(appointment.createdAt, 'dd/MM/yyyy')}">Created</div>
                             </div>
                             <div class="col-12">
                                 <label class="form-label text-muted small">Customer Note</label>
@@ -108,7 +135,43 @@
                     </div>
                 </div>
 
-                <!-- Services -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Health Report</h5>
+                        <span th:if="${healthRecord != null and healthRecord.warningFlag}" class="warning-chip">Warning</span>
+                    </div>
+                    <div class="card-body" th:if="${healthRecord != null}">
+                        <div class="health-grid">
+                            <div class="health-item">
+                                <div class="k">Weight</div>
+                                <div class="v" th:text="${healthRecord.weightKg} + ' kg'">0 kg</div>
+                            </div>
+                            <div class="health-item">
+                                <div class="k">Temperature</div>
+                                <div class="v" th:text="${healthRecord.temperature} + ' °C'">0 °C</div>
+                            </div>
+                            <div class="health-item">
+                                <div class="k">Condition Before</div>
+                                <div class="v" th:text="${healthRecord.conditionBefore ?: '-'}">-</div>
+                            </div>
+                            <div class="health-item">
+                                <div class="k">Condition After</div>
+                                <div class="v" th:text="${healthRecord.conditionAfter ?: '-'}">-</div>
+                            </div>
+                        </div>
+                        <div class="mt-3 p-2 border rounded"><strong>Findings:</strong> <span th:text="${healthRecord.findings ?: '-'}"></span></div>
+                        <div class="mt-2 p-2 border rounded"><strong>Recommendations:</strong> <span th:text="${healthRecord.recommendations ?: '-'}"></span></div>
+                        <div class="mt-2 p-2 border rounded"><strong>Notes:</strong> <span th:text="${healthRecord.note ?: '-'}"></span></div>
+
+                        <div class="health-photos" th:if="${healthPhotos != null and !#lists.isEmpty(healthPhotos)}">
+                            <img th:each="photo : ${healthPhotos}" th:src="@{${photo.imageUrl}}" alt="evidence" />
+                        </div>
+                    </div>
+                    <div class="card-body" th:if="${healthRecord == null}">
+                        <div class="text-muted">No health report available for this appointment.</div>
+                    </div>
+                </div>
+
                 <div class="card">
                     <div class="card-header bg-white py-3">
                         <h5 class="mb-0">Requested Services</h5>
@@ -117,18 +180,18 @@
                         <div class="table-responsive">
                             <table class="table table-hover mb-0">
                                 <thead class="table-light">
-                                    <tr>
-                                        <th class="ps-4">Service Name</th>
-                                        <th>Price</th>
-                                        <th class="pe-4 text-end">Quantity</th>
-                                    </tr>
+                                <tr>
+                                    <th class="ps-4">Service Name</th>
+                                    <th>Price</th>
+                                    <th class="pe-4 text-end">Quantity</th>
+                                </tr>
                                 </thead>
                                 <tbody>
-                                    <tr th:each="line : ${appointment.serviceLines}">
-                                        <td class="ps-4" th:text="${line.service.name}">Service</td>
-                                        <td th:text="${#numbers.formatDecimal(line.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">0</td>
-                                        <td class="pe-4 text-end" th:text="${line.quantity}">1</td>
-                                    </tr>
+                                <tr th:each="line : ${appointment.serviceLines}">
+                                    <td class="ps-4" th:text="${line.service.name}">Service</td>
+                                    <td th:text="${#numbers.formatDecimal(line.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">0</td>
+                                    <td class="pe-4 text-end" th:text="${line.quantity}">1</td>
+                                </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -136,49 +199,48 @@
                 </div>
             </div>
 
-            <!-- Right Side: Staff Assignment -->
             <div class="col-lg-4">
                 <div class="card sticky-top" style="top: 20px;">
                     <div class="card-header bg-orange text-white py-3">
                         <h5 class="mb-0">Staff Assignment</h5>
                     </div>
                     <div class="card-body">
-                        <!-- Case 1: Already Assigned -->
                         <div th:if="${appointment.staffId != null}" class="mb-4">
                             <div class="alert alert-info">
                                 <i class="bi bi-person-check-fill me-2"></i>
                                 Currently assigned to: <strong th:text="${appointment.staff != null ? appointment.staff.fullName : 'Staff ID: ' + appointment.staffId}">#NAME</strong>
                             </div>
-                            
+
                             <h6>Change Staff (Reassign)</h6>
                             <form th:action="@{/admin/appointments/{id}/reassign(id=${appointment.id})}" method="POST">
                                 <div class="mb-3">
                                     <select name="staffId" class="form-select" required>
                                         <option value="" disabled selected>Select new staff...</option>
-                                        <option th:each="staff : ${availableStaff}" 
-                                                th:value="${staff.staffId}" 
+                                        <option th:each="staff : ${availableStaff}"
+                                                th:value="${staff.staffId}"
                                                 th:text="${staff.fullName + ' (' + staff.role.roleName + ')'}">
                                         </option>
                                     </select>
                                 </div>
-                                <button type="submit" class="btn btn-orange w-100" 
+                                <button type="submit" class="btn btn-orange w-100"
                                         th:disabled="${appointment.status == 'done' || appointment.status == 'canceled'}">
                                     Confirm Change
                                 </button>
                             </form>
                         </div>
 
-                        <!-- Case 2: Not Assigned Yet (Pending) -->
                         <div th:if="${appointment.staffId == null}">
-                            <div th:if="${appointment.status == 'pending'}">
-                                <p class="text-muted small">This appointment is pending. Please assign an available staff member to confirm it.</p>
+                            <div th:if="${appointment.status == 'pending' || appointment.status == 'confirmed'}">
+                                <p class="text-muted small">
+                                    This appointment is not assigned yet. Please assign an available staff member.
+                                </p>
                                 <form th:action="@{/admin/appointments/{id}/assign(id=${appointment.id})}" method="POST">
                                     <div class="mb-3">
                                         <label class="form-label">Available Staff Members</label>
                                         <select name="staffId" class="form-select" required>
                                             <option value="" disabled selected>Select a staff member...</option>
-                                            <option th:each="staff : ${availableStaff}" 
-                                                    th:value="${staff.staffId}" 
+                                            <option th:each="staff : ${availableStaff}"
+                                                    th:value="${staff.staffId}"
                                                     th:text="${staff.fullName + ' (' + staff.role.roleName + ')'}">
                                             </option>
                                         </select>
@@ -189,7 +251,7 @@
                                     </button>
                                 </form>
                             </div>
-                            <div th:unless="${appointment.status == 'pending'}" class="alert alert-warning">
+                            <div th:unless="${appointment.status == 'pending' || appointment.status == 'confirmed'}" class="alert alert-warning">
                                 Cannot assign staff to an appointment with status: <strong th:text="${appointment.status}">STATUS</strong>
                             </div>
                         </div>

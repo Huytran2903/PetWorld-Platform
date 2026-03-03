@@ -3,26 +3,20 @@ package vn.edu.fpt.petworldplatform.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.petworldplatform.dto.StaffFormDTO;
 import vn.edu.fpt.petworldplatform.entity.Role;
 import vn.edu.fpt.petworldplatform.entity.Staff;
 import vn.edu.fpt.petworldplatform.repository.RoleRepo;
-import vn.edu.fpt.petworldplatform.repository.StaffRepo;
+import vn.edu.fpt.petworldplatform.repository.StaffRepository;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class StaffService {
 
     @Autowired
-    private StaffRepo staffRepo;
-
-    @Autowired
-    private EmailService emailService;
+    private StaffRepository staffRepo;
 
     @Autowired
     private RoleRepo roleRepo;
@@ -37,12 +31,28 @@ public class StaffService {
     }
 
     //Login - HuyTPN
-    public Optional<Staff> login(String username, String rawPassword) {
-        Optional<Staff> staffOpt = staffRepo.findByUsername(username);
+    public Optional<Staff> login(String usernameOrEmail, String rawPassword) {
+        String input = usernameOrEmail == null ? "" : usernameOrEmail.trim();
 
+        Optional<Staff> staffOpt = staffRepo.findByUsernameIgnoreCase(input);
+
+        if (staffOpt.isEmpty()) {
+            staffOpt = staffRepo.findByEmailIgnoreCase(input);
+        }
 
         if (staffOpt.isPresent()) {
-            if (passwordEncoder.matches(rawPassword, staffOpt.get().getPasswordHash())) {
+            String storedHash = staffOpt.get().getPasswordHash();
+
+            boolean passwordValid = false;
+            if (storedHash != null) {
+                if (storedHash.startsWith("$2a$") || storedHash.startsWith("$2b$") || storedHash.startsWith("$2y$")) {
+                    passwordValid = passwordEncoder.matches(rawPassword, storedHash);
+                } else {
+                    passwordValid = rawPassword.equals(storedHash);
+                }
+            }
+
+            if (passwordValid) {
                 return staffOpt;
             }
         }
@@ -50,68 +60,58 @@ public class StaffService {
         return Optional.empty();
     }
 
+    public void updateCustomer(Staff staff) {
+        staffRepo.save(staff);
+    }
+
+    public Optional<Staff> findByUsername(String username) {
+        return staffRepo.findByUsername(username);
+    }
+
+    public Optional<Staff> findByEmail(String email) {
+        return staffRepo.findByEmail(email);
+    }
+
+    public Optional<Staff> findById(Long staffId) {
+        if (staffId == null) {
+            return Optional.empty();
+        }
+        return staffRepo.findById(staffId.intValue());
+    }
+
     public List<Staff> getAllStaffs() {
         return staffRepo.findAll();
     }
 
-    @Transactional
-    public void createStaff(StaffFormDTO dto) {
-        Staff staffEntity = new Staff();
+    public Staff createStaff(StaffFormDTO staffDTO) {
+        if (staffRepo.existsByEmail(staffDTO.getEmail())) {
+            throw new RuntimeException("Email already exists");
+        }
+        if (staffRepo.findByUsername(staffDTO.getUsername()).isPresent()) {
+            throw new RuntimeException("Username already exists");
+        }
 
-        staffEntity.setFullName(dto.getFullName());
-        staffEntity.setUsername(dto.getUsername());
-        staffEntity.setEmail(dto.getEmail());
-        staffEntity.setPhone(dto.getPhone());
-
-        Role role = (Role) roleRepo.findById(dto.getRoleId())
+        Role role = roleRepo.findById(staffDTO.getRoleId())
                 .orElseThrow(() -> new RuntimeException("Role not found"));
-        staffEntity.setRole(role);
 
-        String rawPassword = UUID.randomUUID().toString().substring(0, 8);
-        String hashed = passwordEncoder.encode(rawPassword);
+        Staff staff = Staff.builder()
+                .fullName(staffDTO.getFullName())
+                .username(staffDTO.getUsername())
+                .email(staffDTO.getEmail())
+                .phone(staffDTO.getPhone())
+                .role(role)
+                .isActive(true)
+                .build();
 
-        staffEntity.setPasswordHash(hashed);
-        staffEntity.setIsActive(true);
-        staffEntity.setHireDate(LocalDate.now());
+        String defaultPassword = staffDTO.getUsername() + "@123";
+        staff.setPasswordHash(passwordEncoder.encode(defaultPassword));
 
-        staffRepo.save(staffEntity);
-
-        String subject = "Welcome to Pet World - Your Staff Account";
-        String htmlContent = "<html>" +
-                "<body>" +
-                "  <h2>Hello " + dto.getFullName() + ",</h2>" +
-                "  <p>Your staff account has been created successfully.</p>" +
-                "  <p><b>Username:</b> " + dto.getUsername() + "</p>" +
-                "  <p><b>Password:</b> <span style='color: #e67e22; font-weight: bold;'>" + rawPassword + "</span></p>" +
-                "  <p>Please log in and change your password immediately.</p>" +
-                "  <br><p>Best regards,<br>Pet World Admin Team</p>" +
-                "</body>" +
-                "</html>";
-
-        emailService.sendEmail(dto.getEmail(), subject, htmlContent);
-    }
-
-    @Transactional
-    public void updateStaff(StaffFormDTO dto) {
-
-        Staff existingStaff = staffRepo.findById(dto.getStaffId())
-                .orElseThrow(() -> new RuntimeException("Staff not found"));
-
-        existingStaff.setFullName(dto.getFullName());
-        existingStaff.setUsername(dto.getUsername());
-        existingStaff.setEmail(dto.getEmail());
-        existingStaff.setPhone(dto.getPhone());
-
-        Role role = (Role) roleRepo.findById(dto.getRoleId())
-                .orElseThrow(() -> new RuntimeException("Role not found"));
-        existingStaff.setRole(role);
-
-        staffRepo.save(existingStaff);
+        return staffRepo.save(staff);
     }
 
     public StaffFormDTO getStaffDtoById(Integer id) {
         Staff staff = staffRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Staff not found with ID: " + id));
+                .orElseThrow(() -> new RuntimeException("Staff not found"));
 
         StaffFormDTO dto = new StaffFormDTO();
         dto.setStaffId(staff.getStaffId());
@@ -119,18 +119,29 @@ public class StaffService {
         dto.setUsername(staff.getUsername());
         dto.setEmail(staff.getEmail());
         dto.setPhone(staff.getPhone());
-
-        if (staff.getRole() != null) {
-            dto.setRoleId(staff.getRole().getRoleId());
-        }
-
+        dto.setRoleId(staff.getRole() != null ? staff.getRole().getRoleId() : null);
         return dto;
     }
 
+    public Staff updateStaff(StaffFormDTO staffDTO) {
+        Staff staff = staffRepo.findById(staffDTO.getStaffId())
+                .orElseThrow(() -> new RuntimeException("Staff not found"));
 
-    @Transactional
+        Role role = roleRepo.findById(staffDTO.getRoleId())
+                .orElseThrow(() -> new RuntimeException("Role not found"));
+
+        staff.setFullName(staffDTO.getFullName());
+        staff.setEmail(staffDTO.getEmail());
+        staff.setPhone(staffDTO.getPhone());
+        staff.setRole(role);
+
+        return staffRepo.save(staff);
+    }
+
     public void deleteStaff(Integer id) {
-        staffRepo.deleteById(id);
+        Staff staff = staffRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Staff not found"));
+        staffRepo.delete(staff);
     }
 
     public Optional<Staff> findById(Integer id) {

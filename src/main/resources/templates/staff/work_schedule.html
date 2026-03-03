@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<th:block th:replace="~{fragments/staff_layout :: layout(~{::page_content})}">
+
+    <div th:fragment="page_content">
+        <link rel="stylesheet" th:href="@{/css/work_schedule.css}">
+
+        <div class="hero">
+            <div class="hero-inner">
+                <div>
+                    <h1>Work Schedule</h1>
+                    <p>View your assigned shifts for the selected period.</p>
+                </div>
+                <div class="pill">SCHEDULE</div>
+            </div>
+        </div>
+
+        <main class="container">
+            <section class="card">
+                <header class="card-header">
+                    <div>
+                        <h2 class="title">My Work Shifts</h2>
+                        <p class="subtitle"
+                           th:text="${#temporals.format(startDate, 'dd/MM/yyyy')} + ' - ' + ${#temporals.format(endDate, 'dd/MM/yyyy')}">
+                            Week range
+                        </p>
+                    </div>
+                    <div class="tag">STAFF</div>
+                </header>
+
+                <div class="card-body">
+                    <div class="toolbar">
+                        <a class="btn btn-ghost"
+                           th:href="@{/staff/work-schedule(startDate=${prevWeekStart}, endDate=${prevWeekEnd})}">Previous Week</a>
+
+                        <a class="btn btn-primary"
+                           th:href="@{/staff/work-schedule}">Current Week</a>
+
+                        <a class="btn btn-ghost"
+                           th:href="@{/staff/work-schedule(startDate=${nextWeekStart}, endDate=${nextWeekEnd})}">Next Week</a>
+                    </div>
+
+                    <div th:if="${error}" class="note note-error" th:text="${error}"></div>
+
+                    <div th:if="${#lists.isEmpty(schedules)}" class="empty-state">
+                        No working shifts assigned for this period.
+                    </div>
+
+                    <div class="table-wrap" th:unless="${#lists.isEmpty(schedules)}">
+                        <table class="schedule-table">
+                            <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
+                                <th>Note</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="item : ${schedules}">
+                                <td th:text="${#temporals.format(item.workDate, 'dd/MM/yyyy (EEE)')}">01/03/2026 (Mon)</td>
+                                <td th:text="${#temporals.format(item.startTime, 'HH:mm')}">08:00</td>
+                                <td th:text="${#temporals.format(item.endTime, 'HH:mm')}">12:00</td>
+                                <td th:text="${item.note ?: '-'}">Morning Shift</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="card">
+                <header class="card-header">
+                    <h2 class="title">Custom Date Range</h2>
+                </header>
+                <div class="card-body">
+                    <form th:action="@{/staff/work-schedule}" method="get">
+                        <div class="grid">
+                            <div>
+                                <label for="startDate">Start Date</label>
+                                <input id="startDate" type="date" name="startDate" th:value="${startDate}">
+                            </div>
+                            <div>
+                                <label for="endDate">End Date</label>
+                                <input id="endDate" type="date" name="endDate" th:value="${endDate}">
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button class="btn btn-primary" type="submit">Apply</button>
+                            <a th:href="@{/staff/work-schedule}" class="btn btn-ghost">Reset</a>
+                        </div>
+                    </form>
+                </div>
+            </aside>
+        </main>
+    </div>
+
+</th:block>
+</html>
