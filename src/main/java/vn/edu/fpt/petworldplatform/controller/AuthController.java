@@ -26,6 +26,7 @@ import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.Staff;
 import vn.edu.fpt.petworldplatform.service.CustomerService;
 import vn.edu.fpt.petworldplatform.service.StaffService;
+import vn.edu.fpt.petworldplatform.util.SecuritySupport;
 
 import java.util.List;
 import java.util.Optional;
@@ -39,7 +40,8 @@ public class AuthController {
     @Autowired
     private StaffService staffService;
 
-    private final SecuritySupport securitySupport;
+    @Autowired
+    private SecuritySupport securitySupport;
 
     private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
@@ -122,6 +124,7 @@ public class AuthController {
                               HttpSession session,
                               HttpServletRequest request,
                               HttpServletResponse response) {
+
         Optional<Customer> customerOpt = customerService.login(username, password);
 
         if (customerOpt.isPresent()) {
@@ -133,7 +136,6 @@ public class AuthController {
             }
 
             session.setAttribute("loggedInAccount", customer);
-
 
             List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
 
@@ -164,10 +166,13 @@ public class AuthController {
                 return "auth/login";
             }
 
-            String roleName = "ROLE_" + staff.getRole().getRoleName().toUpperCase();
+            String normalizedRole = staff.getRole().getRoleName().trim().toUpperCase();
+
+            String roleName = "ROLE_" + normalizedRole;
             List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(roleName));
 
-            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(staff, null, authorities);
+            UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(staff, null, authorities);
 
             SecurityContext context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(authToken);
