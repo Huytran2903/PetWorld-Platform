@@ -146,7 +146,7 @@ public class AppointmentService implements IAppointmentService {
             throw new IllegalStateException("Staff is busy in this time slot.");
         }
 
-        appointment.setStaffId(staffId);
+        appointment.setStaff(staff);
         appointment.setStatus("confirmed");
         appointment.setUpdatedAt(java.time.LocalDateTime.now());
         appointmentRepository.save(appointment);
@@ -179,7 +179,7 @@ public class AppointmentService implements IAppointmentService {
             throw new IllegalStateException("Staff is busy in this time slot.");
         }
 
-        appointment.setStaffId(newStaffId);
+        appointment.setStaff(staff);
         appointment.setUpdatedAt(java.time.LocalDateTime.now());
         appointmentRepository.save(appointment);
     }
@@ -197,5 +197,28 @@ public class AppointmentService implements IAppointmentService {
             );
             return conflictCount == 0;
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Appointment> getStaffAppointments(Integer staffId, String status) {
+        if (status != null && !status.isEmpty()) {
+            return appointmentRepository.findByStaffIdAndStatusOrderByAppointmentDateDesc(staffId, status);
+        }
+        return appointmentRepository.findByStaffIdOrderByAppointmentDateDesc(staffId);
+    }
+
+    @Override
+    public void updateStatus(Integer id, String status) {
+        Appointment appointment = getAppointmentById(id);
+        
+        // Basic validation for status transitions
+        List<String> validStatuses = List.of("pending", "confirmed", "in_progress", "done", "canceled", "no_show");
+        if (!validStatuses.contains(status.toLowerCase())) {
+            throw new IllegalArgumentException("Invalid status: " + status);
+        }
+
+        appointment.setStatus(status.toLowerCase());
+        appointment.setUpdatedAt(LocalDateTime.now());
+        appointmentRepository.save(appointment);
     }
 }

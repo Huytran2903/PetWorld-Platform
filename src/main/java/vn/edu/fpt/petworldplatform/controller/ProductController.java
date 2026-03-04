@@ -53,7 +53,4 @@ public class ProductController {
         model.addAttribute("petDetail", petService.getPetById(id));
         return "product/pet-detail";
     }
-
-
-
 }

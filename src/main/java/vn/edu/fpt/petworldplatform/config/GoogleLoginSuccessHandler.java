@@ -31,6 +31,10 @@ public class GoogleLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         String email = oauth2User.getAttribute("email");
         String name = oauth2User.getAttribute("name");
 
+        if (email == null || email.isBlank()) {
+            throw new ServletException("Google account does not provide a valid email.");
+        }
+
         Customer customer = customerRepository.findByEmail(email).orElse(null);
 
         if (customer == null) {
@@ -39,7 +43,7 @@ public class GoogleLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             customer.setFullName(name);
             customer.setAuthProvider(AuthProvider.GOOGLE);
 
-            String dummyPassword = "GoogleAuth" + UUID.randomUUID().toString();
+            String dummyPassword = "GoogleAuth" + UUID.randomUUID();
 
             customer.setPasswordHash(passwordEncoder.encode(dummyPassword));
 

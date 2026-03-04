@@ -6,7 +6,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.petworldplatform.entity.Appointment;
+import vn.edu.fpt.petworldplatform.entity.PetHealthRecord;
 import vn.edu.fpt.petworldplatform.entity.Staff;
+import vn.edu.fpt.petworldplatform.repository.PetHealthPhotoRepository;
+import vn.edu.fpt.petworldplatform.repository.PetHealthRecordRepository;
 import vn.edu.fpt.petworldplatform.service.AppointmentService;
 
 import java.io.ByteArrayInputStream;
@@ -27,6 +30,8 @@ import vn.edu.fpt.petworldplatform.dto.AppointmentFilterRequest;
 public class AdminAppointmentController {
 
     private final AppointmentService appointmentService;
+    private final PetHealthRecordRepository petHealthRecordRepository;
+    private final PetHealthPhotoRepository petHealthPhotoRepository;
 
     @ModelAttribute("filter")
     public AppointmentFilterRequest appointmentFilterRequest() {
@@ -89,6 +94,13 @@ public class AdminAppointmentController {
         
         model.addAttribute("appointment", appointment);
         model.addAttribute("availableStaff", availableStaff);
+
+        PetHealthRecord healthRecord = petHealthRecordRepository.findByAppointment_Id(id).orElse(null);
+        model.addAttribute("healthRecord", healthRecord);
+        model.addAttribute("healthPhotos", healthRecord == null
+                ? java.util.List.of()
+                : petHealthPhotoRepository.findByRecord_Id(healthRecord.getId()));
+
         return "admin/appt-detail";
     }
 

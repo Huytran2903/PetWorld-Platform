@@ -5,10 +5,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.petworldplatform.entity.Appointment;
 import vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine;
+import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.entity.ServiceItem;
 import vn.edu.fpt.petworldplatform.repository.AppointmentRepository;
 import vn.edu.fpt.petworldplatform.repository.AppointmentServiceLineRepository;
+import vn.edu.fpt.petworldplatform.repository.CustomerRepo;
 import vn.edu.fpt.petworldplatform.repository.PetRepo;
 import vn.edu.fpt.petworldplatform.repository.ServiceItemRepository;
 
@@ -29,6 +31,7 @@ public class BookingService {
 
     private final AppointmentRepository appointmentRepository;
     private final AppointmentServiceLineRepository appointmentServiceLineRepository;
+    private final CustomerRepo customerRepo;
     private final PetRepo petRepo;
     private final ServiceItemRepository serviceItemRepository;
 
@@ -122,10 +125,15 @@ public class BookingService {
             throw new IllegalArgumentException("New time slot overlaps with an existing booking.");
         }
 
+        Customer customer = customerRepo.findById(customerId)
+                .orElseThrow(() -> new IllegalArgumentException("Customer not found."));
+        Pets pet = petRepo.findById(petId)
+                .orElseThrow(() -> new IllegalArgumentException("Pet not found."));
+
         Appointment appointment = Appointment.builder()
                 .appointmentCode(code)
-                .customerId(customerId)
-                .petId(petId)
+                .customer(customer)
+                .pet(pet)
                 .appointmentDate(appointmentDate)
                 .endTime(endTime)
                 .note(note)

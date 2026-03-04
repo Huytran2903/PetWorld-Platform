@@ -12,6 +12,9 @@ import java.util.UUID;
 @NoArgsConstructor
 @Table(name = "verification_tokens")
 public class VerificationToken {
+    public static final int EXPIRATION_FORGOT_PASS = 15; // 15 phút cho quên mật khẩu
+    public static final int EXPIRATION_REGISTER = 10;    // 10 phút cho đăng ký
+    public static final int EXPIRATION_STAFF = 1440;    // 24 giờ cho nhân viên
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,14 +37,14 @@ public class VerificationToken {
     public VerificationToken(Customer customer) {
         this.customer = customer;
         this.staff = null;
-        this.expiryDate = LocalDateTime.now().plusMinutes(10);
+        this.expiryDate = LocalDateTime.now().plusMinutes(EXPIRATION_REGISTER);
         this.token = UUID.randomUUID().toString();
     }
 
     public VerificationToken(Staff staff) {
         this.staff = staff;
-        this.customer = null; // Đảm bảo customer null
-        this.expiryDate = LocalDateTime.now().plusHours(24);
+        this.customer = null;
+        this.expiryDate = LocalDateTime.now().plusMinutes(EXPIRATION_STAFF);
         this.token = UUID.randomUUID().toString();
     }
 
@@ -49,6 +52,6 @@ public class VerificationToken {
         this.token = tokenString;
         this.customer = customer;
         this.staff = null;
-        this.expiryDate = LocalDateTime.now().plusMinutes(30);
+        this.expiryDate = LocalDateTime.now().plusMinutes(EXPIRATION_FORGOT_PASS);
     }
 }

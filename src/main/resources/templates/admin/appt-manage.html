@@ -65,6 +65,13 @@
             font-size: 12px;
             display: inline-block;
         }
+        .status-pending { background-color: #fff3cd; color: #856404; }
+        .status-confirmed { background-color: #d1ecf1; color: #0c5460; }
+        .status-checked_in { background-color: #d1ecf1; color: #0c5460; }
+        .status-in_progress { background-color: #cce5ff; color: #004085; }
+        .status-done { background-color: #d4edda; color: #155724; }
+        .status-canceled { background-color: #f8d7da; color: #721c24; }
+        .status-no_show { background-color: #f8d7da; color: #721c24; }
         .btn-export {
             background-color: #198754;
             color: #fff;
@@ -105,7 +112,7 @@
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
             <h2 class="fw-bold mb-0">Manage Appointments</h2>
             <div class="d-flex gap-2">
-                <a th:href="@{/admin/appointments/export(status=${filter != null ? filter.status : ''}, fromDate=${filter != null ? filter.fromDate : ''}, toDate=${filter != null ? filter.toDate : ''}, keyword=${filter != null ? filter.keyword : '')}}" 
+                <a th:href="@{/admin/appointments/export(status=${filter != null ? filter.status : ''}, fromDate=${filter != null ? filter.fromDate : ''}, toDate=${filter != null ? filter.toDate : ''}, keyword=${filter != null ? filter.keyword : ''})}"
                    class="btn-export">
                     <i class="bi bi-file-earmark-excel"></i> Export Excel
                 </a>
@@ -202,10 +209,10 @@
                         <td th:text="${appt.appointmentCode}">CODE</td>
                         <td th:text="${appt.customer != null ? appt.customer.fullName : 'N/A'}">CUSTOMER NAME</td>
                         <td th:text="${appt.pet != null ? appt.pet.name : 'N/A'}">PET NAME</td>
-                        <td th:text="${#temporals.format(appt.appointmentDate, 'dd.MM.yyyy HH:mm')}">DATE</td>
+                        <td th:text="${#temporals.format(appt.appointmentDate, 'dd/MM/yyyy')}">DATE</td>
                         <td>
                             <span class="badge-status"
-                                  th:classappend="${appt.status == 'done'} ? ' status-completed' : (${appt.status == 'canceled'} ? ' status-rejected' : ' status-pending')"
+                                  th:classappend="' status-' + ${appt.status != null ? appt.status.toLowerCase() : 'pending'}"
                                   th:text="${appt.status}">pending</span>
                         </td>
                         <td class="text-center">

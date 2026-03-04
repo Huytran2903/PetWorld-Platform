@@ -23,10 +23,6 @@ public class ServiceExecutionHistoryController {
         this.service = service;
     }
 
-    /**
-     * Display Service Execution History page
-     * Supports filtering by status and date range
-     */
     @GetMapping("/service-execution-history")
     public String getServiceHistory(
             @RequestParam(required = false) String status,
@@ -35,82 +31,79 @@ public class ServiceExecutionHistoryController {
             Model model) {
 
         try {
-            // Get statistics for dashboard cards
-            Long completedCount = service.getCompletedCount();
-            Long inProgressCount = service.getInProgressCount();
-            Long pendingCount = service.getPendingCount();
-
-            model.addAttribute("completedCount", completedCount != null ? completedCount : 0L);
-            model.addAttribute("inProgressCount", inProgressCount != null ? inProgressCount : 0L);
-            model.addAttribute("pendingCount", pendingCount != null ? pendingCount : 0L);
-
-            // Get history data based on filters
             List<ServiceExecutionHistoryDTO> history;
             boolean filtered = false;
 
-            // Case 1: Filter by both status and date range
-            if (isNotEmpty(status) && isNotEmpty(startDate) && isNotEmpty(endDate)) {
-                LocalDateTime start = parseDate(startDate, true);
-                LocalDateTime end = parseDate(endDate, false);
-                history = service.getHistoryByStatusAndDateRange(status, start, end);
+            boolean hasStatus    = isNotEmpty(status);
+            boolean hasStartDate = isNotEmpty(startDate);
+            boolean hasEndDate   = isNotEmpty(endDate);
+            boolean hasDateRange = hasStartDate && hasEndDate;
+
+            LocalDateTime start = hasStartDate ? parseDate(startDate, true)  : null;
+            LocalDateTime end   = hasEndDate   ? parseDate(endDate,   false) : null;
+
+            // ── Fetch history ──────────────────────────────────────
+            if (hasStatus && hasDateRange) {
+                history  = service.getHistoryByStatusAndDateRange(status, start, end);
                 filtered = true;
-            }
-            // Case 2: Filter by status only
-            else if (isNotEmpty(status)) {
-                history = service.getHistoryByStatus(status);
+            } else if (hasStatus) {
+                history  = service.getHistoryByStatus(status);
                 filtered = true;
-            }
-            // Case 3: Filter by date range only
-            else if (isNotEmpty(startDate) && isNotEmpty(endDate)) {
-                LocalDateTime start = parseDate(startDate, true);
-                LocalDateTime end = parseDate(endDate, false);
-                history = service.getHistoryByDateRange(start, end);
+            } else if (hasDateRange) {
+                history  = service.getHistoryByDateRange(start, end);
                 filtered = true;
-            }
-            // Case 4: No filter - get all
-            else {
+            } else {
                 history = service.getAllHistory();
             }
 
-            // Add data to model
-            model.addAttribute("history", history);
-            model.addAttribute("filtered", filtered);
-            model.addAttribute("status", status);
+            // ── Fetch stat cards ───────────────────────────────────
+            // If a date range is selected → count only within that range
+            // If only status is selected  → still count within all time (no date constraint)
+            // If nothing selected         → count all time
+            Long completedCount;
+            Long inProgressCount;
+            Long pendingCount;
+
+            if (hasDateRange) {
+                // Pass status (may be null) so query can optionally filter by it too
+                completedCount   = service.getCompletedCountByDateRange(start, end);
+                inProgressCount  = service.getInProgressCountByDateRange(start, end);
+                pendingCount     = service.getPendingCountByDateRange(start, end);
+            } else {
+                completedCount   = service.getCompletedCount();
+                inProgressCount  = service.getInProgressCount();
+                pendingCount     = service.getPendingCount();
+            }
+
+            model.addAttribute("completedCount",   completedCount   != null ? completedCount   : 0L);
+            model.addAttribute("inProgressCount",  inProgressCount  != null ? inProgressCount  : 0L);
+            model.addAttribute("pendingCount",     pendingCount     != null ? pendingCount     : 0L);
+
+            model.addAttribute("history",   history);
+            model.addAttribute("filtered",  filtered);
+            model.addAttribute("status",    status);
             model.addAttribute("startDate", startDate);
-            model.addAttribute("endDate", endDate);
+            model.addAttribute("endDate",   endDate);
 
         } catch (Exception e) {
-            // If error occurs, return empty list
-            model.addAttribute("history", List.of());
-            model.addAttribute("filtered", false);
-            model.addAttribute("error", "Lỗi khi tải dữ liệu: " + e.getMessage());
-            model.addAttribute("completedCount", 0L);
+            model.addAttribute("history",        List.of());
+            model.addAttribute("filtered",       false);
+            model.addAttribute("error",          "Lỗi khi tải dữ liệu: " + e.getMessage());
+            model.addAttribute("completedCount",  0L);
             model.addAttribute("inProgressCount", 0L);
-            model.addAttribute("pendingCount", 0L);
-            
-            // Log error for debugging
+            model.addAttribute("pendingCount",    0L);
             e.printStackTrace();
         }
 
         return "staff/service-execution-history";
     }
 
-    /**
-     * Helper method to check if string is not empty
-     */
     private boolean isNotEmpty(String str) {
         return str != null && !str.trim().isEmpty();
     }
 
-    /**
-     * Helper method to parse date string to LocalDateTime
-     * @param dateStr Date string in format yyyy-MM-dd
-     * @param isStartOfDay true for start of day (00:00:00), false for end of day (23:59:59)
-     */
     private LocalDateTime parseDate(String dateStr, boolean isStartOfDay) {
         LocalDate date = LocalDate.parse(dateStr);
-        return isStartOfDay 
-            ? date.atStartOfDay() 
-            : date.atTime(LocalTime.MAX);
+        return isStartOfDay ? date.atStartOfDay() : date.atTime(LocalTime.MAX);
     }
 }

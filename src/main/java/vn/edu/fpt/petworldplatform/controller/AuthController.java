@@ -4,12 +4,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Controller;
@@ -24,6 +26,7 @@ import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.Staff;
 import vn.edu.fpt.petworldplatform.service.CustomerService;
 import vn.edu.fpt.petworldplatform.service.StaffService;
+import vn.edu.fpt.petworldplatform.util.SecuritySupport;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +39,9 @@ public class AuthController {
 
     @Autowired
     private StaffService staffService;
+
+    @Autowired
+    private SecuritySupport securitySupport;
 
     private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
 
@@ -53,7 +59,9 @@ public class AuthController {
 
 
     @PostMapping("/do-register") // Đảm bảo mapping đúng với form
-    public String handleRegister(@Valid @ModelAttribute("customer") Customer customer, BindingResult bindingResult, Model model) {
+    public String handleRegister(@Valid @ModelAttribute("customer") Customer customer,
+                                 BindingResult bindingResult,
+                                 Model model) {
 
         if (bindingResult.hasErrors()) {
             String errorMessage = bindingResult.getFieldError().getDefaultMessage();
@@ -110,7 +118,13 @@ public class AuthController {
     }
 
     @PostMapping("/do-login")
-    public String handleLogin(@RequestParam String username, @RequestParam String password, Model model, HttpSession session, HttpServletRequest request, HttpServletResponse response) {
+    public String handleLogin(@RequestParam String username,
+                              @RequestParam String password,
+                              Model model,
+                              HttpSession session,
+                              HttpServletRequest request,
+                              HttpServletResponse response) {
+
         Optional<Customer> customerOpt = customerService.login(username, password);
 
         if (customerOpt.isPresent()) {
@@ -123,10 +137,10 @@ public class AuthController {
 
             session.setAttribute("loggedInAccount", customer);
 
-
             List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
 
-            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(customer, null, authorities);
+            UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(customer, null, authorities);
 
             SecurityContext context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(authToken);
@@ -147,12 +161,18 @@ public class AuthController {
                 return "auth/login";
             }
 
-            session.setAttribute("loggedInAccount", staff);
+            if (staff.getRole() == null || staff.getRole().getRoleName() == null || staff.getRole().getRoleName().isBlank()) {
+                model.addAttribute("error", "Staff account has no valid role. Please contact administrator.");
+                return "auth/login";
+            }
 
-            String roleName = "ROLE_" + staff.getRole().getRoleName().toUpperCase();
+            String normalizedRole = staff.getRole().getRoleName().trim().toUpperCase();
+
+            String roleName = "ROLE_" + normalizedRole;
             List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(roleName));
 
-            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(staff, null, authorities);
+            UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(staff, null, authorities);
 
             SecurityContext context = SecurityContextHolder.createEmptyContext();
             context.setAuthentication(authToken);
@@ -160,8 +180,11 @@ public class AuthController {
 
             securityContextRepository.saveContext(context, request, response);
 
-            return "redirect:/";
+            if ("ADMIN".equals(normalizedRole)) {
+                return "redirect:/admin/dashboard";
+            }
 
+            return "redirect:/staff/assigned_list";
         }
 
         model.addAttribute("error", "Invalid username or password");
@@ -169,19 +192,24 @@ public class AuthController {
     }
 
     @GetMapping("/profile/change-password")
-    public String showChangePasswordForm(@AuthenticationPrincipal Customer authUser, Model model) {
+    public String showChangePasswordForm(Model model) {
+        Customer authUser = securitySupport.getCurrentAuthenticatedCustomer();
+
         if (authUser == null) return "redirect:/login";
 
-        Customer currentUser = customerService.findById(authUser.getCustomerId()).orElse(null);
-
-        model.addAttribute("user", currentUser);
+        model.addAttribute("user", authUser);
         model.addAttribute("formMode", "CHANGE");
         return "auth/password-form-shared";
     }
 
     @PostMapping("/profile/change-password")
-    public String processChangePassword(@AuthenticationPrincipal Customer authUser, @RequestParam("oldPassword") String oldPassword, @RequestParam("newPassword") String newPassword, @RequestParam("confirmPassword") String confirmPassword, Model model, RedirectAttributes redirectAttributes) {
+    public String processChangePassword(
+            @RequestParam("oldPassword") String oldPassword,
+            @RequestParam("newPassword") String newPassword,
+            @RequestParam("confirmPassword") String confirmPassword,
+            Model model, RedirectAttributes redirectAttributes) {
 
+        Customer authUser = securitySupport.getCurrentAuthenticatedCustomer();
         if (authUser == null) return "redirect:/login";
 
         Customer currentUser = customerService.findById(authUser.getCustomerId()).orElse(null);
@@ -195,7 +223,7 @@ public class AuthController {
         }
 
         if (!customerService.verifyOldPassword(currentUser, oldPassword)) {
-            model.addAttribute("error", "old password incorrect!");
+            model.addAttribute("error", "Mật khẩu cũ không chính xác!");
             model.addAttribute("user", currentUser);
             model.addAttribute("formMode", "CHANGE");
             return "auth/password-form-shared";
@@ -208,53 +236,91 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public String processForgotPassword(@RequestParam("email") String email, RedirectAttributes redirectAttributes) {
+    public String processForgotPassword(@RequestParam("email") String email,
+                                        RedirectAttributes redirectAttributes,
+                                        HttpSession session) {
         try {
             customerService.sendResetPasswordEmail(email);
-            redirectAttributes.addFlashAttribute("message", "Link for reset password has been sent: " + email);
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Error: " + e.getMessage());
-        }
 
-        return "redirect:/login";
+            session.setAttribute("resetEmail", email);
+
+            redirectAttributes.addFlashAttribute("message", "OTP has been sent to " + email);
+            redirectAttributes.addFlashAttribute("openOtpModal", true);
+
+            return "redirect:/login";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/login";
+        }
     }
 
+    @PostMapping("/verify-forgot-password-otp")
+    public String verifyOtpForPassword(@RequestParam("otp") String otp,
+                                       HttpSession session,
+                                       RedirectAttributes redirectAttributes) {
+        String email = (String) session.getAttribute("resetEmail");
+        Customer customer = customerService.getByResetPasswordToken(otp);
+
+        if (customer == null || !customer.getEmail().equals(email)) {
+            System.out.println("DEBUG: OTP sai hoặc email không khớp!");
+            redirectAttributes.addFlashAttribute("error", "Invalid or expired OTP code!");
+            redirectAttributes.addFlashAttribute("openOtpModal", true);
+            return "redirect:/login";
+        }
+
+        System.out.println("DEBUG: OTP chuẩn! Đang chuyển hướng tới trang đổi mật khẩu...");
+        return "redirect:/reset-password?token=" + otp;
+    }
 
     @GetMapping("/reset-password")
-    public String showResetPasswordForm(@RequestParam("token") String token, Model model) {
+    public String showResetPasswordForm(@RequestParam("token") String token, HttpSession session, Model model) {
         Customer customer = customerService.getByResetPasswordToken(token);
 
         if (customer == null) {
-            model.addAttribute("error", "Link đặt lại mật khẩu không hợp lệ hoặc đã hết hạn!");
-            return "auth/login";
+            return "redirect:/login?error=invalid_token";
         }
 
+        String email = (String) session.getAttribute("resetEmail");
+
         model.addAttribute("token", token);
-        model.addAttribute("formMode", "RESET");
+        model.addAttribute("email", email);
+        model.addAttribute("formMode", "RESET_OTP");
+
         return "auth/password-form-shared";
     }
 
     @PostMapping("/reset-password")
-    public String processResetPassword(@RequestParam("token") String token, @RequestParam("newPassword") String newPassword, @RequestParam("confirmPassword") String confirmPassword, Model model, RedirectAttributes redirectAttributes) {
+    public String processResetPassword(@RequestParam("otp") String otp,
+                                       @RequestParam("newPassword") String newPassword,
+                                       @RequestParam("confirmPassword") String confirmPassword,
+                                       HttpSession session,
+                                       Model model,
+                                       RedirectAttributes redirectAttributes) {
 
-        Customer customer = customerService.getByResetPasswordToken(token);
-        if (customer == null) {
-            model.addAttribute("error", "Token không hợp lệ hoặc đã hết hạn!");
-            return "auth/login";
-        }
+        String email = (String) session.getAttribute("resetEmail");
+        if (email == null) return "redirect:/login";
 
-        if (!newPassword.equals(confirmPassword)) {
-            model.addAttribute("error", "Mật khẩu xác nhận không khớp!");
-            model.addAttribute("token", token);
-            model.addAttribute("formMode", "RESET");
+        Customer customer = customerService.getByResetPasswordToken(otp);
+
+        if (customer == null || !customer.getEmail().equals(email)) {
+            model.addAttribute("error", "Invalid or expired OTP code!");
+            model.addAttribute("email", email);
+            model.addAttribute("formMode", "RESET_OTP");
             return "auth/password-form-shared";
         }
 
+        if (!newPassword.equals(confirmPassword)) {
+            model.addAttribute("error", "Confirm password does not match!");
+            model.addAttribute("email", email);
+            model.addAttribute("formMode", "RESET_OTP");
+            return "auth/password-form-shared";
+        }
 
         customerService.updatePassword(customer, newPassword);
 
+        session.removeAttribute("resetEmail");
 
-        redirectAttributes.addFlashAttribute("message", "Đặt lại mật khẩu thành công! Vui lòng đăng nhập.");
+        redirectAttributes.addFlashAttribute("message", "Password reset successfully! Please login.");
         return "redirect:/login";
     }
 }

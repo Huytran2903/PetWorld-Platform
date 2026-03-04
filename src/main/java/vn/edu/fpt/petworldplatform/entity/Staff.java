@@ -37,7 +37,7 @@ public class Staff {
     @Column(name = "Phone", length = 20)
     private String phone;
 
-    @Column(name = "FullName")
+    @Column(name = "FullName", columnDefinition = "NVARCHAR(120)")
     private String fullName;
 
     @Column(name = "HireDate")
@@ -47,6 +47,7 @@ public class Staff {
     private String bio;
 
     @Column(name = "IsActive")
+    @Builder.Default
     private Boolean isActive = true;
 
     @CreationTimestamp

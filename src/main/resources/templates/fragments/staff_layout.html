@@ -4,13 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PetWorld Staff Portal</title>
+    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+          integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" th:href="@{/css/sidebar-staff.css}">
     <link rel="stylesheet" th:href="@{/css/assigned_list.css}">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+            background-color: #f3f4f6;
+        }
+        .staff-wrapper {
+            display: flex;
+            width: 100%;
+        }
+        .staff-content {
+            flex: 1;
+            margin-left: 280px; /* Sidebar width */
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        @media (max-width: 768px) {
+            .staff-content {
+                margin-left: 0;
+            }
+            .staff-wrapper {
+                flex-direction: column;
+            }
+        }
+    </style>
 </head>
 <body>
-
-<div th:replace="~{fragments/staff_sidebar :: header_sidebar}"></div>
-
+    <div class="staff-wrapper">
+<div th:replace="~{fragments/sidebar-staff :: aside(${activePage != null ? activePage : 'appointments'})}"></div>
+        <main class="staff-content">
 <div th:replace="${content}"></div>
-
+        </main>
+    </div>
 </body>
 </html>

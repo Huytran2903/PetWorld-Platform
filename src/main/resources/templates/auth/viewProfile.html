@@ -21,16 +21,20 @@
                 <h1 class="h3 fw-medium text-dark mb-1">
                     Welcome, <span th:text="${user.username}">UserName</span>
                 </h1>
-                <time class="text-muted fw-light small">Tue, 07 June 2022</time>
+                <time class="text-muted fw-light small"
+                      th:text="${#calendars.format(#calendars.createNow(), 'EEE, dd MMMM yyyy')}">
+                </time>
             </div>
 
             <nav class="d-flex gap-3">
                 <a th:href="@{/}" class="nav-btn" data-bs-title="Home">
                     <i class="bi bi-house"></i>
                 </a>
-                <button class="nav-btn"><i class="bi bi-list"></i></button>
-                <button class="nav-btn"><i class="bi bi-grid"></i></button>
-                <a th:href="@{/customer/shopping-cart}" class="nav-btn"><i class="bi bi-bag"></i></a>
+
+                <a th:href="@{/customer/shopping-cart}" class="nav-btn" data-bs-title="Shopping Cart">
+                    <i class="bi bi-bag"></i>
+                </a>
+
                 <button class="nav-btn"><i class="bi bi-bell"></i></button>
 
                 <div class="nav-item">
@@ -55,7 +59,8 @@
                     </div>
 
                     <div class="d-flex gap-3 mt-3 mt-md-0">
-                        <a th:href="@{/profile/change-password}" class="btn btn-yellow">Change password</a>
+                        <a th:if="${hasPassword}" th:href="@{/profile/change-password}" class="btn btn-yellow">Change
+                            password</a>
                         <a th:href="@{/profile/edit}" class="btn btn-blue">Edit</a>
                     </div>
                 </div>
@@ -67,35 +72,38 @@
                         <div class="col-md-6">
                             <label class="form-label" for="fullName">Full Name</label>
                             <input class="form-control" type="text" id="fullName" name="fullName"
-                                   th:value="${user.fullName}"
-                                   readonly>
+                                   th:value="${user.fullName}" readonly>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label" for="userName">User name</label>
                             <input class="form-control" type="text" id="userName" name="userName"
-                                   th:value="${user.username}"
-                                   readonly>
+                                   th:value="${user.username}" readonly>
                         </div>
 
-                        <div class="col-12">
+                        <div class="col-md-6">
                             <label class="form-label" for="phone">Phone</label>
                             <input class="form-control" type="tel" id="phone" name="phone"
-                                   th:value="${user.phone}"
+                                   th:value="${user.phone}" readonly>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label" for="joinedDate">Joined Date</label>
+                            <input class="form-control" type="text" id="joinedDate"
+                                   th:value="${user.createdAt != null ? #temporals.format(user.createdAt, 'dd-MM-yyyy') : 'N/A'}"
                                    readonly>
                         </div>
                     </div>
 
-                    <div class="email-section">
+                    <div class="email-section mt-4">
                         <h3 class="h6 fw-medium mb-3">My email Address</h3>
                         <div class="d-flex align-items-center gap-3">
                             <div class="email-icon-box">
                                 <i class="bi bi-envelope-fill"></i>
                             </div>
                             <div>
-                                <span class="d-block text-dark fw-medium" th:text="${user.email}">
-                                </span>
-                                <small class="text-muted">Verified</small>
+                                <span class="d-block text-dark fw-medium" th:text="${user.email}"></span>
+                                <small class="badge bg-success">Verified Customer</small>
                             </div>
                         </div>
                     </div>
@@ -109,7 +117,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-title]');
         const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
     });
 </script>

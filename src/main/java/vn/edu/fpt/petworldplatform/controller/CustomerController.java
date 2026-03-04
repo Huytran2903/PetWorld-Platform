@@ -2,10 +2,12 @@ package vn.edu.fpt.petworldplatform.controller;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -17,8 +19,12 @@ import vn.edu.fpt.petworldplatform.dto.ProfileFormDTO;
 import vn.edu.fpt.petworldplatform.entity.Appointment;
 import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.Pets;
+import vn.edu.fpt.petworldplatform.repository.PetHealthPhotoRepository;
+import vn.edu.fpt.petworldplatform.repository.PetHealthRecordRepository;
+import vn.edu.fpt.petworldplatform.entity.*;
 import vn.edu.fpt.petworldplatform.repository.PetRepo;
 import vn.edu.fpt.petworldplatform.service.*;
+import vn.edu.fpt.petworldplatform.util.SecuritySupport;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -26,34 +32,50 @@ import java.util.List;
 
 
 @Controller
+@RequiredArgsConstructor
 public class CustomerController {
 
-    @Autowired
-    CustomerService customerService;
 
-    @Autowired
-    PetService petService;
+    private final CustomerService customerService;
+
+    private final SecuritySupport securitySupport;
+
+    private final PetService petService;
 
     @GetMapping("/profile")
     public String profileShow(Model model) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || !authentication.isAuthenticated() ||
-                authentication.getPrincipal().equals("anonymousUser")) {
+        if (auth == null || !auth.isAuthenticated() || auth.getPrincipal().equals("anonymousUser")) {
             return "redirect:/login";
         }
 
-        Customer authUser = (Customer) authentication.getPrincipal();
+        if (auth.getPrincipal() instanceof Staff) {
+            return "redirect:/admin/dashboard";
+        }
+
+        Customer authUser = securitySupport.getCurrentAuthenticatedCustomer();
+        if (authUser == null) return "redirect:/login";
 
         Customer currentFreshUser = customerService.findById(authUser.getCustomerId()).orElse(null);
 
-        model.addAttribute("user", currentFreshUser);
-        return "auth/viewProfile";
+        if (currentFreshUser != null) {
+            model.addAttribute("user", currentFreshUser);
+
+
+            boolean canChangePassword = currentFreshUser.getAuthProvider() != AuthProvider.GOOGLE;
+
+            model.addAttribute("hasPassword", canChangePassword);
+
+            return "auth/viewProfile";
+        }
+
+        return "redirect:/login";
     }
 
     @GetMapping("/profile/edit")
-    public String profileSetting(@AuthenticationPrincipal Customer authUser, Model model) {
-
+    public String profileSetting(Model model) {
+        Customer authUser = securitySupport.getCurrentAuthenticatedCustomer();
         if (authUser == null) return "redirect:/login";
 
         Customer currentFreshUser = customerService.findById(authUser.getCustomerId()).orElse(null);
@@ -67,22 +89,24 @@ public class CustomerController {
 
         model.addAttribute("user", form);
 
+        model.addAttribute("isGoogleUser", currentFreshUser.getAuthProvider() == AuthProvider.GOOGLE);
+
         return "auth/editProfile";
     }
 
     @PostMapping("/profile/do-edit")
     public String updateProfile(@Valid @ModelAttribute("user") ProfileFormDTO profileForm,
                                 BindingResult bindingResult,
-                                @AuthenticationPrincipal Customer authUser,
                                 HttpSession session,
                                 Model model) {
+
+        Customer authUser = securitySupport.getCurrentAuthenticatedCustomer();
 
         if (authUser == null) {
             return "redirect:/login";
         }
 
         if (bindingResult.hasErrors()) {
-
             return "auth/editProfile";
         }
 
@@ -91,9 +115,8 @@ public class CustomerController {
             Customer currentUser = customerService.findById(authUser.getCustomerId()).orElse(null);
 
             if (currentUser == null) {
-                return "redirect:/login?logout"; //khó xảy ra nhưng cho chắc(User bị xóa khi edit)
+                return "redirect:/login?logout";
             }
-
 
             currentUser.setFullName(profileForm.getFullName());
             currentUser.setEmail(profileForm.getEmail());
@@ -141,6 +164,12 @@ public class CustomerController {
     @Autowired
     BookingService bookingService;
 
+    @Autowired
+    private PetHealthRecordRepository petHealthRecordRepository;
+
+    @Autowired
+    private PetHealthPhotoRepository petHealthPhotoRepository;
+
     @GetMapping("/customer/appointments")
     public String appointmentHistory(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
@@ -154,11 +183,38 @@ public class CustomerController {
         List<Integer> apptIds = appointments.stream().map(Appointment::getId).toList();
         if (apptIds.isEmpty()) {
             model.addAttribute("serviceLinesByAppointmentId", java.util.Map.of());
+            model.addAttribute("healthRecordByAppointmentId", java.util.Map.of());
+            model.addAttribute("healthPhotosByAppointmentId", java.util.Map.of());
         } else {
             List<vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine> lines = bookingService.findServiceLinesByAppointmentIds(apptIds);
             java.util.Map<Integer, List<vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine>> linesByApptId =
                     lines.stream().collect(java.util.stream.Collectors.groupingBy(l -> l.getAppointment().getId()));
             model.addAttribute("serviceLinesByAppointmentId", linesByApptId);
+
+            java.util.Map<Integer, PetHealthRecord> recordByAppointmentId = new java.util.HashMap<>();
+            java.util.Map<Integer, List<PetHealthPhoto>> photosByAppointmentId = new java.util.HashMap<>();
+            java.util.Map<Integer, String> serviceStaffByAppointmentId = new java.util.HashMap<>();
+
+            for (Appointment appt : appointments) {
+                Integer apptId = appt.getId();
+                String fallbackStaff = (appt.getStaff() != null && appt.getStaff().getFullName() != null)
+                        ? appt.getStaff().getFullName()
+                        : "N/A";
+
+                petHealthRecordRepository.findByAppointment_Id(apptId).ifPresentOrElse(record -> {
+                    recordByAppointmentId.put(apptId, record);
+                    photosByAppointmentId.put(apptId, petHealthPhotoRepository.findByRecord_Id(record.getId()));
+
+                    String performedStaff = (record.getPerformedByStaff() != null && record.getPerformedByStaff().getFullName() != null)
+                            ? record.getPerformedByStaff().getFullName()
+                            : fallbackStaff;
+                    serviceStaffByAppointmentId.put(apptId, performedStaff);
+                }, () -> serviceStaffByAppointmentId.put(apptId, fallbackStaff));
+            }
+
+            model.addAttribute("healthRecordByAppointmentId", recordByAppointmentId);
+            model.addAttribute("healthPhotosByAppointmentId", photosByAppointmentId);
+            model.addAttribute("serviceStaffByAppointmentId", serviceStaffByAppointmentId);
         }
 
         return "customer/appointment-history";
@@ -183,6 +239,21 @@ public class CustomerController {
 
         model.addAttribute("appointment", appt);
         model.addAttribute("serviceLines", bookingService.findServiceLinesByAppointmentId(id));
+
+        PetHealthRecord healthRecord = petHealthRecordRepository.findByAppointment_Id(id).orElse(null);
+        model.addAttribute("healthRecord", healthRecord);
+        model.addAttribute("healthPhotos", healthRecord == null
+                ? java.util.List.of()
+                : petHealthPhotoRepository.findByRecord_Id(healthRecord.getId()));
+
+        String serviceStaffName = "N/A";
+        if (healthRecord != null && healthRecord.getPerformedByStaff() != null && healthRecord.getPerformedByStaff().getFullName() != null) {
+            serviceStaffName = healthRecord.getPerformedByStaff().getFullName();
+        } else if (appt.getStaff() != null && appt.getStaff().getFullName() != null) {
+            serviceStaffName = appt.getStaff().getFullName();
+        }
+        model.addAttribute("serviceStaffName", serviceStaffName);
+
         return "customer/appointment-detail";
     }
 

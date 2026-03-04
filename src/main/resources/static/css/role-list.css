@@ -1,0 +1,43 @@
+:root {
+    --theme-color: #FFB25B;
+    --theme-color-hover: #e59f51;
+}
+
+.bg-theme {
+    background-color: var(--theme-color);
+    color: white;
+}
+
+.btn-theme {
+    background-color: var(--theme-color);
+    border-color: var(--theme-color);
+    color: white;
+    font-weight: 500;
+}
+
+.btn-theme:hover {
+    background-color: var(--theme-color-hover);
+    border-color: var(--theme-color-hover);
+    color: white;
+}
+
+.btn-outline-theme {
+    color: var(--theme-color);
+    border-color: var(--theme-color);
+    transition: all 0.3s ease;
+}
+
+.btn-outline-theme:hover {
+    background-color: var(--theme-color);
+    color: white;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(255, 178, 91, 0.05);
+}
+
+.role-badge {
+    font-size: 0.9rem;
+    padding: 0.4em 0.8em;
+    background-color: #6c757d;
+}
