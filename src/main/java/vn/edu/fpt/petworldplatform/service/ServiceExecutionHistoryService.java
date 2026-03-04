@@ -22,7 +22,7 @@ public class ServiceExecutionHistoryService {
     }
 
     // ============================================================
-    // Lấy số liệu thống kê
+    // Lấy số liệu thống kê - TOÀN THỜI GIAN
     // ============================================================
     public Long getCompletedCount() {
         return repo.getCompletedAppointmentsCount();
@@ -34,6 +34,22 @@ public class ServiceExecutionHistoryService {
 
     public Long getPendingCount() {
         return repo.getPendingAppointmentsCount();
+    }
+
+    // ============================================================
+    // NEW: Lấy số liệu thống kê - THEO KHOẢNG NGÀY
+    // Dùng cho stat cards khi user chọn startDate/endDate
+    // ============================================================
+    public Long getCompletedCountByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        return repo.getCompletedCountByDateRange(startDate, endDate);
+    }
+
+    public Long getInProgressCountByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        return repo.getInProgressCountByDateRange(startDate, endDate);
+    }
+
+    public Long getPendingCountByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        return repo.getPendingCountByDateRange(startDate, endDate);
     }
 
     // ============================================================
@@ -79,8 +95,7 @@ public class ServiceExecutionHistoryService {
     }
 
     // ============================================================
-    // NEW: Lấy thống kê sử dụng dịch vụ - CÓ FILTER THEO NGÀY
-    // Dùng cho service-stats page khi user chọn fromDate/toDate
+    // Lấy thống kê sử dụng dịch vụ - CÓ FILTER THEO NGÀY
     // ============================================================
     public List<ServiceUsageStatsDTO> getServiceUsageStatsByDateRange(LocalDateTime startDate,
                                                                        LocalDateTime endDate) {
@@ -90,9 +105,6 @@ public class ServiceExecutionHistoryService {
 
     // ============================================================
     // Map Object[] -> ServiceExecutionHistoryDTO
-    // [0] AppointmentCode, [1] CustomerName, [2] PetName,
-    // [3] ServiceNames (từ STRING_AGG), [4] AppointmentDate,
-    // [5] Status, [6] AssignedStaff (từ STRING_AGG)
     // ============================================================
     private List<ServiceExecutionHistoryDTO> mapToDTO(List<Object[]> rows) {
         return rows.stream().map(row -> {
@@ -120,7 +132,6 @@ public class ServiceExecutionHistoryService {
 
     // ============================================================
     // Map Object[] -> ServiceUsageStatsDTO
-    // [0] ServiceName, [1] UsageCount, [2] Percentage
     // ============================================================
     private List<ServiceUsageStatsDTO> mapToServiceUsageDTO(List<Object[]> rows) {
         return rows.stream().map(row -> {

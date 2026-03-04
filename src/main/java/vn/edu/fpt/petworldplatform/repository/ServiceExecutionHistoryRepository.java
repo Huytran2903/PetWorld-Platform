@@ -12,6 +12,9 @@ import java.util.List;
 @Repository
 public interface ServiceExecutionHistoryRepository extends JpaRepository<Appointment, Integer> {
 
+    // ============================================================
+    // Đếm tổng toàn thời gian
+    // ============================================================
     @Query(value = "SELECT COUNT(*) FROM Appointments WHERE Status = 'done'", nativeQuery = true)
     Long getCompletedAppointmentsCount();
 
@@ -21,6 +24,57 @@ public interface ServiceExecutionHistoryRepository extends JpaRepository<Appoint
     @Query(value = "SELECT COUNT(*) FROM Appointments WHERE Status = 'pending'", nativeQuery = true)
     Long getPendingAppointmentsCount();
 
+    // ============================================================
+    // Đếm theo khoảng ngày (dùng khi filter)
+    // ============================================================
+    @Query(value = "SELECT COUNT(*) FROM Appointments WHERE Status = 'done' " +
+                   "AND AppointmentDate >= :startDate AND AppointmentDate <= :endDate", nativeQuery = true)
+    Long getCompletedCountByDateRange(@Param("startDate") LocalDateTime startDate,
+                                      @Param("endDate") LocalDateTime endDate);
+
+    @Query(value = "SELECT COUNT(*) FROM Appointments WHERE Status = 'in_progress' " +
+                   "AND AppointmentDate >= :startDate AND AppointmentDate <= :endDate", nativeQuery = true)
+    Long getInProgressCountByDateRange(@Param("startDate") LocalDateTime startDate,
+                                       @Param("endDate") LocalDateTime endDate);
+
+    @Query(value = "SELECT COUNT(*) FROM Appointments WHERE Status = 'pending' " +
+                   "AND AppointmentDate >= :startDate AND AppointmentDate <= :endDate", nativeQuery = true)
+    Long getPendingCountByDateRange(@Param("startDate") LocalDateTime startDate,
+                                    @Param("endDate") LocalDateTime endDate);
+
+    // ============================================================
+    // Đếm theo status (dùng khi filter chỉ có status)
+    // ============================================================
+    @Query(value = "SELECT COUNT(*) FROM Appointments WHERE Status = 'done' AND Status = :status", nativeQuery = true)
+    Long getCompletedCountByStatus(@Param("status") String status);
+
+    // ============================================================
+    // Đếm theo status + khoảng ngày
+    // ============================================================
+    @Query(value = "SELECT COUNT(*) FROM Appointments WHERE Status = 'done' " +
+                   "AND (:status IS NULL OR Status = :status) " +
+                   "AND AppointmentDate >= :startDate AND AppointmentDate <= :endDate", nativeQuery = true)
+    Long getCompletedCountByStatusAndDateRange(@Param("status") String status,
+                                               @Param("startDate") LocalDateTime startDate,
+                                               @Param("endDate") LocalDateTime endDate);
+
+    @Query(value = "SELECT COUNT(*) FROM Appointments WHERE Status = 'in_progress' " +
+                   "AND (:status IS NULL OR Status = :status) " +
+                   "AND AppointmentDate >= :startDate AND AppointmentDate <= :endDate", nativeQuery = true)
+    Long getInProgressCountByStatusAndDateRange(@Param("status") String status,
+                                                @Param("startDate") LocalDateTime startDate,
+                                                @Param("endDate") LocalDateTime endDate);
+
+    @Query(value = "SELECT COUNT(*) FROM Appointments WHERE Status = 'pending' " +
+                   "AND (:status IS NULL OR Status = :status) " +
+                   "AND AppointmentDate >= :startDate AND AppointmentDate <= :endDate", nativeQuery = true)
+    Long getPendingCountByStatusAndDateRange(@Param("status") String status,
+                                             @Param("startDate") LocalDateTime startDate,
+                                             @Param("endDate") LocalDateTime endDate);
+
+    // ============================================================
+    // History queries
+    // ============================================================
     @Query(value =
             "SELECT TOP 100 " +
             "  a.AppointmentCode, " +
@@ -138,9 +192,7 @@ public interface ServiceExecutionHistoryRepository extends JpaRepository<Appoint
     List<Object[]> getServiceUsageStatistics();
 
     // ============================================================
-    // FIX: Thống kê tần suất - CÓ FILTER NGÀY
-    // Điều kiện lọc ngày đặt trong WHERE (không phải JOIN)
-    // để SQL thực sự loại bỏ các appointment ngoài khoảng ngày
+    // Thống kê tần suất - CÓ FILTER NGÀY
     // ============================================================
     @Query(value =
             "SELECT " +
