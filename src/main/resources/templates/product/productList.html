@@ -7,6 +7,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <link rel="stylesheet" th:href="@{/css/style.css}" />
+
 </head>
 <body>
 
@@ -14,16 +15,26 @@
   <header class="pw-header">
     <div class="container-fluid px-lg-5">
       <div class="row align-items-center py-2">
-        <div class="col-auto">
-          <img class="logo-petshop" th:src="@{/images/logo-petshop.png}" alt="logo-petshop"/>
-          <div class="pw-logo">Pet World</div>
+        <div class="col-auto d-flex align-items-center">
+          <img class="logo-petshop" th:src="@{/images/logo-petshop.png}" alt="logo-petshop" style="width: 40px;"/>
+          <div class="pw-logo ms-2 fw-bold">Pet World</div>
         </div>
-        <div class="col">
-          <div class="pw-search-wrapper">
-            <i class="bi bi-search pw-search-icon"></i>
-            <input type="text" class="form-control pw-input" placeholder="Search products...">
-          </div>
+
+        <div class="col-md-6 mx-auto">
+          <form th:action="@{/products}" method="get" class="pw-search-form">
+            <div class="input-group">
+              <span class="input-group-text bg-white border-end-0" style="border-radius: 50px 0 0 50px;">
+                <i class="bi bi-search text-muted"></i>
+              </span>
+              <input type="text" id="kw" name="kw" class="form-control border-start-0 ps-0 shadow-none"
+                     placeholder="Search products..." style="height: 45px;">
+              <button class="btn btn-dark px-4" type="submit">
+                Search
+              </button>
+            </div>
+          </form>
         </div>
+
         <div class="col-auto">
           <div class="pw-cart">
             <i class="bi bi-cart3"></i> <span>Cart</span>
@@ -49,51 +60,73 @@
       <span class="text-secondary" th:text="${#lists.size(product)} + ' products found'">0 products found</span>
     </div>
 
-    <div class="row g-4">
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3" th:each="p : ${product}">
+    <div class="row g-4 row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5">
+      <div class="col" th:each="p : ${product}">
         <div class="pw-card">
-
           <div class="pw-img-box">
             <img th:src="${p.imageUrl}" alt="Product Image">
           </div>
-
           <div class="pw-card-body">
-            <div>
-              <p class="pw-product-name">
-                <i class="bi bi-patch-check-fill text-primary me-1" style="font-size: 0.9rem;"></i>
-                <span th:text="${p.name}">Product Name</span>
-              </p>
-
-              <p class="pw-description" th:text="${p.description}"></p>
-
-              <div class="pw-price-row">
-                <div class="d-flex align-items-center gap-1">
-                  <i class="bi bi-tags-fill" style="color: #ff9f43;"></i>
-                  <span class="pw-price" th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
-                </div>
-
-                <div class="pw-stock-info">
-                  <i class="bi bi-box-seam"></i>
-                  <span>Stock: <strong th:text="${p.stock}" style="color: #2d3436;"></strong></span>
-                </div>
+            <p class="pw-product-name">
+              <i class="bi bi-patch-check-fill text-primary me-1"></i>
+              <span th:text="${p.name}">Product Name</span>
+            </p>
+            <div class="pw-price-row">
+              <div class="d-flex align-items-center gap-1">
+                <i class="bi bi-tags-fill" style="color: #ff9f43;"></i>
+                <span class="pw-price" th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+              </div>
+              <div class="pw-stock-info">
+                <span>Stock: <strong th:text="${p.stock}"></strong></span>
               </div>
             </div>
-
             <div class="pw-action-buttons">
-              <button class="pw-btn-add">
-                <i class="bi bi-cart-plus"></i>
-                <span>ADD</span>
-              </button>
-
-              <a th:href="@{/product/detail/{id}}" class="pw-btn-detail">
-                <i class="bi bi-eye"></i> Detail
-              </a>
+              <button class="pw-btn-add"><i class="bi bi-cart-plus"></i> ADD</button>
+              <a th:href="@{'/product/detail/' + ${p.productId}}" class="pw-btn-detail"><i class="bi bi-eye"></i> Detail</a>
             </div>
           </div>
         </div>
       </div>
     </div>
   </main>
-</div> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</div>
+
+<div class="modal fade" id="searchResultModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0" style="border-radius: 20px;">
+      <div class="modal-body text-center p-5">
+        <i class="bi bi-search mb-3" style="font-size: 3rem; color: #ff914d; display: block;"></i>
+
+        <h4 class="mb-3" style="font-weight: 400; color: #333;">Product Not Found</h4>
+
+        <p class="text-muted mb-4" style="font-weight: 300;">
+          Sorry, we couldn't find any products matching your search.
+        </p>
+
+        <div class="d-flex justify-content-center">
+          <a th:href="@{/products}" class="btn btn-dark rounded-pill px-5"
+             style="font-weight: 300 !important; height: 45px; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px;">
+            OK
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<th:block th:if="${product != null && product.isEmpty()}">
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var myModalElement = document.getElementById('searchResultModal');
+      if (myModalElement) {
+        var myModal = new bootstrap.Modal(myModalElement);
+        myModal.show();
+      }
+    });
+  </script>
+</th:block>
+
 </body>
 </html>

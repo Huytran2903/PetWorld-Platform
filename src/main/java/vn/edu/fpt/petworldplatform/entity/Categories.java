@@ -35,8 +35,8 @@ public class Categories {
     private String name;
 
     @Pattern(
-            regexp = "^\\p{Lu}\\p{L}*( \\p{L}+)*$",
-            message = "Regex description: \"Starts with an uppercase letter, followed by letters and single spaces only.\""
+            regexp = "^\\p{Lu}[\\p{L}0-9, .]*$",
+            message = "Must start with an uppercase letter and contain only letters, numbers, spaces, commas, and periods."
     )
     @Column(name = "Description", columnDefinition = "TEXT")
     private String description;

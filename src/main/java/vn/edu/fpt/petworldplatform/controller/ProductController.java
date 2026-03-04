@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import vn.edu.fpt.petworldplatform.service.PetService;
 import vn.edu.fpt.petworldplatform.service.ProductService;
 //import vn.edu.fpt.petworldplatform.service.PetService;
@@ -19,29 +21,36 @@ public class ProductController {
 
     //Product List
     @GetMapping("/products")
-    public String getAllProducts(Model model) {
-        model.addAttribute("product", productService.getAllProducts());
-        return "/product/productList";
+    public String getAllProducts(Model model, @RequestParam(name = "kw", required = false, defaultValue = "") String keywork) {
+
+        if(!keywork.equals("")) {
+            model.addAttribute("product", productService.searchProductsByName(keywork));
+        }
+        else {
+            model.addAttribute("product", productService.getAllProducts());
+        }
+            return "/product/productList";
+
     }
 
     //Pet List
     @GetMapping("/pets")
     public String getAllPet(Model model) {
-
-        //model.addAttribute("pets", petService.getAllPets());
-        model.addAttribute("formMode", "pet");
-        return "petList";
+        model.addAttribute("pet", petService.getAllPets());
+        return "/product/petList";
     }
 
     //Product Detail
-    @GetMapping("/product/detail")
-    public String productDetail() {
+    @GetMapping("/product/detail/{id}")
+    public String productDetail(Model model, @PathVariable("id") Integer id) {
+        model.addAttribute("proDetail", productService.getProductById(id));
         return "product/product-detail";
     }
 
     //Pet Detail
-    @GetMapping("/pet/detail")
-    public String petDetail() {
+    @GetMapping("/pet/detail/{id}")
+    public String petDetail(Model model, @PathVariable("id") Integer id) {
+        model.addAttribute("petDetail", petService.getPetById(id));
         return "product/pet-detail";
     }
 

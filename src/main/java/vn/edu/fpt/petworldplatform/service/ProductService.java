@@ -30,6 +30,11 @@ public class ProductService {
         productRepo.deleteById(id);
     }
 
+    //search
+    public List<Product> searchProductsByName(String keywork) {
+        return productRepo.searchAllByNameContainingIgnoreCase(keywork);
+    }
+
 
 
 

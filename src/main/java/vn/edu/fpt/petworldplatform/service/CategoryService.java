@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import vn.edu.fpt.petworldplatform.entity.Categories;
 import vn.edu.fpt.petworldplatform.repository.CategoryRepo;
+import vn.edu.fpt.petworldplatform.repository.ProductRepo;
 
 import java.util.List;
 
@@ -12,6 +13,9 @@ public class CategoryService {
 
     @Autowired
     private CategoryRepo categoryRepo;
+
+    @Autowired
+    private ProductRepo productRepo;
 
     public List<Categories> getAllCategories() {
         return categoryRepo.findAll();
@@ -27,5 +31,9 @@ public class CategoryService {
 
     public void deleteCategoryById(Integer id) {
         categoryRepo.deleteById(id);
+    }
+
+    public boolean hasProducts(Integer categoryId) {
+        return productRepo.existsByCategory_CategoryID(categoryId);
     }
 }

@@ -6,6 +6,7 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import jakarta.persistence.*;
+import org.hibernate.annotations.DynamicInsert;
 import vn.edu.fpt.petworldplatform.dto.PetFormDTO;
 
 import java.math.BigDecimal;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "Pets")
+@DynamicInsert
 public class Pets {
 
     @Id
@@ -77,8 +79,6 @@ public class Pets {
     @Column(name = "ImageUrl")
     private String imageUrl;
 
-
-    private String discount;
     @Column(columnDefinition = "TEXT", name = "Description")
     private String description;
 

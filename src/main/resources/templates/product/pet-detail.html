@@ -2,97 +2,95 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pet Detail - Compact View</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/style.css}" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" th:href="@{/css/pet-detail.css}" />
 </head>
-<body>
-<main id="whiskas-product-page">
+<body class="product-page-body">
 
-    <div class="container-fluid p-0">
-        <div class="row g-0 full-height-row align-items-stretch">
+<main class="product-card-container">
+    <div class="row g-0">
 
-            <div class="col-lg-5 col-md-12">
-                <div class="image-wrapper">
-
-                    <a th:href="@{'/products'}" class="back-link-absolute">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M19 12H5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <span>back to list</span>
-                    </a>
-
-                    <div class="blob-1"></div>
-                    <div class="blob-2"></div>
-
-                    <img th:src="@{/images/WhiskasWetFood.png}" alt="Whiskas Product" class="product-main-img">
-                </div>
-            </div>
-
-            <div class="col-lg-7 col-md-12 product-content-col">
-                <div class="container ps-lg-5">
-
-                    <article class="product-content">
-                        <header>
-                            <span class="badge-hotsale">HOTSALE</span>
-                            <h1 class="product-title">Name Pet</h1>
-                        </header>
-
-                        <h2 class="section-title">Gender</h2>
-
-                        <section class="description-section">
-                            <h2 class="section-title">Description:</h2>
-                            <ul class="detail-list">
-                                <li>Makanan yang lengkap dan seimbang, dengan 41 nutrisi penting.</li>
-                                <li>Mengandung antioksidan (vitamin E dan selenium) untuk sistem kekebalan tubuh yang sehat.</li>
-                                <li>Mengandung serat untuk memperlancar pencernaan dan meningkatkan kesehatan usus.</li>
-                                <li>Diperkaya dengan kalsium, fosfor dan vitamin D untuk tulang yang sehat.</li>
-                            </ul>
-                        </section>
-
-                        <div class="thumbnail-group">
-                            <img class="thumb-item active" th:src="@{/images/WhiskasWetFood.png}" alt="Thumb 1" />
-
-                        </div>
-
-                        <section class="ingredients-section mt-4">
-                            <h2 class="section-title">Ingredients:</h2>
-                            <ul class="detail-list">
-                                <li>Nutrisi</li>
-                                <li>Vitamin E</li>
-                                <li>Protein</li>
-                            </ul>
-                        </section>
-                    </article>
-                </div>
+        <div class="col-lg-5 col-md-12">
+            <div class="image-section-wrapper">
+                <a th:href="@{'/pets'}" class="back-button">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>back to list</span>
+                </a>
+                <img th:src="${petDetail.imageUrl}" alt="Pet Image" class="main-product-image">
             </div>
         </div>
+
+        <div class="col-lg-7 col-md-12 content-section-wrapper">
+            <article class="product-info-article">
+                <header class="product-header">
+                    <h1 class="display-5 fw-bold" th:text="${petDetail.name}">Bo</h1>
+
+
+                    <div class="info-row">
+                        <div class="icon-box"><i class="bi bi-tag" style="color: #ea5455;"></i></div>
+                        <span class="label-text">Breed:</span>
+                        <span class="ms-2 fw-bold text-muted" th:text="${petDetail.breed}">Breed Name</span>
+                    </div>
+
+                    <div class="info-row">
+                        <div class="icon-box"><i class="bi bi-gender-ambiguous" style="color: #ea5455;"></i></div>
+                        <span class="label-text">Gender:</span>
+                        <span class="ms-2 fw-bold text-muted" th:text="${petDetail.gender}">Gender</span>
+                    </div>
+
+                    <div class="info-row">
+                        <div class="icon-box"><i class="bi bi-speedometer2" style="color: #ea5455;"></i></div>
+                        <span class="label-text">Weight:</span>
+                        <span class="ms-2 fw-bold text-muted" th:text="${petDetail.weightKg != null ? petDetail.weightKg + ' kg' : 'N/A'}"></span>
+                    </div>
+
+                    <div class="info-row">
+                        <div class="icon-box"><i class="bi bi-calendar3" style="color: #ea5455;"></i></div>
+                        <span class="label-text">Age:</span>
+                        <span class="ms-2 fw-bold text-muted" th:text="${petDetail.ageMonths != null ? petDetail.ageMonths + ' months' : 'N/A'}">0 months</span>
+                    </div>
+
+
+                </header>
+
+                <div class="info-row description-box align-items-start">
+                    <div class="icon-box"><i class="bi bi-file-text" style="color: #ea5455;"></i></div>
+                    <span class="label-text">Description:</span>
+                    <span class="ms-2 text-secondary description-text" th:text="${petDetail.description}"></span>
+                </div>
+
+                <div class="thumbnail-preview">
+                    <img class="img-thumb active" th:src="${petDetail.imageUrl}" alt="Thumbnail" />
+                </div>
+
+                <div class="price-details-stack">
+                    <div class="info-row">
+                        <div class="icon-box"><i class="bi bi-tags-fill" style="color: #ff9f43;"></i></div>
+                        <span class="label-text">Price:</span>
+                        <span class="value-text price-color"
+                              th:text="${#numbers.formatDecimal(petDetail.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">500,000 đ</span>
+                    </div>
+
+                    <div class="info-row">
+                        <div class="icon-box"><i class="bi bi-percent" style="color: #ea5455;"></i></div>
+                        <span class="label-text">Sale:</span>
+                        <span class="ms-2 badge badge-sale-custom"
+                              th:text="${petDetail.discountPercent != null ? petDetail.discountPercent + '%' : '0%'}">0%</span>
+                    </div>
+                </div>
+
+
+                    <button type="button" class="btn-add-to-cart">
+                        <i class="bi bi-cart-plus me-2"></i> ADD TO CARD
+                    </button>
+
+            </article>
+        </div>
+
     </div>
-
-    <aside class="action-bar-wrapper">
-        <div class="mini-product-info">
-            <img class="mini-img" th:src="@{/images/WhiskasWetFood.png}" alt="Mini Thumbnail" />
-            <div>
-                <h2 class="mini-title">Whiskas® Dry Adult Dewasa 7+, Cat food Rasa Mackerel</h2>
-                <span class="mini-cat">CAT FOOD</span>
-            </div>
-        </div>
-
-        <div class="controls-right">
-            <div class="qty-wrapper">
-                <label class="fw-bold text-muted me-1">Qty:</label>
-                <button type="button" class="qty-btn">-</button>
-                <input type="number" class="qty-input" value="1" min="1" />
-                <button type="button" class="qty-btn">+</button>
-            </div>
-
-            <button type="button" class="btn-add-cart">
-                ADD TO CARD
-            </button>
-        </div>
-    </aside>
-
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

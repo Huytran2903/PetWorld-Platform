@@ -208,8 +208,23 @@ public class AdminController {
 
     //Delete
     @GetMapping("/admin/category/delete/{id}")
-    public String deleteCategory(@PathVariable("id") Integer id) {
-        categoryService.deleteCategoryById(id);
+    public String deleteCategory(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) {
+        try {
+            // Kiểm tra xem category có sản phẩm nào không (gọi qua service)
+            boolean hasProducts = categoryService.hasProducts(id);
+
+            if (hasProducts) {
+                // Nếu có sản phẩm, không cho xóa và gửi thông báo lỗi
+                redirectAttributes.addFlashAttribute("errorMessage", "Không thể xóa! Danh mục này vẫn đang chứa sản phẩm.");
+            } else {
+                // Nếu không có, tiến hành xóa
+                categoryService.deleteCategoryById(id);
+                redirectAttributes.addFlashAttribute("successMessage", "Xóa danh mục thành công!");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Đã xảy ra lỗi trong quá trình xóa.");
+        }
+
         return "redirect:/admin/manage-categories";
     }
 
@@ -240,13 +255,13 @@ public class AdminController {
                               @RequestParam(value = "mode", required = false) String formMode,
                               Model model) {
 
-        // NẾU CÓ LỖI VALIDATION (Ví dụ: để trống tên sản phẩm)
+
         if(result.hasErrors()) {
             model.addAttribute("formMode", formMode);
 
             model.addAttribute("cates", categoryService.getAllCategories());
 
-            return "admin/product-form"; // Thay bằng tên file HTML form Product của bạn
+            return "admin/product-form";
         }
 
         try {

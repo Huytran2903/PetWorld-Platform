@@ -47,40 +47,52 @@
 
   <main class="container-fluid px-lg-5 py-4">
     <div class="pw-product-heading mb-4">
-      <h2 th:if="${formMode == 'product'}">Product</h2>
-      <h2 th:if="${formMode == 'pet'}">Pet</h2>
+
+      <h2>Pet</h2>
       <span class="text-secondary">8 products found</span>
     </div>
 
-    <div class="row g-4">
+    <div class="row g-4 row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5">
 
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+      <div class="col" th:each="p : ${pet}">
         <div class="pw-card">
-          <div class="pw-img-box" style="background-image: url('https://via.placeholder.com/250');"></div>
-          <div class="pw-card-body">
-            <p class="pw-product-name">Food</p>
-            <div class="pw-rating">⭐ 4.8 <span class="text-muted small">(125)</span></div>
-            <div class="pw-price-row">
-              <span class="pw-price">$19.99</span>
-              <span class="pw-stock-label">In Stock</span>
-            </div>
-            <button class="pw-btn-add">🛒 Add to Cart</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <div class="pw-card">
-          <div class="pw-img-box out-of-stock" style="background-image: url('https://via.placeholder.com/250');">
-            <div class="pw-overlay">Out of Stock</div>
+          <div class="pw-img-box">
+            <img th:src="${p.imageUrl}" alt="Product Image">
           </div>
           <div class="pw-card-body">
-            <p class="pw-product-name">Buble</p>
-            <div class="pw-rating">⭐ 4.6 <span class="text-muted small">(156)</span></div>
+            <p class="pw-product-name">
+              <i class="bi bi-patch-check-fill text-primary me-1" style="font-size: 0.9rem;"></i>
+              <span th:text="${p.name}">Pet Name</span>
+            </p>
+
             <div class="pw-price-row">
-              <span class="pw-price">$4.99</span>
+              <div class="d-flex align-items-center gap-1">
+                <i class="bi bi-tags-fill" style="color: #ff9f43;"></i>
+                <span class="pw-price" th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+              </div>
+
+              <div class="pw-stock-info">
+                <i class="bi bi-box-seam"></i>
+
+                <span th:if="${p.isAvailable}">
+                    <strong style="color: #2d3436;">In Stock</strong>
+                </span>
+
+                <span th:unless="${p.isAvailable}">
+                    <span class="badge bg-danger">Out of Stock</span>
+                </span>
+              </div>
             </div>
-            <button class="pw-btn-add disabled-btn" disabled>Out of Stock</button>
+            <div class="pw-action-buttons">
+              <button class="pw-btn-add">
+                <i class="bi bi-cart-plus"></i>
+                <span>ADD</span>
+              </button>
+
+              <a th:href="@{'/pet/detail/' + ${p.id}}" class="pw-btn-detail">
+                <i class="bi bi-eye"></i> Detail
+              </a>
+            </div>
           </div>
         </div>
       </div>

@@ -36,8 +36,11 @@
                 <div class="row g-3 align-items-center">
                     <div class="col-md-4">
                         <div class="search-box position-relative">
-                            <input type="text" class="form-control rounded-pill ps-5" placeholder="Search product by name...">
-                            <span class="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted">🔍</span>
+                            <input type="text" class="form-control rounded-pill ps-5"
+                                   placeholder="Search pet by name...">
+                            <span class="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted">
+                                    <i class="bi bi-search"></i>
+                                </span>
                         </div>
                     </div>
                     <div class="col-md-2">
@@ -59,8 +62,7 @@
                         <th>Product Name</th>
                         <th>Price</th>
                         <th>Discount</th>
-                        <th>Description</th>
-                        <th>Category_Id</th>
+                        <th>Category</th>
                         <th>Stock</th>
                         <th>Status</th>
                         <th class="text-end pe-4">Action</th>
@@ -75,9 +77,13 @@
                         <td>
                             <div class="fw-bold text-dark" th:text="${p.name}">Food</div>
                         </td>
-                        <td class="fw-bold text-dark" th:text="${p.price}"></td>
-                        <td class="text-danger" th:text="${p.discountPercent}"></td>
-                        <td th:text="${p.description}"></td>
+                        <td class="fw-bold text-dark"
+                            th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT') + ' VNĐ'}">
+                        </td>
+                        <td th:text="${p.discountPercent != null ? '-' + p.discountPercent + '%' : 'None'}"
+                            th:class="${p.discountPercent != null ? 'text-danger' : 'text-muted'}">
+                        </td>
+
                         <td>
                             <span class="badge bg-primary-subtle text-primary rounded-pill px-3" th:text="${p.category.name}"></span>
                         </td>

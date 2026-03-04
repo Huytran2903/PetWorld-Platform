@@ -1514,6 +1514,11 @@
     position: relative;
 }
 
+.product-main-img {
+    border-radius: 15px; /* Adjust this value to round more or less */
+    overflow: hidden;    /* Optional: ensures contents don't bleed out */
+}
+
 .pw-img-box img {
     width: 100%;
     height: 100%;
@@ -1630,4 +1635,92 @@
 .pw-btn-detail:hover {
     background-color: #dfe4ea;
     color: #2d3436;
+}
+
+/* Tùy chỉnh tổng thể thanh search */
+.pw-search-form .input-group {
+    background-color: #fff;
+    border-radius: 50px; /* Bo tròn toàn bộ thanh */
+    overflow: hidden; /* Đảm bảo các thành phần con không tràn ra ngoài góc bo */
+    border: 1px solid #ddd;
+    transition: all 0.3s ease;
+}
+
+/* Hiệu ứng khi người dùng click vào ô search */
+.pw-search-form .input-group:focus-within {
+    border-color: #000;
+    box-shadow: 0 0 8px rgba(0,0,0,0.1);
+}
+
+/* Xử lý icon và input */
+.pw-search-form .input-group-text {
+    border: none;
+    padding-left: 20px;
+}
+
+.pw-search-form .form-control {
+    border: none;
+    height: 45px; /* Tăng độ cao cho dễ bấm */
+}
+
+/* Nút Search phiên bản chữ thanh mảnh */
+.pw-search-form .btn-dark {
+    background-color: #000;
+    border: none;
+    padding-right: 25px;
+    padding-left: 25px;
+
+    /* LOẠI BỎ IN ĐẬM TUYỆT ĐỐI */
+    font-weight: normal !important; /* Buộc trình duyệt dùng nét mảnh bình thường */
+    text-transform: none;
+
+    /* Chỉnh kích thước cho khớp với chữ Cart trong hình */
+    font-size: 1rem;
+    letter-spacing: 0.2px;
+
+    border-radius: 0 50px 50px 0;
+
+    /* Khử bóng và làm mượt nét chữ */
+    text-shadow: none !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+.pw-search-form .btn-dark:hover {
+    background-color: #333;
+}
+
+
+/* Áp dụng cho nút Search trên Header */
+.pw-search-form .btn-dark {
+    background-color: #000;
+    border: none;
+    font-weight: 300 !important; /* Độ mảnh giống chữ Cart */
+    font-size: 1rem;
+    letter-spacing: 0.5px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    border-radius: 0 50px 50px 0;
+}
+
+.pw-search-form .btn-dark {
+    font-weight: 300 !important; /* Độ mảnh tinh tế */
+    letter-spacing: 0.5px;
+    border-radius: 0 50px 50px 0;
+    -webkit-font-smoothing: antialiased;
+    border: none;
+}
+
+
+/*  modal not found product  */
+.modal-content {
+    border-radius: 20px;
+    border: none;
+}
+
+/* Đảm bảo toàn bộ chữ trong Modal đều mảnh khảnh */
+#searchResultModal .modal-body h4,
+#searchResultModal .modal-body p,
+#searchResultModal .btn,
+#searchResultModal .btn-outline-dark {
+    font-weight: 300 !important;
 }
