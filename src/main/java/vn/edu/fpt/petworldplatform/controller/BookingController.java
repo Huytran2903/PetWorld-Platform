@@ -48,7 +48,7 @@ public class BookingController {
     /** Confirm booking - validates lead time (BR-17) and operating hours (08:00–20:00). */
     @PostMapping("/create")
     public String createBooking(HttpSession session,
-                                @RequestParam Long petId,
+                                @RequestParam Integer petId,
                                 @RequestParam String appointmentDate,
                                 @RequestParam(required = false) List<Integer> mainServices,
                                 @RequestParam(required = false) String note,

@@ -31,7 +31,7 @@ public class Appointment {
     private Customer customer;
 
     @Column(name = "PetID", nullable = false, insertable = false, updatable = false)
-    private Long petId;
+    private Integer petId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PetID", nullable = false)

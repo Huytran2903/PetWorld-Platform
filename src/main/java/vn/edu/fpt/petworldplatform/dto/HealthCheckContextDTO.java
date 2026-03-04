@@ -10,7 +10,7 @@ import lombok.Setter;
 public class HealthCheckContextDTO {
     private Integer appointmentId;
     private String appointmentCode;
-    private Long petId;
+    private Integer petId;
     private String petName;
     private String status;
     private String customerName;

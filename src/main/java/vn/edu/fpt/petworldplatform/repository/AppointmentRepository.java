@@ -26,7 +26,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
             "AND a.status NOT IN ('canceled', 'rejected') " +
             "AND a.appointmentDate < :newEnd " +
             "AND a.endTime > :newStart")
-    long countOverlappingAppointments(@Param("petId") Long petId,
+    long countOverlappingAppointments(@Param("petId") Integer petId,
                                       @Param("excludeId") Integer excludeId,
                                       @Param("newStart") LocalDateTime newStart,
                                       @Param("newEnd") LocalDateTime newEnd);

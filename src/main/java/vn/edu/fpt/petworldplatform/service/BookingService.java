@@ -100,7 +100,7 @@ public class BookingService {
     }
 
     @Transactional
-    public Appointment createAppointment(Integer customerId, Long petId, LocalDateTime appointmentDate,
+    public Appointment createAppointment(Integer customerId, Integer petId, LocalDateTime appointmentDate,
                                          String note, List<Integer> serviceIds) {
         String code = generateAppointmentCode();
         
