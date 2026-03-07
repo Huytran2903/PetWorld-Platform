@@ -2,7 +2,6 @@ package vn.edu.fpt.petworldplatform.dto;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;
-import org.springframework.web.multipart.MultipartFile;
 import vn.edu.fpt.petworldplatform.entity.Pets;
 
 import java.math.BigDecimal;
@@ -44,6 +43,10 @@ public class PetFormDTO {
 
     private String imageUrl;
 
+    private Boolean isVaccinated = false;
+
+    private Integer vaccinationStaffID;
+
     public PetFormDTO(Pets pet) {
         this.petID = pet.getPetID();
         this.name = pet.getName();
@@ -59,9 +62,12 @@ public class PetFormDTO {
         this.isAvailable = pet.getIsAvailable();
         this.imageUrl = pet.getImageUrl();
 
+        if (pet.getVaccinations() != null && !pet.getVaccinations().isEmpty()) {
+            this.isVaccinated = true;
+        } else {
+            this.isVaccinated = false;
+        }
     }
-
-
 
     public PetFormDTO() {
     }

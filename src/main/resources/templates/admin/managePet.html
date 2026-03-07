@@ -93,13 +93,29 @@
                                      <span th:text="${p.gender}"></span>
                             </span>
                             </td>
+                            <td>
+                                <div th:if="${p.discountPercent != null and p.discountPercent > 0}">
+                                    <span class="fw-bold fs-6" style="color: #FFB25B;"
+                                          th:text="${#numbers.formatDecimal(p.salePrice, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></span>
+                                    <br>
+                                    <del class="text-muted small"
+                                         th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></del>
+                                </div>
 
-                            <td class="fw-bold text-dark"
-                                th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT') + ' VNĐ'}">
+                                <div th:unless="${p.discountPercent != null and p.discountPercent > 0}">
+                                     <span class="text-dark fw-bold"
+                                           th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></span>
+                                </div>
                             </td>
 
-                            <td th:text="${p.discountPercent != null ? '-' + p.discountPercent + '%' : 'None'}"
-                                th:class="${p.discountPercent != null ? 'text-danger' : 'text-muted'}">
+                            <td>
+                            <span th:if="${p.discountPercent != null and p.discountPercent > 0}"
+                                  class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2 fw-bold"
+                                  th:text="${'-' + #numbers.formatDecimal(p.discountPercent, 0, 0) + '%'}">
+                            </span>
+
+                                <span th:unless="${p.discountPercent != null and p.discountPercent > 0}"
+                                      class="text-muted small fst-italic">None</span>
                             </td>
 
                             <td>

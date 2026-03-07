@@ -2,47 +2,61 @@ package vn.edu.fpt.petworldplatform.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDate;
+
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "PetVaccinations") // Tên bảng trong DB
-@Data // Tự động tạo Getter, Setter, toString, equals, hashCode
-@NoArgsConstructor // Tạo constructor không tham số
-@AllArgsConstructor // Tạo constructor đầy đủ tham số
+@Table(name = "PetVaccinations")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class PetVaccinations {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "VaccinationID")
-    private Long vaccinationId;
+    private Integer vaccinationId;
 
-    @Column(name = "PetID")
-    private Long petId;
-
-    @Column(name = "VaccineName", length = 255)
+    @Column(name = "VaccineName", nullable = false, length = 100)
     private String vaccineName;
 
-    @Column(name = "AdministeredDate")
-    private LocalDate administeredDate;
+    @Column(name = "AdministeredDate", nullable = false)
+    private LocalDateTime administeredDate;
 
     @Column(name = "NextDueDate")
-    private LocalDate nextDueDate;
+    private LocalDateTime nextDueDate;
 
-    @Column(name = "AppointmentID")
-    private Long appointmentId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "PetID", nullable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Pets pet;
 
-    @Column(name = "PerformedByStaffID")
-    private Long performedByStaffId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "PerformedByStaffID")
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Staff performedByStaff;
 
-    @Column(name = "Note", columnDefinition = "TEXT")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "AppointmentID")
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Appointment appointment;
+
+    @Column(name = "Note", length = 500)
     private String note;
 
-    @Column(name = "CreatedAt", updatable = false)
+    @Column(name = "CreatedAt", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
+        if (this.administeredDate == null) {
+            this.administeredDate = LocalDateTime.now();
+        }
     }
 }

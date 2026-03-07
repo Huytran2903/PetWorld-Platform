@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "Products") // Tên bảng trong DB của bạn
+@Table(name = "Products")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -24,39 +24,54 @@ public class Product {
     @Column(name = "ProductID")
     private Integer productId;
 
-    // Quan hệ ManyToOne với Categories
+    @NotNull(message = "Product category is required!")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "CategoryID") // Tên cột khóa ngoại trong DB (như trong ảnh)
+    @JoinColumn(name = "CategoryID")
     private Categories category;
 
-    @Column(name = "Name")
+    @NotBlank(message = "Product name cannot be blank!")
+    @Size(min = 2, max = 150, message = "Product name must be between 2 and 150 characters.")
+    @Pattern(
+            regexp = "^[\\p{L}][\\p{L}0-9\\s\\-_.,&()]*$",
+            message = "Product name must start with a letter and can contain numbers afterwards."
+    )
+    @Column(name = "Name", nullable = false, length = 150, columnDefinition = "NVARCHAR(150)")
     private String name;
 
-    @Column(name = "SKU")
+    @Pattern(regexp = "^([A-Z0-9]+(-[A-Z0-9]+)*)?$", message = "SKU must contain only uppercase letters, numbers, and hyphens (e.g., SP-001).")
+    @Column(name = "SKU", length = 50, unique = true)
     private String sku;
 
-    @Column(name = "Price")
+    @NotNull(message = "Price is required!")
+    @DecimalMin(value = "0.0", inclusive = true, message = "Product price must be greater than or equal to 0.")
+    @Column(name = "Price", nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
 
-    @Column(name = "SalePrice")
+    @DecimalMin(value = "0.0", inclusive = true, message = "Sale price cannot be negative.")
+    @Column(name = "SalePrice", precision = 12, scale = 2)
     private BigDecimal salePrice;
 
-    @Column(name = "DiscountPercent")
-    private Integer discountPercent;
+    @DecimalMin(value = "0.0", inclusive = true, message = "Discount cannot be less than 0.")
+    @DecimalMax(value = "100.0", inclusive = true, message = "Discount cannot exceed 100.")
+    @Column(name = "DiscountPercent", precision = 5, scale = 2)
+    private BigDecimal discountPercent;
 
-    @Column(name = "Stock")
+    @NotNull(message = "Stock quantity is required!")
+    @Min(value = 0, message = "Stock quantity cannot be negative.")
+    @Column(name = "Stock", nullable = false)
     private Integer stock;
 
-    @Column(name = "ImageUrl")
+    @Column(name = "ImageUrl", length = 255)
     private String imageUrl;
 
-    @Column(name = "Description", columnDefinition = "TEXT")
+    @Column(name = "Description", columnDefinition = "NVARCHAR(MAX)")
     private String description;
 
-    @Column(name = "IsActive")
-    private Boolean isActive;
+    @NotNull(message = "Active status is required!")
+    @Column(name = "IsActive", nullable = false)
+    private Boolean isActive = true;
 
-    @Column(name = "CreatedAt", updatable = false)
+    @Column(name = "CreatedAt", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "UpdatedAt")
@@ -71,11 +86,34 @@ public class Product {
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
-        isActive = true; // Mặc định là active khi tạo mới
+        if (isActive == null) isActive = true;
+        if (stock == null) stock = 0;
+        if (discountPercent == null) discountPercent = BigDecimal.ZERO;
+
+        // Gọi hàm tự động tính giá bán
+        calculateSalePrice();
     }
 
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+
+        // Gọi hàm tự động tính giá bán lại (lỡ Admin đổi % giảm giá)
+        calculateSalePrice();
+    }
+
+    // --- HÀM NGHIỆP VỤ: TỰ ĐỘNG TÍNH TOÁN GIÁ SAU KHUYẾN MÃI ---
+    private void calculateSalePrice() {
+        if (this.price != null) {
+            // Nếu có giảm giá (> 0)
+            if (this.discountPercent != null && this.discountPercent.compareTo(BigDecimal.ZERO) > 0) {
+                // Công thức: SalePrice = Price - (Price * DiscountPercent / 100)
+                BigDecimal discountAmount = this.price.multiply(this.discountPercent).divide(new BigDecimal("100"));
+                this.salePrice = this.price.subtract(discountAmount);
+            } else {
+                // Nếu không giảm giá (DiscountPercent = 0 hoặc null) thì Giá bán = Giá gốc
+                this.salePrice = this.price;
+            }
+        }
     }
 }

@@ -21,7 +21,7 @@ public class StaffSchedule {
     private Integer id;
 
     @Column(name = "StaffID", insertable = false, updatable = false)
-    private Long staffId;
+    private Integer staffId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "StaffID", nullable = false)

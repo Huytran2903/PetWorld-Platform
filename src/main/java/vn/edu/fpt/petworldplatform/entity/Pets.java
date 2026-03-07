@@ -4,6 +4,7 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 import jakarta.persistence.*;
 import org.hibernate.annotations.DynamicInsert;
+import org.springframework.format.annotation.DateTimeFormat;
 import vn.edu.fpt.petworldplatform.dto.PetFormDTO;
 
 import java.math.BigDecimal;
@@ -122,6 +123,29 @@ public class Pets {
     @ToString.Exclude
     private List<CartItem> cartsList = new ArrayList<>();
 
+    @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private List<PetVaccinations> vaccinations = new ArrayList<>();
+
+
+    @Transient
+    private Boolean isVaccinated;
+
+    @Transient
+    private Integer vaccinationStaffID;
+
+    @Transient
+    private String vaccineName;
+
+    @Transient
+    private String vaccineNote;
+
+    @Transient
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private java.time.LocalDate nextDueDate;
+
+
     public Integer getId() {
         return this.petID;
     }
@@ -134,11 +158,18 @@ public class Pets {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+
+        if (this.isAvailable == null) this.isAvailable = true;
+        if (this.discountPercent == null) this.discountPercent = 0;
+
+        calculateSalePrice();
     }
 
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+
+        calculateSalePrice();
     }
 
     public Pets(PetFormDTO dto) {
@@ -155,6 +186,19 @@ public class Pets {
         this.description = dto.getDescription();
         this.isAvailable = dto.getIsAvailable() != null ? dto.getIsAvailable() : true;
         this.imageUrl = dto.getImageUrl();
+    }
+
+    private void calculateSalePrice() {
+        if (this.price != null) {
+            if (this.discountPercent != null && this.discountPercent > 0) {
+                BigDecimal discount = new BigDecimal(this.discountPercent);
+
+                BigDecimal discountAmount = this.price.multiply(discount).divide(new BigDecimal("100"));
+                this.salePrice = this.price.subtract(discountAmount);
+            } else {
+                this.salePrice = this.price;
+            }
+        }
     }
 
 }

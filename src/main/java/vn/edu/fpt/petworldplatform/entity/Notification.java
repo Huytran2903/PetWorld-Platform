@@ -20,7 +20,7 @@ public class Notification {
     private Integer id;
 
     @Column(name = "CustomerID", nullable = false, insertable = false, updatable = false)
-    private Long customerId;
+    private Integer customerId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "CustomerID", nullable = false)
