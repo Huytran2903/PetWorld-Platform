@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import vn.edu.fpt.petworldplatform.entity.AccessControl;
 import vn.edu.fpt.petworldplatform.entity.Staff;
 import vn.edu.fpt.petworldplatform.repository.AccessControlRepository;
-import vn.edu.fpt.petworldplatform.repository.StaffRepo;
+import vn.edu.fpt.petworldplatform.repository.StaffRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +21,7 @@ import java.util.List;
 public class StaffUserDetailsService implements UserDetailsService {
 
     @Autowired
-    private StaffRepo staffRepo;
+    private StaffRepository staffRepo;
 
     @Autowired
     private AccessControlRepository accessControlRepo;

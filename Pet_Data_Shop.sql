@@ -114,7 +114,7 @@ CREATE TABLE dbo.Products (
     SKU VARCHAR(50) NULL UNIQUE,
     Price DECIMAL(12,2) NOT NULL CHECK (Price >= 0),
     SalePrice DECIMAL(12,2) NULL CHECK (SalePrice IS NULL OR SalePrice >= 0),
-    DiscountPercent DECIMAL(5,2) NOT NULL DEFAULT 0 CHECK (DiscountPercent BETWEEN 0 AND 100),
+    DiscountPercent DECIMAL(5,2) NULL DEFAULT 0 CHECK (DiscountPercent BETWEEN 0 AND 100),
     Stock INT NOT NULL DEFAULT 0 CHECK (Stock >= 0),
     ImageUrl VARCHAR(255) NULL,
     Description NVARCHAR(MAX) NULL,

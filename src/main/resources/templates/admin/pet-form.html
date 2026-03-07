@@ -28,7 +28,6 @@
                   enctype="multipart/form-data">
 
                 <input type="hidden" th:field="*{petID}">
-
                 <input type="hidden" th:field="*{imageUrl}">
 
                 <div class="row g-4">
@@ -65,7 +64,7 @@
                                  <span th:if="${selectedPet.imageUrl != null && !selectedPet.imageUrl.isEmpty()}"
                                        class="text-success">
                                     <i class="fa-solid fa-check"></i> Image Loaded
-                            </span>
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -130,16 +129,8 @@
                         <div class="row g-3 mt-1">
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold small text-secondary">Price (VNĐ)</label>
-
-                                <input type="text"
-                                       id="priceDisplay"
-                                       class="form-control shadow-none"
-                                       placeholder="0">
-
-                                <input type="hidden"
-                                       th:field="*{price}"
-                                       id="priceActual">
-
+                                <input type="text" id="priceDisplay" class="form-control shadow-none" placeholder="0">
+                                <input type="hidden" th:field="*{price}" id="priceActual">
                                 <span th:errors="*{price}" style="color: #ffa54f"></span>
                             </div>
 
@@ -150,11 +141,19 @@
                                 <span th:errors="*{discountPercent}" style="color: #ffa54f"></span>
                             </div>
 
-                                <div class="col-md-4">
-                                    <label class="form-label fw-semibold small text-secondary">Status</label>
-                                    <p class="form-control-plaintext fw-bold text-success">Available</p>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small text-secondary">Status & Health</label>
+                                <div class="d-flex align-items-center flex-wrap gap-3 mt-1">
+                                    <span class="fw-bold text-success">Available</span>
+                                    <input type="hidden" th:field="*{isAvailable}" value="true"/>
 
-                                    <input type="hidden" th:field="*{isAvailable}" value="true" />
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox" role="switch"
+                                               id="isVaccinatedCheck" th:field="*{isVaccinated}"
+                                               style="cursor: pointer;">
+                                        <label class="form-check-label small fw-bold text-muted" for="isVaccinatedCheck"
+                                               style="cursor: pointer; margin-top: 2px;">Vaccinated</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -175,78 +174,107 @@
                             <input type="hidden" name="mode" th:value="${formMode}">
                         </p>
                     </div>
+                </div>
+
+                <div class="modal fade" id="vaccineModal" tabindex="-1" aria-labelledby="vaccineModalLabel"
+                     aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+                    <div class="modal-dialog">
+                        <div class="modal-content border-0 shadow">
+                            <div class="modal-header bg-warning text-dark border-0">
+                                <h5 class="modal-title fw-bold" id="vaccineModalLabel"><i
+                                        class="fa-solid fa-syringe me-2"></i>Vaccination Details</h5>
+                                <button type="button" class="btn-close" aria-label="Close"
+                                        onclick="cancelVaccine()"></button>
+                            </div>
+                            <div class="modal-body bg-light">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-secondary small">Vaccine Name <span
+                                            class="text-danger">*</span></label>
+                                    <input type="text" class="form-control shadow-none border-warning-subtle"
+                                           th:field="*{vaccineName}" id="modalVaccineName" placeholder="e.g., Rabies">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-secondary small">Administered By
+                                        (Staff)</label>
+                                    <select class="form-select shadow-none border-warning-subtle"
+                                            th:field="*{vaccinationStaffID}">
+                                        <option value="">-- Choose Staff --</option>
+                                        <option th:each="staff : ${staffList}" th:value="${staff.staffId}"
+                                                th:text="${staff.fullName}"></option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-secondary small">Next Due Date</label>
+                                    <input type="date" class="form-control shadow-none border-warning-subtle"
+                                           th:field="*{nextDueDate}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-secondary small">Note</label>
+                                    <textarea class="form-control shadow-none border-warning-subtle"
+                                              th:field="*{vaccineNote}" rows="2"
+                                              placeholder="Any reactions or notes..."></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer border-0 bg-light">
+                                <button type="button" class="btn btn-secondary px-4" onclick="cancelVaccine()">Cancel
+                                </button>
+                                <button type="button" class="btn btn-warning text-white fw-bold px-4"
+                                        onclick="confirmVaccine()">Confirm
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </form>
         </div>
     </div>
 </div>
 
+<script th:src="@{/js/pet-form.js}"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const displayInput = document.getElementById('priceDisplay');
-        const actualInput = document.getElementById('priceActual');
+    document.addEventListener("DOMContentLoaded", function () {
+        const checkbox = document.getElementById('isVaccinatedCheck');
+        let isVaccinatedPreviously = checkbox.checked; // Lưu trạng thái ban đầu
 
-        // Hàm format số theo chuẩn Việt Nam (vd: 450000 -> 450.000)
-        function formatCurrency(value) {
-            if (!value) return '';
-            // Loại bỏ tất cả ký tự không phải là số (bao gồm cả dấu phẩy, chấm)
-            let number = value.toString().replace(/\D/g, '');
-            if (number === '') return '';
-            // Format với dấu chấm phân cách hàng nghìn
-            return new Intl.NumberFormat('vi-VN').format(number);
-        }
+        // Khởi tạo Modal của Bootstrap
+        const vaccineModalEl = document.getElementById('vaccineModal');
+        const vaccineModal = new bootstrap.Modal(vaccineModalEl);
 
-        // 1. Khi load trang (trường hợp Edit), format dữ liệu có sẵn từ database
-        if (actualInput.value) {
-            // Lấy giá trị nguyên thủy từ Thymeleaf render ra, bỏ phần thập phân nếu có
-            let initValue = actualInput.value.split('.')[0].split(',')[0];
-            displayInput.value = formatCurrency(initValue);
-            actualInput.value = initValue; // Cập nhật lại số nguyên
-        }
-
-        // 2. Xử lý khi người dùng đang gõ vào ô input
-        displayInput.addEventListener('input', function(e) {
-            // Lấy giá trị chỉ chứa số
-            let rawValue = this.value.replace(/\D/g, '');
-
-            // Cập nhật giá trị raw vào thẻ hidden để gửi lên server (Thymeleaf nhận)
-            actualInput.value = rawValue;
-
-            // Format lại và hiển thị cho người dùng
-            this.value = formatCurrency(rawValue);
+        // Bắt sự kiện khi click vào checkbox
+        checkbox.addEventListener('change', function () {
+            if (this.checked) {
+                // Mở modal nếu người dùng tích vào
+                vaccineModal.show();
+            } else {
+                // Nếu bỏ tích, cập nhật trạng thái "bỏ qua"
+                isVaccinatedPreviously = false;
+            }
         });
-    });
-</script>
 
-<script>
-    function previewImage(input) {
-        const preview = document.getElementById("img-preview");
-        const previewBox = document.getElementById("preview-box");
-        const placeholder = document.getElementById("placeholder-box");
-        const fileName = document.getElementById("file-name");
+        // Hàm xử lý khi bấm nút "Cancel" hoặc nút "X" trên Modal
+        window.cancelVaccine = function () {
+            // Trả lại checkbox về trạng thái trước đó (bỏ tick đi)
+            checkbox.checked = isVaccinatedPreviously;
+            vaccineModal.hide();
+        };
 
-        if (input.files && input.files[0]) {
-            const file = input.files[0];
-
-            // [QUAN TRỌNG 3] Kiểm tra kích thước file > 5MB
-            if (file.size > 5 * 1024 * 1024) {
-                alert("File ảnh quá lớn (Max 5MB)! Vui lòng chọn ảnh khác.");
-                input.value = ""; // Reset input
+        // Hàm xử lý khi bấm nút "Confirm" trên Modal
+        window.confirmVaccine = function () {
+            // Validate bắt buộc nhập tên Vaccine
+            const vName = document.getElementById('modalVaccineName').value;
+            if (vName.trim() === '') {
+                alert("Please enter the Vaccine Name!");
                 return;
             }
 
-            fileName.textContent = file.name;
-
-            const reader = new FileReader();
-            reader.onload = e => {
-                preview.src = e.target.result;
-                previewBox.style.display = "block";
-                placeholder.style.display = "none";
-            };
-            reader.readAsDataURL(file);
-        }
-    }
+            // Cập nhật trạng thái là đã tích hợp lệ và đóng modal
+            isVaccinatedPreviously = true;
+            vaccineModal.hide();
+        };
+    });
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

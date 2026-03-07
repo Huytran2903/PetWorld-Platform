@@ -3,7 +3,6 @@ package vn.edu.fpt.petworldplatform.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -26,6 +25,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -46,7 +47,6 @@ public class AdminController {
     private final RoleService roleService;
     @Autowired
     private ProductService productService;
-
 
 
     private final CustomerService customerService;
@@ -80,8 +80,26 @@ public class AdminController {
     //Edit Pet
     @GetMapping("admin/pet/edit/{id}")
     public String updatePet(Model model, @PathVariable("id") Integer id) {
-        model.addAttribute("selectedPet", petService.getPetById(id));
+        Pets petFromDb = petService.getPetById(id);
+
+        if (petFromDb.getVaccinations() != null && !petFromDb.getVaccinations().isEmpty()) {
+            petFromDb.setIsVaccinated(true);
+
+            PetVaccinations firstVaccination = petFromDb.getVaccinations().get(0);
+
+            if (firstVaccination != null && firstVaccination.getPerformedByStaff() != null) {
+                petFromDb.setVaccinationStaffID(firstVaccination.getPerformedByStaff().getStaffId());
+            } else {
+                petFromDb.setVaccinationStaffID(null);
+            }
+        } else {
+            petFromDb.setIsVaccinated(false);
+        }
+
+        model.addAttribute("selectedPet", petFromDb);
         model.addAttribute("formMode", "edit");
+        model.addAttribute("staffList", staffService.getAllStaffs());
+
         return "admin/pet-form";
     }
 
@@ -90,6 +108,7 @@ public class AdminController {
     public String createPet(Model model) {
         model.addAttribute("selectedPet", new PetFormDTO());
         model.addAttribute("formMode", "add");
+        model.addAttribute("staffList", staffService.getAllStaffs());
         return "admin/pet-form";
     }
 
@@ -103,52 +122,85 @@ public class AdminController {
 
     @PostMapping("/admin/pet/save")
     public String savePet(@Validated @ModelAttribute("selectedPet") Pets pet,
-                          BindingResult result, // Đưa lên ngay sau 'pet'
+                          BindingResult result,
                           @RequestParam("imageFile") MultipartFile imageFile,
                           RedirectAttributes redirectAttributes,
                           @RequestParam("mode") String formMode,
                           Model model) {
 
-        if(result.hasErrors()) {
+        if (result.hasErrors()) {
             model.addAttribute("formMode", formMode);
             return "admin/pet-form";
         }
 
         try {
-            // 1. Kiểm tra nếu người dùng CÓ chọn file ảnh mới
+            if (pet.getPetID() != null) {
+                Pets oldPet = petService.getPetById(pet.getPetID());
+                if (oldPet != null) {
+                    // Ráp lại danh sách tiêm phòng cũ để Hibernate không báo lỗi Orphan
+                    pet.setVaccinations(oldPet.getVaccinations());
+
+                    // Nếu KHÔNG chọn ảnh mới, lấy luôn đường dẫn ảnh cũ đắp vào
+                    if (imageFile == null || imageFile.isEmpty()) {
+                        pet.setImageUrl(oldPet.getImageUrl());
+                    }
+                }
+            } else {
+                // Đảm bảo list không bị null khi Thêm mới
+                if (pet.getVaccinations() == null) {
+                    pet.setVaccinations(new ArrayList<>());
+                }
+            }
+
+
+            if (Boolean.TRUE.equals(pet.getIsVaccinated())) {
+                if (pet.getVaccinations().isEmpty()) {
+                    PetVaccinations newVaccine = new PetVaccinations();
+                    newVaccine.setPet(pet);
+
+                    // ---- BƠM DỮ LIỆU TỪ MODAL VÀO ENTITY ----
+                    newVaccine.setVaccineName(pet.getVaccineName());
+                    newVaccine.setNote(pet.getVaccineNote());
+
+                    // Nếu có nhập ngày hẹn tiếp theo
+                    if (pet.getNextDueDate() != null) {
+                        newVaccine.setNextDueDate(pet.getNextDueDate().atStartOfDay()); // Ép kiểu LocalDate sang LocalDateTime nếu cần
+                    }
+
+                    // Mặc định ngày tiêm là ngay lúc bấm Save
+                    newVaccine.setAdministeredDate(LocalDateTime.now());
+
+                    // Xử lý Staff ID (Giả sử bạn có class Staff)
+                    if (pet.getVaccinationStaffID() != null) {
+                        // Bạn cần tạo 1 object Staff rỗng chỉ chứa ID để Hibernate map khóa ngoại
+                        Staff performedBy = new Staff();
+                        performedBy.setStaffId(pet.getVaccinationStaffID());
+                        newVaccine.setPerformedByStaff(performedBy);
+                    }
+                    // ------------------------------------------
+
+                    pet.getVaccinations().add(newVaccine);
+                }
+            } else {
+                if (pet.getVaccinations() != null) {
+                    pet.getVaccinations().clear();
+                }
+            }
+
             if (imageFile != null && !imageFile.isEmpty()) {
-
-                // Tạo đường dẫn tới thư mục "uploads" nằm ngay tại thư mục gốc dự án
                 Path uploadPath = Paths.get("uploads");
-
-                // Tạo thư mục nếu chưa tồn tại
                 if (!Files.exists(uploadPath)) {
                     Files.createDirectories(uploadPath);
                 }
 
-                // Tạo tên file ngẫu nhiên (UUID) để tránh trùng lặp
                 String fileName = UUID.randomUUID().toString() + "_" + imageFile.getOriginalFilename();
 
-                // Lưu file vật lý vào ổ cứng
                 try (InputStream inputStream = imageFile.getInputStream()) {
                     Files.copy(inputStream, uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
                 }
 
-                // [QUAN TRỌNG] Lưu đường dẫn Web vào Database (Ví dụ: /uploads/abc.jpg)
+                // Lưu đường dẫn Web vào Database
                 pet.setImageUrl("/uploads/" + fileName);
-
-            } else {
-                // 2. Logic Edit: Người dùng KHÔNG chọn ảnh mới -> Giữ nguyên ảnh cũ
-                if (pet.getPetID() != null) {
-                    // Cách 1 (Nhanh): Nếu bên HTML có <input type="hidden" th:field="*{imageUrl}">
-                    // thì pet.getImageUrl() đã có dữ liệu, không cần làm gì cả.
-
-                    // Cách 2 (An toàn nhất): Lấy từ Database ra để chắc chắn không bị mất ảnh
-                    Pets oldPet = petService.getPetById(pet.getPetID());
-                    if (oldPet != null && (pet.getImageUrl() == null || pet.getImageUrl().isEmpty())) {
-                        pet.setImageUrl(oldPet.getImageUrl());
-                    }
-                }
             }
 
             petService.savePet(pet);
@@ -161,7 +213,6 @@ public class AdminController {
 
         return "redirect:/admin/manage-pet";
     }
-
 
 
     //Manage Categories - OanhTP
@@ -256,7 +307,7 @@ public class AdminController {
                               Model model) {
 
 
-        if(result.hasErrors()) {
+        if (result.hasErrors()) {
             model.addAttribute("formMode", formMode);
 
             model.addAttribute("cates", categoryService.getAllCategories());
@@ -329,8 +380,6 @@ public class AdminController {
         productService.deleteById(id);
         return "redirect:/admin/manage-product";
     }
-
-
 
 
     @GetMapping("/admin/appointment-manage")
