@@ -1,16 +1,15 @@
 package vn.edu.fpt.petworldplatform.entity;
 
 import jakarta.validation.constraints.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import lombok.*;
 import jakarta.persistence.*;
 import org.hibernate.annotations.DynamicInsert;
 import vn.edu.fpt.petworldplatform.dto.PetFormDTO;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -117,6 +116,11 @@ public class Pets {
     @ManyToOne
     @JoinColumn(name = "OwnerCustomerID")
     private Customer owner;
+
+    @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private List<CartItem> cartsList = new ArrayList<>();
 
     public Integer getId() {
         return this.petID;

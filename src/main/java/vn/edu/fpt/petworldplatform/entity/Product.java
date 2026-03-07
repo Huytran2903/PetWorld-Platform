@@ -1,12 +1,13 @@
 package vn.edu.fpt.petworldplatform.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
 import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "Products") // Tên bảng trong DB của bạn
@@ -60,6 +61,11 @@ public class Product {
 
     @Column(name = "UpdatedAt")
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private List<CartItem> cartItems = new ArrayList<>();
 
     // Tự động gán thời gian khi tạo mới hoặc cập nhật
     @PrePersist

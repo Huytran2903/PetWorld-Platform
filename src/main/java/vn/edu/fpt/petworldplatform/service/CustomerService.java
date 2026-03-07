@@ -219,4 +219,16 @@ public class CustomerService {
     public boolean verifyOldPassword(Customer customer, String oldRawPassword) {
         return passwordEncoder.matches(oldRawPassword, customer.getPasswordHash());
     }
+
+    //OanhTP - findIdByUsername
+    public Integer findIdByUsername(String username) {
+        System.out.println("=== DEBUG SERVICE ===");
+        System.out.println("Username nhận được: " + username);
+        System.out.println("Kiểu dữ liệu: " + (username != null ? username.getClass().getName() : "null"));
+        System.out.println("======================");
+        // Tìm khách hàng theo username
+        return customerRepo.findByUsername(username)
+                .map(customer -> customer.getCustomerId()) // Lấy ID từ đối tượng Customer
+                .orElseThrow(() -> new RuntimeException("Customer not found with username: " + username));
+    }
 }

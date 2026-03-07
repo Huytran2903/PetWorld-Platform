@@ -84,10 +84,10 @@
               </div>
             </div>
             <div class="pw-action-buttons">
-              <button class="pw-btn-add">
+              <a th:href="@{'/cart/add/' + ${p.id}}" class="pw-btn-add" style="text-decoration: none;">
                 <i class="bi bi-cart-plus"></i>
                 <span>ADD</span>
-              </button>
+              </a>
 
               <a th:href="@{'/pet/detail/' + ${p.id}}" class="pw-btn-detail">
                 <i class="bi bi-eye"></i> Detail
