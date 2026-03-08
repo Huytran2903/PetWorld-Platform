@@ -1,0 +1,70 @@
+/* =========================
+   INSERT PETS DATA
+   Cat: 24 (16 service)
+   Dog: 13 (6 service)
+   Other: 7 (4 service)
+
+   mooc 1: 8/3/2024 → 7/3/2025
+   mooc 2: 8/3/2025 → 7/3/2026
+========================= */
+
+INSERT INTO dbo.Pets
+(Name, PetType, Breed, Gender, AgeMonths, WeightKg, Color, Price, OwnerCustomerID, IsAvailable, CreatedAt)
+
+VALUES
+
+/* ---------- DOG (7 bán) ---------- */
+(N'Buddy','dog',N'Golden Retriever','Male',12,28,N'Golden',12000000,NULL,1,'2024-04-10'),
+(N'Max','dog',N'Labrador','Male',10,25,N'Yellow',11000000,NULL,1,'2024-05-15'),
+(N'Rocky','dog',N'Bulldog','Male',14,22,N'Brown',9000000,NULL,1,'2024-06-20'),
+(N'Charlie','dog',N'Poodle','Male',8,12,N'White',10000000,NULL,1,'2025-04-05'),
+(N'Cooper','dog',N'Beagle','Male',9,14,N'Tricolor',8500000,NULL,1,'2025-05-12'),
+(N'Duke','dog',N'German Shepherd','Male',15,30,N'Black Brown',15000000,NULL,1,'2025-06-20'),
+(N'Bear','dog',N'Husky','Male',11,24,N'Gray White',13000000,NULL,1,'2025-07-10'),
+
+/* ---------- DOG (6 dịch vụ) ---------- */
+(N'Teddy','dog',N'Pomeranian','Male',6,5,N'Orange',NULL,1,0,'2025-08-01'),
+(N'Leo','dog',N'Chihuahua','Male',5,3,N'Brown',NULL,1,0,'2025-08-15'),
+(N'Oliver','dog',N'Dachshund','Male',7,7,N'Black Tan',NULL,1,0,'2025-09-10'),
+(N'Jack','dog',N'Corgi','Male',9,11,N'Brown White',NULL,1,0,'2025-10-01'),
+(N'Toby','dog',N'Akita','Male',13,28,N'White',NULL,1,0,'2025-11-01'),
+(N'Lucky','dog',N'Shiba Inu','Male',10,12,N'Orange',NULL,1,0,'2025-12-01'),
+
+/* ---------- CAT (8 bán) ---------- */
+(N'Luna','cat',N'British Shorthair','Female',10,4.5,N'Gray',9000000,NULL,1,'2024-04-12'),
+(N'Bella','cat',N'Persian','Female',12,5,N'White',10000000,NULL,1,'2024-05-18'),
+(N'Kitty','cat',N'Siamese','Female',8,3.8,N'Cream',8500000,NULL,1,'2024-06-22'),
+(N'Lucy','cat',N'Maine Coon','Female',14,6.2,N'Brown',12000000,NULL,1,'2025-04-10'),
+(N'Lily','cat',N'Ragdoll','Female',11,5.5,N'White Brown',11000000,NULL,1,'2025-05-15'),
+(N'Milo','cat',N'British Shorthair','Male',9,4.2,N'Gray',9200000,NULL,1,'2025-06-12'),
+(N'OliverCat','cat',N'Siamese','Male',8,3.6,N'Cream',8700000,NULL,1,'2025-07-18'),
+(N'LeoCat','cat',N'Persian','Male',10,5,N'White',10200000,NULL,1,'2025-08-05'),
+
+/* ---------- CAT (16 dịch vụ) ---------- */
+(N'CharlieCat','cat',N'Maine Coon','Male',15,6.5,N'Brown',NULL,1,0,'2025-09-01'),
+(N'Simba','cat',N'Bengal','Male',9,4.4,N'Spotted',NULL,1,0,'2025-09-15'),
+(N'Chloe','cat',N'Ragdoll','Female',7,4,N'Cream',NULL,1,0,'2025-10-01'),
+(N'Nala','cat',N'British Shorthair','Female',8,4,N'Blue',NULL,1,0,'2025-10-15'),
+(N'Zoe','cat',N'Sphynx','Female',6,3.5,N'Pink',NULL,1,0,'2025-11-01'),
+(N'Daisy','cat',N'Persian','Female',11,4.8,N'Golden',NULL,1,0,'2025-11-10'),
+(N'Ruby','cat',N'Siamese','Female',7,3.7,N'Cream',NULL,1,0,'2025-11-20'),
+(N'Sophie','cat',N'Maine Coon','Female',14,6,N'Brown',NULL,1,0,'2025-12-01'),
+(N'Misty','cat',N'British Shorthair','Female',10,4.5,N'Gray',NULL,1,0,'2025-12-10'),
+(N'Pepper','cat',N'Bengal','Male',9,4.2,N'Spotted',NULL,1,0,'2025-12-20'),
+(N'Ginger','cat',N'Persian','Male',12,5.2,N'Orange',NULL,1,0,'2025-12-25'),
+(N'Cookie','cat',N'Ragdoll','Female',8,4.3,N'White',NULL,1,0,'2026-01-05'),
+(N'Peanut','cat',N'Siamese','Male',7,3.4,N'Cream',NULL,1,0,'2026-01-15'),
+(N'Mocha','cat',N'British Shorthair','Female',9,4.1,N'Brown',NULL,1,0,'2026-01-25'),
+(N'Shadow','cat',N'Bombay','Male',11,4.8,N'Black',NULL,1,0,'2026-02-05'),
+(N'Angel','cat',N'Ragdoll','Female',8,4,N'White',NULL,1,0,'2026-02-15'),
+
+/* ---------- OTHER (3 bán) ---------- */
+(N'Snowy','other',N'Rabbit','Female',6,2,N'White',1500000,NULL,1,'2024-07-01'),
+(N'Bunny','other',N'Rabbit','Male',5,2.1,N'Brown',1400000,NULL,1,'2025-03-01'),
+(N'Hammy','other',N'Hamster','Male',3,0.2,N'Golden',300000,NULL,1,'2025-06-01'),
+
+/* ---------- OTHER (4 dịch vụ) ---------- */
+(N'Chippy','other',N'Chipmunk','Female',4,0.4,N'Brown',NULL,1,0,'2025-09-01'),
+(N'Goldie','other',N'Goldfish','Female',2,0.1,N'Orange',NULL,1,0,'2025-10-01'),
+(N'Rio','other',N'Parrot','Male',12,1.2,N'Green',NULL,1,0,'2025-11-01'),
+(N'Tiny','other',N'Turtle','Male',18,1.5,N'Green',NULL,1,0,'2026-01-01');

@@ -26,10 +26,21 @@ public class AppointmentServiceLine {
     @JoinColumn(name = "ServiceID", nullable = false)
     private ServiceItem service;
 
+    @Column(name = "AssignedStaffID", insertable = false, updatable = false)
+    private Integer assignedStaffId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "AssignedStaffID")
+    private Staff assignedStaff;
+
     @Column(name = "Price", nullable = false, precision = 12, scale = 2)
     private BigDecimal price;
 
     @Column(name = "Quantity", nullable = false)
     @Builder.Default
     private Integer quantity = 1;
+
+    @Column(name = "ServiceStatus", nullable = false, length = 20)
+    @Builder.Default
+    private String serviceStatus = "pending";
 }

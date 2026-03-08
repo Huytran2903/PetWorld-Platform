@@ -36,9 +36,13 @@
                             <div class="k">Pet</div>
                             <div class="v" th:text="${context.petName}">Lucky</div>
                         </div>
+                        <div class="kv">
+                            <div class="k">Service</div>
+                            <div class="v" th:text="${context.serviceName ?: 'N/A'}">Service</div>
+                        </div>
                     </div>
 
-                    <form th:action="@{'/staff/health-check/' + ${context.appointmentId} + '/submit'}"
+                    <form th:action="@{/staff/health-check/{appointmentId}/submit(appointmentId=${context.appointmentId},serviceLineId=${context.serviceLineId})}"
                           th:object="${submitRequest}"
                           method="post"
                           enctype="multipart/form-data">
@@ -81,10 +85,14 @@
                             <small>At least one photo is required for Submit Report. Save Draft can be without photo.</small>
                         </div>
 
+                        <div style="margin-top:12px;" class="upload">
+                            
+                        </div>
+
                         <div class="actions">
                             <button class="btn btn-primary" type="submit">Submit Report</button>
                             <button class="btn btn-ghost" type="submit"
-                                    th:formaction="@{'/staff/health-check/' + ${context.appointmentId} + '/draft'}"
+                                    th:formaction="@{/staff/health-check/{appointmentId}/draft(appointmentId=${context.appointmentId},serviceLineId=${context.serviceLineId})}"
                                     formnovalidate>
                                 Save Draft
                             </button>

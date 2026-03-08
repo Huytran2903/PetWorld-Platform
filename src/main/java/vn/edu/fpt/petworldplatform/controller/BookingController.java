@@ -65,7 +65,7 @@ public class BookingController {
         }
 
         boolean petBelongsToCustomer = petList.stream()
-                .anyMatch(p -> p.getId() != null && p.getId().equals(Long.valueOf(petId)));
+                .anyMatch(p -> p.getId() != null && p.getId().equals(petId));
         if (!petBelongsToCustomer) {
             redirectAttributes.addFlashAttribute("error", "Invalid pet selected.");
             return "redirect:/appointment/booking";
