@@ -1,5 +1,7 @@
 package vn.edu.fpt.petworldplatform.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,6 +13,12 @@ public interface PetRepo extends JpaRepository<Pets, Integer> {
 
     List<Pets> findByNameContaining(String name);
     List<Pets> findByOwner_CustomerId(Integer customerId);
+    
+    // Pagination methods
+    Page<Pets> findByOwner_CustomerId(Integer customerId, Pageable pageable);
+    
+    @Query("SELECT count(p) FROM Pets p WHERE p.owner.customerId = :customerId")
+    long countByOwner_CustomerId(@Param("customerId") Integer customerId);
     
     @Query("SELECT count(p) FROM Pets p")
     long countTotalPets();

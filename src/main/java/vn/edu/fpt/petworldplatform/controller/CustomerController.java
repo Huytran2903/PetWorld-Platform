@@ -26,6 +26,11 @@ import vn.edu.fpt.petworldplatform.repository.PetRepo;
 import vn.edu.fpt.petworldplatform.service.*;
 import vn.edu.fpt.petworldplatform.util.SecuritySupport;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -340,16 +345,26 @@ public class CustomerController {
     private PetRepo petRepo;
 
     @GetMapping("/customer/pet/my-pets")
-    public String showMyPets(HttpSession session, Model model) {
+    public String showMyPets(
+            @RequestParam(defaultValue = "0") int page,
+            HttpSession session, 
+            Model model) {
 
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
         if (customer == null) {
             return "redirect:/login";
         }
 
-        List<Pets> myPets = petRepo.findByOwner_CustomerId(customer.getCustomerId());
-
-        model.addAttribute("myPets", myPets);
+        // Create pagination: 6 pets per page, sorted by createdAt descending
+        Pageable pageable = PageRequest.of(page, 6, Sort.by("createdAt").descending());
+        Page<Pets> petPage = petRepo.findByOwner_CustomerId(customer.getCustomerId(), pageable);
+        
+        model.addAttribute("myPets", petPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", petPage.getTotalPages());
+        model.addAttribute("totalItems", petPage.getTotalElements());
+        model.addAttribute("hasNext", petPage.hasNext());
+        model.addAttribute("hasPrevious", petPage.hasPrevious());
 
         return "customer/pet/my-pets";
     }

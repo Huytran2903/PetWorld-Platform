@@ -10,6 +10,11 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ContentDisposition;
 import vn.edu.fpt.petworldplatform.dto.PetFormDTO;
 import vn.edu.fpt.petworldplatform.dto.PetStatisticsDTO;
 import vn.edu.fpt.petworldplatform.entity.*;
@@ -630,6 +635,74 @@ public class AdminController {
         model.addAttribute("endDate", endDate);
         
         return "admin/statistics/pet-report";
+    }
+
+    @GetMapping("/admin/statistics/pets/export")
+    public ResponseEntity<String> exportPetStatistics(
+            @RequestParam(value = "startDate", required = false) String startDate,
+            @RequestParam(value = "endDate", required = false) String endDate) {
+        
+        LocalDate start = (startDate != null && !startDate.isEmpty()) ?
+            LocalDate.parse(startDate) : LocalDate.of(2020, 1, 1);
+        LocalDate end = (endDate != null && !endDate.isEmpty()) ? 
+            LocalDate.parse(endDate) : LocalDate.now();
+        
+        PetStatisticsDTO statistics = petService.getPetStatistics(start, end);
+        
+        // Create CSV content
+        StringBuilder csv = new StringBuilder();
+        csv.append("Pet Statistics Report\n");
+        csv.append("Date Range: ").append(start).append(" to ").append(end).append("\n\n");
+        csv.append("Category,Dogs,Cats,Others,Total\n");
+        
+        // Service Pets
+        long dogService = statistics.getDogStats() != null && !statistics.getDogStats().isEmpty() ? 
+            statistics.getDogStats().get(0).getCount() : 0;
+        long catService = statistics.getCatStats() != null && !statistics.getCatStats().isEmpty() ? 
+            statistics.getCatStats().get(0).getCount() : 0;
+        long otherService = statistics.getOtherStats() != null && !statistics.getOtherStats().isEmpty() ? 
+            statistics.getOtherStats().get(0).getCount() : 0;
+        csv.append("Service Pets,").append(dogService).append(",").append(catService)
+           .append(",").append(otherService).append(",").append(statistics.getTotalServicePets()).append("\n");
+        
+        // Sale Pets
+        long dogSale = statistics.getDogStats() != null && statistics.getDogStats().size() > 1 ? 
+            statistics.getDogStats().get(1).getCount() : 0;
+        long catSale = statistics.getCatStats() != null && statistics.getCatStats().size() > 1 ? 
+            statistics.getCatStats().get(1).getCount() : 0;
+        long otherSale = statistics.getOtherStats() != null && statistics.getOtherStats().size() > 1 ? 
+            statistics.getOtherStats().get(1).getCount() : 0;
+        csv.append("Sale Pets,").append(dogSale).append(",").append(catSale)
+           .append(",").append(otherSale).append(",").append(statistics.getTotalSalePets()).append("\n");
+        
+        // Sold Pets
+        long dogSold = statistics.getDogStats() != null && statistics.getDogStats().size() > 2 ? 
+            statistics.getDogStats().get(2).getCount() : 0;
+        long catSold = statistics.getCatStats() != null && statistics.getCatStats().size() > 2 ? 
+            statistics.getCatStats().get(2).getCount() : 0;
+        long otherSold = statistics.getOtherStats() != null && statistics.getOtherStats().size() > 2 ? 
+            statistics.getOtherStats().get(2).getCount() : 0;
+        csv.append("Sold/Completed,").append(dogSold).append(",").append(catSold)
+           .append(",").append(otherSold).append(",").append(statistics.getSoldPets()).append("\n");
+        
+        // Grand Total
+        long dogTotal = statistics.getDogStats() != null ? 
+            statistics.getDogStats().stream().mapToLong(s -> s.getCount()).sum() : 0;
+        long catTotal = statistics.getCatStats() != null ? 
+            statistics.getCatStats().stream().mapToLong(s -> s.getCount()).sum() : 0;
+        long otherTotal = statistics.getOtherStats() != null ? 
+            statistics.getOtherStats().stream().mapToLong(s -> s.getCount()).sum() : 0;
+        csv.append("Grand Total,").append(dogTotal).append(",").append(catTotal)
+           .append(",").append(otherTotal).append(",").append(statistics.getTotalPets()).append("\n");
+        
+        // Set headers for CSV download
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_PLAIN);
+        headers.setContentDisposition(ContentDisposition.builder("attachment")
+            .filename("pet-statistics-" + LocalDate.now() + ".csv")
+            .build());
+        
+        return new ResponseEntity<>(csv.toString(), headers, HttpStatus.OK);
     }
 
 }
