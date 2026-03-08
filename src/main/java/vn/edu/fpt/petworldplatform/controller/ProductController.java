@@ -75,7 +75,7 @@ public class ProductController {
         return "product/pet-detail";
     }
 
-    @GetMapping("/cart/add/{id}") // Khớp {id} với PathVariable
+    @GetMapping("/cart/add/{id}")
     public String addToCart(@PathVariable("id") Integer id,
                             Authentication authentication) {
         // 1. Kiểm tra đăng nhập

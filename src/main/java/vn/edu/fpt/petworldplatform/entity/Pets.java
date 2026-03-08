@@ -8,6 +8,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import vn.edu.fpt.petworldplatform.dto.PetFormDTO;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -143,7 +144,7 @@ public class Pets {
 
     @Transient
     @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private java.time.LocalDate nextDueDate;
+    private LocalDate nextDueDate;
 
 
     public Integer getId() {

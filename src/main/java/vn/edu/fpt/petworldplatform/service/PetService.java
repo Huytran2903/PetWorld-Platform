@@ -46,7 +46,7 @@ public class PetService {
     }
 
     public void savePet(Pets pet) {
-        petRepo.save(pet);
+         petRepo.save(pet);
     }
 
     public Pets getPetById(Integer id) {

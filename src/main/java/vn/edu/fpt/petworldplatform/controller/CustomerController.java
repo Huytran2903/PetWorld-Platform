@@ -42,6 +42,16 @@ public class CustomerController {
 
     private final PetService petService;
 
+
+    @Autowired
+    BookingService bookingService;
+
+    @Autowired
+    private PetHealthRecordRepository petHealthRecordRepository;
+
+    @Autowired
+    private PetHealthPhotoRepository petHealthPhotoRepository;
+
     @GetMapping("/profile")
     public String profileShow(Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -161,14 +171,6 @@ public class CustomerController {
         return "customer/checkout-order";
     }
 
-    @Autowired
-    BookingService bookingService;
-
-    @Autowired
-    private PetHealthRecordRepository petHealthRecordRepository;
-
-    @Autowired
-    private PetHealthPhotoRepository petHealthPhotoRepository;
 
     @GetMapping("/customer/appointments")
     public String appointmentHistory(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
