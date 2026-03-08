@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.petworldplatform.dto.PetFormDTO;
+import vn.edu.fpt.petworldplatform.dto.PetStatisticsDTO;
 import vn.edu.fpt.petworldplatform.entity.*;
 import vn.edu.fpt.petworldplatform.dto.StaffFormDTO;
 import vn.edu.fpt.petworldplatform.entity.Categories;
@@ -25,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -611,41 +613,22 @@ public class AdminController {
     }
 
     @GetMapping("/admin/statistics/pets")
-    public String showPetStatistics(Model model) {
-        long totalPets = petService.getTotalPets();
-
-        List<Object[]> stats = petService.getPetStatsBySpecies();
-
-        long dogCount = 0;
-        long catCount = 0;
-        long otherCount = 0;
-
-        if (stats != null) {
-            for (Object[] row : stats) {
-                String species = (String) row[0];
-                long count = (Long) row[1];
-
-                if (species != null) {
-                    if (species.equalsIgnoreCase("Dog")) {
-                        dogCount += count;
-                    } else if (species.equalsIgnoreCase("Cat")) {
-                        catCount += count;
-                    } else {
-                        otherCount += count;
-                    }
-                } else {
-                    otherCount += count;
-                }
-            }
-        }
-
-        model.addAttribute("totalPets", totalPets);
-        model.addAttribute("dogCount", dogCount);
-        model.addAttribute("catCount", catCount);
-        model.addAttribute("otherCount", otherCount);
-
-        model.addAttribute("statsBySpecies", stats);
-
+    public String showPetStatistics(
+            @RequestParam(value = "startDate", required = false) String startDate,
+            @RequestParam(value = "endDate", required = false) String endDate,
+            Model model) {
+        
+        LocalDate start = (startDate != null && !startDate.isEmpty()) ?
+            LocalDate.parse(startDate) : LocalDate.of(2020, 1, 1);
+        LocalDate end = (endDate != null && !endDate.isEmpty()) ? 
+            LocalDate.parse(endDate) : LocalDate.now();
+        
+        PetStatisticsDTO statistics = petService.getPetStatistics(start, end);
+        
+        model.addAttribute("statistics", statistics);
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+        
         return "admin/statistics/pet-report";
     }
 

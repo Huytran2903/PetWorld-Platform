@@ -449,7 +449,20 @@ public class CustomerController {
             existingPet.setName(petFromForm.getName());
             existingPet.setAgeMonths(petFromForm.getAgeMonths());
             existingPet.setPetType(petFromForm.getPetType());
-            existingPet.setBreed(petFromForm.getBreed());
+            
+            // Debug logging for breed
+            System.out.println("DEBUG: petFromForm.getBreed() = " + petFromForm.getBreed());
+            System.out.println("DEBUG: existingPet.getBreed() before = " + existingPet.getBreed());
+            
+            if (petFromForm.getBreed() == null || petFromForm.getBreed().trim().isEmpty()) {
+                System.out.println("DEBUG: Breed is null or empty, keeping existing value");
+                // Keep existing breed if new one is empty
+            } else {
+                existingPet.setBreed(petFromForm.getBreed());
+            }
+            
+            System.out.println("DEBUG: existingPet.getBreed() after = " + existingPet.getBreed());
+            
             existingPet.setWeightKg(petFromForm.getWeightKg());
             existingPet.setColor(petFromForm.getColor());
             existingPet.setNote(petFromForm.getNote());
