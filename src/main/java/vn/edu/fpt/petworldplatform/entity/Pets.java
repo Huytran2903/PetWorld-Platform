@@ -82,10 +82,7 @@ public class Pets {
     @Column(columnDefinition = "TEXT", name = "Description")
     private String description;
 
-    @NotNull(message = "Price is required!") // Bắt buộc nhập
-    // Dùng DecimalMin/Max là chuẩn nhất cho tiền tệ (BigDecimal)
-//    @DecimalMin(value = "300000", message = "Price must be at least 300,000")
-//    @DecimalMax(value = "5000000", message = "Price must be at most 5,000,000")
+    // Validate price ở DTO/controller cho flow shop, không bắt buộc ở entity
     @Column(precision = 18, scale = 2, name = "Price")
     private BigDecimal price;
 

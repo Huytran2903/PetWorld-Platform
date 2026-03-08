@@ -1,224 +1,377 @@
 package vn.edu.fpt.petworldplatform.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+
 import org.apache.poi.ss.usermodel.*;
+
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
 import org.springframework.data.domain.Page;
+
 import org.springframework.data.domain.PageRequest;
+
 import org.springframework.data.domain.Sort;
+
 import org.springframework.data.jpa.domain.Specification;
+
+import org.springframework.stereotype.Service;
+
+import org.springframework.transaction.annotation.Transactional;
+
 import vn.edu.fpt.petworldplatform.dto.AppointmentFilterRequest;
+
 import vn.edu.fpt.petworldplatform.entity.Appointment;
+
+import vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine;
+
 import vn.edu.fpt.petworldplatform.entity.Staff;
+
 import vn.edu.fpt.petworldplatform.repository.AppointmentRepository;
+
+import vn.edu.fpt.petworldplatform.repository.AppointmentServiceLineRepository;
+
 import vn.edu.fpt.petworldplatform.repository.StaffRepository;
+
 import vn.edu.fpt.petworldplatform.repository.spec.AppointmentSpecifications;
 
 import java.io.ByteArrayInputStream;
+
 import java.io.ByteArrayOutputStream;
+
 import java.io.IOException;
+
 import java.time.LocalDateTime;
+
 import java.util.List;
+
 import java.util.stream.Collectors;
 
 @Service
+
 @RequiredArgsConstructor
+
 public class AppointmentService implements IAppointmentService {
 
     private final AppointmentRepository appointmentRepository;
+
+    private final AppointmentServiceLineRepository appointmentServiceLineRepository;
+
     private final StaffRepository staffRepository;
 
     @Override
+
     public List<Appointment> getAllAppointments() {
+
         return appointmentRepository.findAll(Sort.by(Sort.Direction.DESC, "appointmentDate"));
+
     }
 
     @Override
+
     public Page<Appointment> getAppointments(AppointmentFilterRequest filter) {
+
         Specification<Appointment> spec = Specification.where(AppointmentSpecifications.hasStatus(filter.getStatus()))
+
                 .and(AppointmentSpecifications.appointmentDateFrom(filter.getFromDate()))
+
                 .and(AppointmentSpecifications.appointmentDateTo(filter.getToDate()))
+
                 .and(AppointmentSpecifications.keywordLike(filter.getKeyword()));
 
-        return appointmentRepository.findAll(spec, PageRequest.of(filter.getPage(), filter.getSize(), Sort.by(Sort.Direction.DESC, "appointmentDate")));
+        return appointmentRepository.findAll(spec,
+                PageRequest.of(filter.getPage(), filter.getSize(), Sort.by(Sort.Direction.DESC, "appointmentDate")));
+
     }
 
     @Override
+
     public void cancelAppointment(Integer id, String reason) {
+
         Appointment appointment = getAppointmentById(id);
-        
-        // Business Rule: Can only cancel if not already done/canceled/no_show
+
         String status = appointment.getStatus().toLowerCase();
+
         if ("done".equals(status) || "canceled".equals(status) || "no_show".equals(status)) {
+
             throw new IllegalStateException("Cannot cancel an appointment that is already " + status);
+
         }
 
         appointment.setStatus("canceled");
+
         appointment.setCancellationReason(reason);
+
         appointment.setCanceledAt(LocalDateTime.now());
+
         appointment.setUpdatedAt(LocalDateTime.now());
+
         appointmentRepository.save(appointment);
+
     }
 
     @Override
+
     public void deleteAppointment(Integer id) {
+
         Appointment appointment = getAppointmentById(id);
+
         String status = appointment.getStatus() != null ? appointment.getStatus().toLowerCase() : "";
+
         if (!"canceled".equals(status)) {
+
             throw new IllegalStateException("Only canceled appointments can be deleted.");
+
         }
+
         appointmentRepository.delete(appointment);
+
     }
 
     @Override
+
     public ByteArrayInputStream exportToExcel(AppointmentFilterRequest filter) {
-        // Use the same filter logic but without pagination (or large page size)
+
         filter.setSize(Integer.MAX_VALUE);
+
         List<Appointment> appointments = getAppointments(filter).getContent();
 
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+
             Sheet sheet = workbook.createSheet("Appointments");
 
-            // Header Row
             Row headerRow = sheet.createRow(0);
-            String[] columns = {"Code", "Customer ID", "Pet ID", "Date", "Status", "Note", "Cancel Reason"};
+
+            String[] columns = { "Code", "Customer ID", "Pet ID", "Date", "Status", "Note", "Cancel Reason" };
+
             for (int i = 0; i < columns.length; i++) {
+
                 Cell cell = headerRow.createCell(i);
+
                 cell.setCellValue(columns[i]);
+
                 CellStyle headerStyle = workbook.createCellStyle();
+
                 Font font = workbook.createFont();
+
                 font.setBold(true);
+
                 headerStyle.setFont(font);
+
                 cell.setCellStyle(headerStyle);
+
             }
 
-            // Data Rows
             int rowIdx = 1;
+
             for (Appointment appt : appointments) {
+
                 Row row = sheet.createRow(rowIdx++);
+
                 row.createCell(0).setCellValue(appt.getAppointmentCode());
+
                 row.createCell(1).setCellValue(appt.getCustomerId());
+
                 row.createCell(2).setCellValue(appt.getPetId());
+
                 row.createCell(3).setCellValue(appt.getAppointmentDate().toString());
+
                 row.createCell(4).setCellValue(appt.getStatus());
+
                 row.createCell(5).setCellValue(appt.getNote());
+
                 row.createCell(6).setCellValue(appt.getCancellationReason());
+
             }
 
             workbook.write(out);
+
             return new ByteArrayInputStream(out.toByteArray());
+
         } catch (IOException e) {
+
             throw new RuntimeException("Failed to export data to Excel", e);
+
         }
+
     }
 
     @Override
+
     public Appointment getAppointmentById(Integer id) {
+
         return appointmentRepository.findById(id)
+
                 .orElseThrow(() -> new IllegalArgumentException("Appointment not found: " + id));
+
     }
 
     @Override
-    public void assignStaffToAppointment(Integer appointmentId, Integer staffId) {
+
+    @Transactional
+
+    public void assignStaffToServiceLine(Integer appointmentId, Integer lineId, Integer staffId) {
+
         Appointment appointment = getAppointmentById(appointmentId);
 
-        if (!"pending".equalsIgnoreCase(appointment.getStatus())) {
-            throw new IllegalStateException("Only pending appointments can be assigned.");
+        if (!("pending".equalsIgnoreCase(appointment.getStatus())
+
+                || "confirmed".equalsIgnoreCase(appointment.getStatus())
+
+                || "checked_in".equalsIgnoreCase(appointment.getStatus()))) {
+
+            throw new IllegalStateException("Only pending/confirmed/checked_in appointments can be assigned.");
+
+        }
+
+        AppointmentServiceLine line = appointmentServiceLineRepository.findById(lineId)
+
+                .orElseThrow(() -> new IllegalArgumentException("Service line not found: " + lineId));
+
+        if (!line.getAppointment().getId().equals(appointmentId)) {
+
+            throw new IllegalArgumentException("Service line does not belong to this appointment.");
+
         }
 
         Staff staff = staffRepository.findById(staffId)
+
                 .orElseThrow(() -> new IllegalArgumentException("Staff not found: " + staffId));
 
-        if (!staff.getIsActive()) {
+        if (!Boolean.TRUE.equals(staff.getIsActive())) {
+
             throw new IllegalStateException("Staff is not active.");
+
         }
 
-        // Check for schedule conflict
-        long conflictCount = appointmentRepository.countOverlappingStaffAppointments(
+        long conflictCount = appointmentServiceLineRepository.countOverlappingAssignedLines(
+
                 staffId,
+
                 appointmentId,
+
                 appointment.getAppointmentDate(),
+
                 appointment.getEndTime()
+
         );
 
         if (conflictCount > 0) {
+
             throw new IllegalStateException("Staff is busy in this time slot.");
+
         }
 
-        appointment.setStaff(staff);
-        appointment.setStatus("confirmed");
-        appointment.setUpdatedAt(java.time.LocalDateTime.now());
-        appointmentRepository.save(appointment);
+        line.setAssignedStaff(staff);
+        if (line.getServiceStatus() == null || "pending".equalsIgnoreCase(line.getServiceStatus())) {
+            line.setServiceStatus("assigned");
+        }
+        appointmentServiceLineRepository.save(line);
+
+        long assignedCount = appointmentServiceLineRepository
+                .countByAppointment_IdAndAssignedStaffIdIsNotNull(appointmentId);
+
+        long totalCount = appointmentServiceLineRepository.countByAppointment_Id(appointmentId);
+
+        if (assignedCount == totalCount && totalCount > 0) {
+
+            appointment.setStatus("confirmed");
+
+            appointment.setUpdatedAt(LocalDateTime.now());
+
+            appointmentRepository.save(appointment);
+
+        } else if ("pending".equalsIgnoreCase(appointment.getStatus())) {
+
+            appointment.setUpdatedAt(LocalDateTime.now());
+
+            appointmentRepository.save(appointment);
+
+        }
+
     }
 
     @Override
-    public void reassignStaff(Integer appointmentId, Integer newStaffId) {
-        Appointment appointment = getAppointmentById(appointmentId);
 
-        if (!"confirmed".equalsIgnoreCase(appointment.getStatus())) {
-            throw new IllegalStateException("Only confirmed appointments can be reassigned.");
-        }
+    public List<AppointmentServiceLine> getServiceLinesByAppointment(Integer appointmentId) {
 
-        Staff staff = staffRepository.findById(newStaffId)
-                .orElseThrow(() -> new IllegalArgumentException("Staff not found: " + newStaffId));
+        getAppointmentById(appointmentId);
 
-        if (!staff.getIsActive()) {
-            throw new IllegalStateException("Staff is not active.");
-        }
+        return appointmentServiceLineRepository.findByAppointment_Id(appointmentId);
 
-        // Check for schedule conflict
-        long conflictCount = appointmentRepository.countOverlappingStaffAppointments(
-                newStaffId,
-                appointmentId,
-                appointment.getAppointmentDate(),
-                appointment.getEndTime()
-        );
-
-        if (conflictCount > 0) {
-            throw new IllegalStateException("Staff is busy in this time slot.");
-        }
-
-        appointment.setStaff(staff);
-        appointment.setUpdatedAt(java.time.LocalDateTime.now());
-        appointmentRepository.save(appointment);
     }
 
-    public List<Staff> getAvailableStaffForAppointment(Integer appointmentId) {
+    @Override
+
+    public List<Staff> getAvailableStaffForServiceLine(Integer appointmentId, Integer lineId) {
+
         Appointment appointment = getAppointmentById(appointmentId);
+
+        AppointmentServiceLine line = appointmentServiceLineRepository.findById(lineId)
+
+                .orElseThrow(() -> new IllegalArgumentException("Service line not found: " + lineId));
+
+        if (!line.getAppointment().getId().equals(appointmentId)) {
+
+            throw new IllegalArgumentException("Service line does not belong to this appointment.");
+
+        }
+
         List<Staff> activeStaff = staffRepository.findByIsActiveTrue();
 
         return activeStaff.stream().filter(staff -> {
-            long conflictCount = appointmentRepository.countOverlappingStaffAppointments(
+
+            long conflictCount = appointmentServiceLineRepository.countOverlappingAssignedLines(
+
                     staff.getStaffId(),
+
                     appointmentId,
+
                     appointment.getAppointmentDate(),
+
                     appointment.getEndTime()
+
             );
+
             return conflictCount == 0;
+
         }).collect(Collectors.toList());
+
     }
 
     @Override
+
     public List<Appointment> getStaffAppointments(Integer staffId, String status) {
+
         if (status != null && !status.isEmpty()) {
+
             return appointmentRepository.findByStaffIdAndStatusOrderByAppointmentDateDesc(staffId, status);
+
         }
+
         return appointmentRepository.findByStaffIdOrderByAppointmentDateDesc(staffId);
+
     }
 
     @Override
+
     public void updateStatus(Integer id, String status) {
+
         Appointment appointment = getAppointmentById(id);
-        
-        // Basic validation for status transitions
+
         List<String> validStatuses = List.of("pending", "confirmed", "in_progress", "done", "canceled", "no_show");
+
         if (!validStatuses.contains(status.toLowerCase())) {
+
             throw new IllegalArgumentException("Invalid status: " + status);
+
         }
 
         appointment.setStatus(status.toLowerCase());
+
         appointment.setUpdatedAt(LocalDateTime.now());
+
         appointmentRepository.save(appointment);
+
     }
+
 }

@@ -61,15 +61,15 @@ public class PetService {
     public void createPet(PetCreateDTO dto) throws IOException {
         Pets pet = new Pets();
 
-        pet.setName(dto.getName());
-        pet.setPetType(dto.getSpecies());
-        pet.setBreed(dto.getBreed());
+        pet.setName(normalizeText(dto.getName()));
+        pet.setPetType(normalizeText(dto.getSpecies()));
+        pet.setBreed(normalizeText(dto.getBreed()));
         pet.setAgeMonths(dto.getAge());
         pet.setDescription(dto.getDescription());
         pet.setImageUrl(dto.getImageUrl());
 
         pet.setWeightKg(dto.getWeightKg());
-        pet.setColor(dto.getColor());
+        pet.setColor(normalizeText(dto.getColor()));
         pet.setGender(dto.getGender());
         pet.setNote(dto.getNote());
 
@@ -84,12 +84,11 @@ public class PetService {
         }
 
         if ("shop".equalsIgnoreCase(dto.getCreatePetOwnerType())) {
-            // Pet của shop
-            if (dto.getPrice() != null) {
-                pet.setPrice(BigDecimal.valueOf(dto.getPrice()));
-            } else {
-                pet.setPrice(BigDecimal.ZERO);
+            // Pet của shop: bắt buộc phải có giá hợp lệ
+            if (dto.getPrice() == null || dto.getPrice() <= 0) {
+                throw new IllegalArgumentException("Giá bán là bắt buộc và phải lớn hơn 0 cho thú cưng của shop.");
             }
+            pet.setPrice(BigDecimal.valueOf(dto.getPrice()));
             pet.setOwner(null);
             pet.setIsAvailable(true);
 
@@ -135,6 +134,22 @@ public class PetService {
         return petRepo.countPetsBySpecies();
     }
 
+    private String normalizeText(String value) {
+        if (value == null) {
+            return null;
+        }
 
+        String normalized = value.trim().replaceAll("\\s+", " ");
+        if (normalized.isEmpty()) {
+            return normalized;
+        }
+
+        char first = normalized.charAt(0);
+        if (Character.isLetter(first)) {
+            normalized = Character.toUpperCase(first) + normalized.substring(1);
+        }
+
+        return normalized;
+    }
 
 }

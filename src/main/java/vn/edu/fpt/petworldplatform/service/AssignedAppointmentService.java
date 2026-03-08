@@ -4,14 +4,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.petworldplatform.entity.Appointment;
+import vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine;
 import vn.edu.fpt.petworldplatform.entity.Staff;
 import vn.edu.fpt.petworldplatform.repository.AppointmentRepository;
+import vn.edu.fpt.petworldplatform.repository.AppointmentServiceLineRepository;
 import vn.edu.fpt.petworldplatform.repository.StaffRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +28,7 @@ public class AssignedAppointmentService implements IAssignedAppointmentService {
     private static final String STATUS_CHECKED_IN = "checked_in";
 
     private final AppointmentRepository appointmentRepository;
+    private final AppointmentServiceLineRepository appointmentServiceLineRepository;
     private final StaffRepository staffRepository;
 
     @Override
@@ -42,14 +48,34 @@ public class AssignedAppointmentService implements IAssignedAppointmentService {
 
         String status = (statusFilter == null || statusFilter.isEmpty()) ? null : statusFilter;
 
-        return appointmentRepository.findByAssignedStaffAndFilter(staffId.longValue(), from, to, status);
+        List<AppointmentServiceLine> lines = appointmentServiceLineRepository.findAssignedLinesByStaffAndFilter(staffId, from, to, status);
+
+        Map<Integer, Appointment> appointmentMap = new LinkedHashMap<>();
+        for (AppointmentServiceLine line : lines) {
+            Appointment appointment = line.getAppointment();
+            appointmentMap.putIfAbsent(appointment.getId(), appointment);
+        }
+
+        return appointmentMap.values().stream()
+                .sorted(Comparator.comparing(Appointment::getAppointmentDate))
+                .toList();
     }
 
     @Override
     public Appointment getAppointmentDetail(Integer staffId, Integer appointmentId) {
         validateStaffActive(staffId);
-        return appointmentRepository.findByIdAndAssignedStaff(appointmentId, staffId.longValue())
+
+        Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new RuntimeException("Appointment not found or not assigned to this staff."));
+
+        List<AppointmentServiceLine> assignedLines = appointmentServiceLineRepository
+                .findByAppointment_IdAndAssignedStaffId(appointmentId, staffId);
+
+        if (assignedLines.isEmpty()) {
+            throw new RuntimeException("Appointment not found or not assigned to this staff.");
+        }
+
+        return appointment;
     }
 
     @Override

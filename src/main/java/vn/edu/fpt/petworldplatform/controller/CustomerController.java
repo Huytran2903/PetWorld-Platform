@@ -185,6 +185,8 @@ public class CustomerController {
             model.addAttribute("serviceLinesByAppointmentId", java.util.Map.of());
             model.addAttribute("healthRecordByAppointmentId", java.util.Map.of());
             model.addAttribute("healthPhotosByAppointmentId", java.util.Map.of());
+            model.addAttribute("healthRecordByServiceLineId", java.util.Map.of());
+            model.addAttribute("healthPhotosByServiceLineId", java.util.Map.of());
         } else {
             List<vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine> lines = bookingService.findServiceLinesByAppointmentIds(apptIds);
             java.util.Map<Integer, List<vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine>> linesByApptId =
@@ -193,6 +195,8 @@ public class CustomerController {
 
             java.util.Map<Integer, PetHealthRecord> recordByAppointmentId = new java.util.HashMap<>();
             java.util.Map<Integer, List<PetHealthPhoto>> photosByAppointmentId = new java.util.HashMap<>();
+            java.util.Map<Integer, PetHealthRecord> healthRecordByServiceLineId = new java.util.HashMap<>();
+            java.util.Map<Integer, List<PetHealthPhoto>> healthPhotosByServiceLineId = new java.util.HashMap<>();
             java.util.Map<Integer, String> serviceStaffByAppointmentId = new java.util.HashMap<>();
 
             for (Appointment appt : appointments) {
@@ -201,7 +205,7 @@ public class CustomerController {
                         ? appt.getStaff().getFullName()
                         : "N/A";
 
-                petHealthRecordRepository.findByAppointment_Id(apptId).ifPresentOrElse(record -> {
+                petHealthRecordRepository.findTopByAppointment_IdOrderByUpdatedAtDesc(apptId).ifPresentOrElse(record -> {
                     recordByAppointmentId.put(apptId, record);
                     photosByAppointmentId.put(apptId, petHealthPhotoRepository.findByRecord_Id(record.getId()));
 
@@ -210,11 +214,25 @@ public class CustomerController {
                             : fallbackStaff;
                     serviceStaffByAppointmentId.put(apptId, performedStaff);
                 }, () -> serviceStaffByAppointmentId.put(apptId, fallbackStaff));
+
+                List<PetHealthRecord> recordsByAppointment = petHealthRecordRepository.findByAppointment_Id(apptId);
+                for (PetHealthRecord recordByLine : recordsByAppointment) {
+                    if (recordByLine.getAppointmentServiceLineId() == null || recordByLine.getId() == null) {
+                        continue;
+                    }
+                    healthRecordByServiceLineId.put(recordByLine.getAppointmentServiceLineId(), recordByLine);
+                    healthPhotosByServiceLineId.put(
+                            recordByLine.getAppointmentServiceLineId(),
+                            petHealthPhotoRepository.findByRecord_Id(recordByLine.getId())
+                    );
+                }
             }
 
             model.addAttribute("healthRecordByAppointmentId", recordByAppointmentId);
             model.addAttribute("healthPhotosByAppointmentId", photosByAppointmentId);
             model.addAttribute("serviceStaffByAppointmentId", serviceStaffByAppointmentId);
+            model.addAttribute("healthRecordByServiceLineId", healthRecordByServiceLineId);
+            model.addAttribute("healthPhotosByServiceLineId", healthPhotosByServiceLineId);
         }
 
         return "customer/appointment-history";
@@ -240,7 +258,7 @@ public class CustomerController {
         model.addAttribute("appointment", appt);
         model.addAttribute("serviceLines", bookingService.findServiceLinesByAppointmentId(id));
 
-        PetHealthRecord healthRecord = petHealthRecordRepository.findByAppointment_Id(id).orElse(null);
+        PetHealthRecord healthRecord = petHealthRecordRepository.findTopByAppointment_IdOrderByUpdatedAtDesc(id).orElse(null);
         model.addAttribute("healthRecord", healthRecord);
         model.addAttribute("healthPhotos", healthRecord == null
                 ? java.util.List.of()
