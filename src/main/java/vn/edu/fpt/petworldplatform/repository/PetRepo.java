@@ -17,8 +17,26 @@ public interface PetRepo extends JpaRepository<Pets, Integer> {
     // Pagination methods
     Page<Pets> findByOwner_CustomerId(Integer customerId, Pageable pageable);
     
+    // Search with pagination
+    Page<Pets> findByOwner_CustomerIdAndNameContainingIgnoreCase(Integer customerId, String name, Pageable pageable);
+    
+    // Filter by pet type with pagination
+    Page<Pets> findByOwner_CustomerIdAndPetType(Integer customerId, String petType, Pageable pageable);
+    
+    // Search + filter with pagination
+    Page<Pets> findByOwner_CustomerIdAndPetTypeAndNameContainingIgnoreCase(Integer customerId, String petType, String name, Pageable pageable);
+    
     @Query("SELECT count(p) FROM Pets p WHERE p.owner.customerId = :customerId")
     long countByOwner_CustomerId(@Param("customerId") Integer customerId);
+    
+    @Query("SELECT count(p) FROM Pets p WHERE p.owner.customerId = :customerId AND LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))")
+    long countByOwner_CustomerIdAndNameContainingIgnoreCase(@Param("customerId") Integer customerId, @Param("name") String name);
+    
+    @Query("SELECT count(p) FROM Pets p WHERE p.owner.customerId = :customerId AND p.petType = :petType")
+    long countByOwner_CustomerIdAndPetType(@Param("customerId") Integer customerId, @Param("petType") String petType);
+    
+    @Query("SELECT count(p) FROM Pets p WHERE p.owner.customerId = :customerId AND p.petType = :petType AND LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))")
+    long countByOwner_CustomerIdAndPetTypeAndNameContainingIgnoreCase(@Param("customerId") Integer customerId, @Param("petType") String petType, @Param("name") String name);
     
     @Query("SELECT count(p) FROM Pets p")
     long countTotalPets();

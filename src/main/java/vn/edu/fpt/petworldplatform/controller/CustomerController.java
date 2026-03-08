@@ -347,6 +347,8 @@ public class CustomerController {
     @GetMapping("/customer/pet/my-pets")
     public String showMyPets(
             @RequestParam(defaultValue = "0") int page,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String petType,
             HttpSession session, 
             Model model) {
 
@@ -357,7 +359,27 @@ public class CustomerController {
 
         // Create pagination: 6 pets per page, sorted by createdAt descending
         Pageable pageable = PageRequest.of(page, 6, Sort.by("createdAt").descending());
-        Page<Pets> petPage = petRepo.findByOwner_CustomerId(customer.getCustomerId(), pageable);
+        
+        Page<Pets> petPage;
+        boolean hasSearch = search != null && !search.trim().isEmpty();
+        boolean hasFilter = petType != null && !petType.trim().isEmpty();
+        
+        if (hasSearch && hasFilter) {
+            // Both search and filter
+            petPage = petRepo.findByOwner_CustomerIdAndPetTypeAndNameContainingIgnoreCase(
+                customer.getCustomerId(), petType, search.trim(), pageable);
+        } else if (hasSearch) {
+            // Search only
+            petPage = petRepo.findByOwner_CustomerIdAndNameContainingIgnoreCase(
+                customer.getCustomerId(), search.trim(), pageable);
+        } else if (hasFilter) {
+            // Filter only
+            petPage = petRepo.findByOwner_CustomerIdAndPetType(
+                customer.getCustomerId(), petType, pageable);
+        } else {
+            // Get all pets
+            petPage = petRepo.findByOwner_CustomerId(customer.getCustomerId(), pageable);
+        }
         
         model.addAttribute("myPets", petPage.getContent());
         model.addAttribute("currentPage", page);
@@ -365,6 +387,8 @@ public class CustomerController {
         model.addAttribute("totalItems", petPage.getTotalElements());
         model.addAttribute("hasNext", petPage.hasNext());
         model.addAttribute("hasPrevious", petPage.hasPrevious());
+        model.addAttribute("search", search);
+        model.addAttribute("selectedPetType", petType);
 
         return "customer/pet/my-pets";
     }

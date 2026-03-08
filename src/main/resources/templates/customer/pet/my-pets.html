@@ -12,8 +12,91 @@
                 <h1 class="text-3xl font-extrabold text-gray-800">My Pet Collection 🐾</h1>
                 <p class="text-gray-500 mt-1">Manage your pets profiles and track their health.</p>
             </div>
-            <a th:href="@{/customer/pet/pet-create}" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-full font-bold shadow-lg shadow-orange-200 transition transform hover:-translate-y-1 flex items-center gap-2">
-                <i class="fa-solid fa-plus"></i> Register New Pet
+            <div class="flex flex-col sm:flex-row gap-3">
+                <!-- Search Bar -->
+                <form th:action="@{/customer/pet/my-pets}" method="get" class="flex items-center gap-2">
+                    <input type="text" 
+                           name="search" 
+                           th:value="${search}"
+                           placeholder="Search pet name..." 
+                           class="px-4 py-2.5 rounded-lg border border-gray-200 focus:ring-2 focus:ring-orange-500 outline-none w-full sm:w-64">
+                    <button type="submit" 
+                            class="px-4 py-2.5 rounded-lg bg-orange-500 text-white font-bold hover:bg-orange-600 transition">
+                        <i class="fa-solid fa-search"></i>
+                    </button>
+                </form>
+                
+                <!-- Add Pet Button -->
+                <a th:href="@{/customer/pet/pet-create}" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-full font-bold shadow-lg shadow-orange-200 transition transform hover:-translate-y-1 flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Register New Pet
+                </a>
+            </div>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <!-- Pet Type Filter -->
+            <div class="flex flex-wrap gap-2">
+                <form th:action="@{/customer/pet/my-pets}" method="get" class="contents">
+                    <input type="hidden" name="search" th:value="${search}">
+                    <button type="submit" name="petType" value=""
+                            th:classappend="${selectedPetType == null or selectedPetType == ''} ? 'bg-orange-500 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:border-orange-500'"
+                            class="px-4 py-2 rounded-lg font-semibold transition text-sm">
+                        <i class="fa-solid fa-paw mr-2"></i>All Pets
+                    </button>
+                </form>
+                
+                <form th:action="@{/customer/pet/my-pets}" method="get" class="contents">
+                    <input type="hidden" name="search" th:value="${search}">
+                    <button type="submit" name="petType" value="dog"
+                            th:classappend="${selectedPetType == 'dog'} ? 'bg-blue-500 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:border-blue-500'"
+                            class="px-4 py-2 rounded-lg font-semibold transition text-sm">
+                        <i class="fa-solid fa-dog mr-2"></i>Dogs
+                    </button>
+                </form>
+                
+                <form th:action="@{/customer/pet/my-pets}" method="get" class="contents">
+                    <input type="hidden" name="search" th:value="${search}">
+                    <button type="submit" name="petType" value="cat"
+                            th:classappend="${selectedPetType == 'cat'} ? 'bg-emerald-500 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:border-emerald-500'"
+                            class="px-4 py-2 rounded-lg font-semibold transition text-sm">
+                        <i class="fa-solid fa-cat mr-2"></i>Cats
+                    </button>
+                </form>
+                
+                <form th:action="@{/customer/pet/my-pets}" method="get" class="contents">
+                    <input type="hidden" name="search" th:value="${search}">
+                    <button type="submit" name="petType" value="other"
+                            th:classappend="${selectedPetType == 'other'} ? 'bg-purple-500 text-white' : 'bg-white text-gray-600 border border-gray-300 hover:border-purple-500'"
+                            class="px-4 py-2 rounded-lg font-semibold transition text-sm">
+                        <i class="fa-solid fa-dragon mr-2"></i>Others
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Clear Filters -->
+            <div th:if="${search != null or selectedPetType != null}">
+                <a th:href="@{/customer/pet/my-pets}" class="text-sm text-gray-500 hover:text-gray-700 underline">
+                    <i class="fa-solid fa-times mr-1"></i>Clear all filters
+                </a>
+            </div>
+        </div>
+
+        <!-- Search Results Info -->
+        <div th:if="${search != null and !search.isEmpty() or selectedPetType != null and !selectedPetType.isEmpty()}" class="mb-6 bg-blue-50 border-l-4 border-blue-500 text-blue-700 p-4 rounded shadow-sm">
+            <p class="font-bold">Filter Results</p>
+            <div class="text-sm">
+                <span th:if="${search != null and !search.isEmpty()}">
+                    Searching for "<span th:text="${search}"></span>"
+                </span>
+                <span th:if="${selectedPetType != null and !selectedPetType.isEmpty()}">
+                    <span th:if="${search != null and !search.isEmpty()}"> and </span>
+                    Pet type: <span th:text="${#strings.capitalize(selectedPetType)}"></span>
+                </span>
+                <span> - <span th:text="${totalItems}"></span> found</span>
+            </div>
+            <a th:href="@{/customer/pet/my-pets}" class="text-blue-600 hover:text-blue-800 underline text-sm mt-1 inline-block">
+                <i class="fa-solid fa-times mr-1"></i> Clear filters
             </a>
         </div>
 
@@ -96,7 +179,7 @@
         <div th:if="${totalPages > 1}" class="mt-12 flex justify-center items-center gap-2">
             <!-- Previous Button -->
             <a th:if="${hasPrevious}" 
-               th:href="@{/customer/pet/my-pets(page=${currentPage - 1})}"
+               th:href="@{/customer/pet/my-pets(page=${currentPage - 1}, search=${search}, petType=${selectedPetType})}"
                class="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:border-orange-500 hover:text-orange-600 font-semibold transition">
                 <i class="fa-solid fa-chevron-left mr-2"></i> Previous
             </a>
@@ -108,7 +191,7 @@
             <!-- Page Numbers -->
             <div class="flex gap-1">
                 <a th:each="pageNum : ${#numbers.sequence(0, totalPages - 1)}"
-                   th:href="@{/customer/pet/my-pets(page=${pageNum})}"
+                   th:href="@{/customer/pet/my-pets(page=${pageNum}, search=${search}, petType=${selectedPetType})}"
                    th:classappend="${pageNum == currentPage ? 'bg-orange-500 text-white' : 'border border-gray-300 text-gray-600 hover:border-orange-500 hover:text-orange-600'}"
                    class="px-3 py-2 rounded-lg font-semibold transition min-w-[40px] text-center">
                     <span th:text="${pageNum + 1}">1</span>
@@ -117,7 +200,7 @@
 
             <!-- Next Button -->
             <a th:if="${hasNext}" 
-               th:href="@{/customer/pet/my-pets(page=${currentPage + 1})}"
+               th:href="@{/customer/pet/my-pets(page=${currentPage + 1}, search=${search}, petType=${selectedPetType})}"
                class="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 hover:border-orange-500 hover:text-orange-600 font-semibold transition">
                 Next <i class="fa-solid fa-chevron-right ml-2"></i>
             </a>
