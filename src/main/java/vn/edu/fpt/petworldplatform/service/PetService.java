@@ -46,6 +46,20 @@ public class PetService {
     }
 
     public void savePet(Pets pet) {
+        // Admin/shop pet: owner = null => bắt buộc có giá hợp lệ
+        if (pet.getOwner() == null) {
+            if (pet.getPrice() == null || pet.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Giá bán là bắt buộc và phải lớn hơn 0 cho thú cưng của shop.");
+            }
+            pet.setIsAvailable(true);
+        } else {
+            // Pet của customer không cần giá
+            pet.setPrice(null);
+            if (pet.getIsAvailable() == null) {
+                pet.setIsAvailable(false);
+            }
+        }
+
         petRepo.save(pet);
     }
 
