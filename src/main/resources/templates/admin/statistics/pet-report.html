@@ -219,40 +219,40 @@
                 <thead class="bg-white text-gray-500 text-xs uppercase font-bold border-b border-gray-100">
                 <tr>
                     <th class="px-6 py-4">Category</th>
-                    <th class="px-6 py-4">Dogs</th>
-                    <th class="px-6 py-4">Cats</th>
-                    <th class="px-6 py-4">Others</th>
+                    <th class="px-6 py-4 text-center">Dogs</th>
+                    <th class="px-6 py-4 text-center">Cats</th>
+                    <th class="px-6 py-4 text-center">Others</th>
                     <th class="px-6 py-4 text-right">Total</th>
                 </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
-                    <tr class="hover:bg-gray-50 transition duration-150">
-                        <td class="px-6 py-4 font-bold text-gray-700">Service Pets</td>
-                        <td class="px-6 py-4 text-gray-600" th:text="${statistics.dogStats != null and !statistics.dogStats.isEmpty() ? statistics.dogStats[0].count : 0}">0</td>
-                        <td class="px-6 py-4 text-gray-600" th:text="${statistics.catStats != null and !statistics.catStats.isEmpty() ? statistics.catStats[0].count : 0}">0</td>
-                        <td class="px-6 py-4 text-gray-600" th:text="${statistics.otherStats != null and !statistics.otherStats.isEmpty() ? statistics.otherStats[0].count : 0}">0</td>
-                        <td class="px-6 py-4 text-right font-bold text-gray-800" th:text="${statistics.totalServicePets}">0</td>
+                    <tr class="hover:bg-blue-50 transition duration-150">
+                        <td class="px-6 py-4 font-bold text-blue-700">Service Pets</td>
+                        <td class="px-6 py-4 text-center text-blue-600" th:text="${statistics.dogStats != null and !statistics.dogStats.isEmpty() ? statistics.dogStats[0].count : 0}">0</td>
+                        <td class="px-6 py-4 text-center text-blue-600" th:text="${statistics.catStats != null and !statistics.catStats.isEmpty() ? statistics.catStats[0].count : 0}">0</td>
+                        <td class="px-6 py-4 text-center text-blue-600" th:text="${statistics.otherStats != null and !statistics.otherStats.isEmpty() ? statistics.otherStats[0].count : 0}">0</td>
+                        <td class="px-6 py-4 text-right font-bold text-blue-800" th:text="${statistics.totalServicePets}">0</td>
                     </tr>
-                    <tr class="hover:bg-gray-50 transition duration-150">
-                        <td class="px-6 py-4 font-bold text-gray-700">Sale Pets</td>
-                        <td class="px-6 py-4 text-gray-600" th:text="${statistics.dogStats != null and statistics.dogStats.size() > 1 ? statistics.dogStats[1].count : 0}">0</td>
-                        <td class="px-6 py-4 text-gray-600" th:text="${statistics.catStats != null and statistics.catStats.size() > 1 ? statistics.catStats[1].count : 0}">0</td>
-                        <td class="px-6 py-4 text-gray-600" th:text="${statistics.otherStats != null and statistics.otherStats.size() > 1 ? statistics.otherStats[1].count : 0}">0</td>
-                        <td class="px-6 py-4 text-right font-bold text-gray-800" th:text="${statistics.totalSalePets}">0</td>
+                    <tr class="hover:bg-emerald-50 transition duration-150">
+                        <td class="px-6 py-4 font-bold text-emerald-700">Sale Pets</td>
+                        <td class="px-6 py-4 text-center text-emerald-600" th:text="${statistics.dogStats != null and statistics.dogStats.size() > 1 ? statistics.dogStats[1].count : 0}">0</td>
+                        <td class="px-6 py-4 text-center text-emerald-600" th:text="${statistics.catStats != null and statistics.catStats.size() > 1 ? statistics.catStats[1].count : 0}">0</td>
+                        <td class="px-6 py-4 text-center text-emerald-600" th:text="${statistics.otherStats != null and statistics.otherStats.size() > 1 ? statistics.otherStats[1].count : 0}">0</td>
+                        <td class="px-6 py-4 text-right font-bold text-emerald-800" th:text="${statistics.totalSalePets}">0</td>
                     </tr>
-                    <tr class="hover:bg-gray-50 transition duration-150">
-                        <td class="px-6 py-4 font-bold text-gray-700">Sold/Completed</td>
-                        <td class="px-6 py-4 text-gray-600" th:text="${statistics.dogStats != null and statistics.dogStats.size() > 2 ? statistics.dogStats[2].count : 0}">0</td>
-                        <td class="px-6 py-4 text-gray-600" th:text="${statistics.catStats != null and statistics.catStats.size() > 2 ? statistics.catStats[2].count : 0}">0</td>
-                        <td class="px-6 py-4 text-gray-600" th:text="${statistics.otherStats != null and statistics.otherStats.size() > 2 ? statistics.otherStats[2].count : 0}">0</td>
-                        <td class="px-6 py-4 text-right font-bold text-gray-800" th:text="${statistics.soldPets}">0</td>
+                    <tr class="hover:bg-purple-50 transition duration-150">
+                        <td class="px-6 py-4 font-bold text-purple-700">Sold/Completed</td>
+                        <td class="px-6 py-4 text-center text-purple-600" th:text="${statistics.dogStats != null and statistics.dogStats.size() > 2 ? statistics.dogStats[2].count : 0}">0</td>
+                        <td class="px-6 py-4 text-center text-purple-600" th:text="${statistics.catStats != null and statistics.catStats.size() > 2 ? statistics.catStats[2].count : 0}">0</td>
+                        <td class="px-6 py-4 text-center text-purple-600" th:text="${statistics.otherStats != null and statistics.otherStats.size() > 2 ? statistics.otherStats[2].count : 0}">0</td>
+                        <td class="px-6 py-4 text-right font-bold text-purple-800" th:text="${statistics.soldPets}">0</td>
                     </tr>
-                    <tr class="bg-gray-50 font-bold">
-                        <td class="px-6 py-4 text-gray-800">Grand Total</td>
-                        <td class="px-6 py-4 text-right text-gray-800" th:text="${(statistics.dogStats != null ? #aggregates.sum(statistics.dogStats.![count]) : 0)}">0</td>
-                        <td class="px-6 py-4 text-right text-gray-800" th:text="${(statistics.catStats != null ? #aggregates.sum(statistics.catStats.![count]) : 0)}">0</td>
-                        <td class="px-6 py-4 text-right text-gray-800" th:text="${(statistics.otherStats != null ? #aggregates.sum(statistics.otherStats.![count]) : 0)}">0</td>
-                        <td class="px-6 py-4 text-right text-orange-600 text-lg" th:text="${statistics.totalPets}">0</td>
+                    <tr class="bg-gradient-to-r from-orange-50 to-red-50 font-bold border-t-2 border-orange-200">
+                        <td class="px-6 py-4 text-orange-800">Grand Total</td>
+                        <td class="px-6 py-4 text-center text-orange-800" th:text="${(statistics.dogStats != null ? #aggregates.sum(statistics.dogStats.![count]) : 0)}">0</td>
+                        <td class="px-6 py-4 text-center text-orange-800" th:text="${(statistics.catStats != null ? #aggregates.sum(statistics.catStats.![count]) : 0)}">0</td>
+                        <td class="px-6 py-4 text-center text-orange-800" th:text="${(statistics.otherStats != null ? #aggregates.sum(statistics.otherStats.![count]) : 0)}">0</td>
+                        <td class="px-6 py-4 text-right text-orange-600 text-lg font-bold" th:text="${statistics.totalPets}">0</td>
                     </tr>
                 </tbody>
             </table>
