@@ -8,6 +8,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import vn.edu.fpt.petworldplatform.dto.PetFormDTO;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -82,10 +83,7 @@ public class Pets {
     @Column(columnDefinition = "TEXT", name = "Description")
     private String description;
 
-    @NotNull(message = "Price is required!") // Bắt buộc nhập
-    // Dùng DecimalMin/Max là chuẩn nhất cho tiền tệ (BigDecimal)
-//    @DecimalMin(value = "300000", message = "Price must be at least 300,000")
-//    @DecimalMax(value = "5000000", message = "Price must be at most 5,000,000")
+    // Validate price ở DTO/controller cho flow shop, không bắt buộc ở entity
     @Column(precision = 18, scale = 2, name = "Price")
     private BigDecimal price;
 
@@ -143,7 +141,8 @@ public class Pets {
 
     @Transient
     @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private java.time.LocalDate nextDueDate;
+    @FutureOrPresent(message = "Next due date cannot be in the past!")
+    private LocalDate nextDueDate;
 
 
     public Integer getId() {

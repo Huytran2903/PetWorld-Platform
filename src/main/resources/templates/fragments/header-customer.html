@@ -2,34 +2,125 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<header th:fragment="header" class="bg-white shadow-sm sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16 items-center">
-            <div class="flex-shrink-0 flex items-center">
-                <a th:href="@{/home}" class="text-2xl font-extrabold text-orange-600 flex items-center gap-2">
-                    <i class="fa-solid fa-paw"></i> PetWorld
-                </a>
-            </div>
+<header th:fragment="header(activePage)" class="bg-white">
 
-            <nav class="hidden md:flex space-x-8">
-                <a th:href="@{/home}" class="text-gray-600 hover:text-orange-600 px-3 py-2 font-medium">Home</a>
-                <a th:href="@{/shop}" class="text-gray-600 hover:text-orange-600 px-3 py-2 font-medium">Shop</a>
-                <a th:href="@{/services}" class="text-gray-600 hover:text-orange-600 px-3 py-2 font-medium">Services</a>
-                <a th:href="@{/customer/pet/my-pets}" class="text-orange-600 border-b-2 border-orange-600 px-3 py-2 font-bold">My Pets</a>
-            </nav>
-
-            <div class="flex items-center gap-4">
-                <div th:if="${session.loggedInAccount != null}" class="flex items-center gap-3">
-                    <span class="text-sm font-semibold text-gray-700" th:text="${session.loggedInAccount.fullName}">User</span>
-                    <a th:href="@{/logout}" class="text-gray-400 hover:text-red-500 transition" title="Logout">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                    </a>
+    <div class="container-fluid" style="background-color: #FFA54F;">
+        <div class="container py-2">
+            <div class="row py-3 align-items-center">
+                <div class="col-sm-4 col-lg-3 text-center text-sm-start">
+                    <div class="main-logo">
+                        <a th:href="@{/}">
+                            <img th:src="@{/images/logo-petshop.png}" alt="logo" class="img-fluid"
+                                 style="max-height: 60px;">
+                        </a>
+                    </div>
                 </div>
-                <div th:unless="${session.loggedInAccount != null}">
-                    <a th:href="@{/login}" class="text-orange-600 font-bold hover:underline">Login</a>
+
+                <div class="col-sm-4 col-lg-5 d-none d-lg-block">
+                    <div class="slogan-box text-center">
+                        <h5 class="slogan-title mb-1 text-white fw-bold"
+                            th:text="${globalConfigs != null and globalConfigs['SLOGAN_MAIN'] != null ? globalConfigs['SLOGAN_MAIN'] : 'We Care Your Pets'}">
+                            We Care Your Pets</h5>
+                        <p class="slogan-sub mb-0 text-white small"
+                           th:text="${globalConfigs != null and globalConfigs['SLOGAN_SUB'] != null ? globalConfigs['SLOGAN_SUB'] : 'Healthy • Happy • Loved'}">
+                            Healthy • Happy • Loved</p>
+                    </div>
+                </div>
+
+                <div class="col-sm-8 col-lg-4 d-flex justify-content-end align-items-center mt-3 mt-sm-0">
+
+                    <div th:if="${session.loggedInAccount != null}" class="d-flex align-items-center">
+                        <a th:href="@{/profile}"
+                           class="d-flex align-items-center gap-2 text-decoration-none text-white border-end pe-3 me-3"
+                           title="Hồ sơ">
+                            <iconify-icon icon="healthicons:person" class="fs-4"></iconify-icon>
+                            <span class="fw-bold" th:text="${session.loggedInAccount.fullName}">User</span>
+                        </a>
+                        <a th:href="@{/logout}" class="text-white d-flex align-items-center" title="Đăng xuất">
+                            <iconify-icon icon="mdi:logout" class="fs-4"></iconify-icon>
+                        </a>
+                    </div>
+
+                    <div th:if="${session.loggedInAccount == null}">
+                        <a th:href="@{/login}" class="btn btn-outline-light fw-bold rounded-pill px-4 shadow-sm">
+                            <i class="fa-solid fa-right-to-bracket me-2"></i>Login
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="container-fluid">
+        <hr class="m-0 border-white opacity-25">
+    </div>
+
+    <div class="container">
+        <nav class="main-menu d-flex navbar navbar-expand-lg py-2">
+
+            <div class="d-flex d-lg-none align-items-center mt-2">
+                <a th:href="@{/customer/shopping-cart}" class="mx-2 text-dark position-relative">
+                    <iconify-icon icon="mdi:cart" class="fs-4"></iconify-icon>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle pt-1 text-white"
+                          style="font-size: 10px; padding: 4px 6px; background-color: #FFA54F;">3</span>
+                </a>
+                <button class="navbar-toggler border-0 shadow-none ms-2" type="button" data-bs-toggle="offcanvas"
+                        data-bs-target="#offcanvasNavbar">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            </div>
+
+            <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar">
+                <div class="offcanvas-header justify-content-end border-bottom">
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+                </div>
+
+                <div class="offcanvas-body justify-content-between align-items-center">
+                    <ul class="navbar-nav menu-list list-unstyled d-flex gap-md-4 mb-0 fw-medium">
+                        <li class="nav-item">
+                            <a th:href="@{/}" class="nav-link"
+                               th:classappend="${activePage == 'home'} ? 'fw-bold' : 'text-dark'"
+                               th:style="${activePage == 'home'} ? 'color: #FFA54F; border-bottom: 2px solid #FFA54F;' : ''">Home</a>
+                        </li>
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="shopDropdown" data-bs-toggle="dropdown"
+                               th:classappend="${activePage != null and #strings.startsWith(activePage, 'shop')} ? 'fw-bold' : 'text-dark'"
+                               th:style="${activePage != null and #strings.startsWith(activePage, 'shop')} ? 'color: #FFA54F; border-bottom: 2px solid #FFA54F;' : ''">Shop</a>
+                            <ul class="dropdown-menu shadow-sm border-0 mt-1">
+                                <li><a th:href="@{/pets}" class="dropdown-item py-2"><i
+                                        class="fa-solid fa-paw me-2"></i> Pets</a></li>
+                                <li><a th:href="@{/products}" class="dropdown-item py-2"><i
+                                        class="fa-solid fa-box-open me-2"></i> Products</a></li>
+                            </ul>
+                        </li>
+
+                        <li class="nav-item">
+                            <a th:href="@{/appointment/booking}" class="nav-link"
+                               th:classappend="${activePage == 'booking'} ? 'fw-bold' : 'text-dark'"
+                               th:style="${activePage == 'booking'} ? 'color: #FFA54F; border-bottom: 2px solid #FFA54F;' : ''">Book
+                                Appointment</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a th:href="@{/customer/pet/my-pets}" class="nav-link"
+                               th:classappend="${activePage == 'mypets'} ? 'fw-bold' : 'text-dark'"
+                               th:style="${activePage == 'mypets'} ? 'color: #FFA54F; border-bottom: 2px solid #FFA54F;' : ''">My
+                                Pets</a>
+                        </li>
+                    </ul>
+
+                    <div class="d-none d-lg-flex align-items-center gap-4">
+                        <a th:href="@{/customer/shopping-cart}"
+                           class="text-decoration-none text-dark position-relative hover-orange">
+                            <iconify-icon icon="mdi:cart" class="fs-4"></iconify-icon>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle pt-1 text-white"
+                                  style="font-size: 10px; padding: 4px 6px; background-color: #FFA54F;">3</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
     </div>
 </header>
 

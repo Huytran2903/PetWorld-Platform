@@ -130,7 +130,7 @@
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold small text-secondary">Price (VNĐ)</label>
                                 <input type="text" id="priceDisplay" class="form-control shadow-none" placeholder="0">
-                                <input type="hidden" th:field="*{price}" id="priceActual">
+                                <input type="hidden" name="price" id="priceActual" th:value="*{price}">
                                 <span th:errors="*{price}" style="color: #ffa54f"></span>
                             </div>
 
@@ -205,8 +205,11 @@
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label fw-bold text-secondary small">Next Due Date</label>
-                                    <input type="date" class="form-control shadow-none border-warning-subtle"
+                                    <input type="date" id="modalNextDueDate"
+                                           class="form-control shadow-none border-warning-subtle"
                                            th:field="*{nextDueDate}">
+                                    <span th:errors="*{nextDueDate}"
+                                          class="text-danger small fw-bold mt-1 d-block"></span>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label fw-bold text-secondary small">Note</label>
@@ -233,48 +236,6 @@
 <script th:src="@{/js/pet-form.js}"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const checkbox = document.getElementById('isVaccinatedCheck');
-        let isVaccinatedPreviously = checkbox.checked; // Lưu trạng thái ban đầu
-
-        // Khởi tạo Modal của Bootstrap
-        const vaccineModalEl = document.getElementById('vaccineModal');
-        const vaccineModal = new bootstrap.Modal(vaccineModalEl);
-
-        // Bắt sự kiện khi click vào checkbox
-        checkbox.addEventListener('change', function () {
-            if (this.checked) {
-                // Mở modal nếu người dùng tích vào
-                vaccineModal.show();
-            } else {
-                // Nếu bỏ tích, cập nhật trạng thái "bỏ qua"
-                isVaccinatedPreviously = false;
-            }
-        });
-
-        // Hàm xử lý khi bấm nút "Cancel" hoặc nút "X" trên Modal
-        window.cancelVaccine = function () {
-            // Trả lại checkbox về trạng thái trước đó (bỏ tick đi)
-            checkbox.checked = isVaccinatedPreviously;
-            vaccineModal.hide();
-        };
-
-        // Hàm xử lý khi bấm nút "Confirm" trên Modal
-        window.confirmVaccine = function () {
-            // Validate bắt buộc nhập tên Vaccine
-            const vName = document.getElementById('modalVaccineName').value;
-            if (vName.trim() === '') {
-                alert("Please enter the Vaccine Name!");
-                return;
-            }
-
-            // Cập nhật trạng thái là đã tích hợp lệ và đóng modal
-            isVaccinatedPreviously = true;
-            vaccineModal.hide();
-        };
-    });
-</script>
 
 </body>
 </html>

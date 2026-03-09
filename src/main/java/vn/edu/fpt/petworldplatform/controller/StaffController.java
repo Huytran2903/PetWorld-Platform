@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.petworldplatform.entity.Appointment;
+import vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine;
+import vn.edu.fpt.petworldplatform.entity.PetHealthPhoto;
 import vn.edu.fpt.petworldplatform.entity.PetHealthRecord;
 import vn.edu.fpt.petworldplatform.entity.Staff;
 import vn.edu.fpt.petworldplatform.repository.PetHealthPhotoRepository;
@@ -23,6 +25,9 @@ import vn.edu.fpt.petworldplatform.service.IAssignedAppointmentService;
 import vn.edu.fpt.petworldplatform.service.StaffService;
 
 import java.security.Principal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -76,11 +81,28 @@ public class StaffController {
         model.addAttribute("appointment", appointment);
         model.addAttribute("currentStaffId", staff.getStaffId());
 
-        PetHealthRecord healthRecord = petHealthRecordRepository.findByAppointment_Id(id).orElse(null);
-        model.addAttribute("healthRecord", healthRecord);
-        model.addAttribute("healthPhotos", healthRecord == null
-                ? java.util.List.of()
-                : petHealthPhotoRepository.findByRecord_Id(healthRecord.getId()));
+        List<AppointmentServiceLine> myServiceLines = appointment.getServiceLines() == null
+                ? List.of()
+                : appointment.getServiceLines().stream()
+                .filter(line -> line.getAssignedStaffId() != null && line.getAssignedStaffId().equals(staff.getStaffId()))
+                .toList();
+        model.addAttribute("myServiceLines", myServiceLines);
+
+        Map<Integer, PetHealthRecord> healthRecordByLineId = new HashMap<>();
+        Map<Integer, List<PetHealthPhoto>> healthPhotosByLineId = new HashMap<>();
+
+        for (AppointmentServiceLine line : myServiceLines) {
+            if (line.getId() == null) {
+                continue;
+            }
+            petHealthRecordRepository.findByAppointmentServiceLine_Id(line.getId()).ifPresent(record -> {
+                healthRecordByLineId.put(line.getId(), record);
+                healthPhotosByLineId.put(line.getId(), petHealthPhotoRepository.findByRecord_Id(record.getId()));
+            });
+        }
+
+        model.addAttribute("healthRecordByLineId", healthRecordByLineId);
+        model.addAttribute("healthPhotosByLineId", healthPhotosByLineId);
 
         return "staff/appointment_detail";
     }

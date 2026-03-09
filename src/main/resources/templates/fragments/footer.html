@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<footer th:fragment="footer" id="footer" class="py-5" style="background-color: #F9F9F9; border-top: 1px solid #EEE;">
+    <div class="container py-5">
+        <div class="row g-4">
+
+            <div class="col-md-4">
+                <div class="footer-menu">
+                    <img th:src="@{/images/logo-petshop.png}" alt="logo" class="mb-3" style="max-height: 50px;">
+                    <h4 class="fw-bold mb-3" style="color: #FFA54F; font-family: 'Prata', serif;">Pet World</h4>
+                    <p style="color: #555; font-size: 0.95rem; line-height: 1.6;">
+                        Subscribe to our newsletter to get updates about our grand offers.
+                        We care for your pets like family.
+                    </p>
+
+                    <div class="social-links mt-4">
+                        <ul class="d-flex list-unstyled gap-3">
+                            <li th:each="iconName : ${#strings.arraySplit('ri:facebook-fill,ri:twitter-fill,ri:instagram-fill,ri:youtube-fill', ',')}">
+                                <a href="#" class="text-decoration-none">
+                                    <iconify-icon class="fs-4 footer-social-icon" th:icon="${iconName}"></iconify-icon>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6 col-md-2">
+                <h5 class="fw-bold mb-4" style="color: #333;">Quick Links</h5>
+                <ul class="list-unstyled d-grid gap-2">
+                    <li><a th:href="@{/}" class="footer-link">Home</a></li>
+                    <li><a th:href="@{/pets}" class="footer-link">Pets</a></li>
+                    <li><a th:href="@{/products}" class="footer-link">Products</a></li>
+                    <li><a th:href="@{/services}" class="footer-link">Services</a></li>
+                </ul>
+            </div>
+
+            <div class="col-6 col-md-2">
+                <h5 class="fw-bold mb-4" style="color: #333;">Help</h5>
+                <ul class="list-unstyled d-grid gap-2">
+                    <li><a href="#" class="footer-link">About Us</a></li>
+                    <li><a href="#" class="footer-link">Contact</a></li>
+                    <li><a href="#" class="footer-link">FAQs</a></li>
+                </ul>
+            </div>
+
+            <div class="col-md-4">
+                <h5 class="fw-bold mb-4" style="color: #333;">Contact Info</h5>
+                <ul class="list-unstyled d-grid gap-3">
+                    <li class="d-flex align-items-center gap-2" style="color: #444;">
+                        <iconify-icon icon="mdi:map-marker" class="fs-5" style="color: #FFA54F;"></iconify-icon>
+                        <span th:text="${globalConfigs != null and globalConfigs['SHOP_ADDRESS'] != null ? globalConfigs['SHOP_ADDRESS'] : 'Fpt Can Tho, Viet Nam'}"></span>
+                    </li>
+                    <li class="d-flex align-items-center gap-2" style="color: #444;">
+                        <iconify-icon icon="mdi:email" class="fs-5" style="color: #FFA54F;"></iconify-icon>
+                        <span th:text="${globalConfigs != null and globalConfigs['SHOP_EMAIL'] != null ? globalConfigs['SHOP_EMAIL'] : 'Petworldfpt@gmail.com'}"></span>
+                    </li>
+                    <li class="d-flex align-items-center gap-2" style="color: #444;">
+                        <iconify-icon icon="mdi:phone" class="fs-5" style="color: #FFA54F;"></iconify-icon>
+                        <span th:text="${globalConfigs != null and globalConfigs['SHOP_PHONE'] != null ? globalConfigs['SHOP_PHONE'] : '0123 456 789'}"></span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="mt-5 pt-4 border-top d-flex flex-wrap justify-content-between align-items-center">
+            <p class="small text-muted mb-0"
+               th:text="${globalConfigs != null ? globalConfigs['FOOTER_COPYRIGHT'] : '© 2026 Pet World. All rights reserved.'}"></p>
+        </div>
+    </div>
+
+    <style>
+        /* CSS để chữ không bị "khó nhìn" */
+        .footer-link {
+            color: #666 !important; /* Màu xám đậm hơn mẫu cũ */
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .footer-link:hover {
+            color: #FFA54F !important; /* Di chuột vào hiện màu cam */
+            padding-left: 5px;
+        }
+
+        .footer-social-icon {
+            color: #444;
+            transition: transform 0.3s, color 0.3s;
+        }
+
+        .footer-social-icon:hover {
+            color: #FFA54F;
+            transform: translateY(-3px);
+        }
+    </style>
+</footer>
+
+</body>
+</html>

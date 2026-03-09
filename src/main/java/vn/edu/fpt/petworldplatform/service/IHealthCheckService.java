@@ -15,9 +15,15 @@ public interface IHealthCheckService {
 
     HealthCheckContextDTO startHealthCheck(Integer staffId, Integer appointmentId);
 
+    HealthCheckContextDTO startHealthCheck(Integer staffId, Integer appointmentId, Integer serviceLineId);
+
     void submitHealthReport(Integer staffId, Integer appointmentId, SubmitHealthReportRequest request);
 
+    void submitHealthReport(Integer staffId, Integer appointmentId, Integer serviceLineId, SubmitHealthReportRequest request);
+
     void saveDraft(Integer staffId, Integer appointmentId, SaveHealthReportDraftRequest request);
+
+    void saveDraft(Integer staffId, Integer appointmentId, Integer serviceLineId, SaveHealthReportDraftRequest request);
 
     void updateWithin24h(Integer staffId, Integer recordId, UpdateHealthReportRequest request);
 }

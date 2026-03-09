@@ -1,31 +1,97 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>Appointment Detail - Admin</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" th:href="@{/css/sidebar-admin.css}">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    />
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    />
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
+    />
+    <link rel="stylesheet" th:href="@{/css/sidebar-admin.css}" />
+
     <style>
-        .bg-orange { background-color: #f37021; }
-        .btn-orange { background-color: #f37021; color: white; border: none; }
-        .btn-orange:hover { background-color: #d65d1a; color: white; }
-        .status-badge { padding: 0.5rem 1rem; border-radius: 50px; font-weight: 600; font-size: 0.85rem; display: inline-block; }
-        .status-pending { background-color: #fff3cd; color: #856404; }
-        .status-confirmed { background-color: #d1ecf1; color: #0c5460; }
-        .status-in_progress { background-color: #cce5ff; color: #004085; }
-        .status-done { background-color: #d4edda; color: #155724; }
-        .status-canceled { background-color: #f8d7da; color: #721c24; }
-        .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .bg-orange {
+            background-color: #f37021;
+        }
+
+        .btn-orange {
+            background-color: #f37021;
+            color: white;
+            border: none;
+        }
+
+        .btn-orange:hover {
+            background-color: #d65d1a;
+            color: white;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-block;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-confirmed {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-in_progress {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+
+        .status-done {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-canceled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
         .health-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px 16px;
         }
-        .health-item .k { color: #6b7280; font-size: 12px; font-weight: 700; }
-        .health-item .v { font-weight: 700; margin-top: 2px; }
+
+        .health-item .k {
+            color: #6b7280;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .health-item .v {
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
         .warning-chip {
             background: #fef2f2;
             color: #b91c1c;
@@ -35,12 +101,14 @@
             font-size: 12px;
             font-weight: 800;
         }
+
         .health-photos {
             margin-top: 10px;
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
             gap: 8px;
         }
+
         .health-photos img {
             width: 100%;
             height: 95px;
@@ -50,209 +118,396 @@
         }
     </style>
 </head>
+
 <body class="bg-light">
-<div class="d-flex">
-    <div th:replace="~{fragments/sidebar-admin :: aside(activePage='appointments')}"></div>
+    <div class="d-flex">
+        <div th:replace="~{fragments/sidebar-admin :: aside(activePage='appointments')}"></div>
 
-    <div class="container-fluid p-4">
-        <div class="d-flex align-items-center mb-4 gap-3">
-            <a th:href="@{/admin/appointments}" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-arrow-left"></i> Back
-            </a>
-            <h1 class="h3 mb-0">Appointment Detail: <span th:text="${appointment.appointmentCode}">#CODE</span></h1>
-        </div>
+        <div class="container-fluid p-4">
+            <div class="d-flex align-items-center mb-4 gap-3">
+                <a th:href="@{/admin/appointments}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
 
-        <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
-            <span th:text="${message}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-            <span th:text="${error}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-
-        <div class="d-flex justify-content-end mb-3" th:if="${appointment.status != 'canceled' && appointment.status != 'done' && appointment.status != 'no_show'}">
-            <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cancelModal">
-                <i class="bi bi-x-circle"></i> Cancel Appointment
-            </button>
-        </div>
-
-        <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="cancelModalLabel">Cancel Appointment</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <form th:action="@{/admin/appointments/{id}/cancel(id=${appointment.id})}" method="post">
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <label class="form-label">Reason for cancellation</label>
-                                <textarea name="reason" class="form-control" rows="3" required></textarea>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-danger">Confirm Cancel</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <div class="row g-4">
-            <div class="col-lg-8">
-                <div class="card mb-4">
-                    <div class="card-header bg-white py-3">
-                        <h5 class="mb-0">General Information</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label text-muted small">Status</label>
-                                <div>
-                                    <span th:class="'status-badge status-' + ${appointment.status.toLowerCase()}"
-                                          th:text="${appointment.status.toUpperCase()}">PENDING</span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label text-muted small">Appointment Date</label>
-                                <div class="fw-bold" th:text="${#temporals.format(appointment.appointmentDate, 'dd/MM/yyyy')}">Date</div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label text-muted small">Expected End Time</label>
-                                <div class="fw-bold" th:text="${#temporals.format(appointment.endTime, 'dd/MM/yyyy')}">End Time</div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label text-muted small">Created At</label>
-                                <div th:text="${#temporals.format(appointment.createdAt, 'dd/MM/yyyy')}">Created</div>
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label text-muted small">Customer Note</label>
-                                <div class="p-2 bg-light rounded" th:text="${appointment.note ?: 'No note provided.'}">Note</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card mb-4">
-                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Health Report</h5>
-                        <span th:if="${healthRecord != null and healthRecord.warningFlag}" class="warning-chip">Warning</span>
-                    </div>
-                    <div class="card-body" th:if="${healthRecord != null}">
-                        <div class="health-grid">
-                            <div class="health-item">
-                                <div class="k">Weight</div>
-                                <div class="v" th:text="${healthRecord.weightKg} + ' kg'">0 kg</div>
-                            </div>
-                            <div class="health-item">
-                                <div class="k">Temperature</div>
-                                <div class="v" th:text="${healthRecord.temperature} + ' °C'">0 °C</div>
-                            </div>
-                            <div class="health-item">
-                                <div class="k">Condition Before</div>
-                                <div class="v" th:text="${healthRecord.conditionBefore ?: '-'}">-</div>
-                            </div>
-                            <div class="health-item">
-                                <div class="k">Condition After</div>
-                                <div class="v" th:text="${healthRecord.conditionAfter ?: '-'}">-</div>
-                            </div>
-                        </div>
-                        <div class="mt-3 p-2 border rounded"><strong>Findings:</strong> <span th:text="${healthRecord.findings ?: '-'}"></span></div>
-                        <div class="mt-2 p-2 border rounded"><strong>Recommendations:</strong> <span th:text="${healthRecord.recommendations ?: '-'}"></span></div>
-                        <div class="mt-2 p-2 border rounded"><strong>Notes:</strong> <span th:text="${healthRecord.note ?: '-'}"></span></div>
-
-                        <div class="health-photos" th:if="${healthPhotos != null and !#lists.isEmpty(healthPhotos)}">
-                            <img th:each="photo : ${healthPhotos}" th:src="@{${photo.imageUrl}}" alt="evidence" />
-                        </div>
-                    </div>
-                    <div class="card-body" th:if="${healthRecord == null}">
-                        <div class="text-muted">No health report available for this appointment.</div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header bg-white py-3">
-                        <h5 class="mb-0">Requested Services</h5>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead class="table-light">
-                                <tr>
-                                    <th class="ps-4">Service Name</th>
-                                    <th>Price</th>
-                                    <th class="pe-4 text-end">Quantity</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <tr th:each="line : ${appointment.serviceLines}">
-                                    <td class="ps-4" th:text="${line.service.name}">Service</td>
-                                    <td th:text="${#numbers.formatDecimal(line.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">0</td>
-                                    <td class="pe-4 text-end" th:text="${line.quantity}">1</td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+                <h1 class="h3 mb-0">
+                    Appointment Detail:
+                    <span th:text="${appointment.appointmentCode}">#CODE</span>
+                </h1>
             </div>
 
-            <div class="col-lg-4">
-                <div class="card sticky-top" style="top: 20px;">
-                    <div class="card-header bg-orange text-white py-3">
-                        <h5 class="mb-0">Staff Assignment</h5>
-                    </div>
-                    <div class="card-body">
-                        <div th:if="${appointment.staffId != null}" class="mb-4">
-                            <div class="alert alert-info">
-                                <i class="bi bi-person-check-fill me-2"></i>
-                                Currently assigned to: <strong th:text="${appointment.staff != null ? appointment.staff.fullName : 'Staff ID: ' + appointment.staffId}">#NAME</strong>
-                            </div>
+            <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <span th:text="${message}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
 
-                            <h6>Change Staff (Reassign)</h6>
-                            <form th:action="@{/admin/appointments/{id}/reassign(id=${appointment.id})}" method="POST">
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div
+                class="d-flex justify-content-end mb-3"
+                th:if="${appointment.status != 'canceled' && appointment.status != 'done' && appointment.status != 'no_show'}"
+            >
+                <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                    <i class="bi bi-x-circle"></i> Cancel Appointment
+                </button>
+            </div>
+
+            <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="cancelModalLabel">Cancel Appointment</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+
+                        <form th:action="@{/admin/appointments/{id}/cancel(id=${appointment.id})}" method="post">
+                            <div class="modal-body">
                                 <div class="mb-3">
-                                    <select name="staffId" class="form-select" required>
-                                        <option value="" disabled selected>Select new staff...</option>
-                                        <option th:each="staff : ${availableStaff}"
-                                                th:value="${staff.staffId}"
-                                                th:text="${staff.fullName + ' (' + staff.role.roleName + ')'}">
-                                        </option>
-                                    </select>
+                                    <label class="form-label">Reason for cancellation</label>
+                                    <textarea name="reason" class="form-control" rows="3" required></textarea>
                                 </div>
-                                <button type="submit" class="btn btn-orange w-100"
-                                        th:disabled="${appointment.status == 'done' || appointment.status == 'canceled'}">
-                                    Confirm Change
-                                </button>
-                            </form>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-danger">Confirm Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card mb-4">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="mb-0">General Information</h5>
                         </div>
 
-                        <div th:if="${appointment.staffId == null}">
-                            <div th:if="${appointment.status == 'pending' || appointment.status == 'confirmed'}">
-                                <p class="text-muted small">
-                                    This appointment is not assigned yet. Please assign an available staff member.
-                                </p>
-                                <form th:action="@{/admin/appointments/{id}/assign(id=${appointment.id})}" method="POST">
-                                    <div class="mb-3">
-                                        <label class="form-label">Available Staff Members</label>
-                                        <select name="staffId" class="form-select" required>
-                                            <option value="" disabled selected>Select a staff member...</option>
-                                            <option th:each="staff : ${availableStaff}"
-                                                    th:value="${staff.staffId}"
-                                                    th:text="${staff.fullName + ' (' + staff.role.roleName + ')'}">
-                                            </option>
-                                        </select>
-                                        <div class="form-text">Only active staff with no schedule conflicts are shown.</div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small">Status</label>
+                                    <div>
+                                        <span
+                                            th:class="'status-badge status-' + ${appointment.status.toLowerCase()}"
+                                            th:text="${appointment.status.toUpperCase()}"
+                                        >
+                                            PENDING
+                                        </span>
                                     </div>
-                                    <button type="submit" class="btn btn-success w-100 py-2 fw-bold">
-                                        Confirm Assignment
-                                    </button>
-                                </form>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small">Appointment Date</label>
+                                    <div
+                                        class="fw-bold"
+                                        th:text="${#temporals.format(appointment.appointmentDate, 'dd/MM/yyyy')}"
+                                    >
+                                        Date
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small">Expected End Time</label>
+                                    <div class="fw-bold" th:text="${#temporals.format(appointment.endTime, 'dd/MM/yyyy')}">
+                                        End Time
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted small">Created At</label>
+                                    <div th:text="${#temporals.format(appointment.createdAt, 'dd/MM/yyyy')}">Created</div>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label text-muted small">Customer Note</label>
+                                    <div class="p-2 bg-light rounded" th:text="${appointment.note ?: 'No note provided.'}">
+                                        Note
+                                    </div>
+                                </div>
                             </div>
-                            <div th:unless="${appointment.status == 'pending' || appointment.status == 'confirmed'}" class="alert alert-warning">
-                                Cannot assign staff to an appointment with status: <strong th:text="${appointment.status}">STATUS</strong>
+                        </div>
+                    </div>
+
+                    <div class="card mb-4" th:if="${serviceLines == null or #lists.size(serviceLines) <= 1}">
+                        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Health Report</h5>
+                            <span th:if="${healthRecord != null and healthRecord.warningFlag}" class="warning-chip">
+                                Warning
+                            </span>
+                        </div>
+
+                        <div class="card-body" th:if="${healthRecord != null}">
+                            <div class="health-grid">
+                                <div class="health-item">
+                                    <div class="k">Weight</div>
+                                    <div class="v" th:text="${healthRecord.weightKg} + ' kg'">0 kg</div>
+                                </div>
+
+                                <div class="health-item">
+                                    <div class="k">Temperature</div>
+                                    <div class="v" th:text="${healthRecord.temperature} + ' °C'">0 °C</div>
+                                </div>
+
+                                <div class="health-item">
+                                    <div class="k">Condition Before</div>
+                                    <div class="v" th:text="${healthRecord.conditionBefore ?: '-'}">-</div>
+                                </div>
+
+                                <div class="health-item">
+                                    <div class="k">Condition After</div>
+                                    <div class="v" th:text="${healthRecord.conditionAfter ?: '-'}">-</div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3 p-2 border rounded">
+                                <strong>Findings:</strong>
+                                <span th:text="${healthRecord.findings ?: '-'}"></span>
+                            </div>
+
+                            <div class="mt-2 p-2 border rounded">
+                                <strong>Recommendations:</strong>
+                                <span th:text="${healthRecord.recommendations ?: '-'}"></span>
+                            </div>
+
+
+                            <div class="health-photos" th:if="${false}">
+                                <img th:each="photo : ${healthPhotos}" th:src="@{${photo.imageUrl}}" alt="evidence" />
+                            </div>
+                        </div>
+
+                        <div class="card-body" th:if="${healthRecord == null}">
+                            <div class="text-muted">No health report available for this appointment.</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header bg-white py-3">
+                            <h5 class="mb-0">Requested Services</h5>
+                        </div>
+
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="ps-4">Service Name</th>
+                                            <th>Status</th>
+                                            <th>Staff</th>
+                                            <th>Price</th>
+                                            <th class="pe-4 text-end">Health Summary</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody>
+                                        <tr th:each="line : ${serviceLines}">
+                                            <td class="ps-4" th:text="${line.service.name}">Service</td>
+
+                                            <td>
+                                                <span
+                                                    class="badge bg-light text-dark border"
+                                                    th:text="${line.serviceStatus != null ? line.serviceStatus : 'pending'}"
+                                                >
+                                                    pending
+                                                </span>
+                                            </td>
+
+                                            <td th:text="${line.assignedStaff != null ? line.assignedStaff.fullName : 'Unassigned'}">
+                                                Unassigned
+                                            </td>
+
+                                            <td th:text="${#numbers.formatDecimal(line.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">
+                                                0
+                                            </td>
+
+                                            <td class="pe-4 text-end">
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-outline-primary btn-sm"
+                                                    th:if="${healthRecordByServiceLineId != null and healthRecordByServiceLineId.containsKey(line.id)}"
+                                                    data-bs-toggle="modal"
+                                                    th:attr="data-bs-target='#healthSummaryModal-' + ${line.id}"
+                                                >
+                                                    View summary
+                                                </button>
+
+                                                <span
+                                                    th:unless="${healthRecordByServiceLineId != null and healthRecordByServiceLineId.containsKey(line.id)}"
+                                                    class="text-muted"
+                                                >
+                                                    No summary
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <div
+                                    th:each="line : ${serviceLines}"
+                                    th:if="${healthRecordByServiceLineId != null and healthRecordByServiceLineId.containsKey(line.id)}"
+                                    class="modal fade"
+                                    th:id="'healthSummaryModal-' + ${line.id}"
+                                    tabindex="-1"
+                                    aria-hidden="true"
+                                >
+                                    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">
+                                                    Health Summary -
+                                                    <span th:text="${line.service.name}">Service</span>
+                                                </h5>
+                                                <button
+                                                    type="button"
+                                                    class="btn-close"
+                                                    data-bs-dismiss="modal"
+                                                    aria-label="Close"
+                                                ></button>
+                                            </div>
+
+                                            <div class="modal-body">
+                                                <div class="health-grid">
+                                                    <div class="health-item">
+                                                        <div class="k">Weight</div>
+                                                        <div
+                                                            class="v"
+                                                            th:text="${healthRecordByServiceLineId.get(line.id).weightKg != null ? healthRecordByServiceLineId.get(line.id).weightKg + ' kg' : '-'}"
+                                                        >
+                                                            -
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="health-item">
+                                                        <div class="k">Temperature</div>
+                                                        <div
+                                                            class="v"
+                                                            th:text="${healthRecordByServiceLineId.get(line.id).temperature != null ? healthRecordByServiceLineId.get(line.id).temperature + ' °C' : '-'}"
+                                                        >
+                                                            -
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="health-item">
+                                                        <div class="k">Condition Before</div>
+                                                        <div
+                                                            class="v"
+                                                            th:text="${healthRecordByServiceLineId.get(line.id).conditionBefore ?: '-'}"
+                                                        >
+                                                            -
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="health-item">
+                                                        <div class="k">Condition After</div>
+                                                        <div
+                                                            class="v"
+                                                            th:text="${healthRecordByServiceLineId.get(line.id).conditionAfter ?: '-'}"
+                                                        >
+                                                            -
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="mt-3 p-2 border rounded">
+                                                    <strong>Findings:</strong>
+                                                    <span th:text="${healthRecordByServiceLineId.get(line.id).findings ?: '-'}"></span>
+                                                </div>
+
+                                                <div class="mt-2 p-2 border rounded">
+                                                    <strong>Recommendations:</strong>
+                                                    <span
+                                                        th:text="${healthRecordByServiceLineId.get(line.id).recommendations ?: '-'}"
+                                                    ></span>
+                                                </div>
+
+
+                                                <div
+                                                    class="health-photos mt-3"
+                                                    th:if="${healthPhotosByServiceLineId != null and healthPhotosByServiceLineId.containsKey(line.id) and !#lists.isEmpty(healthPhotosByServiceLineId.get(line.id))}"
+                                                >
+                                                    <img
+                                                        th:each="photo : ${healthPhotosByServiceLineId.get(line.id)}"
+                                                        th:src="@{${photo.imageUrl}}"
+                                                        alt="health evidence"
+                                                    />
+                                                </div>
+
+                                                <div
+                                                    class="text-muted mt-2"
+                                                    th:unless="${healthPhotosByServiceLineId != null and healthPhotosByServiceLineId.containsKey(line.id) and !#lists.isEmpty(healthPhotosByServiceLineId.get(line.id))}"
+                                                >
+                                                    No evidence images.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card sticky-top" style="top: 20px;">
+                        <div class="card-header bg-orange text-white py-3">
+                            <h5 class="mb-0">Staff Assignment By Service</h5>
+                        </div>
+
+                        <div class="card-body">
+                            <div
+                                th:if="${appointment.status == 'done' || appointment.status == 'canceled' || appointment.status == 'no_show'}"
+                                class="alert alert-warning"
+                            >
+                                Cannot assign staff when appointment status is:
+                                <strong th:text="${appointment.status}">STATUS</strong>
+                            </div>
+
+                            <div th:if="${serviceLines != null}" class="d-flex flex-column gap-3">
+                                <div class="border rounded p-3" th:each="line : ${serviceLines}">
+                                    <div class="fw-semibold mb-2" th:text="${line.service.name}">Service Name</div>
+
+                                    <div class="small text-muted mb-2">
+                                        Qty: <span th:text="${line.quantity}">1</span>
+                                        · Current:
+                                        <strong
+                                            th:text="${line.assignedStaff != null ? line.assignedStaff.fullName : 'Unassigned'}"
+                                        >
+                                            Unassigned
+                                        </strong>
+                                    </div>
+
+                                    <form
+                                        th:if="${appointment.status != 'done' && appointment.status != 'canceled' && appointment.status != 'no_show'}"
+                                        th:action="@{/admin/appointments/{id}/service-lines/{lineId}/assign(id=${appointment.id},lineId=${line.id})}"
+                                        method="POST"
+                                    >
+                                        <div class="mb-2">
+                                            <select name="staffId" class="form-select" required>
+                                                <option value="" disabled selected>
+                                                    Select staff for this service...
+                                                </option>
+
+                                                <option
+                                                    th:each="staff : ${availableStaffByLine[line.id]}"
+                                                    th:value="${staff.staffId}"
+                                                    th:selected="${line.assignedStaffId != null and line.assignedStaffId == staff.staffId}"
+                                                    th:text="${staff.fullName + ' (' + staff.role.roleName + ')'}"
+                                                >
+                                                    Staff Name
+                                                </option>
+                                            </select>
+
+                                            <div class="form-text">
+                                                Only active staff with no schedule conflicts are shown.
+                                            </div>
+                                        </div>
+
+                                        <button type="submit" class="btn btn-orange w-100">Assign service</button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -260,8 +515,7 @@
             </div>
         </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

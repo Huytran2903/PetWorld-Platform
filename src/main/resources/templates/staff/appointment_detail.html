@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <th:block th:replace="~{fragments/staff_layout :: layout(~{::detail_content})}">
-
     <div th:fragment="detail_content">
-        <link rel="stylesheet" th:href="@{/css/appointment_detail.css}">
+        <link rel="stylesheet" th:href="@{/css/appointment_detail.css}" />
 
         <style>
             .health-report {
@@ -13,6 +12,7 @@
                 overflow: hidden;
                 background: #fff;
             }
+
             .health-report-header {
                 padding: 12px 14px;
                 border-bottom: 1px solid #e7ecf4;
@@ -21,28 +21,78 @@
                 justify-content: space-between;
                 align-items: center;
             }
-            .health-report-title { font-weight: 800; color: #143a66; }
+
+            .health-report-title {
+                font-weight: 800;
+                color: #143a66;
+            }
+
             .health-grid {
                 padding: 12px 14px;
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: 10px 16px;
             }
-            .health-item .k { color: #6b7686; font-size: 12px; font-weight: 700; }
-            .health-item .v { color: #132238; font-weight: 700; margin-top: 2px; }
-            .health-notes { padding: 0 14px 12px; }
-            .health-notes .block { margin-top: 10px; padding: 10px; border: 1px solid #e7ecf4; border-radius: 10px; background: #fff; }
-            .health-photos { padding: 0 14px 14px; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
-            .health-photos img { width: 100%; height: 110px; object-fit: cover; border-radius: 10px; border: 1px solid #e7ecf4; }
-            .warning-chip { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; }
+
+            .health-item .k {
+                color: #6b7686;
+                font-size: 12px;
+                font-weight: 700;
+            }
+
+            .health-item .v {
+                color: #132238;
+                font-weight: 700;
+                margin-top: 2px;
+            }
+
+            .health-notes {
+                padding: 0 14px 12px;
+            }
+
+            .health-notes .block {
+                margin-top: 10px;
+                padding: 10px;
+                border: 1px solid #e7ecf4;
+                border-radius: 10px;
+                background: #fff;
+            }
+
+            .health-photos {
+                padding: 0 14px 14px;
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                gap: 10px;
+            }
+
+            .health-photos img {
+                width: 100%;
+                height: 110px;
+                object-fit: cover;
+                border-radius: 10px;
+                border: 1px solid #e7ecf4;
+            }
+
+            .warning-chip {
+                background: #fef2f2;
+                color: #b91c1c;
+                border: 1px solid #fecaca;
+                padding: 4px 10px;
+                border-radius: 999px;
+                font-size: 12px;
+                font-weight: 800;
+            }
         </style>
 
         <div class="hero">
             <div class="hero-inner">
                 <div>
                     <h1>Appointment Details</h1>
-                    <p th:text="'View details of appointment ' + ${appointment.appointmentCode}">Static view of appointment APP-000123.</p>
+                    <p th:text="'View details of appointment ' + ${appointment.appointmentCode}">
+                        Static view of appointment APP-000123.
+                    </p>
                 </div>
+
                 <div class="pill">DETAIL</div>
             </div>
         </div>
@@ -63,105 +113,317 @@
                             <div class="k">Appointment Code</div>
                             <div class="v" th:text="${appointment.appointmentCode}">APP-000123</div>
                         </div>
+
                         <div class="detail-item">
                             <div class="k">Status</div>
                             <div class="v">
-                                <span class="status-pill"
-                                      th:text="${appointment.status}"
-                                      th:classappend="${'status-' + appointment.status.toLowerCase()}">pending</span>
+                                <span
+                                    class="status-pill"
+                                    th:text="${appointment.status}"
+                                    th:classappend="${'status-' + appointment.status.toLowerCase()}"
+                                >
+                                    pending
+                                </span>
                             </div>
                         </div>
+
                         <div class="detail-item">
                             <div class="k">Date & time</div>
-                            <div class="v" th:text="${#temporals.format(appointment.appointmentDate, 'dd/MM/yyyy')}">07-01-2026 21:00</div>
+                            <div class="v" th:text="${#temporals.format(appointment.appointmentDate, 'dd/MM/yyyy')}">
+                                07-01-2026 21:00
+                            </div>
                         </div>
+
                         <div class="detail-item">
                             <div class="k">Pet</div>
-                            <div class="v" th:text="${appointment.pet.name} + ' (' + ${appointment.pet.petType} + ')'">Lucky (Dog)</div>
+                            <div
+                                class="v"
+                                th:text="${appointment.pet.name} + ' (' + ${appointment.pet.petType} + ')'"
+                            >
+                                Lucky (Dog)
+                            </div>
                         </div>
                     </div>
 
                     <div class="section-title">Customer requests</div>
-                    <div class="note" th:if="${appointment.note}" th:text="${appointment.note}">Example note...</div>
-                    <div class="note note-empty" th:unless="${appointment.note}">No special requests.</div>
+
+                    <div class="note" th:if="${appointment.note}" th:text="${appointment.note}">
+                        Example note...
+                    </div>
+                    <div class="note note-empty" th:unless="${appointment.note}">
+                        No special requests.
+                    </div>
 
                     <div class="section-title">Selected services</div>
+
                     <div class="table-wrap">
                         <table class="service-table">
                             <thead>
-                            <tr>
-                                <th>Service</th>
-                                <th>Type</th>
-                                <th class="ta-center">Qty</th>
-                                <th class="ta-center">Duration (mins)</th>
-                                <th class="ta-right">Amount</th>
-                            </tr>
+                                <tr>
+                                    <th>Service</th>
+                                    <th>Type</th>
+                                    <th class="ta-center">Qty</th>
+                                    <th class="ta-center">Duration (mins)</th>
+                                    <th class="ta-right">Amount</th>
+                                    <th class="ta-right">Health Summary</th>
+                                </tr>
                             </thead>
+
                             <tbody>
-                            <tr th:each="item : ${appointment.serviceLines}">
-                                <td th:text="${item.service.name}">Basic Spa Bath</td>
-                                <td>
-                                    <span class="badge" th:text="${item.service.serviceType}">spa</span>
-                                </td>
-                                <td class="ta-center" th:text="${item.quantity}">1</td>
-                                <td class="ta-center" th:text="${item.service.durationMinutes * item.quantity}">60</td>
-                                <td class="ta-right" th:text="${#numbers.formatDecimal(item.price * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' đ'">100,000 đ</td>
-                            </tr>
-                            <tr th:if="${#lists.isEmpty(appointment.serviceLines)}">
-                                <td colspan="5" class="empty-row">No service lines found.</td>
-                            </tr>
+                                <tr th:each="item : ${myServiceLines}">
+                                    <td th:text="${item.service.name}">Basic Spa Bath</td>
+
+                                    <td>
+                                        <span
+                                            class="badge"
+                                            th:text="${item.service.serviceType != null ? item.service.serviceType : '-'}"
+                                        >
+                                            spa
+                                        </span>
+                                    </td>
+
+                                    <td class="ta-center" th:text="${item.quantity}">1</td>
+
+                                    <td class="ta-center" th:text="${item.service.durationMinutes * item.quantity}">
+                                        60
+                                    </td>
+
+                                    <td
+                                        class="ta-right"
+                                        th:text="${#numbers.formatDecimal(item.price * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' đ'"
+                                    >
+                                        100,000 đ
+                                    </td>
+
+                                    <td class="ta-right">
+                                        <button
+                                            type="button"
+                                            class="btn btn-secondary btn-sm"
+                                            th:if="${healthRecordByLineId != null and healthRecordByLineId.containsKey(item.id)}"
+                                            data-bs-toggle="modal"
+                                            th:attr="data-bs-target='#healthSummaryModal-' + ${item.id}"
+                                        >
+                                            Health summary
+                                        </button>
+
+                                        <span
+                                            th:unless="${healthRecordByLineId != null and healthRecordByLineId.containsKey(item.id)}"
+                                            class="text-muted"
+                                        >
+                                            No summary
+                                        </span>
+                                    </td>
+                                </tr>
+
+                                <tr th:if="${#lists.isEmpty(myServiceLines)}">
+                                    <td colspan="6" class="empty-row">No service lines found.</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <div class="health-report" th:if="${healthRecord != null}">
+                    <div
+                        class="health-report"
+                        th:if="${healthRecord != null and (myServiceLines == null or #lists.size(myServiceLines) <= 1)}"
+                    >
                         <div class="health-report-header">
                             <div class="health-report-title">Health Report</div>
                             <span th:if="${healthRecord.warningFlag}" class="warning-chip">Warning</span>
                         </div>
+
                         <div class="health-grid">
                             <div class="health-item">
                                 <div class="k">Weight</div>
                                 <div class="v" th:text="${healthRecord.weightKg} + ' kg'">0 kg</div>
                             </div>
+
                             <div class="health-item">
                                 <div class="k">Temperature</div>
                                 <div class="v" th:text="${healthRecord.temperature} + ' °C'">0 °C</div>
                             </div>
+
                             <div class="health-item">
                                 <div class="k">Condition Before</div>
                                 <div class="v" th:text="${healthRecord.conditionBefore ?: '-'}">-</div>
                             </div>
+
                             <div class="health-item">
                                 <div class="k">Condition After</div>
                                 <div class="v" th:text="${healthRecord.conditionAfter ?: '-'}">-</div>
                             </div>
                         </div>
+
                         <div class="health-notes">
-                            <div class="block"><strong>Findings:</strong> <span th:text="${healthRecord.findings ?: '-'}">-</span></div>
-                            <div class="block"><strong>Recommendations:</strong> <span th:text="${healthRecord.recommendations ?: '-'}">-</span></div>
-                            <div class="block"><strong>Notes:</strong> <span th:text="${healthRecord.note ?: '-'}">-</span></div>
+                            <div class="block">
+                                <strong>Findings:</strong>
+                                <span th:text="${healthRecord.findings ?: '-'}">-</span>
+                            </div>
+
+                            <div class="block">
+                                <strong>Recommendations:</strong>
+                                <span th:text="${healthRecord.recommendations ?: '-'}">-</span>
+                            </div>
+
+                            <div class="block">
+                                <strong>Notes:</strong>
+                                <span th:text="${healthRecord.note ?: '-'}">-</span>
+                            </div>
                         </div>
+
                         <div class="health-photos" th:if="${healthPhotos != null and !#lists.isEmpty(healthPhotos)}">
                             <img th:each="photo : ${healthPhotos}" th:src="@{${photo.imageUrl}}" alt="evidence" />
                         </div>
                     </div>
 
+                    <div
+                        th:each="item : ${myServiceLines}"
+                        th:if="${healthRecordByLineId != null and healthRecordByLineId.containsKey(item.id)}"
+                        class="modal fade"
+                        th:id="'healthSummaryModal-' + ${item.id}"
+                        tabindex="-1"
+                        aria-hidden="true"
+                    >
+                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">
+                                        Health Summary -
+                                        <span th:text="${item.service.name}">Service</span>
+                                    </h5>
+                                    <button
+                                        type="button"
+                                        class="btn-close"
+                                        data-bs-dismiss="modal"
+                                        aria-label="Close"
+                                    ></button>
+                                </div>
+
+                                <div class="modal-body">
+                                    <div class="health-grid" style="padding: 0;">
+                                        <div class="health-item">
+                                            <div class="k">Weight</div>
+                                            <div
+                                                class="v"
+                                                th:text="${healthRecordByLineId.get(item.id).weightKg != null ? healthRecordByLineId.get(item.id).weightKg + ' kg' : '-'}"
+                                            >
+                                                -
+                                            </div>
+                                        </div>
+
+                                        <div class="health-item">
+                                            <div class="k">Temperature</div>
+                                            <div
+                                                class="v"
+                                                th:text="${healthRecordByLineId.get(item.id).temperature != null ? healthRecordByLineId.get(item.id).temperature + ' °C' : '-'}"
+                                            >
+                                                -
+                                            </div>
+                                        </div>
+
+                                        <div class="health-item">
+                                            <div class="k">Condition Before</div>
+                                            <div
+                                                class="v"
+                                                th:text="${healthRecordByLineId.get(item.id).conditionBefore ?: '-'}"
+                                            >
+                                                -
+                                            </div>
+                                        </div>
+
+                                        <div class="health-item">
+                                            <div class="k">Condition After</div>
+                                            <div
+                                                class="v"
+                                                th:text="${healthRecordByLineId.get(item.id).conditionAfter ?: '-'}"
+                                            >
+                                                -
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="health-notes" style="padding: 0;">
+                                        <div class="block">
+                                            <strong>Findings:</strong>
+                                            <span th:text="${healthRecordByLineId.get(item.id).findings ?: '-'}">-</span>
+                                        </div>
+
+                                        <div class="block">
+                                            <strong>Recommendations:</strong>
+                                            <span th:text="${healthRecordByLineId.get(item.id).recommendations ?: '-'}">
+                                                -
+                                            </span>
+                                        </div>
+
+                                    </div>
+
+                                    <div
+                                        class="health-photos"
+                                        style="padding: 0;"
+                                        th:if="${healthPhotosByLineId != null and healthPhotosByLineId.containsKey(item.id) and !#lists.isEmpty(healthPhotosByLineId.get(item.id))}"
+                                    >
+                                        <img
+                                            th:each="photo : ${healthPhotosByLineId.get(item.id)}"
+                                            th:src="@{${photo.imageUrl}}"
+                                            alt="evidence"
+                                        />
+                                    </div>
+
+                                    <div
+                                        class="text-muted mt-2"
+                                        th:unless="${healthPhotosByLineId != null and healthPhotosByLineId.containsKey(item.id) and !#lists.isEmpty(healthPhotosByLineId.get(item.id))}"
+                                    >
+                                        No evidence images.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="actions">
-                        <form th:if="${appointment.status != null and appointment.status.toLowerCase() == 'confirmed'}"
-                              th:action="@{/staff/appointment/checkin}" method="post" style="display:inline-block;">
-                            <input type="hidden" name="id" th:value="${appointment.id}">
+                        <form
+                            th:if="${appointment.status != null and appointment.status.toLowerCase() == 'confirmed'}"
+                            th:action="@{/staff/appointment/checkin}"
+                            method="post"
+                            style="display: inline-block;"
+                        >
+                            <input type="hidden" name="id" th:value="${appointment.id}" />
                             <button class="btn btn-primary" type="submit">Check In</button>
                         </form>
 
-                        <form th:if="${appointment.status != null and appointment.status.toLowerCase() == 'checked_in'}"
-                              th:action="@{'/staff/health-check/' + ${appointment.id} + '/execute'}" method="post" style="display:inline-block;">
-                            <button class="btn btn-primary" type="submit">Perform SPA Service</button>
-                        </form>
+                        <th:block th:each="item : ${myServiceLines}">
+                            <a
+                                class="btn btn-primary"
+                                th:if="${appointment.status != null and (appointment.status.toLowerCase() == 'checked_in' or appointment.status.toLowerCase() == 'in_progress') and item.serviceStatus != null and item.serviceStatus.toLowerCase() == 'in_progress'}"
+                                th:href="@{/staff/health-check/report(appointmentId=${appointment.id},serviceLineId=${item.id})}"
+                                th:text="${'Continue ' + (item.service != null ? item.service.name : 'Service')}"
+                            >
+                                Continue Service
+                            </a>
 
-                        <form th:if="${appointment.status != null and (appointment.status.toLowerCase() == 'confirmed' or appointment.status.toLowerCase() == 'checked_in')}"
-                              th:action="@{/staff/appointment/no-show}" method="post" style="display:inline-block; margin-left:8px;">
-                            <input type="hidden" name="id" th:value="${appointment.id}">
+                            <form
+                                th:if="${appointment.status != null and (appointment.status.toLowerCase() == 'checked_in' or appointment.status.toLowerCase() == 'in_progress') and (item.serviceStatus == null or item.serviceStatus.toLowerCase() == 'pending' or item.serviceStatus.toLowerCase() == 'assigned')}"
+                                th:action="@{'/staff/health-check/' + ${appointment.id} + '/execute'}"
+                                method="post"
+                                style="display: inline-block;"
+                            >
+                                <input type="hidden" name="serviceLineId" th:value="${item.id}" />
+                                <button
+                                    class="btn btn-primary"
+                                    type="submit"
+                                    th:text="${'Perform ' + (item.service != null ? item.service.name : 'Service')}"
+                                >
+                                    Perform Service
+                                </button>
+                            </form>
+                        </th:block>
+
+                        <form
+                            th:if="${appointment.status != null and (appointment.status.toLowerCase() == 'confirmed' or appointment.status.toLowerCase() == 'checked_in')}"
+                            th:action="@{/staff/appointment/no-show}"
+                            method="post"
+                            style="display: inline-block; margin-left: 8px;"
+                        >
+                            <input type="hidden" name="id" th:value="${appointment.id}" />
                             <button class="btn btn-ghost" type="submit">Report No-show</button>
                         </form>
 
@@ -174,15 +436,18 @@
                 <header class="card-header">
                     <h2 class="title">Customer Info</h2>
                 </header>
+
                 <div class="card-body">
                     <div class="detail-item">
                         <div class="k">Name</div>
                         <div class="v" th:text="${appointment.customer.fullName}">Nguyen Van A</div>
                     </div>
+
                     <div class="detail-item">
                         <div class="k">Phone</div>
                         <div class="v" th:text="${appointment.customer.phone} ?: 'N/A'">0901234567</div>
                     </div>
+
                     <div class="detail-item">
                         <div class="k">Email</div>
                         <div class="v" th:text="${appointment.customer.email}">email@example.com</div>
@@ -191,6 +456,5 @@
             </aside>
         </main>
     </div>
-
 </th:block>
 </html>

@@ -165,7 +165,7 @@ public class BookingService {
         return appointmentRepository.findByCustomerIdOrderByAppointmentDateDesc(customerId);
     }
 
-    public List<Appointment> findActiveAppointmentsByCustomerId(Long customerId) {
+    public List<Appointment> findActiveAppointmentsByCustomerId(Integer customerId) {
         List<String> activeStatuses = List.of("pending", "confirmed");
         return appointmentRepository.findByCustomerIdAndStatusInOrderByAppointmentDateDesc(customerId, activeStatuses);
     }
