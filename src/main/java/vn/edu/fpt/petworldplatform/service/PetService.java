@@ -93,11 +93,12 @@ public class PetService {
         MultipartFile file = dto.getImageFile();
         if (file != null && !file.isEmpty()) {
             String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-            String uploadDir = "src/main/resources/static/images/";
+
+            String uploadDir = "uploads/";
 
             FileUploadUtil.saveFile(uploadDir, fileName, file);
 
-            pet.setImageUrl("/images/" + fileName);
+            pet.setImageUrl("/uploads/" + fileName);
         }
 
         if ("shop".equalsIgnoreCase(dto.getCreatePetOwnerType())) {
@@ -196,17 +197,17 @@ public class PetService {
 
         if (serviceCount > 0) {
             stats.add(new PetStatisticsDTO.PetSpeciesStats("SERVICE", serviceCount,
-                total > 0 ? (serviceCount * 100.0 / total) : 0.0));
+                    total > 0 ? (serviceCount * 100.0 / total) : 0.0));
         }
 
         if (saleCount > 0) {
             stats.add(new PetStatisticsDTO.PetSpeciesStats("SALE", saleCount,
-                total > 0 ? (saleCount * 100.0 / total) : 0.0));
+                    total > 0 ? (saleCount * 100.0 / total) : 0.0));
         }
 
         if (soldCount > 0) {
             stats.add(new PetStatisticsDTO.PetSpeciesStats("SOLD", soldCount,
-                total > 0 ? (soldCount * 100.0 / total) : 0.0));
+                    total > 0 ? (soldCount * 100.0 / total) : 0.0));
         }
 
         return stats;

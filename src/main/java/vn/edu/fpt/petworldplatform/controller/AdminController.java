@@ -66,15 +66,6 @@ public class AdminController {
         return "admin/admin-dashboard";
     }
 
-    @GetMapping("/admin/add-staff")
-    public String addNewStaff() {
-        return "admin/add-editStaffProfile";
-    }
-
-    @GetMapping("/admin/edit-staff")
-    public String editStaffProfile() {
-        return "admin/add-editStaffProfile";
-    }
 
     //Manage Pet - OanhTP
     //List
@@ -134,7 +125,6 @@ public class AdminController {
                           RedirectAttributes redirectAttributes,
                           @RequestParam("mode") String formMode,
                           Model model) {
-
         if (result.hasErrors()) {
             model.addAttribute("formMode", formMode);
             return "admin/pet-form";
@@ -171,11 +161,11 @@ public class AdminController {
 
                     // Nếu có nhập ngày hẹn tiếp theo
                     if (pet.getNextDueDate() != null) {
-                        newVaccine.setNextDueDate(pet.getNextDueDate().atStartOfDay()); // Ép kiểu LocalDate sang LocalDateTime nếu cần
+                        newVaccine.setNextDueDate(pet.getNextDueDate()); // Ép kiểu LocalDate sang LocalDateTime nếu cần
                     }
 
                     // Mặc định ngày tiêm là ngay lúc bấm Save
-                    newVaccine.setAdministeredDate(LocalDateTime.now());
+                    newVaccine.setAdministeredDate(LocalDate.now());
 
                     // Xử lý Staff ID (Giả sử bạn có class Staff)
                     if (pet.getVaccinationStaffID() != null) {
@@ -386,17 +376,6 @@ public class AdminController {
     public String deleteProduct(@PathVariable("id") Integer id) {
         productService.deleteById(id);
         return "redirect:/admin/manage-product";
-    }
-
-
-    @GetMapping("/admin/appointment-manage")
-    public String showAppointmentList() {
-        return "redirect:/admin/appointments";
-    }
-
-    @GetMapping("/admin/appointment-manage/detail")
-    public String showAppointmentDetail() {
-        return " appointment/appt-detail";
     }
 
     @GetMapping("/admin/customer-manage")

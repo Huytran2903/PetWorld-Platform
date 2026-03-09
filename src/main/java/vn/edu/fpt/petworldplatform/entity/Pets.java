@@ -141,6 +141,7 @@ public class Pets {
 
     @Transient
     @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @FutureOrPresent(message = "Next due date cannot be in the past!")
     private LocalDate nextDueDate;
 
 

@@ -64,6 +64,7 @@
                             <th>Image</th>
                             <th>Pet Name</th>
                             <th>Breed</th>
+                            <th>Type</th>
                             <th>Age</th>
                             <th>Gender</th>
                             <th>Price</th>
@@ -76,7 +77,9 @@
                         <tr th:each="p : ${pets}">
                             <td class="ps-4 fw-bold" th:text="${p.petID}"></td>
                             <td>
-                                <img th:src="${p.imageUrl}" class="rounded-3 border" alt="pet" width="80" height="90">
+                                <img th:src="${#strings.isEmpty(p.imageUrl)} ? '/uploads/default-pet.png' : (@{${#strings.startsWith(p.imageUrl, '/uploads/') ? p.imageUrl : '/uploads/' + p.imageUrl}})"
+                                     class="rounded-3 border" alt="pet" width="80" height="90"
+                                     style="object-fit: cover;">
                             </td>
 
                             <td>
@@ -84,45 +87,71 @@
                             </td>
 
                             <td th:text="${p.breed}"></td>
+
+                            <td>
+                                <div th:if="${p.owner == null}">
+                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-3 py-1">
+                                        <i class="bi bi-shop me-1"></i> Shop Pet
+                                    </span>
+                                </div>
+                                <div th:unless="${p.owner == null}">
+                                    <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-3 py-1">
+                                        <i class="bi bi-person-heart me-1"></i> Customer Pet
+                                    </span>
+                                    <div class="small fw-bold text-secondary mt-1" th:text="${p.owner.fullName}"></div>
+                                </div>
+                            </td>
+
                             <td th:text="${p.ageMonths + ' Months'}"></td>
 
                             <td>
-                            <span class="badge rounded-pill"
-                                  th:classappend="${p.gender == 'Male' ? 'bg-primary-subtle text-primary' : 'bg-danger-subtle text-danger'}">
-                                     <i th:class="${p.gender == 'Male' ? 'bi bi-gender-male' : 'bi bi-gender-female'}"></i>
-                                     <span th:text="${p.gender}"></span>
-                            </span>
+                                <span class="badge rounded-pill"
+                                      th:classappend="${p.gender == 'Male' ? 'bg-primary-subtle text-primary' : 'bg-danger-subtle text-danger'}">
+                                         <i th:class="${p.gender == 'Male' ? 'bi bi-gender-male' : 'bi bi-gender-female'}"></i>
+                                         <span th:text="${p.gender}"></span>
+                                </span>
                             </td>
+
                             <td>
-                                <div th:if="${p.discountPercent != null and p.discountPercent > 0}">
-                                    <span class="fw-bold fs-6" style="color: #FFB25B;"
-                                          th:text="${#numbers.formatDecimal(p.salePrice, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></span>
-                                    <br>
-                                    <del class="text-muted small"
-                                         th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></del>
+                                <div th:if="${p.owner == null and p.price != null}">
+                                    <div th:if="${p.discountPercent != null and p.discountPercent > 0}">
+                                        <span class="fw-bold fs-6" style="color: #FFB25B;"
+                                              th:text="${#numbers.formatDecimal(p.salePrice, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></span>
+                                        <br>
+                                        <del class="text-muted small"
+                                             th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></del>
+                                    </div>
+
+                                    <div th:unless="${p.discountPercent != null and p.discountPercent > 0}">
+                                         <span class="text-dark fw-bold"
+                                               th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></span>
+                                    </div>
                                 </div>
 
-                                <div th:unless="${p.discountPercent != null and p.discountPercent > 0}">
-                                     <span class="text-dark fw-bold"
-                                           th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></span>
+                                <div th:unless="${p.owner == null}">
+                                    <span class="text-muted small fst-italic">Service Only</span>
                                 </div>
                             </td>
 
                             <td>
-                            <span th:if="${p.discountPercent != null and p.discountPercent > 0}"
-                                  class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2 fw-bold"
-                                  th:text="${'-' + #numbers.formatDecimal(p.discountPercent, 0, 0) + '%'}">
-                            </span>
-
-                                <span th:unless="${p.discountPercent != null and p.discountPercent > 0}"
-                                      class="text-muted small fst-italic">None</span>
+                                <div th:if="${p.owner == null}">
+                                    <span th:if="${p.discountPercent != null and p.discountPercent > 0}"
+                                          class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2 fw-bold"
+                                          th:text="${'-' + #numbers.formatDecimal(p.discountPercent, 0, 0) + '%'}">
+                                    </span>
+                                    <span th:unless="${p.discountPercent != null and p.discountPercent > 0}"
+                                          class="text-muted small fst-italic">None</span>
+                                </div>
+                                <div th:unless="${p.owner == null}">
+                                    <span class="text-muted small">---</span>
+                                </div>
                             </td>
 
                             <td>
-                                <span th:class="'badge rounded-pill px-3 ' +
-                                    (p.isAvailable ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning')">
-                                    <i th:class="${p.isAvailable ? 'bi bi-check-circle-fill me-1' : 'bi bi-clock-history me-1'}"></i>
-                                    <span th:text="${p.isAvailable ? 'In Stock' : 'Reserved'}"></span>
+                                <span th:class="'badge rounded-pill px-3 py-2 ' +
+                                    (p.isAvailable ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary')">
+                                    <i th:class="${p.isAvailable ? 'bi bi-check-circle-fill me-1' : 'bi bi-lock-fill me-1'}"></i>
+                                    <span th:text="${p.isAvailable ? 'In Stock' : 'Service'}"></span>
                                 </span>
                             </td>
 
