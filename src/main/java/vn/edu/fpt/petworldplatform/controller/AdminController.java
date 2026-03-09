@@ -340,7 +340,7 @@ public class AdminController {
 
             } else {
                 // 2. Logic Edit: Người dùng KHÔNG chọn ảnh mới -> Giữ nguyên ảnh cũ
-                if (product.getProductId() != null) {
+                if (product.getProductId()!= null) {
                     // Lấy sản phẩm cũ từ Database ra để lấy lại đường dẫn ảnh cũ
                     // Tuỳ vào cách bạn đặt tên hàm trong Service mà thay đổi cho phù hợp nhé:
                     Product oldProduct = productService.getProductById(product.getProductId());

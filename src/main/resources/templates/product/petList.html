@@ -26,9 +26,18 @@
                     </div>
                 </div>
                 <div class="col-auto">
-                    <div class="pw-cart">
-                        <i class="bi bi-cart3"></i> <span>Cart</span>
-                    </div>
+                    <a th:href="@{/cart/view}" class="pw-cart text-decoration-none text-dark d-flex align-items-center gap-2">
+                        <div class="position-relative">
+                            <i class="bi bi-cart3 fs-4"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                                  th:if="${cartCount > 0}"
+                                  th:text="${cartCount}"
+                                  style="font-size: 0.65rem;">
+                0
+            </span>
+                        </div>
+                        <span class="fw-bold">Cart</span>
+                    </a>
                 </div>
             </div>
         </div>
@@ -96,10 +105,10 @@
 
                         </div>
                         <div class="pw-action-buttons mt-3">
-                            <button class="pw-btn-add">
+                            <a th:href="@{'/cart/add-pet/' + ${p.id}}" class="pw-btn-add text-decoration-none">
                                 <i class="bi bi-cart-plus"></i>
                                 <span>ADD</span>
-                            </button>
+                            </a>
 
                             <a th:href="@{'/pet/detail/' + ${p.id}}" class="pw-btn-detail">
                                 <i class="bi bi-eye"></i> Detail

@@ -7,7 +7,6 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <link rel="stylesheet" th:href="@{/css/style.css}" />
-
 </head>
 <body>
 
@@ -36,9 +35,18 @@
         </div>
 
         <div class="col-auto">
-          <div class="pw-cart">
-            <i class="bi bi-cart3"></i> <span>Cart</span>
-          </div>
+          <a th:href="@{/cart/view}" class="pw-cart text-decoration-none text-dark d-flex align-items-center gap-2">
+            <div class="position-relative">
+              <i class="bi bi-cart3 fs-4"></i>
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                    th:if="${cartCount > 0}"
+                    th:text="${cartCount}"
+                    style="font-size: 0.65rem;">
+                0
+            </span>
+            </div>
+            <span class="fw-bold">Cart</span>
+          </a>
         </div>
       </div>
     </div>
@@ -66,22 +74,51 @@
           <div class="pw-img-box">
             <img th:src="${p.imageUrl}" alt="Product Image">
           </div>
+
           <div class="pw-card-body">
             <p class="pw-product-name">
               <i class="bi bi-patch-check-fill text-primary me-1"></i>
               <span th:text="${p.name}">Product Name</span>
             </p>
+
             <div class="pw-price-row">
-              <div class="d-flex align-items-center gap-1">
-                <i class="bi bi-tags-fill" style="color: #ff9f43;"></i>
-                <span class="pw-price" th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+              <div th:if="${p.discountPercent != null and p.discountPercent > 0}">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                  <span class="pw-price fw-bold" style="color: #FFB25B; font-size: 1.1rem;"
+                        th:text="${#numbers.formatDecimal(p.salePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                  <span class="badge bg-danger-subtle text-danger rounded-pill"
+                        style="font-size: 0.75rem;"
+                        th:text="'-' + ${p.discountPercent} + '%'"></span>
+                </div>
+                <del class="text-muted small" style="font-size: 0.85rem;"
+                     th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></del>
               </div>
-              <div class="pw-stock-info">
-                <span>Stock: <strong th:text="${p.stock}"></strong></span>
+
+              <div th:unless="${p.discountPercent != null and p.discountPercent > 0}">
+                <span class="pw-price fw-bold text-dark" style="font-size: 1.1rem;"
+                      th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
               </div>
             </div>
+
+            <div class="pw-stock-info ms-auto mb-2">
+              <div class="d-flex align-items-center gap-1 text-muted" style="font-size: 0.75rem; line-height: 1;">
+                <i class="bi bi-box-seam" style="font-size: 0.7rem;"></i>
+                <span th:if="${p.stock > 0}">Stock: <strong class="text-dark" th:text="${p.stock}">6</strong></span>
+                <span th:unless="${p.stock > 0}"><strong class="text-danger">Out of stock</strong></span>
+              </div>
+            </div>
+
             <div class="pw-action-buttons">
-              <button class="pw-btn-add"><i class="bi bi-cart-plus"></i> ADD</button>
+              <a th:if="${p.stock > 0}" th:href="@{'/cart/add-product/' + ${p.productId}}" class="pw-btn-add text-decoration-none">
+                <i class="bi bi-cart-plus"></i>
+                <span>ADD</span>
+              </a>
+
+              <button th:unless="${p.stock > 0}" class="pw-btn-add border-0 bg-secondary text-white" style="cursor: not-allowed; opacity: 0.6;" disabled>
+                <i class="bi bi-cart-x"></i>
+                <span>SOLD OUT</span>
+              </button>
+
               <a th:href="@{'/product/detail/' + ${p.productId}}" class="pw-btn-detail"><i class="bi bi-eye"></i> Detail</a>
             </div>
           </div>
@@ -96,13 +133,10 @@
     <div class="modal-content shadow-lg border-0" style="border-radius: 20px;">
       <div class="modal-body text-center p-5">
         <i class="bi bi-search mb-3" style="font-size: 3rem; color: #ff914d; display: block;"></i>
-
         <h4 class="mb-3" style="font-weight: 400; color: #333;">Product Not Found</h4>
-
         <p class="text-muted mb-4" style="font-weight: 300;">
           Sorry, we couldn't find any products matching your search.
         </p>
-
         <div class="d-flex justify-content-center">
           <a th:href="@{/products}" class="btn btn-dark rounded-pill px-5"
              style="font-weight: 300 !important; height: 45px; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px;">

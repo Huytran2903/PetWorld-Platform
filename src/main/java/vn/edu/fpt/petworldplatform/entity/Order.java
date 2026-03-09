@@ -3,6 +3,7 @@ package vn.edu.fpt.petworldplatform.entity;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "Orders")
@@ -63,11 +64,15 @@ public class Order {
         updatedAt = LocalDateTime.now();
     }
 
+
+    //OanhTP
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    private List<OrderItems> orderItems;
+
     // Constructors
     public Order() {
     }
 
-    // Getters and Setters
     public Integer getOrderID() {
         return orderID;
     }
@@ -178,5 +183,24 @@ public class Order {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public List<OrderItems> getOrderItems() {
+        return orderItems;
+    }
+
+    public void setOrderItems(List<OrderItems> orderItems) {
+        this.orderItems = orderItems;
+    }
+
+    public void setCustomerID(Integer customerId) {
+        if (customerId != null) {
+            Customer tempCustomer = new Customer();
+            tempCustomer.setCustomerId(customerId);
+
+            this.customer = tempCustomer;
+        } else {
+            this.customer = null;
+        }
     }
 }

@@ -10,6 +10,7 @@ import vn.edu.fpt.petworldplatform.entity.Product;
 import vn.edu.fpt.petworldplatform.repository.CartItemRepository;
 import vn.edu.fpt.petworldplatform.repository.CartRepo;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -63,6 +64,10 @@ public class CartService {
         }
     }
 
+    public void removeCartItem(Integer cartItemId){
+        cartItemRepo.deleteById(cartItemId);
+    }
+
     // Logic xử lý riêng cho Product
     public void addProductToCart(Carts cart, Product product, Integer quantity) { // Đổi productId thành product
         // Kiểm tra xem Product này đã có trong giỏ chưa (Gọi đúng tên hàm Repo theo Cách 1)
@@ -104,6 +109,74 @@ public class CartService {
                     emptyCart.setCustomerId(customerId);
                     return emptyCart;
                 });
+    }
+
+    public void updateQuantity(Integer cartItemId, String action) {
+        // 1. Tìm món hàng trong giỏ
+        CartItem item = cartItemRepo.findById(cartItemId)
+                .orElseThrow(() -> new RuntimeException("Món hàng không tồn tại trong giỏ!"));
+
+        // 2. Xử lý tăng số lượng (Increase)
+        if ("increase".equals(action)) {
+            // Kiểm tra nếu là Sản phẩm (Product) mới cho phép tăng
+            if (item.getProduct() != null) {
+                int currentStock = item.getProduct().getStock(); // Giả sử tên trường trong Product là quantity
+
+                if (item.getQuantity() < currentStock) {
+                    item.setQuantity(item.getQuantity() + 1);
+                } else {
+                    // Ném lỗi nếu vượt quá số lượng trong kho
+                    throw new RuntimeException("Sorry, only " + currentStock + " items are left in stock!");
+                }
+            }
+            // Với Pet, mặc định không cho tăng (số lượng luôn là 1)
+        }
+
+        // 3. Xử lý giảm số lượng (Decrease)
+        else if ("decrease".equals(action)) {
+            if (item.getQuantity() > 1) {
+                item.setQuantity(item.getQuantity() - 1);
+            }
+        }
+
+        // 4. Lưu lại thay đổi
+        cartItemRepo.save(item);
+    }
+
+
+    public int getCountCartItems(Integer customerId) {
+        if (customerId == null) return 0;
+        return cartItemRepo.countByCart_CustomerId(customerId);
+    }
+
+    public BigDecimal calculateSubtotal(Carts cart) {
+        // 1. Khởi tạo bằng BigDecimal.ZERO thay vì số 0
+        BigDecimal subtotal = BigDecimal.ZERO;
+
+        if (cart != null && cart.getItems() != null) {
+            for (CartItem item : cart.getItems()) {
+                BigDecimal unitPrice = BigDecimal.ZERO;
+
+                // 2. Lấy giá Pet (Ưu tiên Sale Price)
+                if (item.getPet() != null) {
+                    unitPrice = (item.getPet().getSalePrice() != null) ?
+                            item.getPet().getSalePrice() : item.getPet().getPrice();
+                }
+                // 3. Lấy giá Product (Ưu tiên Sale Price)
+                else if (item.getProduct() != null) {
+                    unitPrice = (item.getProduct().getSalePrice() != null) ?
+                            item.getProduct().getSalePrice() : item.getProduct().getPrice();
+                }
+
+                // 4. Nhân unitPrice với số lượng (Quantity)
+                // Cần chuyển Integer sang BigDecimal bằng BigDecimal.valueOf()
+                BigDecimal itemTotal = unitPrice.multiply(BigDecimal.valueOf(item.getQuantity()));
+
+                // 5. Cộng dồn vào tổng (Chú ý: BigDecimal là immutable nên phải gán lại giá trị)
+                subtotal = subtotal.add(itemTotal);
+            }
+        }
+        return subtotal;
     }
 
     }

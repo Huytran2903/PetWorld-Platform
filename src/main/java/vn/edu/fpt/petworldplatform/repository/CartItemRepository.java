@@ -6,6 +6,7 @@ import vn.edu.fpt.petworldplatform.entity.CartItem;
 import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.entity.Product;
 
+import java.util.List;
 import java.util.Optional;
 @Repository
 public interface CartItemRepository extends JpaRepository<CartItem, Integer> {
@@ -15,4 +16,8 @@ public interface CartItemRepository extends JpaRepository<CartItem, Integer> {
 
     // Tìm bằng đối tượng Product
     Optional<CartItem> findByCart_CartIdAndProduct(Integer cartId, Product product);
+
+    //Đếm item trong cart
+    int countByCart_CustomerId(Integer cartCustomerId);
+
 }
