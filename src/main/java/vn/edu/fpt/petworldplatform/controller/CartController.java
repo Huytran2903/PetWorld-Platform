@@ -113,36 +113,33 @@ public class CartController {
             return "redirect:/login";
         }
 
-        // Lấy đối tượng Principal (chính là đối tượng customer bạn đã lưu lúc login)
+        // Lấy đối tượng Principal
         Object principal = authentication.getPrincipal();
 
         Integer customerId;
         if (principal instanceof Customer customer) {
-            // Lấy trực tiếp ID từ đối tượng trong phiên đăng nhập
             customerId = customer.getCustomerId();
         } else {
-            // Trường hợp phòng hờ nếu là OAuth2 hoặc kiểu khác
             customerId = customerService.findIdByUsername(authentication.getName());
         }
 
         Carts cart = cartService.getCartDetail(customerId);
-        model.addAttribute("cart", cart);
 
-        // 1. Lấy Subtotal từ Service (kết quả trả về đã là BigDecimal)
+        // 1. Lấy Subtotal từ Service
         BigDecimal subtotal = cartService.calculateSubtotal(cart);
 
-        // 2. Tính thuế 10% (Nhân với 0.1)
-        // Chú ý: Dùng String "0.1" trong constructor để đảm bảo độ chính xác tuyệt đối
-        BigDecimal tax = subtotal.multiply(new BigDecimal("0.05"));
+        // 2. THAY ĐỔI TẠI ĐÂY: Gán cứng phí ship 25,000 (Bỏ phần tính Tax 0.05)
+        BigDecimal shippingFee = new BigDecimal("25000");
 
-        // 3. Tính tổng cộng (Subtotal + Tax)
-        BigDecimal total = subtotal.add(tax);
+        // 3. THAY ĐỔI TẠI ĐÂY: Tổng cộng = Tiền hàng + Phí ship
+        BigDecimal total = subtotal.add(shippingFee);
 
-        // 4. Đưa dữ liệu ra giao diện (Thymeleaf sẽ nhận các đối tượng BigDecimal này)
+        // 4. Đưa dữ liệu ra giao diện
         model.addAttribute("cart", cart);
         model.addAttribute("subtotal", subtotal);
-        model.addAttribute("tax", tax);
+        model.addAttribute("shippingfree", shippingFee);
         model.addAttribute("total", total);
+
         return "customer/shopping-cart";
     }
 
@@ -318,5 +315,13 @@ public class CartController {
             return "redirect:/cart/view"; // Quay lại giỏ hàng
         }
     }
+
+    @GetMapping("/cart/order-history")
+    public String orderHistory(Model model) {
+
+        model.addAttribute("orderHistory", orderService.getAllOrder());
+        return "customer/order-history";
+    }
+
 
 }

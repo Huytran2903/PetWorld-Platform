@@ -27,6 +27,8 @@
         .label-tiny { font-size: 0.65rem; font-weight: 700; color: #aaa; text-transform: uppercase; margin-bottom: 2px; display: block; }
         .input-sidebar { font-size: 0.8rem !important; border-radius: 10px !important; border: 1px solid #eee !important; background-color: #fcfcfc !important; }
         .input-sidebar:focus { border-color: #f89d35 !important; background-color: #ffffff !important; box-shadow: none !important; }
+
+        .text-price-main { color: #f89d35; font-weight: 700; }
     </style>
 </head>
 <body>
@@ -35,12 +37,6 @@
     <div th:if="${errorMessage}" class="alert alert-warning alert-dismissible fade show border-0 shadow-sm mb-4" style="border-radius: 15px;" role="alert">
         <i class="bi bi-exclamation-triangle-fill me-2"></i>
         <span th:text="${errorMessage}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-
-    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" style="border-radius: 15px;" role="alert">
-        <i class="bi bi-check-circle-fill me-2"></i>
-        <span th:text="${successMessage}"></span>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
@@ -65,37 +61,31 @@
                             <div class="col-auto">
                                 <div class="product-img" th:style="'background-image: url(' + (${item.pet != null ? item.pet.imageUrl : item.product.imageUrl}) + ');'"></div>
                             </div>
-
                             <div class="col">
                                 <h5 class="fw-bold mb-0 small" th:text="${item.pet != null ? item.pet.name : item.product.name}">Name</h5>
                                 <div th:if="${item.pet != null}" class="badge-vaccine mt-1 d-flex align-items-center gap-1">
                                     <i class="bi bi-patch-check-fill"></i> Vaccinated
                                 </div>
                             </div>
-
                             <div class="col-auto">
                                 <div th:if="${item.product != null}" class="quantity-control d-flex align-items-center">
                                     <a th:href="@{/cart/update/{id}(id=${item.cartItemId}, action='decrease')}" class="btn btn-sm btn-light border" th:style="${item.quantity <= 1 ? 'pointer-events: none; opacity: 0.5;' : ''}"><i class="bi bi-dash"></i></a>
                                     <input type="text" th:value="${item.quantity}" readonly class="mx-1">
                                     <a th:href="@{/cart/update/{id}(id=${item.cartItemId}, action='increase')}" class="btn btn-sm btn-light border"><i class="bi bi-plus"></i></a>
                                 </div>
-                                <span th:if="${item.pet != null}" class="badge bg-warning text-dark px-2 py-1 fw-bold"><i class="bi bi-info-circle me-1"></i>Limit 1</span>
+                                <span th:if="${item.pet != null}" class="badge bg-warning text-dark px-2 py-1 fw-bold" style="font-size: 0.7rem;"><i class="bi bi-info-circle me-1"></i>Limit 1</span>
                             </div>
-
                             <div class="col-auto text-end" style="min-width: 130px;">
-                                <a th:href="@{/cart/remove/{id}(id=${item.cartItemId})}"
-                                   class="text-danger mb-2 d-inline-block"
-                                   onclick="return confirm('Are you sure you want to remove this item from the cart?');">
+                                <a th:href="@{/cart/remove/{id}(id=${item.cartItemId})}" class="text-danger mb-2 d-inline-block" onclick="return confirm('Are you sure?');">
                                     <i class="bi bi-trash3"></i>
                                 </a>
-
                                 <div th:with="target=${item.pet != null ? item.pet : item.product}">
                                     <div th:if="${target.salePrice != null && target.salePrice < target.price}">
-                                        <div class="price-old" th:text="${#numbers.formatCurrency(target.price * item.quantity)}"></div>
-                                        <div class="h6 fw-bold text-dark mb-0" th:text="${#numbers.formatCurrency(target.salePrice * item.quantity)}"></div>
+                                        <div class="price-old" th:text="${#numbers.formatDecimal(target.price * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></div>
+                                        <div class="h6 fw-bold text-dark mb-0" th:text="${#numbers.formatDecimal(target.salePrice * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></div>
                                     </div>
                                     <div th:unless="${target.salePrice != null && target.salePrice < target.price}">
-                                        <div class="h6 fw-bold text-dark mb-0" th:text="${#numbers.formatCurrency(target.price * item.quantity)}"></div>
+                                        <div class="h6 fw-bold text-dark mb-0" th:text="${#numbers.formatDecimal(target.price * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' ₫'"></div>
                                     </div>
                                 </div>
                             </div>
@@ -111,26 +101,19 @@
                         <div class="row g-2">
                             <div class="col-12">
                                 <label class="label-tiny">Recipient's Name</label>
-                                <input type="text" class="form-control form-control-sm input-sidebar"
-                                       name="shipName"
-                                       th:value="${#authentication.principal.fullName}"
-                                       placeholder="Full name" required>
+                                <input type="text" class="form-control form-control-sm input-sidebar" name="shipName" th:value="${#authentication.principal.fullName}" required>
                             </div>
-
                             <div class="col-12">
                                 <label class="label-tiny">Phone Number</label>
-                                <input type="tel" class="form-control form-control-sm input-sidebar"
-                                       name="shipPhone"
-                                       th:value="${#authentication.principal.phone}"
-                                       placeholder="Phone number" required>
+                                <input type="tel" class="form-control form-control-sm input-sidebar" name="shipPhone" th:value="${#authentication.principal.phone}" required>
                             </div>
                             <div class="col-12">
                                 <label class="label-tiny">Address</label>
-                                <input type="text" class="form-control form-control-sm input-sidebar" name="shipAddress" placeholder="Street, Ward, City" required>
+                                <input type="text" class="form-control form-control-sm input-sidebar" name="shipAddress" required>
                             </div>
                             <div class="col-12">
                                 <label class="label-tiny">Order Note</label>
-                                <input type="text" class="form-control form-control-sm input-sidebar" name="note" placeholder="Optional note">
+                                <input type="text" class="form-control form-control-sm input-sidebar" name="note">
                             </div>
                         </div>
                     </div>
@@ -141,12 +124,13 @@
                         <h5 class="fw-bold mb-4">Order Summary</h5>
                         <div class="d-flex justify-content-between mb-2 small">
                             <span class="text-secondary">Subtotal</span>
-                            <span class="fw-bold" th:text="${subtotal != null ? #numbers.formatCurrency(subtotal) : '0 ₫'}"></span>
+                            <span class="fw-bold text-dark" th:text="${subtotal != null ? #numbers.formatDecimal(subtotal, 0, 'COMMA', 0, 'POINT') + ' ₫' : '0 ₫'}"></span>
                         </div>
                         <div class="d-flex justify-content-between mb-2 small">
-                            <span class="text-secondary">Tax (5%)</span>
-                            <span class="fw-bold" th:text="${tax != null ? #numbers.formatCurrency(tax) : '0 ₫'}"></span>
+                            <span class="text-secondary">Shipping Fee</span>
+                            <span class="fw-bold text-success" th:text="${shippingfree != null ? '+ ' + #numbers.formatDecimal(shippingfree, 0, 'COMMA', 0, 'POINT') + ' ₫' : '+ 25,000 ₫'}"></span>
                         </div>
+
                         <hr class="my-3 opacity-25">
 
                         <h6 class="fw-bold mb-3 small text-uppercase" style="letter-spacing: 1px;">Payment Method</h6>
@@ -166,12 +150,12 @@
                         </div>
 
                         <div class="d-flex justify-content-between mb-4">
-                            <span class="fw-bold fs-5">Total</span>
-                            <span class="fw-bold fs-5 text-primary" th:text="${total != null ? #numbers.formatCurrency(total) : '0 ₫'}"></span>
+                            <span class="fw-bold fs-5 text-dark">Total</span>
+                            <span class="fw-bold fs-4 text-dark" th:text="${total != null ? #numbers.formatDecimal(total, 0, 'COMMA', 0, 'POINT') + ' ₫' : '0 ₫'}"></span>
                         </div>
 
                         <button type="submit" class="btn btn-dark w-100 py-3 rounded-3 fw-bold shadow-sm">Proceed to Checkout</button>
-                        <a th:href="@{/product/productList}" class="btn btn-link w-100 text-secondary text-decoration-none small mt-2">Continue Shopping</a>
+                        <a th:href="@{/product/productList}" class="btn btn-link w-100 text-secondary text-decoration-none small mt-2 text-center d-block">Continue Shopping</a>
                     </div>
                 </div>
             </div>

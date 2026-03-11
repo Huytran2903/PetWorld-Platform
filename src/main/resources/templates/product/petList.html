@@ -85,8 +85,7 @@
 
         <div class="row g-4 row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5">
 
-            <div class="col" th:each="p : ${pet}">
-                <div class="pw-card">
+                <div class="pw-card" th:each="p : ${pet}" th:if="${p.price != null and p.getOwner() == null}">
                     <div class="pw-img-box">
                         <img th:src="${p.imageUrl}" alt="Product Image">
                     </div>

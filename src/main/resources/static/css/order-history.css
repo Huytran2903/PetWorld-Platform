@@ -60,3 +60,15 @@ body {
     width: 12px;
     height: auto;
 }
+
+/* Đảm bảo thẻ a bọc ngoài cùng chiếm trọn không gian và chuyển động mượt mà trong 0.3 giây */
+.card-body a {
+    transition: all 0.3s ease-in-out !important;
+    display: block;
+    border: 1px solid transparent; /* Giữ sẵn một viền tàng hình 1px để khi hover có hiện viền cũng không bị giật kích thước */
+}
+
+/* Làm mượt toàn bộ thẻ card */
+.card {
+    transition: all 0.3s ease-in-out !important;
+}
