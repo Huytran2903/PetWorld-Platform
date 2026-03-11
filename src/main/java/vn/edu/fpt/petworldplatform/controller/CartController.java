@@ -133,8 +133,6 @@ public class CartController {
 
         // 1. Lấy Subtotal từ Service
         BigDecimal subtotal = cartService.calculateSubtotal(cart);
-        BigDecimal tax = subtotal.multiply(new BigDecimal("0.05")); // Thuế 5%
-        BigDecimal total = subtotal.add(tax);
 
         // 2. THAY ĐỔI TẠI ĐÂY: Gán cứng phí ship 25,000 (Bỏ phần tính Tax 0.05)
         BigDecimal shippingFee = new BigDecimal("25000");
