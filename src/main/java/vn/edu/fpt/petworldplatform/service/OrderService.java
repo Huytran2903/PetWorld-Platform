@@ -127,4 +127,13 @@ public class OrderService {
                 })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
+    public Order findByOrderCode(String orderCode) {
+        return orderRepo.findByOrderCode(orderCode);
+    }
+
+    // 2. Phương thức cập nhật (lưu đè) đơn hàng vào Database
+    public Order updateOrder(Order order) {
+        return orderRepo.save(order);
+    }
 }

@@ -4,10 +4,12 @@ import jakarta.persistence.Column;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import vn.edu.fpt.petworldplatform.config.GlobalConfigAdvice;
 import vn.edu.fpt.petworldplatform.entity.*;
 import vn.edu.fpt.petworldplatform.repository.OrderRepo;
 import vn.edu.fpt.petworldplatform.repository.PetRepo;
@@ -44,6 +46,7 @@ public class CartController {
     @Autowired
     private PetRepo petRepo;
 
+
     @GetMapping("/cart/add-pet/{id}") // Khớp {id} với PathVariable
     public String addPetToCart(@PathVariable("id") Integer id,
                                Authentication authentication) {
@@ -52,14 +55,11 @@ public class CartController {
             return "redirect:/login";
         }
 
-        // 2. Lấy Customer trực tiếp từ Principal (Vì bạn đã lưu nó lúc login)
-        // Cách này giúp tránh lỗi "Customer not found with username"
-        Integer customerId;
-        if (authentication.getPrincipal() instanceof Customer customer) {
-            customerId = customer.getCustomerId();
-        } else {
-            // Phòng hờ trường hợp login khác (OAuth2)
-            customerId = customerService.findIdByUsername(authentication.getName());
+        // 2. Lấy Customer ID bằng hàm thông minh (Hỗ trợ cả Form và Google)
+        Integer customerId = getCustomerIdFromAuth(authentication);
+
+        if (customerId == null) {
+            return "redirect:/login?error=account_not_found";
         }
 
         // 3. Tìm đối tượng Pet từ Database
@@ -85,14 +85,11 @@ public class CartController {
             return "redirect:/login";
         }
 
-        // 2. Lấy Customer ID trực tiếp từ Principal (Giống hệt addPetToCart)
-        // Cách này giúp tránh lỗi "Customer not found" khi getName() trả về chuỗi lạ
-        Integer customerId;
-        if (authentication.getPrincipal() instanceof Customer customer) {
-            customerId = customer.getCustomerId(); // Lấy ID trực tiếp từ đối tượng trong Session
-        } else {
-            // Dự phòng cho trường hợp đăng nhập bằng OAuth2/Google
-            customerId = customerService.findIdByUsername(authentication.getName());
+        // 2. Lấy Customer ID bằng hàm thông minh (Hỗ trợ cả Form và Google)
+        Integer customerId = getCustomerIdFromAuth(authentication);
+
+        if (customerId == null) {
+            return "redirect:/login?error=account_not_found";
         }
 
         // 3. Tìm đối tượng Product từ Database
@@ -113,47 +110,38 @@ public class CartController {
             return "redirect:/login";
         }
 
-        // Lấy đối tượng Principal (chính là đối tượng customer bạn đã lưu lúc login)
-        Object principal = authentication.getPrincipal();
+        Integer customerId = getCustomerIdFromAuth(authentication);
 
-        Integer customerId;
-        if (principal instanceof Customer customer) {
-            // Lấy trực tiếp ID từ đối tượng trong phiên đăng nhập
-            customerId = customer.getCustomerId();
-        } else {
-            // Trường hợp phòng hờ nếu là OAuth2 hoặc kiểu khác
-            customerId = customerService.findIdByUsername(authentication.getName());
+        if (customerId == null) {
+            return "redirect:/login?error=account_not_found";
         }
 
+        // =========================================================
+        // THÊM 2 DÒNG NÀY ĐỂ LẤY THÔNG TIN TỪ DB TRUYỀN RA GIAO DIỆN
+        Customer currentCustomer = customerService.findById(customerId).orElse(null);
+        model.addAttribute("customer", currentCustomer);
+        // =========================================================
+
         Carts cart = cartService.getCartDetail(customerId);
-        model.addAttribute("cart", cart);
 
-        // 1. Lấy Subtotal từ Service (kết quả trả về đã là BigDecimal)
+        // Nếu chưa có giỏ hàng
+        if (cart == null) {
+            model.addAttribute("subtotal", BigDecimal.ZERO);
+            model.addAttribute("tax", BigDecimal.ZERO);
+            model.addAttribute("total", BigDecimal.ZERO);
+            return "customer/shopping-cart";
+        }
+
         BigDecimal subtotal = cartService.calculateSubtotal(cart);
-
-        // 2. Tính thuế 10% (Nhân với 0.1)
-        // Chú ý: Dùng String "0.1" trong constructor để đảm bảo độ chính xác tuyệt đối
-        BigDecimal tax = subtotal.multiply(new BigDecimal("0.05"));
-
-        // 3. Tính tổng cộng (Subtotal + Tax)
+        BigDecimal tax = subtotal.multiply(new BigDecimal("0.05")); // Thuế 5%
         BigDecimal total = subtotal.add(tax);
 
-        // 4. Đưa dữ liệu ra giao diện (Thymeleaf sẽ nhận các đối tượng BigDecimal này)
         model.addAttribute("cart", cart);
         model.addAttribute("subtotal", subtotal);
         model.addAttribute("tax", tax);
         model.addAttribute("total", total);
-        return "customer/shopping-cart";
-    }
 
-    // Viết thêm hàm nhỏ này xuống cuối file Controller để dùng chung cho gọn
-    private String getIdentifier(Authentication authentication) {
-        if (authentication instanceof OAuth2AuthenticationToken oauth2Token) {
-            // Đăng nhập Google -> Lấy Email
-            return oauth2Token.getPrincipal().getAttribute("email");
-        }
-        // Đăng nhập Form thường -> Lấy Username
-        return authentication.getName();
+        return "customer/shopping-cart";
     }
 
     @GetMapping("/cart/update/{id}")
@@ -168,21 +156,6 @@ public class CartController {
         }
 
         return "redirect:/cart/view";
-    }
-
-    @ModelAttribute("cartCount")
-    public int getCartCount(Authentication authentication) {
-        if (authentication != null && authentication.isAuthenticated()) {
-            // Lấy ID khách hàng từ Principal để đếm
-            Integer customerId;
-            if (authentication.getPrincipal() instanceof Customer customer) {
-                customerId = customer.getCustomerId();
-            } else {
-                customerId = customerService.findIdByUsername(authentication.getName());
-            }
-            return cartService.getCountCartItems(customerId);
-        }
-        return 0; // Trả về 0 nếu chưa đăng nhập
     }
 
 
@@ -225,20 +198,24 @@ public class CartController {
                 return "redirect:/login";
             }
 
-            // 2. BẢO VỆ LỚP 2: Lấy Customer ID an toàn
+            // =================================================================
+            // 2. BẢO VỆ LỚP 2: Lấy Customer ID an toàn (ĐÃ SỬA Ở ĐÂY)
+            // =================================================================
             Integer customerId = null;
             Object principal = authentication.getPrincipal();
 
             if (principal instanceof Customer customer) {
-                // Chú ý: Đảm bảo tên getter khớp với Entity của bạn (getCustomerId hoặc getCustomerID)
+                // Trường hợp 1: Session lưu sẵn object Customer
                 customerId = customer.getCustomerId();
-            }
-
-            // Nếu lấy từ Session bị null, thử móc lại từ Database bằng username
-            if (customerId == null) {
-                // Lấy trực tiếp con số ID gán vào biến customerId
+            } else if (principal instanceof org.springframework.security.oauth2.core.user.OAuth2User oauth2User) {
+                // Trường hợp 2: Đăng nhập Google -> Lấy Email để dò ID
+                String email = oauth2User.getAttribute("email");
+                customerId = customerService.findIdByEmail(email);
+            } else {
+                // Trường hợp 3: Form thường nhưng chỉ có tên -> Lấy Username để dò ID
                 customerId = customerService.findIdByUsername(authentication.getName());
             }
+            // =================================================================
 
             // 3. BẢO VỆ LỚP 3: Chặn đứng lỗi SQL INSERT NULL
             if (customerId == null) {
@@ -263,6 +240,7 @@ public class CartController {
                 return "redirect:" + payUrl;
 
             } else {
+
                 // Trường hợp COD: Đơn hàng đã được tạo ở trạng thái 'pending'
                 ra.addFlashAttribute("successMessage", "Order Completed Successfully!");
                 ra.addFlashAttribute("order", newOrder);
@@ -293,30 +271,70 @@ public class CartController {
 
     @GetMapping("/cart/momo-return")
     public String momoReturn(@RequestParam("resultCode") String resultCode,
-                             @RequestParam("orderId") String orderId,
+                             @RequestParam("orderId") String orderId, // orderId này chính là orderCode bạn gửi sang MoMo
+                             Authentication authentication,
                              RedirectAttributes redirectAttributes) {
 
-        // MoMo quy ước resultCode = "0" là giao dịch thành công
+        // 1. Nếu giao dịch thành công (MoMo trả về resultCode = "0")
         if ("0".equals(resultCode)) {
 
-            // ==========================================
-            // BƯỚC 1: XỬ LÝ DATABASE (Bạn sẽ code thêm phần này)
-            // - Tìm đơn hàng có mã orderId này trong DB.
-            // - Cập nhật trạng thái đơn hàng thành "ĐÃ THANH TOÁN" (PAID).
-            // - Lấy ID khách hàng hiện tại và xóa sạch các món trong giỏ hàng.
-            // ==========================================
+            try {
+                // Bước 1: Tìm đơn hàng trong Database bằng mã orderCode
+                Order order = orderService.findByOrderCode(orderId);
 
-            // BƯỚC 2: GỬI THÔNG BÁO THÀNH CÔNG SANG VIEW
-            redirectAttributes.addFlashAttribute("successMessage", "Tuyệt vời! Bạn đã thanh toán thành công đơn hàng " + orderId);
+                if (order != null) {
+                    // Bước 2: Cập nhật trạng thái thành ĐÃ THANH TOÁN
+                    order.setStatus("paid");
+                    orderService.updateOrder(order);
+                    redirectAttributes.addFlashAttribute("order", order);
+                }
 
-            // BƯỚC 3: CHUYỂN HƯỚNG VỀ TRANG CHECKOUT-ORDER NHƯ BẠN MUỐN
+                // Bước 3: Xóa sạch giỏ hàng của người dùng hiện tại
+                Integer customerId = getCustomerIdFromAuth(authentication);
+                if (customerId != null) {
+                    cartService.clearCart(customerId);
+                }
+
+                // Bước 4: Báo thành công ra màn hình
+                redirectAttributes.addFlashAttribute("successMessage", "Đã thanh toán thành công đơn hàng " + orderId);
+
+            } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Thanh toán thành công nhưng có lỗi cập nhật hệ thống.");
+            }
+
             return "redirect:/cart/checkout-order";
 
         } else {
-            // Nếu giao dịch thất bại (Khách hủy, hết tiền, lỗi...)
-            redirectAttributes.addFlashAttribute("errorMessage", "Thanh toán chưa hoàn tất. Vui lòng thử lại!");
-            return "redirect:/cart/view"; // Quay lại giỏ hàng
+            try {
+                Order order = orderService.findByOrderCode(orderId);
+                if (order != null) {
+                    order.setStatus("cancled");
+                    orderService.updateOrder(order);
+                }
+            } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Thanh toán chưa hoàn tất. Vui lòng thử lại!");
+            }
+
+            return "redirect:/cart/view";
         }
     }
+
+    private Integer getCustomerIdFromAuth(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+        // Nếu là Google
+        if (authentication.getPrincipal() instanceof org.springframework.security.oauth2.core.user.OAuth2User oauth2User) {
+            String email = oauth2User.getAttribute("email");
+            return customerService.findIdByEmail(email);
+        }
+        // Nếu là Customer lưu sẵn
+        if (authentication.getPrincipal() instanceof Customer customer) {
+            return customer.getCustomerId();
+        }
+        // Nếu là Form thường
+        return customerService.findIdByUsername(authentication.getName());
+    }
+
 
 }

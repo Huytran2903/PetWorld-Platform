@@ -59,10 +59,11 @@
         <nav class="main-menu d-flex navbar navbar-expand-lg py-2">
 
             <div class="d-flex d-lg-none align-items-center mt-2">
-                <a th:href="@{/customer/shopping-cart}" class="mx-2 text-dark position-relative">
+                <a th:href="@{/cart/view}" class="mx-2 text-dark position-relative">
                     <iconify-icon icon="mdi:cart" class="fs-4"></iconify-icon>
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle pt-1 text-white"
-                          style="font-size: 10px; padding: 4px 6px; background-color: #FFA54F;">3</span>
+                          style="font-size: 10px; padding: 4px 6px; background-color: #FFA54F;"
+                          th:text="${cartCount != null ? cartCount : 0}">0</span>
                 </a>
                 <button class="navbar-toggler border-0 shadow-none ms-2" type="button" data-bs-toggle="offcanvas"
                         data-bs-target="#offcanvasNavbar">
@@ -111,11 +112,12 @@
                     </ul>
 
                     <div class="d-none d-lg-flex align-items-center gap-4">
-                        <a th:href="@{/customer/shopping-cart}"
+                        <a th:href="@{/cart/view}"
                            class="text-decoration-none text-dark position-relative hover-orange">
                             <iconify-icon icon="mdi:cart" class="fs-4"></iconify-icon>
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle pt-1 text-white"
-                                  style="font-size: 10px; padding: 4px 6px; background-color: #FFA54F;">3</span>
+                                  style="font-size: 10px; padding: 4px 6px; background-color: #FFA54F;"
+                                  th:text="${cartCount != null ? cartCount : 0}">0</span>
                         </a>
                     </div>
                 </div>
