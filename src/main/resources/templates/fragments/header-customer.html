@@ -109,6 +109,14 @@
                                th:style="${activePage == 'mypets'} ? 'color: #FFA54F; border-bottom: 2px solid #FFA54F;' : ''">My
                                 Pets</a>
                         </li>
+
+                        <li class="nav-item">
+                            <a th:href="@{/feedback}" class="nav-link"
+                               th:classappend="${activePage == 'feedback'} ? 'fw-bold' : 'text-dark'"
+                               th:style="${activePage == 'feedback'} ? 'color: #FFA54F; border-bottom: 2px solid #FFA54F;' : ''">
+                                <i class="fas fa-comment-dots me-1"></i>Feedback
+                            </a>
+                        </li>
                     </ul>
 
                     <div class="d-none d-lg-flex align-items-center gap-4">
