@@ -141,4 +141,13 @@ public class OrderService {
    public List<Order> getAllOrder() {
         return orderRepo.findAll();
    }
+
+    public Order findByOrderCode(String orderCode) {
+        return orderRepo.findByOrderCode(orderCode);
+    }
+
+    // 2. Phương thức cập nhật (lưu đè) đơn hàng vào Database
+    public Order updateOrder(Order order) {
+        return orderRepo.save(order);
+    }
 }

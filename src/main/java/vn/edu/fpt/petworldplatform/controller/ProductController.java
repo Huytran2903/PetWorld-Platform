@@ -40,7 +40,7 @@ public class ProductController {
     public String getAllProducts(Model model, @RequestParam(name = "kw", required = false, defaultValue = "") String keyword) {
 
         if(!keyword.equals("")) {
-            model.addAttribute("product", productService.searchProductsByName(keyword   ));
+            model.addAttribute("product", productService.searchProductsByName(keyword));
         }
         else {
             model.addAttribute("product", productService.getAllProducts());

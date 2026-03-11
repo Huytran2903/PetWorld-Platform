@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{fragments/layout-customer :: layout(~{::section})}">
+<head>
+    <title>Feedback Submitted - PetWorld Platform</title>
+</head>
+<body>
+<section class="py-12">
+    <div class="container mx-auto px-4 max-w-4xl">
+        <!-- Success Message -->
+        <div class="bg-white rounded-lg shadow-lg p-8 text-center">
+            <div class="mb-6">
+                <i class="fas fa-check-circle text-green-500 text-6xl mb-4"></i>
+            </div>
+            
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">
+                Feedback Submitted Successfully!
+            </h1>
+            
+            <p class="text-gray-600 text-lg mb-8">
+                Thank you for taking the time to share your feedback with us. We appreciate your input and will review it carefully.
+            </p>
+            
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+                <h2 class="text-lg font-semibold text-blue-800 mb-3">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    What happens next?
+                </h2>
+                <ul class="text-left text-blue-700 space-y-2">
+                    <li><i class="fas fa-check text-blue-500 mr-2"></i>Your feedback has been recorded in our system</li>
+                    <li><i class="fas fa-check text-blue-500 mr-2"></i>Our team will review your feedback within 2-3 business days</li>
+                    <li><i class="fas fa-check text-blue-500 mr-2"></i>If you provided contact information, we may reach out for clarification</li>
+                    <li><i class="fas fa-check text-blue-500 mr-2"></i>Your feedback helps us improve our services</li>
+                </ul>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap gap-4 justify-center">
+                <a th:href="@{/feedback}" 
+                   class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition duration-200 font-semibold shadow-md inline-block">
+                    <i class="fas fa-plus-circle mr-2"></i>
+                    Submit Another Feedback
+                </a>
+                
+                <a th:href="@{/}" 
+                   class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition duration-200 font-semibold shadow-md inline-block">
+                    <i class="fas fa-home mr-2"></i>
+                    Return to Home
+                </a>
+            </div>
+        </div>
+        
+        <!-- Additional Information -->
+        <div class="mt-8 text-center text-gray-600">
+            <p class="mb-2">
+                <i class="fas fa-envelope text-blue-500 mr-2"></i>
+                For immediate assistance, contact us at: 
+                <a href="mailto:support@petworld.com" class="text-blue-600 hover:underline">support@petworld.com</a>
+            </p>
+            <p>
+                <i class="fas fa-phone text-blue-500 mr-2"></i>
+                Call us: <a href="tel:+1234567890" class="text-blue-600 hover:underline">+1 (234) 567-890</a>
+            </p>
+        </div>
+    </div>
+</section>
+</body>
+</html>

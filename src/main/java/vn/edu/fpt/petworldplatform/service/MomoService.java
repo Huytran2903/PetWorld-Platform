@@ -25,7 +25,12 @@ public class MomoService {
 
     public String createPaymentUrl(String orderId, BigDecimal amount, String orderInfo) throws Exception {
         String requestId = String.valueOf(System.currentTimeMillis());
-        String requestType = "captureWallet";
+
+        // ==========================================
+        // ĐÃ SỬA Ở ĐÂY: Đổi từ "captureWallet" sang "payWithATM"
+        // ==========================================
+        String requestType = "payWithATM";
+
         String extraData = ""; // Có thể để trống hoặc gửi chuỗi Base64
 
         // MoMo yêu cầu số tiền là số nguyên (long)

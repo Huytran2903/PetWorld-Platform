@@ -222,13 +222,15 @@ public class CustomerService {
 
     //OanhTP - findIdByUsername
     public Integer findIdByUsername(String username) {
-        System.out.println("=== DEBUG SERVICE ===");
-        System.out.println("Username nhận được: " + username);
-        System.out.println("Kiểu dữ liệu: " + (username != null ? username.getClass().getName() : "null"));
-        System.out.println("======================");
         // Tìm khách hàng theo username
         return customerRepo.findByUsername(username)
                 .map(customer -> customer.getCustomerId()) // Lấy ID từ đối tượng Customer
                 .orElseThrow(() -> new RuntimeException("Customer not found with username: " + username));
+    }
+
+    public Integer findIdByEmail(String email) {
+        return customerRepo.findByEmail(email)
+                .map(Customer::getCustomerId)
+                .orElse(null); // Trả về null nếu không thấy, tuyệt đối không dùng orElseThrow
     }
 }

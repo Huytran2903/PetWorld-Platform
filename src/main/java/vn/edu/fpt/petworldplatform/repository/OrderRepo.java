@@ -6,4 +6,5 @@ import vn.edu.fpt.petworldplatform.entity.Order;
 
 @Repository
 public interface OrderRepo extends JpaRepository<Order, Integer> {
+    Order findByOrderCode(String orderCode);
 }

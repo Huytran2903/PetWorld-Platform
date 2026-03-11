@@ -64,7 +64,7 @@ public class CartService {
         }
     }
 
-    public void removeCartItem(Integer cartItemId){
+    public void removeCartItem(Integer cartItemId) {
         cartItemRepo.deleteById(cartItemId);
     }
 
@@ -179,5 +179,19 @@ public class CartService {
         return subtotal;
     }
 
+    @Transactional
+    public void clearCart(Integer customerId) {
+        // Lấy giỏ hàng hiện tại bằng hàm có sẵn của bạn
+        Carts cart = getCartDetail(customerId);
+
+        if (cart != null && cart.getItems() != null && !cart.getItems().isEmpty()) {
+            // Xóa toàn bộ các món hàng (CartItem) nằm trong giỏ này khỏi Database
+            cartItemRepo.deleteAll(cart.getItems());
+
+            // Xóa sạch list trong bộ nhớ và cập nhật lại giỏ hàng
+            cart.getItems().clear();
+            cartRepo.save(cart);
+        }
     }
+}
 

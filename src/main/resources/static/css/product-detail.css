@@ -93,11 +93,12 @@
 }
 
 .badge-sale-custom {
-    background-color: #feebe1;
-    color: #ea5455;
-    font-weight: bold;
-    padding: 6px 12px;
-    border-radius: 8px;
+    background-color: #ffebee !important;
+    color: #d32f2f !important;
+    padding: 5px 12px !important;
+    font-weight: 700 !important;
+    border: 1px solid #ffcdd2 !important;
+    border-radius: 50px !important;
 }
 
 /* 6. Action Bar */
