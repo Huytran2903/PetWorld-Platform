@@ -3,28 +3,20 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>Pet World - Shop Pets</title>
-
+    <title>Pet World - E-commerce</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Prata&display=swap"
-          rel="stylesheet">
-
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 </head>
 <body>
 
-<div class="pet-world-container">
+<div th:replace="~{fragments/header-customer :: header(activePage='shop-pets')}"></div>
 
-    <div th:replace="~{fragments/header-customer :: header(activePage='shop-pets')}"></div>
+<div class="pet-world-container">
 
     <nav class="pw-filter-bar mt-3">
         <div class="container-fluid px-lg-5 d-flex flex-wrap justify-content-between align-items-center gap-3">
-
             <div class="d-flex gap-2">
                 <button class="pw-btn-filter active">All</button>
                 <button class="pw-btn-filter">Type <i class="bi bi-chevron-down"></i></button>
@@ -45,7 +37,6 @@
                     </button>
                 </div>
             </form>
-
         </div>
     </nav>
 
@@ -57,7 +48,8 @@
 
         <div class="row g-4 row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5">
 
-                <div class="pw-card" th:each="p : ${pet}" th:if="${p.price != null and p.getOwner() == null}">
+            <div class="col" th:each="p : ${pet}" th:if="${p.price != null and p.owner == null}" >
+                <div class="pw-card">
                     <div class="pw-img-box">
                         <img th:src="${p.imageUrl}" alt="Product Image">
                     </div>
@@ -67,7 +59,6 @@
                             <i class="bi bi-patch-check-fill text-primary me-1" style="font-size: 0.9rem;"></i>
                             <span th:text="${p.name}">Pet Name</span>
                         </p>
-
                         <div class="pw-vaccine-info mb-3" style="font-size: 0.85rem;">
                             <span th:if="${p.vaccinations != null and !p.vaccinations.isEmpty()}"
                                   class="text-success fw-medium">
@@ -118,8 +109,8 @@
 </div>
 
 <div th:replace="~{fragments/footer :: footer}"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
 
 </body>
 </html>

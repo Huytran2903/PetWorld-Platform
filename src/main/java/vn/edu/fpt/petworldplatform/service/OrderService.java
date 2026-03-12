@@ -150,4 +150,10 @@ public class OrderService {
     public Order updateOrder(Order order) {
         return orderRepo.save(order);
     }
+
+    //List Order
+//    public List<Order> getAllOrder() {
+//        return orderRepo.findAll();
+//    }
+
 }

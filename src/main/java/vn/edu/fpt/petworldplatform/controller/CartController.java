@@ -245,7 +245,7 @@ public class CartController {
                 return "redirect:" + payUrl;
 
             } else {
-
+                cartService.clearCart(customerId);
                 // Trường hợp COD: Đơn hàng đã được tạo ở trạng thái 'pending'
                 ra.addFlashAttribute("successMessage", "Order Completed Successfully!");
                 ra.addFlashAttribute("order", newOrder);
