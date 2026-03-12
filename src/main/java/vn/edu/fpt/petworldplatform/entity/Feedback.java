@@ -68,6 +68,12 @@ public class Feedback {
     @Column(name = "ServiceName")
     private String serviceName; // Tạm thời lưu tên, map chi tiết sau nếu cần
 
+    @Column(name = "ReplyMessage", columnDefinition = "NVARCHAR(MAX)")
+    private String replyMessage;
+
+    @Column(name = "RepliedAt")
+    private LocalDateTime repliedAt;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

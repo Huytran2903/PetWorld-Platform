@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<th:block th:replace="~{fragments/staff_layout :: layout(~{::page_content})}">
+
+    <div th:fragment="page_content">
+
+        <link rel="stylesheet" th:href="@{/css/feedback-manager.css}"/>
+
+        <div class="hero">
+            <div class="hero-inner">
+                <div>
+                    <h1><i class="fas fa-comments"></i> Feedback Manager</h1>
+                    <p>Review, approve or reject customer feedback and send replies.</p>
+                </div>
+                <div class="pill">MANAGE</div>
+            </div>
+        </div>
+
+        <main class="container">
+
+            <!-- Flash Messages -->
+            <div th:if="${message}" class="alert alert-success">
+                <i class="fas fa-check-circle"></i>
+                <span th:text="${message}"></span>
+            </div>
+            <div th:if="${error}" class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i>
+                <span th:text="${error}"></span>
+            </div>
+
+            <!-- Filters -->
+            <section class="card filter-card">
+                <div class="card-body">
+                    <form th:action="@{/staff/feedback}" method="get" class="filter-form">
+                        <div class="filter-group">
+                            <label for="statusFilter">Status</label>
+                            <select id="statusFilter" name="status">
+                                <option value="">All Statuses</option>
+                                <option value="pending" th:selected="${currentStatus == 'pending'}">Pending</option>
+                                <option value="approved" th:selected="${currentStatus == 'approved'}">Approved</option>
+                                <option value="rejected" th:selected="${currentStatus == 'rejected'}">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="typeFilter">Type</label>
+                            <select id="typeFilter" name="type">
+                                <option value="">All Types</option>
+                                <option value="general" th:selected="${currentType == 'general'}">General</option>
+                                <option value="service" th:selected="${currentType == 'service'}">Service</option>
+                                <option value="product" th:selected="${currentType == 'product'}">Product</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fas fa-filter"></i> Filter
+                        </button>
+                        <a th:href="@{/staff/feedback}" class="btn btn-ghost btn-sm">
+                            <i class="fas fa-times"></i> Clear
+                        </a>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Feedback Table -->
+            <section class="card">
+                <header class="card-header">
+                    <div>
+                        <h2 class="title">All Feedback</h2>
+                        <span class="count-badge" th:text="${#lists.size(feedbacks)} + ' items'"></span>
+                    </div>
+                    <div class="tag">FEEDBACK</div>
+                </header>
+
+                <div class="card-body">
+                    <!-- Empty State -->
+                    <div th:if="${#lists.isEmpty(feedbacks)}" class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>No feedback found.</p>
+                    </div>
+
+                    <!-- Feedback List -->
+                    <div th:unless="${#lists.isEmpty(feedbacks)}" class="feedback-list">
+                        <div th:each="fb : ${feedbacks}" class="feedback-item">
+                            <!-- Header Row -->
+                            <div class="fb-header">
+                                <div class="fb-meta">
+                                    <span class="fb-type"
+                                          th:classappend="'type-' + ${fb.type}"
+                                          th:text="${#strings.capitalize(fb.type)}">General</span>
+                                    <span class="fb-date">
+                                        <i class="far fa-clock"></i>
+                                        <span th:text="${#temporals.format(fb.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                                    </span>
+                                    <span class="fb-customer" th:if="${fb.customer != null}">
+                                        <i class="fas fa-user"></i>
+                                        <span th:text="${fb.customer.fullName != null ? fb.customer.fullName : fb.customer.username}"></span>
+                                    </span>
+                                    <span class="fb-customer" th:if="${fb.customer == null and fb.email != null}">
+                                        <i class="fas fa-envelope"></i>
+                                        <span th:text="${fb.email}"></span>
+                                    </span>
+                                </div>
+                                <span class="status-badge"
+                                      th:classappend="'status-' + ${fb.status}"
+                                      th:text="${#strings.capitalize(fb.status)}">Pending</span>
+                            </div>
+
+                            <!-- Rating -->
+                            <div class="fb-rating" th:if="${fb.rating != null}">
+                                <th:block th:each="i : ${#numbers.sequence(1, 5)}">
+                                    <i th:classappend="${i <= fb.rating} ? 'fas fa-star star-filled' : 'far fa-star star-empty'"></i>
+                                </th:block>
+                                <span class="rating-number" th:text="'(' + ${fb.rating} + '/5)'"></span>
+                            </div>
+
+                            <!-- Subject & Comment -->
+                            <div class="fb-content">
+                                <p class="fb-subject" th:if="${fb.subject != null and !fb.subject.isEmpty()}">
+                                    <strong th:text="${fb.subject}"></strong>
+                                </p>
+                                <p class="fb-comment" th:text="${fb.comment}"></p>
+                            </div>
+
+                            <!-- Images -->
+                            <div class="fb-images" th:if="${fb.imageUrls != null and !fb.imageUrls.isEmpty()}">
+                                <th:block th:each="imgUrl : ${#strings.arraySplit(fb.imageUrls, ',')}">
+                                    <a th:href="${imgUrl}" target="_blank" class="fb-image-link">
+                                        <img th:src="${imgUrl}" alt="Feedback image"/>
+                                    </a>
+                                </th:block>
+                            </div>
+
+                            <!-- Existing Reply -->
+                            <div class="fb-reply-display" th:if="${fb.replyMessage != null and !fb.replyMessage.isEmpty()}">
+                                <div class="reply-header">
+                                    <i class="fas fa-reply"></i> Staff Reply
+                                    <span class="reply-date" th:if="${fb.repliedAt != null}"
+                                          th:text="' — ' + ${#temporals.format(fb.repliedAt, 'dd/MM/yyyy HH:mm')}"></span>
+                                </div>
+                                <p th:text="${fb.replyMessage}"></p>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="fb-actions">
+                                <!-- Approve / Reject -->
+                                <th:block th:if="${fb.status == 'pending'}">
+                                    <form th:action="@{'/staff/feedback/' + ${fb.id} + '/approve'}" method="post" class="inline-form">
+                                        <button type="submit" class="btn btn-approve btn-sm">
+                                            <i class="fas fa-check"></i> Approve
+                                        </button>
+                                    </form>
+                                    <form th:action="@{'/staff/feedback/' + ${fb.id} + '/reject'}" method="post" class="inline-form">
+                                        <button type="submit" class="btn btn-reject btn-sm">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    </form>
+                                </th:block>
+
+                                <!-- Reply Toggle -->
+                                <button type="button" class="btn btn-ghost btn-sm"
+                                        th:onclick="'toggleReply(' + ${fb.id} + ')'">
+                                    <i class="fas fa-reply"></i>
+                                    <span th:text="${fb.replyMessage != null and !fb.replyMessage.isEmpty()} ? 'Edit Reply' : 'Reply'"></span>
+                                </button>
+                            </div>
+
+                            <!-- Reply Form (hidden by default) -->
+                            <div th:id="'reply-form-' + ${fb.id}" class="reply-form" style="display:none;">
+                                <form th:action="@{'/staff/feedback/' + ${fb.id} + '/reply'}" method="post">
+                                    <textarea name="replyMessage" rows="3"
+                                              placeholder="Type your reply here..."
+                                              required
+                                              th:text="${fb.replyMessage}"></textarea>
+                                    <div class="reply-actions">
+                                        <button type="submit" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-paper-plane"></i> Send Reply
+                                        </button>
+                                        <button type="button" class="btn btn-ghost btn-sm"
+                                                th:onclick="'toggleReply(' + ${fb.id} + ')'">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <script>
+            function toggleReply(id) {
+                var el = document.getElementById('reply-form-' + id);
+                if (el.style.display === 'none' || el.style.display === '') {
+                    el.style.display = 'block';
+                    el.querySelector('textarea').focus();
+                } else {
+                    el.style.display = 'none';
+                }
+            }
+        </script>
+
+    </div>
+</th:block>
+</html>

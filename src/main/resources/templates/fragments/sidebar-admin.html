@@ -94,6 +94,11 @@
             </ul>
         </div>
 
+        <a th:href="@{/admin/feedback}" class="nav-link-custom d-flex align-items-center"
+           th:classappend="${activePage == 'feedback' ? 'active-state' : ''}">
+            <i class="bi bi-chat-dots me-3 fs-5"></i> Feedback Manager
+        </a>
+
         <a th:href="@{/admin/config}" class="nav-link-custom d-flex align-items-center"
            th:classappend="${activePage == 'config' ? 'active-state' : ''}">
             <i class="fa-solid fa-cogs me-3 fs-5"></i> Web Config

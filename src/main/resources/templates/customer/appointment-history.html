@@ -389,6 +389,13 @@
                                             <button class="btn btn-danger btn-sm" type="submit">Delete</button>
                                         </form>
                                     </th:block>
+
+                                    <th:block th:if="${appt.status == 'done'}">
+                                        <a th:href="@{'/customer/appointments/' + ${appt.id} + '/review'}"
+                                           class="btn btn-primary btn-sm">
+                                            <i class="fas fa-star"></i> Review
+                                        </a>
+                                    </th:block>
                                 </div>
                             </div>
 

@@ -11,9 +11,9 @@ import vn.edu.fpt.petworldplatform.service.FeedbackService;
 import java.util.List;
 
 @Controller
-@RequestMapping("/staff/feedback")
+@RequestMapping("/admin/feedback")
 @RequiredArgsConstructor
-public class StaffFeedbackController {
+public class AdminFeedbackController {
 
     private final FeedbackService feedbackService;
 
@@ -27,7 +27,7 @@ public class StaffFeedbackController {
         model.addAttribute("currentStatus", status);
         model.addAttribute("currentType", type);
         model.addAttribute("activePage", "feedback");
-        return "staff/feedback/feedback-manager";
+        return "admin/feedback-manager";
     }
 
     @PostMapping("/{id}/approve")
@@ -38,7 +38,7 @@ public class StaffFeedbackController {
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-        return "redirect:/staff/feedback";
+        return "redirect:/admin/feedback";
     }
 
     @PostMapping("/{id}/reject")
@@ -49,7 +49,7 @@ public class StaffFeedbackController {
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-        return "redirect:/staff/feedback";
+        return "redirect:/admin/feedback";
     }
 
     @PostMapping("/{id}/reply")
@@ -59,13 +59,13 @@ public class StaffFeedbackController {
         try {
             if (replyMessage == null || replyMessage.isBlank()) {
                 redirectAttributes.addFlashAttribute("error", "Reply message cannot be empty.");
-                return "redirect:/staff/feedback";
+                return "redirect:/admin/feedback";
             }
             feedbackService.replyToFeedback(id, replyMessage.trim());
             redirectAttributes.addFlashAttribute("message", "Reply sent successfully.");
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
-        return "redirect:/staff/feedback";
+        return "redirect:/admin/feedback";
     }
 }
