@@ -48,7 +48,7 @@
 
         <div class="row g-4 row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5">
 
-            <div class="col" th:each="p : ${pet}">
+            <div class="col" th:each="p : ${pet}" th:if="${p.price != null and p.owner == null}" >
                 <div class="pw-card">
                     <div class="pw-img-box">
                         <img th:src="${p.imageUrl}" alt="Product Image">
@@ -59,7 +59,6 @@
                             <i class="bi bi-patch-check-fill text-primary me-1" style="font-size: 0.9rem;"></i>
                             <span th:text="${p.name}">Pet Name</span>
                         </p>
-
                         <div class="pw-vaccine-info mb-3" style="font-size: 0.85rem;">
                             <span th:if="${p.vaccinations != null and !p.vaccinations.isEmpty()}"
                                   class="text-success fw-medium">

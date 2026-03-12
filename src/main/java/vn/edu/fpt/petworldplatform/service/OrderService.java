@@ -53,12 +53,17 @@ public class OrderService {
         order.setStatus("pending"); // Dùng chữ thường khớp với CHECK constraint
         order.setCreatedAt(LocalDateTime.now());
 
-        // Tính toán tiền tệ (Subtotal & TotalAmount)
+        // Tính toán tiền tệ (Subtotal)
         BigDecimal subtotal = calculateSubtotal(itemsInCart);
         order.setSubtotal(subtotal);
-        // Giả sử thuế 5% như bạn đã thiết kế ở HTML
-        BigDecimal totalWithTax = subtotal.multiply(new BigDecimal("1.05"));
-        order.setTotalAmount(totalWithTax);
+
+        // ---- ĐÃ SỬA: GÁN CỨNG PHÍ SHIP 25K VÀ BỎ THUẾ ----
+        BigDecimal shippingFee = new BigDecimal("25000");
+        order.setShippingFee(shippingFee); // Lưu thẳng 25k vào Database
+
+        // Tổng cộng = Tiền hàng + Phí ship 25k (Không tính thuế nữa)
+        order.setTotalAmount(subtotal.add(shippingFee));
+        // -------------------------------------------------------------
 
         // Lưu để có OrderID làm khóa ngoại cho OrderItems
         order = orderRepo.save(order);
@@ -90,15 +95,20 @@ public class OrderService {
             oi.setQuantity(ci.getQuantity());
             // LineTotal tự tính trong SQL (Computed Column) nên không cần set ở đây
             orderItemRepo.save(oi);
-            order.setOrderItems(listOrderItems);
+
+            // Thêm đối tượng oi vào danh sách
+            listOrderItems.add(oi);
         }
 
+        // Cập nhật lại danh sách OrderItems cho order
         order.setOrderItems(listOrderItems);
 
         // BƯỚC 4: Tạo bản ghi thanh toán
         Payment payment = new Payment();
         payment.setOrder(order); // Gán Order để nối khóa ngoại FK_Payments_Orders
         payment.setPaymentType("order"); // Bắt buộc để thỏa mãn CK_Payments_OneTarget
+
+        // Lúc này order.getTotalAmount() đã lấy chuẩn xác Tổng tiền + 25k ship
         payment.setAmount(order.getTotalAmount());
 
         // Phân loại trạng thái ban đầu dựa trên phương thức
@@ -128,6 +138,10 @@ public class OrderService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+   public List<Order> getAllOrder() {
+        return orderRepo.findAll();
+   }
+
     public Order findByOrderCode(String orderCode) {
         return orderRepo.findByOrderCode(orderCode);
     }
@@ -136,4 +150,10 @@ public class OrderService {
     public Order updateOrder(Order order) {
         return orderRepo.save(order);
     }
+
+    //List Order
+//    public List<Order> getAllOrder() {
+//        return orderRepo.findAll();
+//    }
+
 }

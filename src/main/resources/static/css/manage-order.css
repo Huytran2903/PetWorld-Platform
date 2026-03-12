@@ -1,0 +1,156 @@
+/* Container sizing */
+.max-w-custom {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Header styling */
+.header-card {
+    background-color: #ffeedb;
+    border: 1px solid #fae1c8;
+}
+
+.header-card h2 i {
+    font-size: 1.8rem;
+    color: #ffb84d !important;
+}
+
+.header-card .btn-dark {
+    background-color: #111827;
+    border-color: #111827;
+}
+
+/* Search and Filter Inputs */
+.search-group, .filter-select {
+    border: 1px solid #e5e7eb;
+    background-color: #f9fafb;
+}
+
+.search-group .form-control::placeholder {
+    color: #9ca3af;
+}
+
+.filter-select {
+    cursor: pointer;
+}
+
+/* Table styling */
+.custom-table th {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #6b7280;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    letter-spacing: 0.05em;
+}
+
+.custom-table td {
+    padding: 1.25rem 0.5rem;
+    border-bottom: 1px solid #f3f4f6;
+    color: #4b5563;
+}
+
+/* Remove bottom border for last row */
+.custom-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Status Dropdown styling */
+.status-select {
+    border-radius: 50rem;
+    padding-top: 0.35rem;
+    padding-bottom: 0.35rem;
+    padding-left: 0.8rem;
+    width: 135px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+/* Colors for specific statuses */
+select.status-completed {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+select.status-pending {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+select.status-processing {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+select.status-cancelled {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.status-select option {
+    background-color: #ffffff;
+    color: #333333;
+    font-weight: normal;
+}
+
+/* Action Buttons */
+.btn-action {
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0.375rem 1rem;
+}
+
+.btn-outline-primary {
+    color: #3b82f6;
+    border-color: #bfdbfe;
+}
+.btn-outline-primary:hover {
+    background-color: #eff6ff;
+    color: #2563eb;
+    border-color: #bfdbfe;
+}
+
+.btn-outline-danger {
+    color: #ef4444;
+    border-color: #fecaca;
+}
+.btn-outline-danger:hover {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
+}
+
+/* Custom Action Container (Pill shape) */
+.action-container {
+    display: inline-flex;
+    align-items: center;
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb; /* Viền xám nhạt */
+    border-radius: 50rem; /* Bo tròn hoàn toàn */
+    padding: 0.25rem 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); /* Đổ bóng nhẹ tạo chiều sâu */
+}
+
+/* Base button styling inside container */
+.action-btn {
+    background: transparent;
+    border: none;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.action-btn:hover {
+    opacity: 0.7;
+}
+
+/* Edit Button - Grey text, Blue icon */
+.action-edit {
+    color: #4b5563;
+}
+
+.action-edit i {
+    color: #3b82f6; /* Icon màu xanh dương giống hình */
+}
+

@@ -716,4 +716,10 @@ public class AdminController {
         return new ResponseEntity<>(csv.toString(), headers, HttpStatus.OK);
     }
 
+    //Manage Order - OanhTP
+    @GetMapping("/admin/manage-order")
+    public String getAllOrder() {
+        return "customer/manage-order";
+    }
+
 }

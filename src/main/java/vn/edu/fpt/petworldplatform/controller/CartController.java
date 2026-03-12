@@ -46,7 +46,6 @@ public class CartController {
     @Autowired
     private PetRepo petRepo;
 
-
     @GetMapping("/cart/add-pet/{id}") // Khớp {id} với PathVariable
     public String addPetToCart(@PathVariable("id") Integer id,
                                Authentication authentication) {
@@ -132,13 +131,19 @@ public class CartController {
             return "customer/shopping-cart";
         }
 
+        // 1. Lấy Subtotal từ Service
         BigDecimal subtotal = cartService.calculateSubtotal(cart);
-        BigDecimal tax = subtotal.multiply(new BigDecimal("0.05")); // Thuế 5%
-        BigDecimal total = subtotal.add(tax);
 
+        // 2. THAY ĐỔI TẠI ĐÂY: Gán cứng phí ship 25,000 (Bỏ phần tính Tax 0.05)
+        BigDecimal shippingFee = new BigDecimal("25000");
+
+        // 3. THAY ĐỔI TẠI ĐÂY: Tổng cộng = Tiền hàng + Phí ship
+        BigDecimal total = subtotal.add(shippingFee);
+
+        // 4. Đưa dữ liệu ra giao diện
         model.addAttribute("cart", cart);
         model.addAttribute("subtotal", subtotal);
-        model.addAttribute("tax", tax);
+        model.addAttribute("shippingfree", shippingFee);
         model.addAttribute("total", total);
 
         return "customer/shopping-cart";
@@ -334,6 +339,14 @@ public class CartController {
         }
         // Nếu là Form thường
         return customerService.findIdByUsername(authentication.getName());
+    }
+
+
+    @GetMapping("/cart/order-history")
+    public String orderHistory(Model model) {
+
+        model.addAttribute("orderHistory", orderService.getAllOrder());
+        return "customer/order-history";
     }
 
 
