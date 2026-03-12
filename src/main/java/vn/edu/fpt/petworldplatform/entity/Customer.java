@@ -76,4 +76,9 @@ public class Customer implements UserDetails     {
     public @Nullable String getPassword() {
         return "";
     }
+
+
+    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private List<Pets> pets;
 }

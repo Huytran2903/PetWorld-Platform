@@ -13,7 +13,6 @@
     <link rel="stylesheet" th:href="@{/css/staff-manage.css}"/>
 
     <style>
-        /* CSS chia bố cục: Sidebar trái, Content phải */
         body {
             margin: 0;
             overflow: hidden;
@@ -29,10 +28,9 @@
             flex-grow: 1;
             padding: 2rem;
             height: 100vh;
-            overflow-y: auto; /* Cuộn độc lập phần nội dung bên phải */
+            overflow-y: auto;
         }
 
-        /* Chỉnh lại ô search cho đẹp hơn */
         .search-box-custom {
             border-radius: 50px;
             overflow: hidden;
@@ -45,7 +43,6 @@
             border-color: transparent;
         }
     </style>
-
 </head>
 <body>
 
@@ -144,14 +141,16 @@
                                         <i class="bi bi-pencil-square me-1"></i> Edit
                                     </a>
 
-                                    <a href="#"
-                                       class="btn btn-sm rounded-circle btn-outline-danger border d-flex align-items-center justify-content-center shadow-sm"
-                                       style="width: 32px; height: 32px;"
-                                       th:data-href="@{/admin/staff-manage/delete/{id}(id=${staff.staffId})}"
-                                       data-bs-toggle="modal"
-                                       data-bs-target="#deleteStaffModal">
+                                    <button type="button"
+                                            class="btn btn-sm rounded-circle btn-outline-danger border d-flex align-items-center justify-content-center shadow-sm delete-staff-btn"
+                                            style="width: 32px; height: 32px;"
+                                            th:data-id="${staff.staffId}"
+                                            th:data-name="${staff.fullName}"
+                                            th:data-vaccines="${staff.vaccinations != null ? staff.vaccinations.size() : 0}"
+                                            th:data-health="${staff.healthRecords != null ? staff.healthRecords.size() : 0}"
+                                            th:data-appointments="${staff.appointmentServiceLines != null ? staff.appointmentServiceLines.size() : 0}">
                                         <i class="bi bi-trash-fill"></i>
-                                    </a>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -165,43 +164,104 @@
                                 </div>
                             </td>
                         </tr>
-
                         </tbody>
                     </table>
                 </div>
 
-                <div class="card-footer bg-light border-top py-3 px-4 d-flex justify-content-between align-items-center">
-                    <span class="small text-muted fw-bold" th:text="'Total Staffs: ' + ${staffs.size()}"></span>
+                <div class="card-footer bg-light border-top py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <span class="small text-muted fw-bold"
+                          th:text="'Total Staffs: ' + ${totalItems}">Total Staffs: 0</span>
+
+                    <nav th:if="${totalPages > 1}">
+                        <ul class="pagination pagination-sm mb-0 shadow-sm">
+                            <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+                                <a class="page-link text-dark"
+                                   th:href="@{/admin/staff-manage(keyword=${keyword}, page=${currentPage - 1})}">
+                                    <i class="bi bi-chevron-left"></i> Prev
+                                </a>
+                            </li>
+
+                            <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPages)}"
+                                th:classappend="${currentPage == i} ? 'active'">
+                                <a class="page-link" th:href="@{/admin/staff-manage(keyword=${keyword}, page=${i})}"
+                                   th:text="${i}">1</a>
+                            </li>
+
+                            <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
+                                <a class="page-link text-dark"
+                                   th:href="@{/admin/staff-manage(keyword=${keyword}, page=${currentPage + 1})}">
+                                    Next <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
                 </div>
             </div>
 
         </div>
     </div>
 </div>
-<div class="modal fade" id="deleteStaffModal" tabindex="-1" aria-hidden="true">
+
+<div class="modal fade" id="transferDeleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
+        <div class="modal-content border-0 shadow-lg">
             <div class="modal-header bg-danger text-white border-0">
                 <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Confirm Delete</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
             </div>
-            <div class="modal-body text-center p-4">
-                <div class="mb-3">
-                    <i class="bi bi-person-x-fill text-danger" style="font-size: 3rem;"></i>
+
+            <form th:action="@{/admin/staff/delete}" method="post">
+                <div class="modal-body p-4">
+                    <input type="hidden" name="staffId" id="deleteStaffId">
+
+                    <div class="text-center mb-4">
+                        <i class="bi bi-person-x-fill text-danger" style="font-size: 3rem;"></i>
+                        <h5 class="fw-bold text-dark mt-2">Are you sure?</h5>
+                        <p class="text-muted small mb-0">You are about to delete <b id="deleteStaffName"
+                                                                                    class="text-danger fw-bold"></b>.
+                        </p>
+                    </div>
+
+                    <div id="pendingWorkWarning" class="alert alert-warning text-start border-0 shadow-sm"
+                         style="display: none;">
+                        <p class="mb-2 fw-bold text-dark"><i
+                                class="bi bi-exclamation-circle-fill text-warning me-2"></i>Pending Tasks Detected:</p>
+
+                        <ul class="mb-3 small text-dark">
+                            <li><span id="vaccineCount" class="fw-bold text-danger">0</span> Vaccination Records</li>
+                            <li><span id="healthCount" class="fw-bold text-danger">0</span> Health Records</li>
+                            <li><span id="appointmentCount" class="fw-bold text-danger">0</span> Assigned Services</li>
+                        </ul>
+
+                        <label class="form-label fw-bold small text-dark">Transfer tasks to:</label>
+                        <select name="transferStaffId" id="transferStaffSelect" class="form-select shadow-sm border-0">
+                            <option value="">-- Select staff member --</option>
+                            <th:block th:each="activeStaff : ${activeStaffList}">
+                                <option th:value="${activeStaff.staffId}" th:text="${activeStaff.fullName}"></option>
+                            </th:block>
+                        </select>
+                        <div class="small text-muted mt-2 fst-italic">
+                            * Schedules & Feedbacks will be permanently deleted. Unassigned services will return to
+                            pending.
+                        </div>
+                    </div>
+
+                    <div id="noWorkMessage" class="alert alert-secondary small mb-0 text-center border-0"
+                         style="display: none;">
+                        This staff member has no pending tasks. <span class="text-danger fw-bold">This action cannot be undone.</span>
+                    </div>
                 </div>
-                <h5 class="fw-bold text-dark">Are you sure?</h5>
-                <p class="text-muted small mb-0">Do you really want to delete this staff member? <br>
-                    <span class="text-danger fw-bold">This action cannot be undone.</span>
-                </p>
-            </div>
-            <div class="modal-footer justify-content-center border-0 pb-4 bg-light">
-                <button type="button" class="btn btn-secondary rounded-pill px-4 fw-medium" data-bs-dismiss="modal">
-                    Cancel
-                </button>
-                <a href="#" id="btnConfirmDeleteStaff" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm">Delete
-                    Now</a>
-            </div>
+
+                <div class="modal-footer justify-content-center border-0 pb-4 bg-light">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4 fw-medium" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="submit" id="btnSubmitDelete"
+                            class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm">Delete Now
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

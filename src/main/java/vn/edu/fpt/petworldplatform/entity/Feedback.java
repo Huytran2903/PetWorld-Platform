@@ -33,8 +33,9 @@ public class Feedback {
     @Column(name = "ServiceID")
     private Integer serviceId;
 
-    @Column(name = "StaffID")
-    private Integer staffId;
+    @ManyToOne
+    @JoinColumn(name = "StaffID")
+    private Staff staff;
 
     @Column(name = "Rating")
     private Integer rating;

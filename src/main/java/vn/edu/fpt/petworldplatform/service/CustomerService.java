@@ -1,6 +1,10 @@
 package vn.edu.fpt.petworldplatform.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -231,6 +235,16 @@ public class CustomerService {
     public Integer findIdByEmail(String email) {
         return customerRepo.findByEmail(email)
                 .map(Customer::getCustomerId)
-                .orElse(null); // Trả về null nếu không thấy, tuyệt đối không dùng orElseThrow
+                .orElse(null);
+    }
+
+    public Page<Customer> getCustomersWithPaginationAndSearch(String keyword, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("customerId").descending());
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            return customerRepo.searchCustomers(keyword.trim(), pageable);
+        }
+        return customerRepo.findAll(pageable);
     }
 }

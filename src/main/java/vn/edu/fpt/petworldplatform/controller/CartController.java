@@ -240,7 +240,7 @@ public class CartController {
                 return "redirect:" + payUrl;
 
             } else {
-
+                cartService.clearCart(customerId);
                 // Trường hợp COD: Đơn hàng đã được tạo ở trạng thái 'pending'
                 ra.addFlashAttribute("successMessage", "Order Completed Successfully!");
                 ra.addFlashAttribute("order", newOrder);
@@ -324,7 +324,7 @@ public class CartController {
             return null;
         }
         // Nếu là Google
-        if (authentication.getPrincipal() instanceof org.springframework.security.oauth2.core.user.OAuth2User oauth2User) {
+        if (authentication.getPrincipal() instanceof OAuth2User oauth2User) {
             String email = oauth2User.getAttribute("email");
             return customerService.findIdByEmail(email);
         }

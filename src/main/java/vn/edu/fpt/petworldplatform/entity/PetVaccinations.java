@@ -1,5 +1,6 @@
 package vn.edu.fpt.petworldplatform.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.FutureOrPresent;
 import lombok.*;
@@ -33,6 +34,7 @@ public class PetVaccinations {
     @JoinColumn(name = "PetID", nullable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @JsonIgnore
     private Pets pet;
 
     @ManyToOne(fetch = FetchType.LAZY)

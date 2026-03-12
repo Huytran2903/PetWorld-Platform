@@ -7,6 +7,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "Staff")
@@ -57,4 +58,28 @@ public class Staff {
     @UpdateTimestamp
     @Column(name = "UpdatedAt")
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "performedByStaff", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private List<PetVaccinations> vaccinations;
+
+    @OneToMany(mappedBy = "performedByStaff", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private List<PetHealthRecord> healthRecords;
+
+    @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private List<Feedback> feedbacks;
+
+    @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private List<StaffSchedule> schedules;
+
+    @OneToMany(mappedBy = "assignedStaff", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private List<AppointmentServiceLine> appointmentServiceLines;
+
+    @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private List<Appointment> appointments;
 }
