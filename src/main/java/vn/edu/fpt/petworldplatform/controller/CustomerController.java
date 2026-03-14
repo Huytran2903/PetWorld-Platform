@@ -37,7 +37,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 
@@ -51,6 +53,8 @@ public class CustomerController {
     private final SecuritySupport securitySupport;
 
     private final PetService petService;
+
+    private final FeedbackService feedbackService;
 
 
     @Autowired
@@ -199,11 +203,28 @@ public class CustomerController {
             model.addAttribute("healthPhotosByAppointmentId", java.util.Map.of());
             model.addAttribute("healthRecordByServiceLineId", java.util.Map.of());
             model.addAttribute("healthPhotosByServiceLineId", java.util.Map.of());
+            model.addAttribute("reviewedServiceLineIds", java.util.Set.of());
         } else {
             List<vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine> lines = bookingService.findServiceLinesByAppointmentIds(apptIds);
             java.util.Map<Integer, List<vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine>> linesByApptId =
                     lines.stream().collect(java.util.stream.Collectors.groupingBy(l -> l.getAppointment().getId()));
             model.addAttribute("serviceLinesByAppointmentId", linesByApptId);
+
+            Set<Integer> reviewedServiceLineIds = new HashSet<>();
+            for (vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine line : lines) {
+                if (line.getId() == null || line.getService() == null || line.getService().getId() == null || line.getAppointment() == null) {
+                    continue;
+                }
+                boolean reviewed = feedbackService.hasAlreadyReviewed(
+                        line.getAppointment().getId(),
+                        line.getService().getId(),
+                        customer.getCustomerId()
+                );
+                if (reviewed) {
+                    reviewedServiceLineIds.add(line.getId());
+                }
+            }
+            model.addAttribute("reviewedServiceLineIds", reviewedServiceLineIds);
 
             java.util.Map<Integer, PetHealthRecord> recordByAppointmentId = new java.util.HashMap<>();
             java.util.Map<Integer, List<PetHealthPhoto>> photosByAppointmentId = new java.util.HashMap<>();

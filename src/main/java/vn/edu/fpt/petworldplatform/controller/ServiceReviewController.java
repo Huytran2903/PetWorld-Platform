@@ -38,6 +38,7 @@ public class ServiceReviewController {
      */
     @GetMapping("/{id}/review")
     public String showReviewForm(@PathVariable Integer id,
+                                 @RequestParam(value = "serviceId", required = false) Integer serviceId,
                                  HttpSession session,
                                  Model model,
                                  RedirectAttributes redirectAttributes) {
@@ -55,10 +56,34 @@ public class ServiceReviewController {
                 return "redirect:/customer/appointments";
             }
 
+            Integer selectedServiceId = serviceId;
+            if (selectedServiceId == null) {
+                if (serviceLines.size() == 1) {
+                    selectedServiceId = serviceLines.get(0).getService().getId();
+                } else {
+                    redirectAttributes.addFlashAttribute("error", "Please select a specific service to review from your appointment list.");
+                    return "redirect:/customer/appointments";
+                }
+            }
+
+            final Integer fixedSelectedServiceId = selectedServiceId;
+
+            AppointmentServiceLine selectedServiceLine = serviceLines.stream()
+                    .filter(line -> line.getService() != null && line.getService().getId().equals(fixedSelectedServiceId))
+                    .findFirst()
+                    .orElse(null);
+            if (selectedServiceLine == null) {
+                redirectAttributes.addFlashAttribute("error", "Selected service is not part of this appointment.");
+                return "redirect:/customer/appointments";
+            }
+
             model.addAttribute("appointment", appointment);
             model.addAttribute("serviceLines", serviceLines);
-            model.addAttribute("reviewDTO", new ServiceReviewDTO());
+            ServiceReviewDTO reviewDTO = new ServiceReviewDTO();
+            reviewDTO.setServiceId(selectedServiceId);
+            model.addAttribute("reviewDTO", reviewDTO);
             model.addAttribute("activePage", "appointments");
+            model.addAttribute("selectedServiceLine", selectedServiceLine);
 
             // Mark which services have already been reviewed
             List<Integer> reviewedServiceIds = new ArrayList<>();
@@ -68,6 +93,7 @@ public class ServiceReviewController {
                 }
             }
             model.addAttribute("reviewedServiceIds", reviewedServiceIds);
+            model.addAttribute("selectedServiceReviewed", reviewedServiceIds.contains(selectedServiceId));
 
             return "feedback/service-review";
         } catch (IllegalArgumentException e) {
@@ -81,6 +107,7 @@ public class ServiceReviewController {
      */
     @PostMapping("/{id}/review")
     public String submitReview(@PathVariable Integer id,
+                               @RequestParam(value = "serviceId", required = false) Integer serviceId,
                                @Valid @ModelAttribute("reviewDTO") ServiceReviewDTO reviewDTO,
                                BindingResult bindingResult,
                                @RequestParam(value = "imageFiles", required = false) MultipartFile[] imageFiles,
@@ -96,18 +123,40 @@ public class ServiceReviewController {
             Appointment appointment = feedbackService.getAppointmentForReview(id, customer.getCustomerId());
             List<AppointmentServiceLine> serviceLines = feedbackService.getServiceLinesForAppointment(id);
 
+            Integer selectedServiceId = serviceId;
+            if (selectedServiceId == null) {
+                redirectAttributes.addFlashAttribute("error", "Invalid review request: missing service.");
+                return "redirect:/customer/appointments";
+            }
+
+                final Integer fixedSelectedServiceId = selectedServiceId;
+
+            AppointmentServiceLine selectedServiceLine = serviceLines.stream()
+                    .filter(line -> line.getService() != null && line.getService().getId().equals(fixedSelectedServiceId))
+                    .findFirst()
+                    .orElse(null);
+            if (selectedServiceLine == null) {
+                redirectAttributes.addFlashAttribute("error", "Selected service is not part of this appointment.");
+                return "redirect:/customer/appointments";
+            }
+
+            // Keep service fixed from outside button to avoid mismatched selections.
+            reviewDTO.setServiceId(selectedServiceId);
+
+            List<Integer> reviewedServiceIds = new ArrayList<>();
+            for (AppointmentServiceLine line : serviceLines) {
+                if (feedbackService.hasAlreadyReviewed(id, line.getService().getId(), customer.getCustomerId())) {
+                    reviewedServiceIds.add(line.getService().getId());
+                }
+            }
+
             if (bindingResult.hasErrors()) {
                 model.addAttribute("appointment", appointment);
                 model.addAttribute("serviceLines", serviceLines);
                 model.addAttribute("activePage", "appointments");
-
-                List<Integer> reviewedServiceIds = new ArrayList<>();
-                for (AppointmentServiceLine line : serviceLines) {
-                    if (feedbackService.hasAlreadyReviewed(id, line.getService().getId(), customer.getCustomerId())) {
-                        reviewedServiceIds.add(line.getService().getId());
-                    }
-                }
                 model.addAttribute("reviewedServiceIds", reviewedServiceIds);
+                model.addAttribute("selectedServiceLine", selectedServiceLine);
+                model.addAttribute("selectedServiceReviewed", reviewedServiceIds.contains(selectedServiceId));
                 return "feedback/service-review";
             }
 
@@ -120,14 +169,20 @@ public class ServiceReviewController {
             feedbackService.submitServiceReview(reviewDTO, id, customer);
 
             redirectAttributes.addFlashAttribute("message", "Your review has been submitted successfully. Thank you!");
-            return "redirect:/customer/appointments/" + id + "/review";
+            return "redirect:/customer/appointments/" + id + "/review?serviceId=" + selectedServiceId;
 
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/customer/appointments/" + id + "/review";
+            if (serviceId == null) {
+                return "redirect:/customer/appointments";
+            }
+            return "redirect:/customer/appointments/" + id + "/review?serviceId=" + serviceId;
         } catch (IOException e) {
             redirectAttributes.addFlashAttribute("error", "Failed to upload images. Please try again.");
-            return "redirect:/customer/appointments/" + id + "/review";
+            if (serviceId == null) {
+                return "redirect:/customer/appointments";
+            }
+            return "redirect:/customer/appointments/" + id + "/review?serviceId=" + serviceId;
         }
     }
 

@@ -308,14 +308,6 @@
 
                 <a th:href="@{/customer/appointments}" class="btn btn-secondary btn-sm">Back to History</a>
 
-                <a th:if="${appointment.status != null and appointment.status.toLowerCase() == 'done'}"
-                   th:href="@{'/customer/appointments/' + ${appointment.id} + '/review'}"
-                   class="btn btn-primary btn-sm">
-                    <i class="fas fa-star"></i> Write Review
-                </a>
-
-
-
                 <div class="type-pill">DETAIL</div>
 
 

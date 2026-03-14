@@ -83,32 +83,31 @@
                 <h2><i class="fas fa-pen-fancy"></i> Write Your Review</h2>
             </div>
             <div class="card-body">
-                <form th:action="@{/customer/appointments/{id}/review(id=${appointment.id})}"
+                    <form th:action="@{/customer/appointments/{id}/review(id=${appointment.id},serviceId=${selectedServiceLine.service.id})}"
                       th:object="${reviewDTO}"
                       method="post"
                       id="reviewForm"
                       enctype="multipart/form-data">
 
-                    <!-- Service Selector -->
+                    <!-- Fixed service from appointment history -->
                     <div class="form-group">
-                        <label for="serviceId">
+                        <label for="selectedServiceName">
                             <i class="fas fa-concierge-bell"></i> Service <span class="required">*</span>
                         </label>
-                        <select id="serviceId" th:field="*{serviceId}" class="form-select" required>
-                            <option value="">-- Select a service to review --</option>
-                            <th:block th:each="line : ${serviceLines}">
-                                <option th:value="${line.service.id}"
-                                        th:text="${line.service.name}"
-                                        th:disabled="${reviewedServiceIds.contains(line.service.id)}"
-                                        th:classappend="${reviewedServiceIds.contains(line.service.id)} ? 'option-reviewed' : ''">
-                                </option>
-                            </th:block>
-                        </select>
+                        <input type="hidden" th:field="*{serviceId}"/>
+                        <input id="selectedServiceName"
+                               type="text"
+                               class="form-select"
+                               th:value="${selectedServiceLine.service.name}"
+                               readonly />
                         <div th:if="${#fields.hasErrors('serviceId')}" class="field-error">
                             <i class="fas fa-exclamation-triangle"></i>
                             <span th:errors="*{serviceId}"></span>
                         </div>
-                        <p class="hint">Select the service you want to review. Services already reviewed are disabled.</p>
+                        <p class="hint">Service is fixed based on the Review button you clicked from appointment history.</p>
+                        <p class="hint" th:if="${selectedServiceReviewed}">
+                            This service has already been reviewed.
+                        </p>
                     </div>
 
                     <!-- Subject -->
@@ -175,10 +174,10 @@
 
                     <!-- Action Buttons -->
                     <div class="actions">
-                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <button type="submit" class="btn btn-primary" id="submitBtn" th:disabled="${selectedServiceReviewed}">
                             <i class="fas fa-paper-plane"></i> Submit Review
                         </button>
-                        <button type="button" class="btn btn-ghost" onclick="resetForm()">
+                        <button type="button" class="btn btn-ghost" onclick="resetForm()" th:disabled="${selectedServiceReviewed}">
                             <i class="fas fa-undo"></i> Reset
                         </button>
                         <a th:href="@{/customer/appointments}" class="btn btn-secondary">
@@ -324,7 +323,7 @@
             }
             if (!document.getElementById('serviceId').value) {
                 e.preventDefault();
-                alert('Please select a service to review.');
+                alert('Invalid service review request. Please click Review from appointment history again.');
                 return false;
             }
         });

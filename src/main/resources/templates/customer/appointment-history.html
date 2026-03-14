@@ -172,6 +172,7 @@
                                                 <th>Duration</th>
                                                 <th>Health Summary</th>
                                                 <th class="text-end">Price</th>
+                                                <th class="text-center">Review</th>
                                             </tr>
                                         </thead>
 
@@ -242,6 +243,27 @@
                                                         th:if="${line.quantity > 1}"
                                                         th:text="'x' + ${line.quantity}"
                                                     ></small>
+                                                </td>
+
+                                                <td class="text-center">
+                                                    <th:block th:if="${appt.status != null and appt.status.toLowerCase() == 'done'}">
+                                                        <span
+                                                            th:if="${reviewedServiceLineIds != null and reviewedServiceLineIds.contains(line.id)}"
+                                                            class="badge status-done"
+                                                        >
+                                                            Reviewed
+                                                        </span>
+
+                                                        <a
+                                                            th:unless="${reviewedServiceLineIds != null and reviewedServiceLineIds.contains(line.id)}"
+                                                            th:href="@{/customer/appointments/{id}/review(id=${appt.id},serviceId=${line.service.id})}"
+                                                            class="btn btn-primary btn-sm"
+                                                        >
+                                                            <i class="fas fa-star"></i> Review
+                                                        </a>
+                                                    </th:block>
+
+                                                    <span th:unless="${appt.status != null and appt.status.toLowerCase() == 'done'}" class="text-muted">-</span>
                                                 </td>
                                             </tr>
                                         </tbody>
@@ -390,12 +412,6 @@
                                         </form>
                                     </th:block>
 
-                                    <th:block th:if="${appt.status == 'done'}">
-                                        <a th:href="@{'/customer/appointments/' + ${appt.id} + '/review'}"
-                                           class="btn btn-primary btn-sm">
-                                            <i class="fas fa-star"></i> Review
-                                        </a>
-                                    </th:block>
                                 </div>
                             </div>
 
