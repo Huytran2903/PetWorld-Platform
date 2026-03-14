@@ -43,4 +43,7 @@ public class AppointmentServiceLine {
     @Column(name = "ServiceStatus", nullable = false, length = 20)
     @Builder.Default
     private String serviceStatus = "pending";
+
+    @Column(name = "ServiceNote", length = 500)
+    private String serviceNote;
 }

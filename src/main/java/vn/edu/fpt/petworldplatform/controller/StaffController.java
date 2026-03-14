@@ -16,11 +16,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.petworldplatform.entity.Appointment;
 import vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine;
-import vn.edu.fpt.petworldplatform.entity.PetHealthPhoto;
-import vn.edu.fpt.petworldplatform.entity.PetHealthRecord;
+import vn.edu.fpt.petworldplatform.entity.ServiceNote;
+import vn.edu.fpt.petworldplatform.entity.ServiceNotePhoto;
 import vn.edu.fpt.petworldplatform.entity.Staff;
-import vn.edu.fpt.petworldplatform.repository.PetHealthPhotoRepository;
-import vn.edu.fpt.petworldplatform.repository.PetHealthRecordRepository;
+import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryRepository;
+import vn.edu.fpt.petworldplatform.repository.ServiceNotePhotoRepository;
+import vn.edu.fpt.petworldplatform.repository.ServiceNoteRepository;
 import vn.edu.fpt.petworldplatform.service.IAssignedAppointmentService;
 import vn.edu.fpt.petworldplatform.service.StaffService;
 
@@ -37,8 +38,9 @@ public class StaffController {
 
     private final IAssignedAppointmentService assignedAppointmentService;
     private final StaffService staffService;
-    private final PetHealthRecordRepository petHealthRecordRepository;
-    private final PetHealthPhotoRepository petHealthPhotoRepository;
+    private final ServiceNoteRepository serviceNoteRepository;
+    private final ServiceNotePhotoRepository serviceNotePhotoRepository;
+    private final AppointmentSummaryRepository appointmentSummaryRepository;
 
     @GetMapping("/assigned_list")
     public String viewAssignedList(
@@ -81,28 +83,59 @@ public class StaffController {
         model.addAttribute("appointment", appointment);
         model.addAttribute("currentStaffId", staff.getStaffId());
 
-        List<AppointmentServiceLine> myServiceLines = appointment.getServiceLines() == null
-                ? List.of()
-                : appointment.getServiceLines().stream()
-                .filter(line -> line.getAssignedStaffId() != null && line.getAssignedStaffId().equals(staff.getStaffId()))
-                .toList();
+        boolean isManager = appointment.getStaffId() != null && appointment.getStaffId().equals(staff.getStaffId());
+
+        // Nếu là manager: xem được tất cả service lines trong appointment.
+        // Nếu không: chỉ xem các service line được assign cho chính mình (giống behavior cũ).
+        List<AppointmentServiceLine> myServiceLines;
+        if (appointment.getServiceLines() == null) {
+            myServiceLines = List.of();
+        } else if (isManager) {
+            myServiceLines = appointment.getServiceLines();
+        } else {
+            myServiceLines = appointment.getServiceLines().stream()
+                    .filter(line -> line.getAssignedStaffId() != null && line.getAssignedStaffId().equals(staff.getStaffId()))
+                    .toList();
+        }
         model.addAttribute("myServiceLines", myServiceLines);
 
-        Map<Integer, PetHealthRecord> healthRecordByLineId = new HashMap<>();
-        Map<Integer, List<PetHealthPhoto>> healthPhotosByLineId = new HashMap<>();
+        Map<Integer, ServiceNote> serviceNoteByLineId = new HashMap<>();
+        Map<Integer, List<ServiceNotePhoto>> serviceNotePhotosByLineId = new HashMap<>();
 
-        for (AppointmentServiceLine line : myServiceLines) {
-            if (line.getId() == null) {
-                continue;
+        if (isManager) {
+            // Manager: lấy note mới nhất cho MỖI service line trong appointment (bất kể note đó do staff nào viết).
+            List<ServiceNote> allNotes = serviceNoteRepository.findByAppointment_IdOrderByUpdatedAtDesc(id);
+            for (ServiceNote note : allNotes) {
+                if (note.getServiceLine() == null || note.getServiceLine().getId() == null) {
+                    continue;
+                }
+                Integer lineId = note.getServiceLine().getId();
+                if (serviceNoteByLineId.containsKey(lineId)) {
+                    // đã có note mới hơn cho line này rồi
+                    continue;
+                }
+                serviceNoteByLineId.put(lineId, note);
+                serviceNotePhotosByLineId.put(lineId, serviceNotePhotoRepository.findByServiceNote_Id(note.getId()));
             }
-            petHealthRecordRepository.findByAppointmentServiceLine_Id(line.getId()).ifPresent(record -> {
-                healthRecordByLineId.put(line.getId(), record);
-                healthPhotosByLineId.put(line.getId(), petHealthPhotoRepository.findByRecord_Id(record.getId()));
-            });
+        } else {
+            // Staff bình thường: chỉ xem note của chính mình cho các line được assign.
+            for (AppointmentServiceLine line : myServiceLines) {
+                if (line.getId() == null) {
+                    continue;
+                }
+                serviceNoteRepository.findByAppointment_IdAndServiceLine_IdAndStaff_StaffId(id, line.getId(), staff.getStaffId())
+                        .ifPresent(note -> {
+                            serviceNoteByLineId.put(line.getId(), note);
+                            serviceNotePhotosByLineId.put(line.getId(), serviceNotePhotoRepository.findByServiceNote_Id(note.getId()));
+                        });
+            }
         }
 
-        model.addAttribute("healthRecordByLineId", healthRecordByLineId);
-        model.addAttribute("healthPhotosByLineId", healthPhotosByLineId);
+        model.addAttribute("serviceNoteByLineId", serviceNoteByLineId);
+        model.addAttribute("serviceNotePhotosByLineId", serviceNotePhotosByLineId);
+
+        model.addAttribute("appointmentSummary", appointmentSummaryRepository.findByAppointment_Id(id).orElse(null));
+        model.addAttribute("isManager", isManager);
 
         return "staff/appointment_detail";
     }

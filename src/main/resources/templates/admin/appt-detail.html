@@ -218,6 +218,52 @@
                                 </div>
 
                                 <div class="col-md-6">
+                                    <label class="form-label text-muted small">Manager</label>
+
+                                    <div
+                                        th:if="${appointment.status == 'done' || appointment.status == 'canceled' || appointment.status == 'no_show'}"
+                                    >
+                                        <div class="fw-bold" th:text="${appointment.staff != null ? appointment.staff.fullName : 'Not selected'}">
+                                            Not selected
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        th:if="${appointment.status != 'done' && appointment.status != 'canceled' && appointment.status != 'no_show'}"
+                                    >
+                                        <div th:if="${assignedManagers == null or #lists.isEmpty(assignedManagers)}" class="text-muted">
+                                            No assigned staff to select as manager yet.
+                                        </div>
+
+                                        <form
+                                            th:if="${assignedManagers != null and !#lists.isEmpty(assignedManagers)}"
+                                            th:action="@{/admin/appointments/{id}/manager(id=${appointment.id})}"
+                                            method="post"
+                                            class="d-flex align-items-center gap-2"
+                                        >
+                                            <select name="staffId" class="form-select form-select-sm" style="max-width: 260px;" required>
+                                                <option value="" disabled
+                                                        th:selected="${currentManagerId == null}">
+                                                    Select manager from assigned staff...
+                                                </option>
+                                                <option
+                                                    th:each="staff : ${assignedManagers}"
+                                                    th:value="${staff.staffId}"
+                                                    th:selected="${currentManagerId != null and currentManagerId == staff.staffId}"
+                                                    th:text="${staff.fullName + ' (' + staff.role.roleName + ')'}"
+                                                >
+                                                    Staff Name
+                                                </option>
+                                            </select>
+
+                                            <button type="submit" class="btn btn-orange btn-sm">
+                                                Save
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
                                     <label class="form-label text-muted small">Created At</label>
                                     <div th:text="${#temporals.format(appointment.createdAt, 'dd/MM/yyyy')}">Created</div>
                                 </div>
@@ -232,55 +278,51 @@
                         </div>
                     </div>
 
-                    <div class="card mb-4" th:if="${serviceLines == null or #lists.size(serviceLines) <= 1}">
+                    <div class="card mb-4" th:if="${appointmentSummary != null}">
                         <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">Health Report</h5>
-                            <span th:if="${healthRecord != null and healthRecord.warningFlag}" class="warning-chip">
+                            <h5 class="mb-0">Health Summary</h5>
+                            <span th:if="${appointmentSummary.warningFlag}" class="warning-chip">
                                 Warning
                             </span>
                         </div>
 
-                        <div class="card-body" th:if="${healthRecord != null}">
+                        <div class="card-body">
                             <div class="health-grid">
                                 <div class="health-item">
                                     <div class="k">Weight</div>
-                                    <div class="v" th:text="${healthRecord.weightKg} + ' kg'">0 kg</div>
+                                    <div class="v" th:text="${appointmentSummary.weightKg != null ? appointmentSummary.weightKg + ' kg' : '-'}">-</div>
                                 </div>
 
                                 <div class="health-item">
                                     <div class="k">Temperature</div>
-                                    <div class="v" th:text="${healthRecord.temperature} + ' °C'">0 °C</div>
+                                    <div class="v" th:text="${appointmentSummary.temperature != null ? appointmentSummary.temperature + ' °C' : '-'}">-</div>
                                 </div>
 
                                 <div class="health-item">
                                     <div class="k">Condition Before</div>
-                                    <div class="v" th:text="${healthRecord.conditionBefore ?: '-'}">-</div>
+                                    <div class="v" th:text="${appointmentSummary.conditionBefore ?: '-'}">-</div>
                                 </div>
 
                                 <div class="health-item">
                                     <div class="k">Condition After</div>
-                                    <div class="v" th:text="${healthRecord.conditionAfter ?: '-'}">-</div>
+                                    <div class="v" th:text="${appointmentSummary.conditionAfter ?: '-'}">-</div>
                                 </div>
                             </div>
 
                             <div class="mt-3 p-2 border rounded">
                                 <strong>Findings:</strong>
-                                <span th:text="${healthRecord.findings ?: '-'}"></span>
+                                <span th:text="${appointmentSummary.findings ?: '-'}"></span>
                             </div>
 
                             <div class="mt-2 p-2 border rounded">
                                 <strong>Recommendations:</strong>
-                                <span th:text="${healthRecord.recommendations ?: '-'}"></span>
+                                <span th:text="${appointmentSummary.recommendations ?: '-'}"></span>
                             </div>
 
-
-                            <div class="health-photos" th:if="${false}">
-                                <img th:each="photo : ${healthPhotos}" th:src="@{${photo.imageUrl}}" alt="evidence" />
+                            <div class="mt-2 p-2 border rounded">
+                                <strong>Notes:</strong>
+                                <span th:text="${appointmentSummary.note ?: '-'}"></span>
                             </div>
-                        </div>
-
-                        <div class="card-body" th:if="${healthRecord == null}">
-                            <div class="text-muted">No health report available for this appointment.</div>
                         </div>
                     </div>
 
@@ -298,7 +340,7 @@
                                             <th>Status</th>
                                             <th>Staff</th>
                                             <th>Price</th>
-                                            <th class="pe-4 text-end">Health Summary</th>
+                                            <th class="pe-4 text-end">Service Note</th>
                                         </tr>
                                     </thead>
 
@@ -327,18 +369,18 @@
                                                 <button
                                                     type="button"
                                                     class="btn btn-outline-primary btn-sm"
-                                                    th:if="${healthRecordByServiceLineId != null and healthRecordByServiceLineId.containsKey(line.id)}"
+                                                    th:if="${serviceNoteByLineId != null and serviceNoteByLineId.containsKey(line.id)}"
                                                     data-bs-toggle="modal"
-                                                    th:attr="data-bs-target='#healthSummaryModal-' + ${line.id}"
+                                                    th:attr="data-bs-target='#serviceNoteModal-' + ${line.id}"
                                                 >
-                                                    View summary
+                                                    View note
                                                 </button>
 
                                                 <span
-                                                    th:unless="${healthRecordByServiceLineId != null and healthRecordByServiceLineId.containsKey(line.id)}"
+                                                    th:unless="${serviceNoteByLineId != null and serviceNoteByLineId.containsKey(line.id)}"
                                                     class="text-muted"
                                                 >
-                                                    No summary
+                                                    No note
                                                 </span>
                                             </td>
                                         </tr>
@@ -347,9 +389,9 @@
 
                                 <div
                                     th:each="line : ${serviceLines}"
-                                    th:if="${healthRecordByServiceLineId != null and healthRecordByServiceLineId.containsKey(line.id)}"
+                                    th:if="${serviceNoteByLineId != null and serviceNoteByLineId.containsKey(line.id)}"
                                     class="modal fade"
-                                    th:id="'healthSummaryModal-' + ${line.id}"
+                                    th:id="'serviceNoteModal-' + ${line.id}"
                                     tabindex="-1"
                                     aria-hidden="true"
                                 >
@@ -357,7 +399,7 @@
                                         <div class="modal-content">
                                             <div class="modal-header">
                                                 <h5 class="modal-title">
-                                                    Health Summary -
+                                                    Service Note -
                                                     <span th:text="${line.service.name}">Service</span>
                                                 </h5>
                                                 <button
@@ -369,77 +411,27 @@
                                             </div>
 
                                             <div class="modal-body">
-                                                <div class="health-grid">
-                                                    <div class="health-item">
-                                                        <div class="k">Weight</div>
-                                                        <div
-                                                            class="v"
-                                                            th:text="${healthRecordByServiceLineId.get(line.id).weightKg != null ? healthRecordByServiceLineId.get(line.id).weightKg + ' kg' : '-'}"
-                                                        >
-                                                            -
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="health-item">
-                                                        <div class="k">Temperature</div>
-                                                        <div
-                                                            class="v"
-                                                            th:text="${healthRecordByServiceLineId.get(line.id).temperature != null ? healthRecordByServiceLineId.get(line.id).temperature + ' °C' : '-'}"
-                                                        >
-                                                            -
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="health-item">
-                                                        <div class="k">Condition Before</div>
-                                                        <div
-                                                            class="v"
-                                                            th:text="${healthRecordByServiceLineId.get(line.id).conditionBefore ?: '-'}"
-                                                        >
-                                                            -
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="health-item">
-                                                        <div class="k">Condition After</div>
-                                                        <div
-                                                            class="v"
-                                                            th:text="${healthRecordByServiceLineId.get(line.id).conditionAfter ?: '-'}"
-                                                        >
-                                                            -
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="mt-3 p-2 border rounded">
-                                                    <strong>Findings:</strong>
-                                                    <span th:text="${healthRecordByServiceLineId.get(line.id).findings ?: '-'}"></span>
-                                                </div>
-
                                                 <div class="mt-2 p-2 border rounded">
-                                                    <strong>Recommendations:</strong>
-                                                    <span
-                                                        th:text="${healthRecordByServiceLineId.get(line.id).recommendations ?: '-'}"
-                                                    ></span>
+                                                    <strong>Note:</strong>
+                                                    <span th:text="${serviceNoteByLineId.get(line.id).note ?: '-'}"></span>
                                                 </div>
-
 
                                                 <div
                                                     class="health-photos mt-3"
-                                                    th:if="${healthPhotosByServiceLineId != null and healthPhotosByServiceLineId.containsKey(line.id) and !#lists.isEmpty(healthPhotosByServiceLineId.get(line.id))}"
+                                                    th:if="${serviceNotePhotosByLineId != null and serviceNotePhotosByLineId.containsKey(line.id) and !#lists.isEmpty(serviceNotePhotosByLineId.get(line.id))}"
                                                 >
                                                     <img
-                                                        th:each="photo : ${healthPhotosByServiceLineId.get(line.id)}"
+                                                        th:each="photo : ${serviceNotePhotosByLineId.get(line.id)}"
                                                         th:src="@{${photo.imageUrl}}"
-                                                        alt="health evidence"
+                                                        alt="service note"
                                                     />
                                                 </div>
 
                                                 <div
                                                     class="text-muted mt-2"
-                                                    th:unless="${healthPhotosByServiceLineId != null and healthPhotosByServiceLineId.containsKey(line.id) and !#lists.isEmpty(healthPhotosByServiceLineId.get(line.id))}"
+                                                    th:unless="${serviceNotePhotosByLineId != null and serviceNotePhotosByLineId.containsKey(line.id) and !#lists.isEmpty(serviceNotePhotosByLineId.get(line.id))}"
                                                 >
-                                                    No evidence images.
+                                                    No photos.
                                                 </div>
                                             </div>
                                         </div>

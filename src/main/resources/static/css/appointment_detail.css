@@ -196,3 +196,79 @@
     border-color: #fca5a5;
     color: #b91c1c;
 }
+
+/* Modals: đảm bảo không hiện sẵn phần nội dung Service Note */
+/* Simple modal behavior using :target (no JS/bootstrap needed) */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    background: rgba(15, 23, 42, 0.45);
+    overflow-y: auto;
+}
+
+.modal:target {
+    display: block;
+}
+
+.modal-dialog {
+    margin: 60px auto;
+    max-width: 720px;
+}
+
+.modal-content {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 25px 50px rgba(15, 23, 42, 0.35);
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: #f8fafc;
+}
+
+.modal-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--navy);
+}
+
+.modal-body {
+    padding: 14px 16px 16px;
+}
+
+.modal .btn-close {
+    border: none;
+    background: transparent;
+    width: 20px;
+    height: 20px;
+    position: relative;
+    cursor: pointer;
+}
+
+.modal .btn-close::before,
+.modal .btn-close::after {
+    content: "";
+    position: absolute;
+    top: 9px;
+    left: 3px;
+    right: 3px;
+    height: 2px;
+    background: #64748b;
+}
+
+.modal .btn-close::before {
+    transform: rotate(45deg);
+}
+
+.modal .btn-close::after {
+    transform: rotate(-45deg);
+}
