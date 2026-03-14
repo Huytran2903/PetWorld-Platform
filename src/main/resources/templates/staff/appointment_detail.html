@@ -82,6 +82,10 @@
                 font-size: 12px;
                 font-weight: 800;
             }
+
+            .summary-form.card {
+                border: 1px solid #e7ecf4;
+            }
         </style>
 
         <div class="hero">
@@ -165,7 +169,7 @@
                                     <th class="ta-center">Qty</th>
                                     <th class="ta-center">Duration (mins)</th>
                                     <th class="ta-right">Amount</th>
-                                    <th class="ta-right">Health Summary</th>
+                                    <th class="ta-right">Service Notes</th>
                                 </tr>
                             </thead>
 
@@ -196,21 +200,19 @@
                                     </td>
 
                                     <td class="ta-right">
-                                        <button
-                                            type="button"
+                                        <a
                                             class="btn btn-secondary btn-sm"
-                                            th:if="${healthRecordByLineId != null and healthRecordByLineId.containsKey(item.id)}"
-                                            data-bs-toggle="modal"
-                                            th:attr="data-bs-target='#healthSummaryModal-' + ${item.id}"
+                                            th:if="${serviceNoteByLineId != null and serviceNoteByLineId.containsKey(item.id)}"
+                                            th:href="'#serviceNoteModal-' + ${item.id}"
                                         >
-                                            Health summary
-                                        </button>
+                                            View note
+                                        </a>
 
                                         <span
-                                            th:unless="${healthRecordByLineId != null and healthRecordByLineId.containsKey(item.id)}"
+                                            th:unless="${serviceNoteByLineId != null and serviceNoteByLineId.containsKey(item.id)}"
                                             class="text-muted"
                                         >
-                                            No summary
+                                            No note
                                         </span>
                                     </td>
                                 </tr>
@@ -223,63 +225,10 @@
                     </div>
 
                     <div
-                        class="health-report"
-                        th:if="${healthRecord != null and (myServiceLines == null or #lists.size(myServiceLines) <= 1)}"
-                    >
-                        <div class="health-report-header">
-                            <div class="health-report-title">Health Report</div>
-                            <span th:if="${healthRecord.warningFlag}" class="warning-chip">Warning</span>
-                        </div>
-
-                        <div class="health-grid">
-                            <div class="health-item">
-                                <div class="k">Weight</div>
-                                <div class="v" th:text="${healthRecord.weightKg} + ' kg'">0 kg</div>
-                            </div>
-
-                            <div class="health-item">
-                                <div class="k">Temperature</div>
-                                <div class="v" th:text="${healthRecord.temperature} + ' °C'">0 °C</div>
-                            </div>
-
-                            <div class="health-item">
-                                <div class="k">Condition Before</div>
-                                <div class="v" th:text="${healthRecord.conditionBefore ?: '-'}">-</div>
-                            </div>
-
-                            <div class="health-item">
-                                <div class="k">Condition After</div>
-                                <div class="v" th:text="${healthRecord.conditionAfter ?: '-'}">-</div>
-                            </div>
-                        </div>
-
-                        <div class="health-notes">
-                            <div class="block">
-                                <strong>Findings:</strong>
-                                <span th:text="${healthRecord.findings ?: '-'}">-</span>
-                            </div>
-
-                            <div class="block">
-                                <strong>Recommendations:</strong>
-                                <span th:text="${healthRecord.recommendations ?: '-'}">-</span>
-                            </div>
-
-                            <div class="block">
-                                <strong>Notes:</strong>
-                                <span th:text="${healthRecord.note ?: '-'}">-</span>
-                            </div>
-                        </div>
-
-                        <div class="health-photos" th:if="${healthPhotos != null and !#lists.isEmpty(healthPhotos)}">
-                            <img th:each="photo : ${healthPhotos}" th:src="@{${photo.imageUrl}}" alt="evidence" />
-                        </div>
-                    </div>
-
-                    <div
                         th:each="item : ${myServiceLines}"
-                        th:if="${healthRecordByLineId != null and healthRecordByLineId.containsKey(item.id)}"
+                        th:if="${serviceNoteByLineId != null and serviceNoteByLineId.containsKey(item.id)}"
                         class="modal fade"
-                        th:id="'healthSummaryModal-' + ${item.id}"
+                        th:id="'serviceNoteModal-' + ${item.id}"
                         tabindex="-1"
                         aria-hidden="true"
                     >
@@ -287,92 +236,41 @@
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <h5 class="modal-title">
-                                        Health Summary -
+                                        Service Note -
                                         <span th:text="${item.service.name}">Service</span>
                                     </h5>
-                                    <button
-                                        type="button"
+                                    <a
+                                        href="#"
                                         class="btn-close"
-                                        data-bs-dismiss="modal"
                                         aria-label="Close"
-                                    ></button>
+                                    ></a>
                                 </div>
 
                                 <div class="modal-body">
-                                    <div class="health-grid" style="padding: 0;">
-                                        <div class="health-item">
-                                            <div class="k">Weight</div>
-                                            <div
-                                                class="v"
-                                                th:text="${healthRecordByLineId.get(item.id).weightKg != null ? healthRecordByLineId.get(item.id).weightKg + ' kg' : '-'}"
-                                            >
-                                                -
-                                            </div>
-                                        </div>
-
-                                        <div class="health-item">
-                                            <div class="k">Temperature</div>
-                                            <div
-                                                class="v"
-                                                th:text="${healthRecordByLineId.get(item.id).temperature != null ? healthRecordByLineId.get(item.id).temperature + ' °C' : '-'}"
-                                            >
-                                                -
-                                            </div>
-                                        </div>
-
-                                        <div class="health-item">
-                                            <div class="k">Condition Before</div>
-                                            <div
-                                                class="v"
-                                                th:text="${healthRecordByLineId.get(item.id).conditionBefore ?: '-'}"
-                                            >
-                                                -
-                                            </div>
-                                        </div>
-
-                                        <div class="health-item">
-                                            <div class="k">Condition After</div>
-                                            <div
-                                                class="v"
-                                                th:text="${healthRecordByLineId.get(item.id).conditionAfter ?: '-'}"
-                                            >
-                                                -
-                                            </div>
-                                        </div>
-                                    </div>
-
                                     <div class="health-notes" style="padding: 0;">
                                         <div class="block">
-                                            <strong>Findings:</strong>
-                                            <span th:text="${healthRecordByLineId.get(item.id).findings ?: '-'}">-</span>
+                                            <strong>Note:</strong>
+                                            <span th:text="${serviceNoteByLineId.get(item.id).note ?: '-'}">-</span>
                                         </div>
-
-                                        <div class="block">
-                                            <strong>Recommendations:</strong>
-                                            <span th:text="${healthRecordByLineId.get(item.id).recommendations ?: '-'}">
-                                                -
-                                            </span>
-                                        </div>
-
                                     </div>
 
                                     <div
                                         class="health-photos"
                                         style="padding: 0;"
-                                        th:if="${healthPhotosByLineId != null and healthPhotosByLineId.containsKey(item.id) and !#lists.isEmpty(healthPhotosByLineId.get(item.id))}"
+                                        th:if="${serviceNotePhotosByLineId != null and serviceNotePhotosByLineId.containsKey(item.id) and !#lists.isEmpty(serviceNotePhotosByLineId.get(item.id))}"
                                     >
                                         <img
-                                            th:each="photo : ${healthPhotosByLineId.get(item.id)}"
+                                            th:each="photo : ${serviceNotePhotosByLineId.get(item.id)}"
                                             th:src="@{${photo.imageUrl}}"
-                                            alt="evidence"
+                                            alt="service note"
                                         />
                                     </div>
 
                                     <div
                                         class="text-muted mt-2"
-                                        th:unless="${healthPhotosByLineId != null and healthPhotosByLineId.containsKey(item.id) and !#lists.isEmpty(healthPhotosByLineId.get(item.id))}"
+                                        th:unless="${serviceNotePhotosByLineId != null and serviceNotePhotosByLineId.containsKey(item.id) and !#lists.isEmpty(serviceNotePhotosByLineId.get(item.id))}"
                                     >
-                                        No evidence images.
+                                        No photos.
                                     </div>
                                 </div>
                             </div>
@@ -429,6 +327,112 @@
 
                         <a class="btn btn-secondary" th:href="@{/staff/assigned_list}">Back to list</a>
                     </div>
+
+                    <div class="health-report" th:if="${appointmentSummary != null}">
+                        <div class="health-report-header">
+                            <div class="health-report-title">Health Summary</div>
+                            <span th:if="${appointmentSummary.warningFlag}" class="warning-chip">Warning</span>
+                        </div>
+
+                        <div class="health-grid">
+                            <div class="health-item">
+                                <div class="k">Weight</div>
+                                <div class="v" th:text="${appointmentSummary.weightKg != null ? appointmentSummary.weightKg + ' kg' : '-'}">-</div>
+                            </div>
+
+                            <div class="health-item">
+                                <div class="k">Temperature</div>
+                                <div class="v" th:text="${appointmentSummary.temperature != null ? appointmentSummary.temperature + ' °C' : '-'}">-</div>
+                            </div>
+
+                            <div class="health-item">
+                                <div class="k">Condition Before</div>
+                                <div class="v" th:text="${appointmentSummary.conditionBefore ?: '-'}">-</div>
+                            </div>
+
+                            <div class="health-item">
+                                <div class="k">Condition After</div>
+                                <div class="v" th:text="${appointmentSummary.conditionAfter ?: '-'}">-</div>
+                            </div>
+                        </div>
+
+                        <div class="health-notes">
+                            <div class="block">
+                                <strong>Findings:</strong>
+                                <span th:text="${appointmentSummary.findings ?: '-'}">-</span>
+                            </div>
+
+                            <div class="block">
+                                <strong>Recommendations:</strong>
+                                <span th:text="${appointmentSummary.recommendations ?: '-'}">-</span>
+                            </div>
+
+                            <div class="block">
+                                <strong>Notes:</strong>
+                                <span th:text="${appointmentSummary.note ?: '-'}">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form
+                        class="card summary-form" style="margin-top:16px;"
+                        th:if="${isManager and appointment.status != null and appointment.status.toLowerCase() == 'done'}"
+                        th:action="@{/staff/health-check/{appointmentId}/summary(appointmentId=${appointment.id})}"
+                        method="post"
+                    >
+                        <div class="card-header" style="border-bottom:1px solid #e7ecf4;">
+                            <h3 class="title" style="margin:0;">Manager Health Summary</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="grid2">
+                                <div>
+                                    <label for="summaryWeightKg">Weight (kg)</label>
+                                    <input id="summaryWeightKg" type="number" step="0.01" min="0" name="weightKg" th:value="${appointmentSummary != null ? appointmentSummary.weightKg : ''}">
+                                </div>
+                                <div>
+                                    <label for="summaryTemperature">Temperature (°C)</label>
+                                    <input id="summaryTemperature" type="number" step="0.01" min="30" max="45" name="temperature" th:value="${appointmentSummary != null ? appointmentSummary.temperature : ''}">
+                                </div>
+                            </div>
+
+                            <div class="grid2" style="margin-top:12px;">
+                                <div>
+                                    <label for="summaryConditionBefore">Condition Before</label>
+                                    <textarea id="summaryConditionBefore" name="conditionBefore" th:text="${appointmentSummary != null ? appointmentSummary.conditionBefore : ''}"></textarea>
+                                </div>
+                                <div>
+                                    <label for="summaryConditionAfter">Condition After</label>
+                                    <textarea id="summaryConditionAfter" name="conditionAfter" th:text="${appointmentSummary != null ? appointmentSummary.conditionAfter : ''}"></textarea>
+                                </div>
+                            </div>
+
+                            <div style="margin-top:12px;">
+                                <label for="summaryFindings">Findings</label>
+                                <textarea id="summaryFindings" name="findings" th:text="${appointmentSummary != null ? appointmentSummary.findings : ''}"></textarea>
+                            </div>
+
+                            <div style="margin-top:12px;">
+                                <label for="summaryRecommendations">Recommendations</label>
+                                <textarea id="summaryRecommendations" name="recommendations" th:text="${appointmentSummary != null ? appointmentSummary.recommendations : ''}"></textarea>
+                            </div>
+
+                            <div style="margin-top:12px;">
+                                <label for="summaryNote">Notes</label>
+                                <textarea id="summaryNote" name="note" th:text="${appointmentSummary != null ? appointmentSummary.note : ''}"></textarea>
+                            </div>
+
+                            <div style="margin-top:12px;">
+                                <label>
+                                    <input type="checkbox" name="warningFlag" th:checked="${appointmentSummary != null and appointmentSummary.warningFlag}">
+                                    Warning
+                                </label>
+                            </div>
+
+                            <div class="actions" style="margin-top:12px;">
+                                <button class="btn btn-primary" type="submit">Submit Summary</button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </section>
 
@@ -455,6 +459,6 @@
                 </div>
             </aside>
         </main>
-    </div>
+        </div>
 </th:block>
 </html>

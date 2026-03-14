@@ -4,8 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import vn.edu.fpt.petworldplatform.dto.AppointmentSummaryRequest;
 import vn.edu.fpt.petworldplatform.dto.HealthCheckContextDTO;
 import vn.edu.fpt.petworldplatform.dto.SaveHealthReportDraftRequest;
+import vn.edu.fpt.petworldplatform.dto.ServiceNoteRequest;
 import vn.edu.fpt.petworldplatform.dto.SubmitHealthReportRequest;
 import vn.edu.fpt.petworldplatform.dto.UpdateHealthReportRequest;
 import vn.edu.fpt.petworldplatform.entity.*;
@@ -35,7 +37,9 @@ public class HealthCheckService implements IHealthCheckService {
     private final StaffRepository staffRepository;
     private final PetHealthRecordRepository petHealthRecordRepository;
     private final PetHealthPhotoRepository petHealthPhotoRepository;
-    private final NotificationRepository notificationRepository;
+    private final ServiceNoteRepository serviceNoteRepository;
+    private final ServiceNotePhotoRepository serviceNotePhotoRepository;
+    private final AppointmentSummaryRepository appointmentSummaryRepository;
 
     @Override
     public List<Appointment> getAssignedAppointments(Integer staffId) {
@@ -94,6 +98,9 @@ public class HealthCheckService implements IHealthCheckService {
 
         markServiceLineInProgress(serviceLine);
 
+        boolean isManager = appointment.getStaffId() != null
+                && appointment.getStaffId().equals(staffId);
+
         return HealthCheckContextDTO.builder()
                 .appointmentId(appointment.getId())
                 .serviceLineId(serviceLine.getId())
@@ -104,6 +111,7 @@ public class HealthCheckService implements IHealthCheckService {
                 .status(appointment.getStatus())
                 .customerName(appointment.getCustomer() != null ? appointment.getCustomer().getFullName() : null)
                 .staffName(appointment.getStaff() != null ? appointment.getStaff().getFullName() : null)
+                .manager(isManager)
                 .build();
     }
 
@@ -132,43 +140,32 @@ public class HealthCheckService implements IHealthCheckService {
             throw new IllegalStateException("Invalid status transition. Appointment must be checked_in or in_progress.");
         }
 
-        validateNumericFields(request.getWeightKg(), request.getTemperature());
-        List<String> storedPhotoUrls = storePhotos(request.getPhotos(), true);
-
-        PetHealthRecord record = petHealthRecordRepository
-                .findByAppointment_IdAndAppointmentServiceLine_Id(appointmentId, serviceLineId)
-                .orElseGet(PetHealthRecord::new);
+        List<String> storedPhotoUrls = storePhotos(request.getPhotos(), false);
 
         Staff staff = staffRepository.findById(staffId)
                 .orElseThrow(() -> new IllegalStateException("Staff not found."));
 
-        record.setAppointment(appointment);
-        record.setAppointmentServiceLine(serviceLine);
-        record.setPet(appointment.getPet());
-        record.setPerformedByStaff(staff);
-        record.setWeightKg(toBigDecimal(request.getWeightKg()));
-        record.setTemperature(toBigDecimal(request.getTemperature()));
-        record.setConditionBefore(request.getConditionBefore());
-        record.setConditionAfter(request.getConditionAfter());
-        record.setFindings(request.getFindings());
-        record.setRecommendations(request.getRecommendations());
-        record.setNote(request.getConditionNotes());
-        record.setWarningFlag(Boolean.TRUE.equals(request.getWarningFlag()));
-        record.setIsDraft(false);
-        record.setIsDeleted(false);
-        record.setCheckDate(LocalDateTime.now());
-        record.setUpdatedAt(LocalDateTime.now());
+        ServiceNote note = serviceNoteRepository
+                .findByAppointment_IdAndServiceLine_IdAndStaff_StaffId(appointmentId, serviceLineId, staffId)
+                .orElseGet(ServiceNote::new);
 
-        PetHealthRecord saved = petHealthRecordRepository.save(record);
-        replacePhotos(saved, storedPhotoUrls);
+        note.setAppointment(appointment);
+        note.setServiceLine(serviceLine);
+        note.setStaff(staff);
+        note.setNote(request.getConditionNotes());
+        note.setStatus("done");
+
+        ServiceNote savedNote = serviceNoteRepository.save(note);
+        serviceNotePhotoRepository.deleteByServiceNote_Id(savedNote.getId());
+        replaceServiceNotePhotos(savedNote, storedPhotoUrls);
 
         markServiceLineDone(serviceLine);
         refreshAppointmentStatusByServiceLines(appointment);
 
+        // Appointment summary is handled by manager after all service lines are done
+
         appointment.setUpdatedAt(LocalDateTime.now());
         appointmentRepository.save(appointment);
-
-        createCustomerNotification(appointment, saved);
     }
 
     @Override
@@ -196,38 +193,63 @@ public class HealthCheckService implements IHealthCheckService {
             throw new IllegalStateException("Draft can only be saved when appointment is checked_in or in_progress.");
         }
 
-        validateNumericFields(request.getWeightKg(), request.getTemperature());
         List<String> storedPhotoUrls = storePhotos(request.getPhotos(), false);
-
-        PetHealthRecord record = petHealthRecordRepository
-                .findByAppointment_IdAndAppointmentServiceLine_Id(appointmentId, serviceLineId)
-                .orElseGet(PetHealthRecord::new);
 
         Staff staff = staffRepository.findById(staffId)
                 .orElseThrow(() -> new IllegalStateException("Staff not found."));
 
-        record.setAppointment(appointment);
-        record.setAppointmentServiceLine(serviceLine);
-        record.setPet(appointment.getPet());
-        record.setPerformedByStaff(staff);
-        record.setWeightKg(toBigDecimal(request.getWeightKg()));
-        record.setTemperature(toBigDecimal(request.getTemperature()));
-        record.setConditionBefore(request.getConditionBefore());
-        record.setConditionAfter(request.getConditionAfter());
-        record.setFindings(request.getFindings());
-        record.setRecommendations(request.getRecommendations());
-        record.setNote(request.getConditionNotes());
-        record.setWarningFlag(Boolean.TRUE.equals(request.getWarningFlag()));
-        record.setIsDraft(true);
-        record.setIsDeleted(false);
-        record.setUpdatedAt(LocalDateTime.now());
+        ServiceNote note = serviceNoteRepository
+                .findByAppointment_IdAndServiceLine_IdAndStaff_StaffId(appointmentId, serviceLineId, staffId)
+                .orElseGet(ServiceNote::new);
 
-        PetHealthRecord saved = petHealthRecordRepository.save(record);
-        if (!storedPhotoUrls.isEmpty()) {
-            replacePhotos(saved, storedPhotoUrls);
-        }
+        note.setAppointment(appointment);
+        note.setServiceLine(serviceLine);
+        note.setStaff(staff);
+        note.setNote(request.getConditionNotes());
+        note.setStatus("draft");
+
+        ServiceNote savedNote = serviceNoteRepository.save(note);
+        serviceNotePhotoRepository.deleteByServiceNote_Id(savedNote.getId());
+        replaceServiceNotePhotos(savedNote, storedPhotoUrls);
 
         markServiceLineInProgress(serviceLine);
+        refreshAppointmentStatusByServiceLines(appointment);
+        appointment.setUpdatedAt(LocalDateTime.now());
+        appointmentRepository.save(appointment);
+    }
+
+    @Override
+    @Transactional
+    public void submitServiceNote(Integer staffId, Integer appointmentId, Integer serviceLineId, ServiceNoteRequest request) {
+        validateStaffActive(staffId);
+
+        Appointment appointment = getAppointmentDetail(staffId, appointmentId);
+        AppointmentServiceLine serviceLine = getServiceLineDetail(staffId, appointmentId, serviceLineId);
+
+        if (!"checked_in".equals(lower(appointment.getStatus())) && !"in_progress".equals(lower(appointment.getStatus()))) {
+            throw new IllegalStateException("Appointment must be checked_in or in_progress.");
+        }
+
+        List<String> storedPhotoUrls = storePhotos(request.getPhotos(), false);
+
+        Staff staff = staffRepository.findById(staffId)
+                .orElseThrow(() -> new IllegalStateException("Staff not found."));
+
+        ServiceNote note = serviceNoteRepository
+                .findByAppointment_IdAndServiceLine_IdAndStaff_StaffId(appointmentId, serviceLineId, staffId)
+                .orElseGet(ServiceNote::new);
+
+        note.setAppointment(appointment);
+        note.setServiceLine(serviceLine);
+        note.setStaff(staff);
+        note.setNote(request.getNote());
+        note.setStatus("done");
+
+        ServiceNote savedNote = serviceNoteRepository.save(note);
+        serviceNotePhotoRepository.deleteByServiceNote_Id(savedNote.getId());
+        replaceServiceNotePhotos(savedNote, storedPhotoUrls);
+
+        markServiceLineDone(serviceLine);
         refreshAppointmentStatusByServiceLines(appointment);
         appointment.setUpdatedAt(LocalDateTime.now());
         appointmentRepository.save(appointment);
@@ -265,6 +287,44 @@ public class HealthCheckService implements IHealthCheckService {
         if (!storedPhotoUrls.isEmpty()) {
             replacePhotos(saved, storedPhotoUrls);
         }
+    }
+
+    @Override
+    @Transactional
+    public void submitAppointmentSummary(Integer staffId, Integer appointmentId, AppointmentSummaryRequest request) {
+        validateStaffActive(staffId);
+
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new IllegalStateException("Appointment not found."));
+
+        if (!isAppointmentManager(appointment, staffId)) {
+            throw new IllegalStateException("Only appointment manager can submit summary.");
+        }
+
+        if (!"done".equals(lower(appointment.getStatus()))) {
+            throw new IllegalStateException("All service lines must be done before summary.");
+        }
+
+        validateNumericFields(request.getWeightKg(), request.getTemperature());
+
+        Staff staff = staffRepository.findById(staffId)
+                .orElseThrow(() -> new IllegalStateException("Staff not found."));
+
+        AppointmentSummary summary = appointmentSummaryRepository.findByAppointment_Id(appointmentId)
+                .orElseGet(AppointmentSummary::new);
+
+        summary.setAppointment(appointment);
+        summary.setWeightKg(toBigDecimal(request.getWeightKg()));
+        summary.setTemperature(toBigDecimal(request.getTemperature()));
+        summary.setConditionBefore(request.getConditionBefore());
+        summary.setConditionAfter(request.getConditionAfter());
+        summary.setFindings(request.getFindings());
+        summary.setRecommendations(request.getRecommendations());
+        summary.setNote(request.getNote());
+        summary.setWarningFlag(Boolean.TRUE.equals(request.getWarningFlag()));
+        summary.setSummaryByStaff(staff);
+
+        appointmentSummaryRepository.save(summary);
     }
 
     private Appointment getAppointmentDetail(Integer staffId, Integer appointmentId) {
@@ -430,28 +490,25 @@ public class HealthCheckService implements IHealthCheckService {
         petHealthPhotoRepository.saveAll(items);
     }
 
-    private void createCustomerNotification(Appointment appointment, PetHealthRecord record) {
-        if (appointment.getCustomer() == null) {
+    private void replaceServiceNotePhotos(ServiceNote note, List<String> photoUrls) {
+        if (note == null || photoUrls == null || photoUrls.isEmpty()) {
             return;
         }
 
-        String title = Boolean.TRUE.equals(record.getWarningFlag())
-                ? "Health check completed with warning"
-                : "Health check completed";
+        List<ServiceNotePhoto> items = photoUrls.stream()
+                .map(url -> ServiceNotePhoto.builder()
+                        .serviceNote(note)
+                        .imageUrl(url)
+                        .build())
+                .toList();
 
-        String message = "Health report for appointment " + appointment.getAppointmentCode()
-                + " is available. Status has been updated to done.";
+        serviceNotePhotoRepository.saveAll(items);
+    }
 
-        Notification notification = Notification.builder()
-                .customer(appointment.getCustomer())
-                .appointment(appointment)
-                .title(title)
-                .message(message)
-                .type("health_report")
-                .isRead(false)
-                .build();
-
-        notificationRepository.save(notification);
+    private boolean isAppointmentManager(Appointment appointment, Integer staffId) {
+        return appointment != null
+                && appointment.getStaffId() != null
+                && appointment.getStaffId().equals(staffId);
     }
 
     private BigDecimal toBigDecimal(Double value) {

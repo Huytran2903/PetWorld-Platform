@@ -26,22 +26,27 @@ import vn.edu.fpt.petworldplatform.entity.Appointment;
 
 import vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine;
 
-import vn.edu.fpt.petworldplatform.entity.PetHealthRecord;
+import vn.edu.fpt.petworldplatform.entity.AppointmentSummary;
+
+import vn.edu.fpt.petworldplatform.entity.ServiceNote;
+
+import vn.edu.fpt.petworldplatform.entity.ServiceNotePhoto;
 
 import vn.edu.fpt.petworldplatform.entity.Staff;
 
-import vn.edu.fpt.petworldplatform.repository.PetHealthPhotoRepository;
+import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryRepository;
 
-import vn.edu.fpt.petworldplatform.repository.PetHealthRecordRepository;
+import vn.edu.fpt.petworldplatform.repository.ServiceNotePhotoRepository;
+
+import vn.edu.fpt.petworldplatform.repository.ServiceNoteRepository;
 
 import vn.edu.fpt.petworldplatform.service.AppointmentService;
 
 import java.io.ByteArrayInputStream;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
-
 import java.util.List;
-
 import java.util.Map;
 
 @Controller
@@ -54,9 +59,9 @@ public class AdminAppointmentController {
 
     private final AppointmentService appointmentService;
 
-    private final PetHealthRecordRepository petHealthRecordRepository;
-
-    private final PetHealthPhotoRepository petHealthPhotoRepository;
+    private final AppointmentSummaryRepository appointmentSummaryRepository;
+    private final ServiceNoteRepository serviceNoteRepository;
+    private final ServiceNotePhotoRepository serviceNotePhotoRepository;
 
     @ModelAttribute("filter")
 
@@ -170,41 +175,65 @@ public class AdminAppointmentController {
 
         }
 
+        // Build unique list of staff who have been assigned to at least one service line
+        Map<Integer, Staff> assignedStaffMap = new LinkedHashMap<>();
+        for (AppointmentServiceLine line : lines) {
+            if (line.getAssignedStaff() != null && line.getAssignedStaff().getStaffId() != null) {
+                assignedStaffMap.putIfAbsent(line.getAssignedStaff().getStaffId(), line.getAssignedStaff());
+            }
+        }
+
+        List<Staff> assignedManagers = new ArrayList<>(assignedStaffMap.values());
+
         model.addAttribute("appointment", appointment);
-
         model.addAttribute("serviceLines", lines);
-
         model.addAttribute("availableStaffByLine", availableStaffByLine);
+        model.addAttribute("assignedManagers", assignedManagers);
+        model.addAttribute("currentManagerId", appointment.getStaffId());
 
-        PetHealthRecord healthRecord = petHealthRecordRepository.findTopByAppointment_IdOrderByUpdatedAtDesc(id)
+        AppointmentSummary summary = appointmentSummaryRepository.findByAppointment_Id(id).orElse(null);
+        model.addAttribute("appointmentSummary", summary);
 
-                .orElse(null);
-
-        model.addAttribute("healthRecord", healthRecord);
-
-        model.addAttribute("healthPhotos", healthRecord == null
-
-                ? java.util.List.of()
-
-                : petHealthPhotoRepository.findByRecord_Id(healthRecord.getId()));
-
-        Map<Integer, PetHealthRecord> healthRecordByServiceLineId = new LinkedHashMap<>();
-        Map<Integer, List<vn.edu.fpt.petworldplatform.entity.PetHealthPhoto>> healthPhotosByServiceLineId = new LinkedHashMap<>();
+        Map<Integer, ServiceNote> serviceNoteByLineId = new LinkedHashMap<>();
+        Map<Integer, List<ServiceNotePhoto>> serviceNotePhotosByLineId = new LinkedHashMap<>();
         for (AppointmentServiceLine line : lines) {
             if (line.getId() == null) {
                 continue;
             }
-            petHealthRecordRepository.findByAppointmentServiceLine_Id(line.getId())
-                    .ifPresent(record -> {
-                        healthRecordByServiceLineId.put(line.getId(), record);
-                        healthPhotosByServiceLineId.put(line.getId(),
-                                petHealthPhotoRepository.findByRecord_Id(record.getId()));
+            if (line.getAssignedStaffId() == null) {
+                continue;
+            }
+            serviceNoteRepository.findByAppointment_IdAndServiceLine_IdAndStaff_StaffId(id, line.getId(), line.getAssignedStaffId())
+                    .ifPresent(note -> {
+                        serviceNoteByLineId.put(line.getId(), note);
+                        serviceNotePhotosByLineId.put(line.getId(), serviceNotePhotoRepository.findByServiceNote_Id(note.getId()));
                     });
         }
-        model.addAttribute("healthRecordByServiceLineId", healthRecordByServiceLineId);
-        model.addAttribute("healthPhotosByServiceLineId", healthPhotosByServiceLineId);
+        model.addAttribute("serviceNoteByLineId", serviceNoteByLineId);
+        model.addAttribute("serviceNotePhotosByLineId", serviceNotePhotosByLineId);
 
         return "admin/appt-detail";
+
+    }
+
+    @PostMapping("/{id}/manager")
+    public String updateAppointmentManager(@PathVariable Integer id,
+                                           @RequestParam Integer staffId,
+                                           RedirectAttributes redirectAttributes) {
+
+        try {
+
+            appointmentService.updateAppointmentManager(id, staffId);
+
+            redirectAttributes.addFlashAttribute("message", "Manager updated successfully.");
+
+        } catch (Exception e) {
+
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+
+        }
+
+        return "redirect:/admin/appointments/" + id;
 
     }
 

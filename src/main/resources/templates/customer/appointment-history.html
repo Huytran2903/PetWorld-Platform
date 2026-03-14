@@ -170,7 +170,6 @@
                                                 <th>Status</th>
                                                 <th>Staff</th>
                                                 <th>Duration</th>
-                                                <th>Health Summary</th>
                                                 <th class="text-end">Price</th>
                                             </tr>
                                         </thead>
@@ -211,24 +210,6 @@
                                                     Duration
                                                 </td>
 
-                                                <td>
-                                                    <button
-                                                        type="button"
-                                                        class="btn btn-secondary btn-sm"
-                                                        th:if="${healthRecordByServiceLineId != null and healthRecordByServiceLineId.containsKey(line.id)}"
-                                                        th:attr="onclick=|openHealthSummaryModal('healthSummaryModal-${line.id}')|"
-                                                    >
-                                                        View summary
-                                                    </button>
-
-                                                    <span
-                                                        th:unless="${healthRecordByServiceLineId != null and healthRecordByServiceLineId.containsKey(line.id)}"
-                                                        class="text-muted"
-                                                    >
-                                                        No summary
-                                                    </span>
-                                                </td>
-
                                                 <td class="text-end">
                                                     <span
                                                         class="svc-price"
@@ -247,116 +228,32 @@
                                         </tbody>
                                     </table>
 
-                                    <div
-                                        th:if="${serviceLinesByAppointmentId != null and healthRecordByServiceLineId != null}"
-                                    >
-                                        <div
-                                            th:each="line : ${serviceLinesByAppointmentId.get(appt.id)}"
-                                            th:if="${healthRecordByServiceLineId.containsKey(line.id)}"
-                                            class="modal health-summary-modal"
-                                            style="display: none;"
-                                            th:id="'healthSummaryModal-' + ${line.id}"
-                                            tabindex="-1"
-                                            aria-hidden="true"
-                                        >
-                                            <div class="modal-dialog modal-lg">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">
-                                                            Health Summary -
-                                                            <span th:text="${line.service.name}">Service</span>
-                                                        </h5>
+                                    <div class="health-snippet" th:if="${appointmentSummaryByAppointmentId != null and appointmentSummaryByAppointmentId.containsKey(appt.id)}">
+                                        <div class="top">
+                                            <div class="title">Health Summary</div>
+                                            <span class="warning" th:if="${appointmentSummaryByAppointmentId.get(appt.id).warningFlag}">Warning</span>
+                                        </div>
 
-                                                        <button
-                                                            type="button"
-                                                            class="health-modal-close"
-                                                            th:attr="onclick=|closeHealthSummaryModal('healthSummaryModal-${line.id}')|"
-                                                            aria-label="Close"
-                                                        >
-                                                            &times;
-                                                        </button>
-                                                    </div>
+                                        <div class="health-kv">
+                                            <div><strong>Weight:</strong> <span th:text="${appointmentSummaryByAppointmentId.get(appt.id).weightKg != null ? appointmentSummaryByAppointmentId.get(appt.id).weightKg + ' kg' : '-'}">-</span></div>
+                                            <div><strong>Temperature:</strong> <span th:text="${appointmentSummaryByAppointmentId.get(appt.id).temperature != null ? appointmentSummaryByAppointmentId.get(appt.id).temperature + ' °C' : '-'}">-</span></div>
+                                            <div><strong>Before:</strong> <span th:text="${appointmentSummaryByAppointmentId.get(appt.id).conditionBefore ?: '-'}">-</span></div>
+                                            <div><strong>After:</strong> <span th:text="${appointmentSummaryByAppointmentId.get(appt.id).conditionAfter ?: '-'}">-</span></div>
+                                        </div>
 
-                                                    <div class="modal-body">
-                                                        <div class="health-grid">
-                                                            <div class="health-item">
-                                                                <div class="k">Weight</div>
-                                                                <div
-                                                                    class="v"
-                                                                    th:text="${healthRecordByServiceLineId.get(line.id).weightKg != null ? healthRecordByServiceLineId.get(line.id).weightKg + ' kg' : '-'}"
-                                                                >
-                                                                    -
-                                                                </div>
-                                                            </div>
+                                        <div style="margin-top: 8px;">
+                                            <strong>Findings:</strong>
+                                            <span th:text="${appointmentSummaryByAppointmentId.get(appt.id).findings ?: '-'}">-</span>
+                                        </div>
 
-                                                            <div class="health-item">
-                                                                <div class="k">Temperature</div>
-                                                                <div
-                                                                    class="v"
-                                                                    th:text="${healthRecordByServiceLineId.get(line.id).temperature != null ? healthRecordByServiceLineId.get(line.id).temperature + ' °C' : '-'}"
-                                                                >
-                                                                    -
-                                                                </div>
-                                                            </div>
+                                        <div style="margin-top: 6px;">
+                                            <strong>Recommendations:</strong>
+                                            <span th:text="${appointmentSummaryByAppointmentId.get(appt.id).recommendations ?: '-'}">-</span>
+                                        </div>
 
-                                                            <div class="health-item">
-                                                                <div class="k">Condition Before</div>
-                                                                <div
-                                                                    class="v"
-                                                                    th:text="${healthRecordByServiceLineId.get(line.id).conditionBefore ?: '-'}"
-                                                                >
-                                                                    -
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="health-item">
-                                                                <div class="k">Condition After</div>
-                                                                <div
-                                                                    class="v"
-                                                                    th:text="${healthRecordByServiceLineId.get(line.id).conditionAfter ?: '-'}"
-                                                                >
-                                                                    -
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="mt-3 p-2 border rounded">
-                                                            <strong>Findings:</strong>
-                                                            <span
-                                                                th:text="${healthRecordByServiceLineId.get(line.id).findings ?: '-'}"
-                                                            ></span>
-                                                        </div>
-
-                                                        <div class="mt-2 p-2 border rounded">
-                                                            <strong>Recommendations:</strong>
-                                                            <span
-                                                                th:text="${healthRecordByServiceLineId.get(line.id).recommendations ?: '-'}"
-                                                            ></span>
-                                                        </div>
-
-
-                                                        <div
-                                                            class="health-photos"
-                                                            style="margin-top: 12px;"
-                                                            th:if="${healthPhotosByServiceLineId != null and healthPhotosByServiceLineId.containsKey(line.id) and !#lists.isEmpty(healthPhotosByServiceLineId.get(line.id))}"
-                                                        >
-                                                            <img
-                                                                th:each="photo : ${healthPhotosByServiceLineId.get(line.id)}"
-                                                                th:src="@{${photo.imageUrl}}"
-                                                                alt="evidence"
-                                                            />
-                                                        </div>
-
-                                                        <div
-                                                            class="text-muted"
-                                                            style="margin-top: 10px;"
-                                                            th:unless="${healthPhotosByServiceLineId != null and healthPhotosByServiceLineId.containsKey(line.id) and !#lists.isEmpty(healthPhotosByServiceLineId.get(line.id))}"
-                                                        >
-                                                            No evidence images.
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                        <div style="margin-top: 6px;">
+                                            <strong>Notes:</strong>
+                                            <span th:text="${appointmentSummaryByAppointmentId.get(appt.id).note ?: '-'}">-</span>
                                         </div>
                                     </div>
                                 </div>
