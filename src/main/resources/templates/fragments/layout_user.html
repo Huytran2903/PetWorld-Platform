@@ -3,95 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PetWorld - Service & Care</title>
-
-    <link rel="stylesheet" th:href="@{/css/user_style.css}">
+    <title>PetWorld Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        :root {
-            --primary: #FFA54F;
-            --navy: #143a66;
-            --text: #132238;
-            --bg: #f6f8fc;
-            --border: #e7ecf4;
+        body {
+            font-family: 'Nunito', sans-serif;
         }
-        body { font-family: system-ui, -apple-system, sans-serif; margin: 0; background: var(--bg); color: var(--text); display: flex; flex-direction: column; min-height: 100vh; }
-        main { flex: 1; } /* Đẩy footer xuống đáy */
     </style>
 </head>
-<body>
+<body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
 
-<header class="site-header">
-    <div class="topbar">
-        <div class="container-wide">
-            <span>Hotline: 1900-PET-WORLD</span>
-            <div class="top-links">
-                <a href="#">Help Center</a>
-                <span>|</span>
-                <a href="/login">Login</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="navbar">
-        <div class="container-wide nav-wrap">
-            <a href="/" class="brand">
-                <div class="logo-box">PETS</div>
-                <span class="brand-text">PetWorld</span>
-            </a>
-
-            <nav class="nav-links">
-                <a href="/" class="active">Home</a>
-                <a href="/appointment/booking">Booking</a>
-                <a href="/customer/appointments">History</a>
-                <a href="/shop">Shop</a>
-                <a href="/blog">Blog</a>
-                <a href="/contact">Contact</a>
-            </nav>
-
-            <div class="user-actions">
-                <a href="/cart" class="btn-icon">
-                    Cart <span class="badge">0</span>
-                </a>
-                <a href="/profile" class="btn-user">
-                    Customer
-                </a>
-            </div>
-        </div>
-    </div>
-</header>
-
-<main>
-    <div th:replace="${content}"></div>
+<div th:replace="~{fragments/header-customer :: header(activePage=${activePage ?: ''})}"></div>
+<main class="flex-grow">
+    <section th:replace="${content}"></section>
 </main>
 
-<footer class="site-footer">
-    <div class="container-wide footer-grid">
-        <div class="footer-col">
-            <h3>PetWorld</h3>
-            <p>Providing the best care for your furry friends since 2025.</p>
-        </div>
-        <div class="footer-col">
-            <h4>Services</h4>
-            <a href="#">Vaccination</a>
-            <a href="#">Spa & Grooming</a>
-            <a href="#">Pet Hotel</a>
-        </div>
-        <div class="footer-col">
-            <h4>Support</h4>
-            <a href="#">Contact Us</a>
-            <a href="#">FAQs</a>
-            <a href="#">Terms of Service</a>
-        </div>
-        <div class="footer-col">
-            <h4>Stay Connected</h4>
-            <p>Follow us for updates and cute pet photos.</p>
-        </div>
-    </div>
-    <div class="footer-bottom">
-        <p>&copy; 2026 PetWorld Platform. All rights reserved.</p>
-    </div>
-</footer>
+<div th:replace="~{fragments/footer :: footer}"></div>
+
 
 </body>
 </html>

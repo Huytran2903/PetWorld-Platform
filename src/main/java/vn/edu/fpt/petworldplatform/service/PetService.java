@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartFile;
 import vn.edu.fpt.petworldplatform.dto.PetCreateDTO;
+import vn.edu.fpt.petworldplatform.dto.PetStatisticsDTO;
 import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.repository.CustomerRepo;
@@ -19,6 +19,9 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -90,11 +93,12 @@ public class PetService {
         MultipartFile file = dto.getImageFile();
         if (file != null && !file.isEmpty()) {
             String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-            String uploadDir = "src/main/resources/static/images/";
+
+            String uploadDir = "uploads/";
 
             FileUploadUtil.saveFile(uploadDir, fileName, file);
 
-            pet.setImageUrl("/images/" + fileName);
+            pet.setImageUrl("/uploads/" + fileName);
         }
 
         if ("shop".equalsIgnoreCase(dto.getCreatePetOwnerType())) {
@@ -146,6 +150,67 @@ public class PetService {
 
     public List<Object[]> getPetStatsBySpecies() {
         return petRepo.countPetsBySpecies();
+    }
+
+    public PetStatisticsDTO getPetStatistics(LocalDate startDate, LocalDate endDate) {
+        PetStatisticsDTO stats = new PetStatisticsDTO();
+        stats.setStartDate(startDate);
+        stats.setEndDate(endDate);
+
+        // Convert LocalDate to LocalDateTime for database queries
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
+
+        // Overall counts
+        stats.setTotalPets(petRepo.countPetsByDateRange(startDateTime, endDateTime));
+        stats.setTotalServicePets(petRepo.countServicePetsByDateRange(startDateTime, endDateTime));
+        stats.setTotalSalePets(petRepo.countSalePetsByDateRange(startDateTime, endDateTime));
+        stats.setSoldPets(petRepo.countSoldPetsByDateRange(startDateTime, endDateTime));
+
+        // For service completion, we'll use soldPets as completed services for now
+        stats.setCompletedServicePets(stats.getSoldPets());
+
+        // Species breakdown
+        stats.setDogStats(getSpeciesStats("Dog", startDateTime, endDateTime));
+        stats.setCatStats(getSpeciesStats("Cat", startDateTime, endDateTime));
+        stats.setOtherStats(getSpeciesStats("Other", startDateTime, endDateTime));
+
+        return stats;
+    }
+
+    private List<PetStatisticsDTO.PetSpeciesStats> getSpeciesStats(String species, LocalDateTime startDateTime, LocalDateTime endDateTime) {
+        List<PetStatisticsDTO.PetSpeciesStats> stats = new ArrayList<>();
+
+        // Service pets
+        List<Object[]> serviceResults = petRepo.countServicePetsBySpeciesAndDateRange(species, startDateTime, endDateTime);
+        long serviceCount = serviceResults.isEmpty() ? 0 : (Long) serviceResults.get(0)[1];
+
+        // Sale pets
+        List<Object[]> saleResults = petRepo.countSalePetsBySpeciesAndDateRange(species, startDateTime, endDateTime);
+        long saleCount = saleResults.isEmpty() ? 0 : (Long) saleResults.get(0)[1];
+
+        // Sold pets
+        List<Object[]> soldResults = petRepo.countSoldPetsBySpeciesAndDateRange(species, startDateTime, endDateTime);
+        long soldCount = soldResults.isEmpty() ? 0 : (Long) soldResults.get(0)[1];
+
+        long total = serviceCount + saleCount;
+
+        if (serviceCount > 0) {
+            stats.add(new PetStatisticsDTO.PetSpeciesStats("SERVICE", serviceCount,
+                    total > 0 ? (serviceCount * 100.0 / total) : 0.0));
+        }
+
+        if (saleCount > 0) {
+            stats.add(new PetStatisticsDTO.PetSpeciesStats("SALE", saleCount,
+                    total > 0 ? (saleCount * 100.0 / total) : 0.0));
+        }
+
+        if (soldCount > 0) {
+            stats.add(new PetStatisticsDTO.PetSpeciesStats("SOLD", soldCount,
+                    total > 0 ? (soldCount * 100.0 / total) : 0.0));
+        }
+
+        return stats;
     }
 
     private String normalizeText(String value) {

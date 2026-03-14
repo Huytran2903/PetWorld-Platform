@@ -50,8 +50,16 @@
                     <div class="info-row">
                         <div class="icon-box"><i class="bi bi-tags-fill" style="color: #ff9f43;"></i></div>
                         <span class="label-text">Price:</span>
-                        <span class="value-text price-color"
-                              th:text="${#numbers.formatDecimal(proDetail.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">130,000 đ</span>
+
+                        <div th:if="${proDetail.discountPercent != null and proDetail.discountPercent > 0}" class="ms-2">
+                            <span class="value-text price-color fw-bold"
+                                  th:text="${#numbers.formatDecimal(proDetail.salePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                            <del class="text-muted small ms-2"
+                                 th:text="${#numbers.formatDecimal(proDetail.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></del>
+                        </div>
+                        <span th:unless="${proDetail.discountPercent != null and proDetail.discountPercent > 0}"
+                              class="ms-2 value-text price-color"
+                              th:text="${#numbers.formatDecimal(proDetail.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
                     </div>
 
                     <div class="info-row">
@@ -67,13 +75,14 @@
                         <label class="fw-bold text-muted me-3">Qty:</label>
                         <div class="d-flex align-items-center">
                             <button type="button" class="btn-qty" onclick="changeQty(-1)">-</button>
-                            <input type="number" id="quantityInput" class="input-qty" value="1" min="1" />
+                            <input type="number" id="quantityInput" class="input-qty" value="1" min="1" readonly />
                             <button type="button" class="btn-qty" onclick="changeQty(1)">+</button>
                         </div>
                     </div>
 
-                    <button type="button" class="btn-add-to-cart">
-                        <i class="bi bi-cart-plus me-2"></i> ADD TO CARD
+                    <button type="button" class="btn-add-to-cart"
+                            th:onclick="'addToCart(' + ${proDetail.productId} + ')'">
+                        <i class="bi bi-cart-plus me-2"></i> ADD TO CART
                     </button>
                 </div>
             </article>
@@ -82,8 +91,8 @@
     </div>
 </main>
 
-<script>
-    // Script đơn giản để xử lý tăng giảm số lượng
+<script th:inline="javascript">
+    // 1. Xử lý tăng giảm số lượng
     function changeQty(amount) {
         const input = document.getElementById('quantityInput');
         let currentVal = parseInt(input.value);
@@ -91,6 +100,12 @@
             let newVal = currentVal + amount;
             if (newVal >= 1) input.value = newVal;
         }
+    }
+
+    // 2. Hàm điều hướng thêm vào giỏ hàng với số lượng thực tế
+    function addToCart(productId) {
+        const qty = document.getElementById('quantityInput').value;
+        window.location.href = '/cart/add-product/' + productId + '?qty=' + qty;
     }
 </script>
 </body>

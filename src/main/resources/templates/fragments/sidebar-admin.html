@@ -10,9 +10,27 @@
     </div>
 
     <nav class="nav flex-column gap-2">
+        <a th:href="@{/admin/dashboard}" class="nav-link-custom d-flex align-items-center"
+           th:classappend="${activePage == 'dashboard' ? 'active-state' : ''}">
+            <i class="bi bi-speedometer2 me-3 fs-5"></i>
+            Dashboard
+        </a>
+
         <a th:href="@{/admin/appointments}" class="nav-link-custom d-flex align-items-center"
            th:classappend="${activePage == 'appointments' ? 'active-state' : ''}">
-            <i class="bi bi-mic-fill me-3 fs-5"></i> Appointment management
+            <i class="bi bi-calendar-check-fill me-3 fs-5"></i> Appointment management
+        </a>
+
+        <a th:href="@{/admin/reports/revenue}" class="nav-link-custom d-flex align-items-center"
+           th:classappend="${activePage == 'reports-revenue' ? 'active-state' : ''}">
+            <i class="fa-solid fa-chart-line me-3 fs-5"></i>
+            Revenue Report
+        </a>
+
+        <a th:href="@{/admin/statistics/pets}" class="nav-link-custom d-flex align-items-center"
+           th:classappend="${activePage == 'pet-report' ? 'active-state' : ''}">
+            <i class="fa-solid fa-chart-pie me-3 fs-5"></i>
+            Pets Report
         </a>
 
         <a th:href="@{/admin/manage-pet}" class="nav-link-custom d-flex align-items-center"
@@ -20,10 +38,14 @@
             <i class="fa-solid fa-paw me-3 fs-5"></i>
             Pets Management
         </a>
+        <a th:href="@{/admin/manage-categories}" class="nav-link-custom d-flex align-items-center"
+           th:classappend="${activePage == 'Categories' ? 'active-state' : ''}">
+            <i class="fa-solid fa-cogs me-3 fs-5"></i> Categories
+        </a>
 
         <a th:href="@{/admin/manage-product}" class="nav-link-custom d-flex align-items-center"
            th:classappend="${activePage == 'products' ? 'active-state' : ''}">
-            <i class="fa-solid fa-box me-3 fs-5"></i>
+            <i class="fa-solid fa-box-open me-3 fs-5"></i>
             Products Management
         </a>
 
@@ -35,6 +57,56 @@
         <a th:href="@{/admin/staff-manage}" class="nav-link-custom d-flex align-items-center"
            th:classappend="${activePage == 'staffs' ? 'active-state' : ''}">
             <i class="bi bi-person-badge-fill me-3 fs-5"></i> Staff Management
+        </a>
+
+        <a href="#serviceSubmenu" data-bs-toggle="collapse"
+           class="nav-link-custom d-flex align-items-center justify-content-between"
+           th:classappend="${activePage == 'service-type' or activePage == 'service-list' ? 'active-state' : ''}"
+           aria-expanded="false" aria-controls="serviceSubmenu">
+            <div>
+                <i class="bi bi-briefcase-medical me-3 fs-5"></i>
+                <span>Service Manager</span>
+            </div>
+            <i class="bi bi-chevron-down fs-6"></i>
+        </a>
+
+        <div class="collapse" id="serviceSubmenu"
+             th:classappend="${activePage == 'service-type' or activePage == 'service-list' ? 'show' : ''}">
+
+            <ul class="nav flex-column ms-4 ps-3 my-2 gap-2" style="border-left: 2px solid rgba(255,255,255,0.3);">
+
+                <li class="nav-item">
+                    <a th:href="@{/admin/service-type}"
+                       class="nav-link p-0 text-white opacity-75 hover-opacity-100 d-flex align-items-center"
+                       th:style="${activePage == 'service-type' ? 'opacity: 1 !important; font-weight: bold;' : ''}">
+                        <i class="bi bi-tags me-2"></i> Service Types
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a th:href="@{/admin/services}"
+                       class="nav-link p-0 text-white opacity-75 hover-opacity-100 d-flex align-items-center"
+                       th:style="${activePage == 'service-list' ? 'opacity: 1 !important; font-weight: bold;' : ''}">
+                        <i class="bi bi-list-ul me-2"></i> Service List
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+
+        <a th:href="@{/admin/feedback}" class="nav-link-custom d-flex align-items-center"
+           th:classappend="${activePage == 'feedback' ? 'active-state' : ''}">
+            <i class="bi bi-chat-dots me-3 fs-5"></i> Feedback Manager
+        </a>
+
+        <a th:href="@{/admin/config}" class="nav-link-custom d-flex align-items-center"
+           th:classappend="${activePage == 'config' ? 'active-state' : ''}">
+            <i class="fa-solid fa-cogs me-3 fs-5"></i> Web Config
+        </a>
+
+        <a th:href="@{/admin/roles}" class="nav-link-custom d-flex align-items-center"
+           th:classappend="${activePage == 'roles' ? 'active-state' : ''}">
+            <i class="fa-solid fa-cogs me-3 fs-5"></i> Role Permission
         </a>
     </nav>
 </div>

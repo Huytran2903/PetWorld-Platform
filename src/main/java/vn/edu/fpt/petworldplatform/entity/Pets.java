@@ -1,5 +1,6 @@
 package vn.edu.fpt.petworldplatform.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import jakarta.persistence.*;
@@ -8,6 +9,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import vn.edu.fpt.petworldplatform.dto.PetFormDTO;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,30 +29,22 @@ public class Pets {
     private Integer petID;
 
     @NotBlank(message = "Name is required!")
-    @Pattern(
-            regexp = "^\\p{Lu}\\p{L}*( \\p{L}+)*$",
-            message = "Regex description: \"Starts with an uppercase letter, followed by letters and single spaces only.\""
-    )
+    @Pattern(regexp = "^\\p{Lu}\\p{L}*( \\p{L}+)*$", message = "Regex description: \"Starts with an uppercase letter, followed by letters and single spaces only.\"")
     @Column(nullable = false, name = "Name")
     private String name;
 
     @NotBlank(message = "Type is required!")
-    @Pattern(
-            regexp = "^\\p{Lu}\\p{L}*( \\p{L}+)*$",
-            message = "Regex description: \"Starts with an uppercase letter, followed by letters and single spaces only.\""
-    )
+    @Pattern(regexp = "^\\p{Lu}\\p{L}*( \\p{L}+)*$", message = "Regex description: \"Starts with an uppercase letter, followed by letters and single spaces only.\"")
     @Column(name = "PetType")
     private String petType;
 
     @NotBlank(message = "Breed is required!")
-    @Pattern(
-            regexp = "^\\p{Lu}\\p{L}*( \\p{L}+)*$",
-            message = "Regex description: \"Starts with an uppercase letter, followed by letters and single spaces only.\""
-    )
-    @Column(name = "Breed")
+    @Pattern(regexp = "^\\p{Lu}\\p{L}*( \\p{L}+)*$", message = "Regex description: \"Starts with an uppercase letter, followed by letters and single spaces only.\"")
+    @Column(name = "Breed", nullable = false)
     private String breed;
 
-    @Column(name = "Gender")
+    @NotBlank(message = "Gender is required!")
+    @Column(name = "Gender", nullable = false)
     private String gender;
 
     @NotNull(message = "Age is required!")
@@ -66,10 +60,7 @@ public class Pets {
     private Double weightKg;
 
     @NotBlank(message = "Color is required!")
-    @Pattern(
-            regexp = "^\\p{Lu}\\p{L}*( \\p{L}+)*$",
-            message = "Regex description: \"Starts with an uppercase letter, followed by letters and single spaces only.\""
-    )
+    @Pattern(regexp = "^\\p{Lu}\\p{L}*( \\p{L}+)*$", message = "Regex description: \"Starts with an uppercase letter, followed by letters and single spaces only.\"")
     @Column(name = "Color")
     private String color;
 
@@ -113,11 +104,13 @@ public class Pets {
 
     @ManyToOne
     @JoinColumn(name = "OwnerCustomerID")
+    @JsonIgnore
     private Customer owner;
 
     @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @JsonIgnore
     private List<CartItem> cartsList = new ArrayList<>();
 
     @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -140,7 +133,8 @@ public class Pets {
 
     @Transient
     @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private java.time.LocalDate nextDueDate;
+    @FutureOrPresent(message = "Next due date cannot be in the past!")
+    private LocalDate nextDueDate;
 
 
     public Integer getId() {
@@ -152,7 +146,7 @@ public class Pets {
     }
 
     @PrePersist
-    protected void onCreate() {
+    public void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
 

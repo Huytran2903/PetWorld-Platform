@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import vn.edu.fpt.petworldplatform.entity.Appointment;
 import vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine;
+import vn.edu.fpt.petworldplatform.entity.Staff;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.Optional;
 
 public interface AppointmentServiceLineRepository extends JpaRepository<AppointmentServiceLine, Integer> {
 
+    List<AppointmentServiceLine> findByAssignedStaff(Staff staff);
     List<AppointmentServiceLine> findByAppointment_Id(Integer appointmentId);
 
     @Query("SELECT asl FROM AppointmentServiceLine asl JOIN FETCH asl.service s WHERE asl.appointment.id IN :appointmentIds")

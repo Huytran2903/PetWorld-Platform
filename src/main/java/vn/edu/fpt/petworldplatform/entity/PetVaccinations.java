@@ -1,8 +1,11 @@
 package vn.edu.fpt.petworldplatform.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.FutureOrPresent;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -21,15 +24,17 @@ public class PetVaccinations {
     private String vaccineName;
 
     @Column(name = "AdministeredDate", nullable = false)
-    private LocalDateTime administeredDate;
+    private LocalDate administeredDate;
 
     @Column(name = "NextDueDate")
-    private LocalDateTime nextDueDate;
+    @FutureOrPresent(message = "Next due date cannot be in the past!")
+    private LocalDate nextDueDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PetID", nullable = false)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @JsonIgnore
     private Pets pet;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -56,7 +61,7 @@ public class PetVaccinations {
             this.createdAt = LocalDateTime.now();
         }
         if (this.administeredDate == null) {
-            this.administeredDate = LocalDateTime.now();
+            this.administeredDate = LocalDate.now();
         }
     }
 }

@@ -1,172 +1,232 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Categories Management System</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <link rel="stylesheet" href="/css/manageCategories.css" />
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Categories Management System</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+    <link rel="stylesheet" th:href="@{/css/sidebar-admin.css}">
+    <link rel="stylesheet" href="/css/manageCategories.css"/>
+
+    <style>
+        /* CSS chia bố cục: Sidebar trái, Content phải */
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #f8f9fa;
+        }
+
+        .admin-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .admin-main-content {
+            flex-grow: 1;
+            padding: 2rem;
+            height: 100vh;
+            overflow-y: auto; /* Cuộn độc lập phần nội dung bên phải */
+        }
+
+        /* Tinh chỉnh thanh tìm kiếm */
+        .search-box-custom {
+            border-radius: 50px;
+            overflow: hidden;
+            background-color: #f8f9fa;
+            border: 1px solid #e2e8f0;
+        }
+
+        .search-box-custom input:focus {
+            box-shadow: none;
+            background-color: #ffffff;
+        }
+    </style>
 </head>
 <body>
-<div class="app-container">
-  <header class="page-header py-4 shadow-sm mb-4">
-    <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
-      <div>
-        <h1 class="h3 mb-1 fw-bold text-dark">Categories Management System</h1>
-      </div>
-      <a th:href="@{/admin/category/new}" class="btn btn-add-new d-flex align-items-center gap-2 px-4 py-2 shadow-sm">
-        <span class="fs-4">+</span> Add New Categories
-      </a>
-    </div>
-  </header>
 
-  <main class="container-fluid px-4">
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-      <div class="card-header bg-white py-3 border-0">
-        <div class="row g-3 align-items-center">
-          <div class="col-md-4">
-            <div class="search-box position-relative">
-              <input type="text" class="form-control rounded-pill ps-5" placeholder="Search category by name...">
-              <span class="position-absolute top-50 start-0 translate-middle-y ms-3 text-muted">🔍</span>
+<div class="admin-wrapper">
+
+    <div th:replace="~{fragments/sidebar-admin :: aside(activePage='Categories')}"></div>
+    <div class="admin-main-content">
+        <div class="container-fluid p-0">
+
+            <div class="d-flex justify-content-between align-items-center mb-4 p-4 rounded-3 shadow-sm"
+                 style="background-color: #ffedd8;">
+                <div>
+                    <h2 class="mb-1 fw-bold text-dark"><i class="bi bi-tags-fill text-warning me-2"></i>Categories
+                        Management</h2>
+                    <p class="text-secondary mb-0 small">Manage product categories and classifications.</p>
+                </div>
+                <div>
+                    <a th:href="@{/admin/category/new}"
+                       class="btn text-white shadow-sm fw-bold px-4 py-2 rounded-pill d-flex align-items-center gap-2"
+                       style="background-color: #0f172a; border: none;">
+                        <i class="bi bi-plus-circle"></i> Add New Category
+                    </a>
+                </div>
             </div>
-          </div>
-          <div class="col-md-2">
-            <select class="form-select rounded-pill">
-              <option selected>Categories</option>
-              <option>Food</option>
-              <option>Vitamin</option>
-            </select>
-          </div>
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                <div class="card-header bg-white py-3 border-0 border-bottom">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-5">
+                            <div class="input-group search-box-custom">
+                                <span class="input-group-text bg-transparent border-0 pe-1">
+                                    <i class="bi bi-search text-muted"></i>
+                                </span>
+                                <input type="text" class="form-control border-0 bg-transparent ps-2 py-2"
+                                       placeholder="Search category by name...">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select rounded-pill shadow-none border-secondary-subtle py-2 text-muted">
+                                <option selected>All Categories</option>
+                                <option>Food</option>
+                                <option>Vitamin</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead style="background-color: #f1f5f9; color: #64748b;" class="text-uppercase small fw-bold">
+                        <tr>
+                            <th class="ps-4 py-3">Category ID</th>
+                            <th class="py-3">Category Name</th>
+                            <th class="py-3">Description</th>
+                            <th class="text-end pe-4 py-3">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="x : ${categories}" class="border-bottom">
+                            <td class="ps-4 fw-bold text-muted" th:text="${x.categoryID}"></td>
+
+                            <td>
+                                <div class="fw-bold text-dark" th:text="${x.name}"></div>
+                            </td>
+
+                            <td class="text-muted" th:text="${x.description}"></td>
+
+                            <td class="text-end pe-4">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a th:href="@{'/admin/category/edit/' + ${x.categoryID}}"
+                                       class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-medium shadow-sm">
+                                        <i class="bi bi-pencil-square me-1"></i> Edit
+                                    </a>
+
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-danger rounded-pill px-3 fw-medium shadow-sm"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteCategoryModal"
+                                            th:data-action="@{/admin/category/delete/{id}(id=${x.categoryID})}"
+                                            th:data-name="${x.name}"
+                                            th:data-has-products="${not #lists.isEmpty(x.productList)}">
+                                        <i class="bi bi-trash-fill me-1"></i> Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr th:if="${#lists.isEmpty(categories)}">
+                            <td colspan="4" class="text-center py-5">
+                                <div class="empty-state text-muted">
+                                    <i class="bi bi-tags fs-1 d-block mb-3 text-light"></i>
+                                    <h5 class="fw-bold text-dark">No categories found</h5>
+                                    <p class="small">Start organizing your products by creating a new category.</p>
+                                </div>
+                            </td>
+                        </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-      </div>
-
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light text-uppercase small fw-bold">
-          <tr>
-            <th class="ps-4">Categories Id</th>
-            <th>Categories Name</th>
-            <th>Description</th>
-            <th class="text-end pe-4">Action</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr th:each="x : ${categories}">
-            <td class="ps-4 fw-bold" th:text="${x.categoryID}"></td>
-            <td>
-              <div class="fw-bold text-dark" th:text="${x.name}"></div>
-            </td>
-            <td th:text="${x.description}"></td>
-            <td class="text-end pe-4">
-              <div class="btn-group shadow-sm rounded-pill overflow-hidden">
-                <a th:href="@{'/admin/category/edit/' + ${x.categoryID}}" class="btn btn-sm btn-outline-secondary border-0 px-3">Edit</a>
-
-                <button type="button" class="btn btn-sm btn-outline-danger border-0 px-3"
-                        data-bs-toggle="modal"
-                        data-bs-target="#deleteCategoryModal"
-                        th:data-action="@{/admin/category/delete/{id}(id=${x.categoryID})}"
-                        th:data-name="${x.name}"
-                        th:data-has-products="${not #lists.isEmpty(x.productList)}">
-                  Delete
-                </button>
-              </div>
-            </td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
     </div>
-  </main>
 </div>
-
 <div class="modal fade" id="deleteCategoryModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4 border-0 shadow">
-      <div class="modal-header border-bottom-0">
-        <h5 class="modal-title fw-bold" id="deleteModalTitle">Confirm Deletion</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body py-4 text-center">
-        <div class="mb-3">
-          <i id="deleteModalIcon" class="bi display-1"></i>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header border-bottom-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-2 text-center">
+                <div class="mb-3">
+                    <i id="deleteModalIcon" class="bi display-1"></i>
+                </div>
+                <h4 class="modal-title fw-bold mb-3" id="deleteModalTitle">Confirm Deletion</h4>
+                <p class="mb-1 text-secondary" id="deleteModalMessage"></p>
+                <p class="fw-bold fs-5 text-dark" id="categoryNamePlaceholder"></p>
+                <p class="small text-muted" id="deleteModalSubMessage"></p>
+            </div>
+            <div class="modal-footer border-top-0 justify-content-center pb-4">
+                <button type="button" id="cancelBtn" class="btn btn-light border px-4 rounded-pill fw-medium"
+                        data-bs-dismiss="modal">
+                    Cancel
+                </button>
+                <a id="confirmDeleteBtn" href="#" class="btn btn-danger px-4 rounded-pill fw-bold shadow-sm">
+                    Yes, Delete
+                </a>
+            </div>
         </div>
-        <p class="mb-1 text-secondary" id="deleteModalMessage"></p>
-        <p class="fw-bold fs-5 text-dark" id="categoryNamePlaceholder"></p>
-        <p class="small text-muted" id="deleteModalSubMessage"></p>
-      </div>
-      <div class="modal-footer border-top-0 justify-content-center pb-4">
-        <button type="button" id="cancelBtn" class="btn px-4 rounded-pill" data-bs-dismiss="modal">
-          Cancel
-        </button>
-        <a id="confirmDeleteBtn" href="#" class="btn btn-danger px-4 rounded-pill">
-          <i class="bi bi-trash3-fill me-2"></i> Yes, Delete
-        </a>
-      </div>
     </div>
-  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function() {
-    const deleteCatModal = document.getElementById('deleteCategoryModal');
+    document.addEventListener("DOMContentLoaded", function () {
+        const deleteCatModal = document.getElementById('deleteCategoryModal');
 
-    if (deleteCatModal) {
-      deleteCatModal.addEventListener('show.bs.modal', event => {
-        const button = event.relatedTarget;
+        if (deleteCatModal) {
+            deleteCatModal.addEventListener('show.bs.modal', event => {
+                const button = event.relatedTarget;
 
-        // Lấy dữ liệu từ nút bấm
-        const deleteUrl = button.getAttribute('data-action');
-        const categoryName = button.getAttribute('data-name');
-        const hasProducts = button.getAttribute('data-has-products') === 'true';
+                const deleteUrl = button.getAttribute('data-action');
+                const categoryName = button.getAttribute('data-name');
+                const hasProducts = button.getAttribute('data-has-products') === 'true';
 
-        // Lấy các thẻ HTML trong Modal
-        const confirmBtn = document.getElementById('confirmDeleteBtn');
-        const cancelBtn = document.getElementById('cancelBtn');
-        const title = document.getElementById('deleteModalTitle');
-        const icon = document.getElementById('deleteModalIcon');
-        const message = document.getElementById('deleteModalMessage');
-        const subMessage = document.getElementById('deleteModalSubMessage');
-        const namePlaceholder = document.getElementById('categoryNamePlaceholder');
+                const confirmBtn = document.getElementById('confirmDeleteBtn');
+                const cancelBtn = document.getElementById('cancelBtn');
+                const title = document.getElementById('deleteModalTitle');
+                const icon = document.getElementById('deleteModalIcon');
+                const message = document.getElementById('deleteModalMessage');
+                const subMessage = document.getElementById('deleteModalSubMessage');
+                const namePlaceholder = document.getElementById('categoryNamePlaceholder');
 
-        // Set tên danh mục
-        namePlaceholder.textContent = categoryName ? '"' + categoryName + '"' : '';
+                namePlaceholder.textContent = categoryName ? '"' + categoryName + '"' : '';
 
-        if (hasProducts) {
-          // CÓ SẢN PHẨM -> KHÔNG CHO XÓA
-          title.textContent = "Cannot Delete Category";
-          title.className = "modal-title fw-bold text-warning";
+                if (hasProducts) {
+                    title.textContent = "Cannot Delete Category";
+                    title.className = "modal-title fw-bold text-warning";
+                    icon.className = "bi bi-exclamation-triangle-fill text-warning display-1";
+                    message.textContent = "This category contains products.";
+                    subMessage.textContent = "Please delete or move the products before deleting this category.";
 
-          icon.className = "bi bi-exclamation-triangle text-warning display-1";
+                    confirmBtn.style.display = 'none';
+                    cancelBtn.textContent = "Close";
+                    cancelBtn.className = "btn btn-secondary px-4 rounded-pill fw-medium shadow-sm";
+                } else {
+                    title.textContent = "Confirm Deletion";
+                    title.className = "modal-title fw-bold text-danger";
+                    icon.className = "bi bi-x-circle-fill text-danger display-1";
+                    message.textContent = "Are you sure you want to delete this category?";
+                    subMessage.textContent = "This action cannot be undone.";
 
-          message.textContent = "This category contains products.";
-          subMessage.textContent = "Please delete or move the products before deleting this category.";
-
-          confirmBtn.style.display = 'none'; // Ẩn nút Delete
-
-          cancelBtn.textContent = "Close";
-          cancelBtn.className = "btn btn-secondary px-4 rounded-pill";
-        } else {
-          // TRỐNG SẢN PHẨM -> CHO PHÉP XÓA
-          title.textContent = "Confirm Deletion";
-          title.className = "modal-title fw-bold text-danger";
-
-          icon.className = "bi bi-exclamation-circle text-danger display-1";
-
-          message.textContent = "Are you sure you want to delete this category?";
-          subMessage.textContent = "This action cannot be undone.";
-
-          confirmBtn.style.display = 'inline-flex'; // Hiện nút Delete
-          confirmBtn.href = deleteUrl;
-
-          cancelBtn.textContent = "Cancel";
-          cancelBtn.className = "btn btn-light px-4 rounded-pill border";
+                    confirmBtn.style.display = 'inline-flex';
+                    confirmBtn.href = deleteUrl;
+                    cancelBtn.textContent = "Cancel";
+                    cancelBtn.className = "btn btn-light border px-4 rounded-pill fw-medium";
+                }
+            });
         }
-      });
-    }
-  });
+    });
 </script>
 </body>
 </html>

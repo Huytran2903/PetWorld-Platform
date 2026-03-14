@@ -105,11 +105,16 @@
 }
 
 .badge-sale-custom {
-    background-color: #feebe1;
-    color: #ea5455;
-    font-weight: bold;
-    padding: 6px 12px;
-    border-radius: 8px;
+    background-color: #ffebee !important;
+    color: #d32f2f !important;
+
+    padding: 8px 16px !important;
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+
+    border: 1px solid #ffcdd2 !important;
+    border-radius: 50px !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
 }
 
 /* 6. Action Bar tích hợp */

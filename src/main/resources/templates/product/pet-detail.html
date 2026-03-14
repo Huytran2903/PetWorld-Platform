@@ -86,7 +86,20 @@
                     <div class="info-row">
                         <div class="icon-box"><i class="bi bi-tags-fill" style="color: #ff9f43;"></i></div>
                         <span class="label-text">Price:</span>
-                        <span class="value-text price-color"
+
+                        <div th:if="${petDetail.discountPercent != null and petDetail.discountPercent > 0}"
+                             class="ms-2">
+            <span class="value-text price-color fw-bold"
+                  th:text="${#numbers.formatDecimal(petDetail.salePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'">450,000 đ</span>
+
+                            <del class="text-muted small ms-2"
+                                 th:text="${#numbers.formatDecimal(petDetail.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                500,000 đ
+                            </del>
+                        </div>
+
+                        <span th:unless="${petDetail.discountPercent != null and petDetail.discountPercent > 0}"
+                              class="ms-2 value-text price-color"
                               th:text="${#numbers.formatDecimal(petDetail.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">500,000 đ</span>
                     </div>
 
@@ -94,13 +107,16 @@
                         <div class="icon-box"><i class="bi bi-percent" style="color: #ea5455;"></i></div>
                         <span class="label-text">Sale:</span>
                         <span class="ms-2 badge badge-sale-custom"
+                              th:classappend="${petDetail.discountPercent > 0} ? 'bg-danger' : 'bg-secondary'"
                               th:text="${petDetail.discountPercent != null ? petDetail.discountPercent + '%' : '0%'}">0%</span>
                     </div>
                 </div>
 
-                <button type="button" class="btn-add-to-cart">
+                <a th:href="@{'/cart/add-pet/' + ${petDetail.id}}"
+                   class="btn btn-add-to-cart text-decoration-none d-inline-block text-center">
                     <i class="bi bi-cart-plus me-2"></i> ADD TO CART
-                </button>
+                </a>
+
 
             </article>
         </div>

@@ -3,6 +3,7 @@ package vn.edu.fpt.petworldplatform.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -10,7 +11,13 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ContentDisposition;
 import vn.edu.fpt.petworldplatform.dto.PetFormDTO;
+import vn.edu.fpt.petworldplatform.dto.PetStatisticsDTO;
 import vn.edu.fpt.petworldplatform.entity.*;
 import vn.edu.fpt.petworldplatform.dto.StaffFormDTO;
 import vn.edu.fpt.petworldplatform.entity.Categories;
@@ -25,6 +32,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +58,7 @@ public class AdminController {
 
 
     private final CustomerService customerService;
+    private final CartService cartService;
 
     private final ServiceTypeService serviceTypeService;
     private final ServiceItemService serviceItemService;
@@ -59,15 +68,6 @@ public class AdminController {
         return "admin/admin-dashboard";
     }
 
-    @GetMapping("/admin/add-staff")
-    public String addNewStaff() {
-        return "admin/add-editStaffProfile";
-    }
-
-    @GetMapping("/admin/edit-staff")
-    public String editStaffProfile() {
-        return "admin/add-editStaffProfile";
-    }
 
     //Manage Pet - OanhTP
     //List
@@ -127,7 +127,6 @@ public class AdminController {
                           RedirectAttributes redirectAttributes,
                           @RequestParam("mode") String formMode,
                           Model model) {
-
         if (result.hasErrors()) {
             model.addAttribute("formMode", formMode);
             return "admin/pet-form";
@@ -164,11 +163,11 @@ public class AdminController {
 
                     // Nếu có nhập ngày hẹn tiếp theo
                     if (pet.getNextDueDate() != null) {
-                        newVaccine.setNextDueDate(pet.getNextDueDate().atStartOfDay()); // Ép kiểu LocalDate sang LocalDateTime nếu cần
+                        newVaccine.setNextDueDate(pet.getNextDueDate()); // Ép kiểu LocalDate sang LocalDateTime nếu cần
                     }
 
                     // Mặc định ngày tiêm là ngay lúc bấm Save
-                    newVaccine.setAdministeredDate(LocalDateTime.now());
+                    newVaccine.setAdministeredDate(LocalDate.now());
 
                     // Xử lý Staff ID (Giả sử bạn có class Staff)
                     if (pet.getVaccinationStaffID() != null) {
@@ -382,25 +381,24 @@ public class AdminController {
     }
 
 
-    @GetMapping("/admin/appointment-manage")
-    public String showAppointmentList() {
-        return "redirect:/admin/appointments";
-    }
-
-    @GetMapping("/admin/appointment-manage/detail")
-    public String showAppointmentDetail() {
-        return " appointment/appt-detail";
-    }
-
-    @GetMapping("/admin/customer-manage")
-    public String showCustomerList(Model model) {
-        model.addAttribute("customers", customerService.getAllCustomer());
-        return "admin/customer-manage";
-    }
-
     @GetMapping("/admin/staff-manage")
-    public String showStaffList(Model model) {
-        model.addAttribute("staffs", staffService.getAllStaffs());
+    public String showStaffList(
+            @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword,
+            @RequestParam(name = "page", required = false, defaultValue = "1") int page,
+            @RequestParam(name = "size", required = false, defaultValue = "5") int size, // 5 người/trang
+            Model model) {
+
+        Page<Staff> staffPage = staffService.getStaffsWithPaginationAndSearch(keyword, page, size);
+
+        model.addAttribute("staffs", staffPage.getContent()); // Danh sách hiển thị trên bảng
+        model.addAttribute("currentPage", page);              // Trang hiện tại
+        model.addAttribute("totalPages", staffPage.getTotalPages()); // Tổng số trang
+        model.addAttribute("totalItems", staffPage.getTotalElements()); // Tổng số nhân viên
+
+        model.addAttribute("keyword", keyword);
+
+        model.addAttribute("activeStaffList", staffService.getAvailableStaffs());
+
         return "admin/staff-manage";
     }
 
@@ -460,21 +458,40 @@ public class AdminController {
         return "redirect:/admin/staff-manage";
     }
 
-    @GetMapping("/admin/staff-manage/delete/{id}")
-    public String deleteStaff(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) {
-        try {
-            staffService.deleteStaff(id);
-            redirectAttributes.addFlashAttribute("message", "Staff deleted successfully!");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Error deleting staff: " + e.getMessage());
-        }
+    @PostMapping("/admin/staff/delete")
+    public String deleteStaff(@RequestParam("staffId") Integer staffId,
+                              @RequestParam(value = "transferStaffId", required = false) Integer transferStaffId,
+                              RedirectAttributes ra) {
+        staffService.deleteAndTransferWork(staffId, transferStaffId);
+
+        ra.addFlashAttribute("success", "Xóa và bàn giao công việc thành công!");
         return "redirect:/admin/staff-manage";
+    }
+
+    @GetMapping("/admin/customer-manage")
+    public String showCustomerList(
+            @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword,
+            @RequestParam(name = "page", required = false, defaultValue = "1") int page,
+            @RequestParam(name = "size", required = false, defaultValue = "5") int size,
+            Model model) {
+
+        Page<Customer> customerPage = customerService.getCustomersWithPaginationAndSearch(keyword, page, size);
+
+        model.addAttribute("customers", customerPage.getContent());     // Danh sách hiển thị
+        model.addAttribute("currentPage", page);                        // Trang hiện tại
+        model.addAttribute("totalPages", customerPage.getTotalPages()); // Tổng số trang
+        model.addAttribute("totalItems", customerPage.getTotalElements()); // Tổng số khách hàng
+
+        model.addAttribute("keyword", keyword);
+
+        return "admin/customer-manage";
     }
 
     // --- Edit Customer ---
     @GetMapping("/admin/customer/update-status/{id}")
     public String updateStatus(@PathVariable("id") int id, @RequestParam("isActive") boolean isActive, RedirectAttributes redirectAttributes) {
         try {
+
             customerService.updateCustomerStatus(id, isActive);
             String statusMsg = isActive ? "Unbanned" : "Banned";
             redirectAttributes.addFlashAttribute("message", "Customer has been " + statusMsg + " successfully!");
@@ -489,6 +506,7 @@ public class AdminController {
     @GetMapping("/admin/customer/delete/{id}")
     public String deleteCustomer(@PathVariable("id") int id, RedirectAttributes redirectAttributes) {
         try {
+            cartService.deleteCartByIdCustomer(id);
             customerService.deleteCustomer(id);
             redirectAttributes.addFlashAttribute("message", "Customer deleted successfully!");
         } catch (Exception e) {
@@ -611,42 +629,97 @@ public class AdminController {
     }
 
     @GetMapping("/admin/statistics/pets")
-    public String showPetStatistics(Model model) {
-        long totalPets = petService.getTotalPets();
+    public String showPetStatistics(
+            @RequestParam(value = "startDate", required = false) String startDate,
+            @RequestParam(value = "endDate", required = false) String endDate,
+            Model model) {
 
-        List<Object[]> stats = petService.getPetStatsBySpecies();
+        LocalDate start = (startDate != null && !startDate.isEmpty()) ?
+                LocalDate.parse(startDate) : LocalDate.of(2020, 1, 1);
+        LocalDate end = (endDate != null && !endDate.isEmpty()) ?
+                LocalDate.parse(endDate) : LocalDate.now();
 
-        long dogCount = 0;
-        long catCount = 0;
-        long otherCount = 0;
+        PetStatisticsDTO statistics = petService.getPetStatistics(start, end);
 
-        if (stats != null) {
-            for (Object[] row : stats) {
-                String species = (String) row[0];
-                long count = (Long) row[1];
-
-                if (species != null) {
-                    if (species.equalsIgnoreCase("Dog")) {
-                        dogCount += count;
-                    } else if (species.equalsIgnoreCase("Cat")) {
-                        catCount += count;
-                    } else {
-                        otherCount += count;
-                    }
-                } else {
-                    otherCount += count;
-                }
-            }
-        }
-
-        model.addAttribute("totalPets", totalPets);
-        model.addAttribute("dogCount", dogCount);
-        model.addAttribute("catCount", catCount);
-        model.addAttribute("otherCount", otherCount);
-
-        model.addAttribute("statsBySpecies", stats);
+        model.addAttribute("statistics", statistics);
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
 
         return "admin/statistics/pet-report";
+    }
+
+    @GetMapping("/admin/statistics/pets/export")
+    public ResponseEntity<String> exportPetStatistics(
+            @RequestParam(value = "startDate", required = false) String startDate,
+            @RequestParam(value = "endDate", required = false) String endDate) {
+
+        LocalDate start = (startDate != null && !startDate.isEmpty()) ?
+                LocalDate.parse(startDate) : LocalDate.of(2020, 1, 1);
+        LocalDate end = (endDate != null && !endDate.isEmpty()) ?
+                LocalDate.parse(endDate) : LocalDate.now();
+
+        PetStatisticsDTO statistics = petService.getPetStatistics(start, end);
+
+        // Create CSV content
+        StringBuilder csv = new StringBuilder();
+        csv.append("Pet Statistics Report\n");
+        csv.append("Date Range: ").append(start).append(" to ").append(end).append("\n\n");
+        csv.append("Category,Dogs,Cats,Others,Total\n");
+
+        // Service Pets
+        long dogService = statistics.getDogStats() != null && !statistics.getDogStats().isEmpty() ?
+                statistics.getDogStats().get(0).getCount() : 0;
+        long catService = statistics.getCatStats() != null && !statistics.getCatStats().isEmpty() ?
+                statistics.getCatStats().get(0).getCount() : 0;
+        long otherService = statistics.getOtherStats() != null && !statistics.getOtherStats().isEmpty() ?
+                statistics.getOtherStats().get(0).getCount() : 0;
+        csv.append("Service Pets,").append(dogService).append(",").append(catService)
+                .append(",").append(otherService).append(",").append(statistics.getTotalServicePets()).append("\n");
+
+        // Sale Pets
+        long dogSale = statistics.getDogStats() != null && statistics.getDogStats().size() > 1 ?
+                statistics.getDogStats().get(1).getCount() : 0;
+        long catSale = statistics.getCatStats() != null && statistics.getCatStats().size() > 1 ?
+                statistics.getCatStats().get(1).getCount() : 0;
+        long otherSale = statistics.getOtherStats() != null && statistics.getOtherStats().size() > 1 ?
+                statistics.getOtherStats().get(1).getCount() : 0;
+        csv.append("Sale Pets,").append(dogSale).append(",").append(catSale)
+                .append(",").append(otherSale).append(",").append(statistics.getTotalSalePets()).append("\n");
+
+        // Sold Pets
+        long dogSold = statistics.getDogStats() != null && statistics.getDogStats().size() > 2 ?
+                statistics.getDogStats().get(2).getCount() : 0;
+        long catSold = statistics.getCatStats() != null && statistics.getCatStats().size() > 2 ?
+                statistics.getCatStats().get(2).getCount() : 0;
+        long otherSold = statistics.getOtherStats() != null && statistics.getOtherStats().size() > 2 ?
+                statistics.getOtherStats().get(2).getCount() : 0;
+        csv.append("Sold/Completed,").append(dogSold).append(",").append(catSold)
+                .append(",").append(otherSold).append(",").append(statistics.getSoldPets()).append("\n");
+
+        // Grand Total
+        long dogTotal = statistics.getDogStats() != null ?
+                statistics.getDogStats().stream().mapToLong(s -> s.getCount()).sum() : 0;
+        long catTotal = statistics.getCatStats() != null ?
+                statistics.getCatStats().stream().mapToLong(s -> s.getCount()).sum() : 0;
+        long otherTotal = statistics.getOtherStats() != null ?
+                statistics.getOtherStats().stream().mapToLong(s -> s.getCount()).sum() : 0;
+        csv.append("Grand Total,").append(dogTotal).append(",").append(catTotal)
+                .append(",").append(otherTotal).append(",").append(statistics.getTotalPets()).append("\n");
+
+        // Set headers for CSV download
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.TEXT_PLAIN);
+        headers.setContentDisposition(ContentDisposition.builder("attachment")
+                .filename("pet-statistics-" + LocalDate.now() + ".csv")
+                .build());
+
+        return new ResponseEntity<>(csv.toString(), headers, HttpStatus.OK);
+    }
+
+    //Manage Order - OanhTP
+    @GetMapping("/admin/manage-order")
+    public String getAllOrder() {
+        return "customer/manage-order";
     }
 
 }

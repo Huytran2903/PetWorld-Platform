@@ -5,6 +5,7 @@ import lombok.Data;
 import vn.edu.fpt.petworldplatform.entity.Pets;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 @Data
 public class PetFormDTO {
@@ -31,11 +32,12 @@ public class PetFormDTO {
     private String color;
 
     @DecimalMin(value = "0.0", inclusive = true)
+    @NotNull(message = "Price must be require")
     private BigDecimal price;
 
     @Min(0)
     @Max(100)
-    private Integer discountPercent;
+    private Integer discountPercent = 0;
 
     private Boolean isAvailable;
 
@@ -46,6 +48,12 @@ public class PetFormDTO {
     private Boolean isVaccinated = false;
 
     private Integer vaccinationStaffID;
+
+    private String vaccineName;
+
+    private String vaccineNote;
+
+    private LocalDate nextDueDate;
 
     public PetFormDTO(Pets pet) {
         this.petID = pet.getPetID();

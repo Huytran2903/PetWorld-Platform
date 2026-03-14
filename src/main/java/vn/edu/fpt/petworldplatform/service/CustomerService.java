@@ -1,6 +1,10 @@
 package vn.edu.fpt.petworldplatform.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -222,13 +226,25 @@ public class CustomerService {
 
     //OanhTP - findIdByUsername
     public Integer findIdByUsername(String username) {
-        System.out.println("=== DEBUG SERVICE ===");
-        System.out.println("Username nhận được: " + username);
-        System.out.println("Kiểu dữ liệu: " + (username != null ? username.getClass().getName() : "null"));
-        System.out.println("======================");
         // Tìm khách hàng theo username
         return customerRepo.findByUsername(username)
                 .map(customer -> customer.getCustomerId()) // Lấy ID từ đối tượng Customer
                 .orElseThrow(() -> new RuntimeException("Customer not found with username: " + username));
+    }
+
+    public Integer findIdByEmail(String email) {
+        return customerRepo.findByEmail(email)
+                .map(Customer::getCustomerId)
+                .orElse(null);
+    }
+
+    public Page<Customer> getCustomersWithPaginationAndSearch(String keyword, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("customerId").descending());
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            return customerRepo.searchCustomers(keyword.trim(), pageable);
+        }
+        return customerRepo.findAll(pageable);
     }
 }
