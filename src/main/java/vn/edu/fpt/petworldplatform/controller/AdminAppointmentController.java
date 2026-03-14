@@ -27,17 +27,13 @@ import vn.edu.fpt.petworldplatform.entity.Appointment;
 import vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine;
 
 import vn.edu.fpt.petworldplatform.entity.AppointmentSummary;
-
+import vn.edu.fpt.petworldplatform.entity.AppointmentSummaryPhoto;
 import vn.edu.fpt.petworldplatform.entity.ServiceNote;
-
 import vn.edu.fpt.petworldplatform.entity.ServiceNotePhoto;
-
 import vn.edu.fpt.petworldplatform.entity.Staff;
-
+import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryPhotoRepository;
 import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryRepository;
-
 import vn.edu.fpt.petworldplatform.repository.ServiceNotePhotoRepository;
-
 import vn.edu.fpt.petworldplatform.repository.ServiceNoteRepository;
 
 import vn.edu.fpt.petworldplatform.service.AppointmentService;
@@ -62,6 +58,7 @@ public class AdminAppointmentController {
     private final AppointmentSummaryRepository appointmentSummaryRepository;
     private final ServiceNoteRepository serviceNoteRepository;
     private final ServiceNotePhotoRepository serviceNotePhotoRepository;
+    private final AppointmentSummaryPhotoRepository appointmentSummaryPhotoRepository;
 
     @ModelAttribute("filter")
 
@@ -193,6 +190,11 @@ public class AdminAppointmentController {
 
         AppointmentSummary summary = appointmentSummaryRepository.findByAppointment_Id(id).orElse(null);
         model.addAttribute("appointmentSummary", summary);
+
+        List<AppointmentSummaryPhoto> summaryPhotos = summary != null
+                ? appointmentSummaryPhotoRepository.findBySummary_Id(summary.getId())
+                : List.of();
+        model.addAttribute("summaryPhotos", summaryPhotos);
 
         Map<Integer, ServiceNote> serviceNoteByLineId = new LinkedHashMap<>();
         Map<Integer, List<ServiceNotePhoto>> serviceNotePhotosByLineId = new LinkedHashMap<>();

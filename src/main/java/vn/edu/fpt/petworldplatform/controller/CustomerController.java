@@ -17,9 +17,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.petworldplatform.dto.PetCreateDTO;
 import vn.edu.fpt.petworldplatform.dto.ProfileFormDTO;
 import vn.edu.fpt.petworldplatform.entity.Appointment;
+import vn.edu.fpt.petworldplatform.entity.AppointmentSummary;
+import vn.edu.fpt.petworldplatform.entity.AppointmentSummaryPhoto;
 import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.Pets;
-import vn.edu.fpt.petworldplatform.entity.AppointmentSummary;
+import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryPhotoRepository;
 import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryRepository;
 import vn.edu.fpt.petworldplatform.entity.*;
 import vn.edu.fpt.petworldplatform.repository.PetHealthPhotoRepository;
@@ -182,6 +184,9 @@ public class CustomerController {
     @Autowired
     private AppointmentSummaryRepository appointmentSummaryRepository;
 
+    @Autowired
+    private AppointmentSummaryPhotoRepository appointmentSummaryPhotoRepository;
+
     @GetMapping("/customer/appointments")
     public String appointmentHistory(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
@@ -275,6 +280,11 @@ public class CustomerController {
 
         AppointmentSummary summary = appointmentSummaryRepository.findByAppointment_Id(id).orElse(null);
         model.addAttribute("appointmentSummary", summary);
+
+        List<AppointmentSummaryPhoto> summaryPhotos = summary != null
+                ? appointmentSummaryPhotoRepository.findBySummary_Id(summary.getId())
+                : List.of();
+        model.addAttribute("summaryPhotos", summaryPhotos);
 
         String serviceStaffName = "N/A";
         if (summary != null && summary.getSummaryByStaff() != null && summary.getSummaryByStaff().getFullName() != null) {

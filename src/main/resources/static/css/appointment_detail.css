@@ -168,6 +168,61 @@
     gap: 10px;
 }
 
+/* Manager summary form */
+.summary-form .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.summary-form label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy2);
+    margin-bottom: 4px;
+}
+
+.summary-form input[type="number"],
+.summary-form input[type="text"],
+.summary-form textarea {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    font-size: 14px;
+    color: var(--text);
+    background-color: #f9fafb;
+}
+
+.summary-form textarea {
+    min-height: 70px;
+    resize: vertical;
+}
+
+.summary-form .grid2 {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 16px;
+    row-gap: 12px;
+}
+
+/* Tạo khoảng trắng rõ ràng giữa 2 ô trong grid2 (Condition Before/After) */
+.summary-form .grid2 > div:first-child input,
+.summary-form .grid2 > div:first-child textarea {
+    margin-right: 6px;
+}
+
+.summary-form .grid2 > div:last-child input,
+.summary-form .grid2 > div:last-child textarea {
+    margin-left: 6px;
+}
+
+@media (max-width: 768px) {
+    .summary-form .grid2 {
+        grid-template-columns: 1fr;
+    }
+}
+
 .btn {
     padding: 10px 16px;
     border-radius: 8px;

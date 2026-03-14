@@ -8,6 +8,7 @@ import vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine;
 import vn.edu.fpt.petworldplatform.entity.Staff;
 import vn.edu.fpt.petworldplatform.repository.AppointmentRepository;
 import vn.edu.fpt.petworldplatform.repository.AppointmentServiceLineRepository;
+import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryRepository;
 import vn.edu.fpt.petworldplatform.repository.StaffRepository;
 
 import java.time.LocalDate;
@@ -29,6 +30,7 @@ public class AssignedAppointmentService implements IAssignedAppointmentService {
 
     private final AppointmentRepository appointmentRepository;
     private final AppointmentServiceLineRepository appointmentServiceLineRepository;
+    private final AppointmentSummaryRepository appointmentSummaryRepository;
     private final StaffRepository staffRepository;
 
     @Override
@@ -53,6 +55,7 @@ public class AssignedAppointmentService implements IAssignedAppointmentService {
         Map<Integer, Appointment> appointmentMap = new LinkedHashMap<>();
         for (AppointmentServiceLine line : lines) {
             Appointment appointment = line.getAppointment();
+            normalizeStatusIfMissingSummary(appointment);
             appointmentMap.putIfAbsent(appointment.getId(), appointment);
         }
 
@@ -75,6 +78,7 @@ public class AssignedAppointmentService implements IAssignedAppointmentService {
             throw new RuntimeException("Appointment not found or not assigned to this staff.");
         }
 
+        normalizeStatusIfMissingSummary(appointment);
         return appointment;
     }
 
@@ -135,5 +139,27 @@ public class AssignedAppointmentService implements IAssignedAppointmentService {
 
     private String lower(String value) {
         return value == null ? "" : value.toLowerCase();
+    }
+
+    /**
+     * If appointment is marked done but there is no manager summary yet,
+     * keep it in in_progress so manager is forced to complete summary.
+     */
+    private void normalizeStatusIfMissingSummary(Appointment appointment) {
+        if (appointment == null || appointment.getId() == null) {
+            return;
+        }
+
+        String status = lower(appointment.getStatus());
+        if (!"done".equals(status)) {
+            return;
+        }
+
+        boolean hasSummary = appointmentSummaryRepository.findByAppointment_Id(appointment.getId()).isPresent();
+        if (!hasSummary) {
+            appointment.setStatus("in_progress");
+            appointment.setUpdatedAt(LocalDateTime.now());
+            appointmentRepository.save(appointment);
+        }
     }
 }
