@@ -323,6 +323,24 @@
                                 <strong>Notes:</strong>
                                 <span th:text="${appointmentSummary.note ?: '-'}"></span>
                             </div>
+
+                            <div
+                                class="health-photos"
+                                th:if="${summaryPhotos != null and !#lists.isEmpty(summaryPhotos)}"
+                            >
+                                <img
+                                    th:each="photo : ${summaryPhotos}"
+                                    th:src="@{${photo.imageUrl}}"
+                                    alt="Health summary evidence"
+                                />
+                            </div>
+
+                            <div
+                                class="text-muted mt-2"
+                                th:unless="${summaryPhotos != null and !#lists.isEmpty(summaryPhotos)}"
+                            >
+                                No summary photos.
+                            </div>
                         </div>
                     </div>
 

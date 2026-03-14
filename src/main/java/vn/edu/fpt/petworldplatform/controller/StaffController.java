@@ -16,9 +16,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.petworldplatform.entity.Appointment;
 import vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine;
+import vn.edu.fpt.petworldplatform.entity.AppointmentSummary;
+import vn.edu.fpt.petworldplatform.entity.AppointmentSummaryPhoto;
 import vn.edu.fpt.petworldplatform.entity.ServiceNote;
 import vn.edu.fpt.petworldplatform.entity.ServiceNotePhoto;
 import vn.edu.fpt.petworldplatform.entity.Staff;
+import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryPhotoRepository;
 import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryRepository;
 import vn.edu.fpt.petworldplatform.repository.ServiceNotePhotoRepository;
 import vn.edu.fpt.petworldplatform.repository.ServiceNoteRepository;
@@ -41,6 +44,7 @@ public class StaffController {
     private final ServiceNoteRepository serviceNoteRepository;
     private final ServiceNotePhotoRepository serviceNotePhotoRepository;
     private final AppointmentSummaryRepository appointmentSummaryRepository;
+    private final AppointmentSummaryPhotoRepository appointmentSummaryPhotoRepository;
 
     @GetMapping("/assigned_list")
     public String viewAssignedList(
@@ -86,7 +90,7 @@ public class StaffController {
         boolean isManager = appointment.getStaffId() != null && appointment.getStaffId().equals(staff.getStaffId());
 
         // Nếu là manager: xem được tất cả service lines trong appointment.
-        // Nếu không: chỉ xem các service line được assign cho chính mình (giống behavior cũ).
+        // Nếu không: chỉ xem các service line được assign cho chính mình.
         List<AppointmentServiceLine> myServiceLines;
         if (appointment.getServiceLines() == null) {
             myServiceLines = List.of();
@@ -134,7 +138,19 @@ public class StaffController {
         model.addAttribute("serviceNoteByLineId", serviceNoteByLineId);
         model.addAttribute("serviceNotePhotosByLineId", serviceNotePhotosByLineId);
 
-        model.addAttribute("appointmentSummary", appointmentSummaryRepository.findByAppointment_Id(id).orElse(null));
+        // Flatten all service note photos for manager to pick as evidence
+        List<ServiceNotePhoto> allServiceNotePhotos = serviceNotePhotosByLineId.values().stream()
+                .flatMap(List::stream)
+                .toList();
+        model.addAttribute("allServiceNotePhotos", allServiceNotePhotos);
+
+        AppointmentSummary appointmentSummary = appointmentSummaryRepository.findByAppointment_Id(id).orElse(null);
+        model.addAttribute("appointmentSummary", appointmentSummary);
+
+        List<AppointmentSummaryPhoto> summaryPhotos = appointmentSummary != null
+                ? appointmentSummaryPhotoRepository.findBySummary_Id(appointmentSummary.getId())
+                : List.of();
+        model.addAttribute("summaryPhotos", summaryPhotos);
         model.addAttribute("isManager", isManager);
 
         return "staff/appointment_detail";

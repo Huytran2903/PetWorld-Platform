@@ -324,11 +324,9 @@
                             <input type="hidden" name="id" th:value="${appointment.id}" />
                             <button class="btn btn-ghost" type="submit">Report No-show</button>
                         </form>
-
-                        <a class="btn btn-secondary" th:href="@{/staff/assigned_list}">Back to list</a>
                     </div>
 
-                    <div class="health-report" th:if="${appointmentSummary != null}">
+                    <div class="health-report" th:if="${appointmentSummary != null and isManager}">
                         <div class="health-report-header">
                             <div class="health-report-title">Health Summary</div>
                             <span th:if="${appointmentSummary.warningFlag}" class="warning-chip">Warning</span>
@@ -372,13 +370,36 @@
                                 <span th:text="${appointmentSummary.note ?: '-'}">-</span>
                             </div>
                         </div>
+
+                        <div
+                            class="health-photos"
+                            th:if="${summaryPhotos != null and !#lists.isEmpty(summaryPhotos)}"
+                        >
+                            <img
+                                th:each="photo : ${summaryPhotos}"
+                                th:src="@{${photo.imageUrl}}"
+                                alt="Health summary evidence"
+                            />
+                        </div>
+
+                        <div
+                            class="text-muted mt-2"
+                            th:unless="${summaryPhotos != null and !#lists.isEmpty(summaryPhotos)}"
+                        >
+                            No summary photos.
+                        </div>
+
+                        <div class="actions" style="margin-top:12px;">
+                            <a class="btn btn-secondary" th:href="@{/staff/assigned_list}">Back to list</a>
+                        </div>
                     </div>
 
                     <form
                         class="card summary-form" style="margin-top:16px;"
-                        th:if="${isManager and appointment.status != null and appointment.status.toLowerCase() == 'done'}"
+                        th:if="${isManager and appointment.status != null and (appointment.status.toLowerCase() == 'in_progress' or appointment.status.toLowerCase() == 'done') and appointmentSummary == null}"
                         th:action="@{/staff/health-check/{appointmentId}/summary(appointmentId=${appointment.id})}"
                         method="post"
+                        enctype="multipart/form-data"
                     >
                         <div class="card-header" style="border-bottom:1px solid #e7ecf4;">
                             <h3 class="title" style="margin:0;">Manager Health Summary</h3>
@@ -422,14 +443,38 @@
                             </div>
 
                             <div style="margin-top:12px;">
-                                <label>
-                                    <input type="checkbox" name="warningFlag" th:checked="${appointmentSummary != null and appointmentSummary.warningFlag}">
-                                    Warning
-                                </label>
+                                <label>Choose evidence from service notes</label>
+                                <div class="health-photos" th:if="${allServiceNotePhotos != null and !#lists.isEmpty(allServiceNotePhotos)}">
+                                    <label
+                                        th:each="photo : ${allServiceNotePhotos}"
+                                        style="display:block; margin-bottom:8px; cursor:pointer;"
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            name="selectedExistingPhotos"
+                                            th:value="${photo.imageUrl}"
+                                            style="margin-right:6px;"
+                                        />
+                                        <img
+                                            th:src="@{${photo.imageUrl}}"
+                                            alt="Service note photo"
+                                            style="width:140px; height:90px; object-fit:cover; border-radius:8px; border:1px solid #e5e7eb;"
+                                        />
+                                    </label>
+                                </div>
+                                <div class="text-muted" th:unless="${allServiceNotePhotos != null and !#lists.isEmpty(allServiceNotePhotos)}">
+                                    No service photos available for this appointment.
+                                </div>
                             </div>
 
-                            <div class="actions" style="margin-top:12px;">
+                            <div style="margin-top:12px;">
+                                <label for="summaryPhotosUpload">Upload additional evidence photos</label>
+                                <input id="summaryPhotosUpload" type="file" name="photos" multiple />
+                            </div>
+
+                            <div class="actions" style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
                                 <button class="btn btn-primary" type="submit">Submit Summary</button>
+                                <a class="btn btn-secondary" th:href="@{/staff/assigned_list}">Back to list</a>
                             </div>
                         </div>
                     </form>

@@ -40,6 +40,7 @@ public class HealthCheckService implements IHealthCheckService {
     private final ServiceNoteRepository serviceNoteRepository;
     private final ServiceNotePhotoRepository serviceNotePhotoRepository;
     private final AppointmentSummaryRepository appointmentSummaryRepository;
+    private final AppointmentSummaryPhotoRepository appointmentSummaryPhotoRepository;
 
     @Override
     public List<Appointment> getAssignedAppointments(Integer staffId) {
@@ -301,7 +302,11 @@ public class HealthCheckService implements IHealthCheckService {
             throw new IllegalStateException("Only appointment manager can submit summary.");
         }
 
-        if (!"done".equals(lower(appointment.getStatus()))) {
+        // Ensure all service lines are done before allowing summary, regardless of appointment status label
+        List<AppointmentServiceLine> allLines = appointmentServiceLineRepository.findByAppointment_Id(appointmentId);
+        boolean allDone = !allLines.isEmpty() && allLines.stream()
+                .allMatch(line -> "done".equals(lower(line.getServiceStatus())));
+        if (!allDone) {
             throw new IllegalStateException("All service lines must be done before summary.");
         }
 
@@ -312,6 +317,17 @@ public class HealthCheckService implements IHealthCheckService {
 
         AppointmentSummary summary = appointmentSummaryRepository.findByAppointment_Id(appointmentId)
                 .orElseGet(AppointmentSummary::new);
+
+        // Store any newly uploaded photos for the summary
+        List<String> newPhotoUrls = storePhotos(request.getPhotos(), false);
+
+        List<String> allPhotoUrls = new ArrayList<>();
+        if (request.getSelectedExistingPhotos() != null) {
+            allPhotoUrls.addAll(request.getSelectedExistingPhotos());
+        }
+        if (newPhotoUrls != null) {
+            allPhotoUrls.addAll(newPhotoUrls);
+        }
 
         summary.setAppointment(appointment);
         summary.setWeightKg(toBigDecimal(request.getWeightKg()));
@@ -324,7 +340,18 @@ public class HealthCheckService implements IHealthCheckService {
         summary.setWarningFlag(Boolean.TRUE.equals(request.getWarningFlag()));
         summary.setSummaryByStaff(staff);
 
-        appointmentSummaryRepository.save(summary);
+        AppointmentSummary savedSummary = appointmentSummaryRepository.save(summary);
+
+        // Replace summary evidence photos with chosen ones
+        appointmentSummaryPhotoRepository.deleteBySummary_Id(savedSummary.getId());
+        if (allPhotoUrls != null && !allPhotoUrls.isEmpty()) {
+            replaceSummaryPhotos(savedSummary, allPhotoUrls);
+        }
+
+        // After manager submits summary, mark appointment as done
+        appointment.setStatus("done");
+        appointment.setUpdatedAt(LocalDateTime.now());
+        appointmentRepository.save(appointment);
     }
 
     private Appointment getAppointmentDetail(Integer staffId, Integer appointmentId) {
@@ -380,7 +407,9 @@ public class HealthCheckService implements IHealthCheckService {
 
         boolean allDone = allLines.stream().allMatch(l -> "done".equals(lower(l.getServiceStatus())));
         if (allDone) {
-            appointment.setStatus("done");
+            // All services are done but manager might not have submitted summary yet.
+            // Keep appointment in_progress until summary is created; submitAppointmentSummary will set it to done.
+            appointment.setStatus("in_progress");
             appointment.setUpdatedAt(LocalDateTime.now());
             return;
         }
@@ -503,6 +532,21 @@ public class HealthCheckService implements IHealthCheckService {
                 .toList();
 
         serviceNotePhotoRepository.saveAll(items);
+    }
+
+    private void replaceSummaryPhotos(AppointmentSummary summary, List<String> photoUrls) {
+        if (summary == null || photoUrls == null || photoUrls.isEmpty()) {
+            return;
+        }
+
+        List<AppointmentSummaryPhoto> items = photoUrls.stream()
+                .map(url -> AppointmentSummaryPhoto.builder()
+                        .summary(summary)
+                        .imageUrl(url)
+                        .build())
+                .toList();
+
+        appointmentSummaryPhotoRepository.saveAll(items);
     }
 
     private boolean isAppointmentManager(Appointment appointment, Integer staffId) {
