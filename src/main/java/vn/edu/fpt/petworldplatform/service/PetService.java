@@ -75,6 +75,10 @@ public class PetService {
         petRepo.deleteById(id);
     }
 
+    public List<Pets> searchPetByName(String keyword) {
+        return petRepo.searchAllByNameContainingIgnoreCase(keyword);
+    }
+
     public void createPet(PetCreateDTO dto) throws IOException {
         Pets pet = new Pets();
 

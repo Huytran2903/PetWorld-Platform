@@ -76,4 +76,9 @@ public class Customer implements UserDetails     {
     public @Nullable String getPassword() {
         return "";
     }
+
+
+    public Integer getCustomerId() {
+        return customerId;
+    }
 }

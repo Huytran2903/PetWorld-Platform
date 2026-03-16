@@ -55,7 +55,7 @@
         </div>
 
         <div class="row g-4 row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5">
-            <div class="col" th:each="p : ${product}">
+            <div class="col" th:each="p : ${product}" th:if="${p.isActive} == true">
                 <div class="pw-card">
                     <div class="pw-img-box">
                         <img th:src="${p.imageUrl}" alt="Product Image">

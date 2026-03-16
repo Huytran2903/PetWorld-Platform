@@ -101,11 +101,11 @@
                         <div class="row g-2">
                             <div class="col-12">
                                 <label class="label-tiny">Recipient's Name</label>
-                                <input type="text" class="form-control form-control-sm input-sidebar" name="shipName" th:value="${#authentication.principal.fullName}" required>
+                                <input type="text" class="form-control form-control-sm input-sidebar" name="shipName" th:value="${customer != null ? customer.fullName : ''}" required>
                             </div>
                             <div class="col-12">
                                 <label class="label-tiny">Phone Number</label>
-                                <input type="tel" class="form-control form-control-sm input-sidebar" name="shipPhone" th:value="${#authentication.principal.phone}" required>
+                                <input type="tel" class="form-control form-control-sm input-sidebar" name="shipPhone" th:value="${customer != null ? customer.phone : ''}" required>
                             </div>
                             <div class="col-12">
                                 <label class="label-tiny">Address</label>
