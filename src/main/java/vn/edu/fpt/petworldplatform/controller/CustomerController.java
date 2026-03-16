@@ -3,6 +3,10 @@ package vn.edu.fpt.petworldplatform.controller;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -362,18 +366,76 @@ public class CustomerController {
     private PetRepo petRepo;
 
     @GetMapping("/customer/pet/my-pets")
-    public String showMyPets(HttpSession session, Model model) {
+    public String showMyPets(HttpSession session,
+                             Model model,
+                             @RequestParam(defaultValue = "0") int page,
+                             @RequestParam(required = false) String search,
+                             @RequestParam(required = false) String petType) {
 
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
         if (customer == null) {
             return "redirect:/login";
         }
 
-        List<Pets> myPets = petRepo.findByOwner_CustomerId(customer.getCustomerId());
+        int pageSize = 6;
+        int safePage = Math.max(page, 0);
+        Pageable pageable = PageRequest.of(safePage, pageSize, Sort.by("petID").descending());
+
+        String normalizedSearch = search == null ? "" : search.trim();
+        String selectedPetType = normalizePetTypeFilter(petType);
+        String petTypeForQuery = mapPetTypeForQuery(selectedPetType);
+
+        Page<Pets> petPage;
+        boolean hasSearch = !normalizedSearch.isEmpty();
+
+        if (petTypeForQuery != null && hasSearch) {
+            petPage = petRepo.findByOwner_CustomerIdAndPetTypeAndNameContainingIgnoreCase(
+                    customer.getCustomerId(), petTypeForQuery, normalizedSearch, pageable);
+        } else if (petTypeForQuery != null) {
+            petPage = petRepo.findByOwner_CustomerIdAndPetType(customer.getCustomerId(), petTypeForQuery, pageable);
+        } else if (hasSearch) {
+            petPage = petRepo.findByOwner_CustomerIdAndNameContainingIgnoreCase(customer.getCustomerId(), normalizedSearch, pageable);
+        } else {
+            petPage = petRepo.findByOwner_CustomerId(customer.getCustomerId(), pageable);
+        }
+
+        List<Pets> myPets = petPage.getContent();
 
         model.addAttribute("myPets", myPets);
+        model.addAttribute("search", normalizedSearch);
+        model.addAttribute("selectedPetType", selectedPetType);
+        model.addAttribute("currentPage", safePage);
+        model.addAttribute("totalPages", petPage.getTotalPages());
+        model.addAttribute("totalItems", petPage.getTotalElements());
+        model.addAttribute("hasPrevious", petPage.hasPrevious());
+        model.addAttribute("hasNext", petPage.hasNext());
 
         return "customer/pet/my-pets";
+    }
+
+    private String normalizePetTypeFilter(String petType) {
+        if (petType == null) {
+            return null;
+        }
+        String value = petType.trim().toLowerCase();
+        if (value.isEmpty()) {
+            return null;
+        }
+        if (!value.equals("dog") && !value.equals("cat") && !value.equals("other")) {
+            return null;
+        }
+        return value;
+    }
+
+    private String mapPetTypeForQuery(String normalizedPetType) {
+        if (normalizedPetType == null) {
+            return null;
+        }
+        return switch (normalizedPetType) {
+            case "dog" -> "Dog";
+            case "cat" -> "Cat";
+            default -> "Other";
+        };
     }
 
     // Backward-compatible mapping: some pages might still link to /customer/pet/create
