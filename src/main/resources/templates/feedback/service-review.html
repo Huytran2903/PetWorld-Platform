@@ -65,10 +65,10 @@
                 <div class="services-summary">
                     <h3><i class="fas fa-concierge-bell"></i> Services Used</h3>
                     <div class="service-chips">
-                        <div th:each="line : ${serviceLines}" class="service-chip">
+                        <div class="service-chip" th:if="${selectedServiceLine != null}">
                             <i class="fas fa-paw"></i>
-                            <span th:text="${line.service.name}"></span>
-                            <span class="reviewed-badge" th:if="${reviewedServiceIds.contains(line.service.id)}">
+                            <span th:text="${selectedServiceLine.service.name}"></span>
+                            <span class="reviewed-badge" th:if="${reviewedServiceIds.contains(selectedServiceLine.service.id)}">
                                 <i class="fas fa-check"></i> Reviewed
                             </span>
                         </div>
