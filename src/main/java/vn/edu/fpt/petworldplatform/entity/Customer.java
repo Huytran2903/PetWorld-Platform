@@ -81,4 +81,9 @@ public class Customer implements UserDetails     {
     public Integer getCustomerId() {
         return customerId;
     }
+
+
+    @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private List<Pets> pets;
 }

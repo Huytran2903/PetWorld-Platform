@@ -488,6 +488,10 @@ textarea, input[type="datetime-local"] {
     text-align: right;
 }
 
+.services-table .text-center {
+    text-align: center;
+}
+
 .badge-outline {
     background: transparent;
     border: 1px solid var(--border);

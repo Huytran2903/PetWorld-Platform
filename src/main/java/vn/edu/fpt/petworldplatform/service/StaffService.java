@@ -1,14 +1,17 @@
 package vn.edu.fpt.petworldplatform.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.petworldplatform.dto.StaffFormDTO;
-import vn.edu.fpt.petworldplatform.entity.Role;
-import vn.edu.fpt.petworldplatform.entity.Staff;
-import vn.edu.fpt.petworldplatform.repository.RoleRepo;
-import vn.edu.fpt.petworldplatform.repository.StaffRepository;
+import vn.edu.fpt.petworldplatform.entity.*;
+import vn.edu.fpt.petworldplatform.repository.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -16,10 +19,15 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class StaffService {
 
-    @Autowired
-    private StaffRepository staffRepo;
+    private final StaffRepository staffRepo;
+    private final PetVaccinationRepository petVaccinationRepo;
+    private final PetHealthRecordRepository petHealthRecordRepo;
+    private final StaffScheduleRepository staffScheduleRepo;
+    private final FeedbackRepository feedbackRepo;
+    private final AppointmentServiceLineRepository appointmentServiceRepo;
 
     @Autowired
     private RoleRepo roleRepo;
@@ -66,16 +74,16 @@ public class StaffService {
         return Optional.empty();
     }
 
-    public void updateCustomer(Staff staff) {
-        staffRepo.save(staff);
-    }
-
     public Optional<Staff> findByUsername(String username) {
         return staffRepo.findByUsername(username);
     }
 
     public Optional<Staff> findByEmail(String email) {
         return staffRepo.findByEmail(email);
+    }
+
+    public List<Staff> getAvailableStaffs() {
+        return staffRepo.findByIsActiveTrue();
     }
 
     public Optional<Staff> findById(Long staffId) {
@@ -87,6 +95,15 @@ public class StaffService {
 
     public List<Staff> getAllStaffs() {
         return staffRepo.findAll();
+    }
+
+    public Page<Staff> getStaffsWithPaginationAndSearch(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("staffId").descending());
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            return staffRepo.searchStaffs(keyword.trim(), pageable);
+        }
+        return staffRepo.findAll(pageable);
     }
 
     @Transactional
@@ -163,10 +180,59 @@ public class StaffService {
     }
 
 
-    public void deleteStaff(Integer id) {
-        Staff staff = staffRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Staff not found"));
-        staffRepo.delete(staff);
+    @Transactional
+    public void deleteAndTransferWork(Integer oldStaffId, Integer newStaffId) {
+
+        Staff oldStaff = staffRepo.findById(oldStaffId)
+                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhân viên cần xóa!"));
+
+        Staff newStaff = null;
+        if (newStaffId != null) {
+            newStaff = staffRepo.findById(newStaffId)
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhân viên nhận bàn giao!"));
+        }
+
+        // 2. Chuyển toàn bộ hồ sơ Tiêm chủng
+        List<PetVaccinations> vaccines = petVaccinationRepo.findByPerformedByStaff(oldStaff);
+        if (!vaccines.isEmpty() && newStaff != null) {
+            for (PetVaccinations v : vaccines) {
+                v.setPerformedByStaff(newStaff);
+            }
+            petVaccinationRepo.saveAll(vaccines);
+        }
+
+        List<PetHealthRecord> healthRecords = petHealthRecordRepo.findByPerformedByStaff(oldStaff);
+        if (!healthRecords.isEmpty() && newStaff != null) {
+            for (PetHealthRecord h : healthRecords) {
+                h.setPerformedByStaff(newStaff);
+            }
+            petHealthRecordRepo.saveAll(healthRecords);
+        }
+
+
+        List<AppointmentServiceLine> assignedServices = appointmentServiceRepo.findByAssignedStaff(oldStaff);
+        if (!assignedServices.isEmpty()) {
+            if (newStaff != null) {
+                for (AppointmentServiceLine s : assignedServices) {
+                    s.setAssignedStaff(newStaff);
+                }
+            } else {
+                for (AppointmentServiceLine s : assignedServices) {
+                    s.setAssignedStaff(null);
+                    s.setServiceStatus("pending");
+                }
+            }
+            appointmentServiceRepo.saveAll(assignedServices);
+        }
+
+        // 5. Xóa Lịch làm việc (Schedule)
+        staffScheduleRepo.deleteByStaff(oldStaff);
+
+        // 6. Xóa Feedback liên quan
+        feedbackRepo.deleteByStaff(oldStaff);
+
+        // 7. CUỐI CÙNG: Xóa nhân viên một cách an toàn
+        staffRepo.delete(oldStaff);
     }
 
     public Optional<Staff> findById(Integer id) {

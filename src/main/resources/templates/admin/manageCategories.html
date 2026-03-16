@@ -105,7 +105,7 @@
                         </thead>
                         <tbody>
                         <tr th:each="x : ${categories}" class="border-bottom">
-                            <td class="ps-4 fw-bold text-muted" th:text="'#CAT-' + ${x.categoryID}"></td>
+                            <td class="ps-4 fw-bold text-muted" th:text="${x.categoryID}"></td>
 
                             <td>
                                 <div class="fw-bold text-dark" th:text="${x.name}"></div>

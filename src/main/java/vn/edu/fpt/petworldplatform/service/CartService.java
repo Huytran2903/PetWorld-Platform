@@ -193,5 +193,9 @@ public class CartService {
             cartRepo.save(cart);
         }
     }
+
+    public void deleteCartByIdCustomer(Integer customerId) {
+        cartRepo.deleteByCustomerId(customerId);
+    }
 }
 

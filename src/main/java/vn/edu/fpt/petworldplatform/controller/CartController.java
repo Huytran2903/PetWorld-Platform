@@ -329,7 +329,7 @@ public class CartController {
             return null;
         }
         // Nếu là Google
-        if (authentication.getPrincipal() instanceof org.springframework.security.oauth2.core.user.OAuth2User oauth2User) {
+        if (authentication.getPrincipal() instanceof OAuth2User oauth2User) {
             String email = oauth2User.getAttribute("email");
             return customerService.findIdByEmail(email);
         }

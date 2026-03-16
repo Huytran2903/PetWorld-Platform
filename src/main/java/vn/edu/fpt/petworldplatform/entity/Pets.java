@@ -1,5 +1,6 @@
 package vn.edu.fpt.petworldplatform.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import jakarta.persistence.*;
@@ -28,30 +29,22 @@ public class Pets {
     private Integer petID;
 
     @NotBlank(message = "Name is required!")
-    @Pattern(
-            regexp = "^\\p{Lu}\\p{L}*( \\p{L}+)*$",
-            message = "Regex description: \"Starts with an uppercase letter, followed by letters and single spaces only.\""
-    )
+    @Pattern(regexp = "^\\p{Lu}\\p{L}*( \\p{L}+)*$", message = "Regex description: \"Starts with an uppercase letter, followed by letters and single spaces only.\"")
     @Column(nullable = false, name = "Name")
     private String name;
 
     @NotBlank(message = "Type is required!")
-    @Pattern(
-            regexp = "^\\p{Lu}\\p{L}*( \\p{L}+)*$",
-            message = "Regex description: \"Starts with an uppercase letter, followed by letters and single spaces only.\""
-    )
+    @Pattern(regexp = "^\\p{Lu}\\p{L}*( \\p{L}+)*$", message = "Regex description: \"Starts with an uppercase letter, followed by letters and single spaces only.\"")
     @Column(name = "PetType")
     private String petType;
 
     @NotBlank(message = "Breed is required!")
-    @Pattern(
-            regexp = "^\\p{Lu}\\p{L}*( \\p{L}+)*$",
-            message = "Regex description: \"Starts with an uppercase letter, followed by letters and single spaces only.\""
-    )
-    @Column(name = "Breed")
+    @Pattern(regexp = "^\\p{Lu}\\p{L}*( \\p{L}+)*$", message = "Regex description: \"Starts with an uppercase letter, followed by letters and single spaces only.\"")
+    @Column(name = "Breed", nullable = false)
     private String breed;
 
-    @Column(name = "Gender")
+    @NotBlank(message = "Gender is required!")
+    @Column(name = "Gender", nullable = false)
     private String gender;
 
     @NotNull(message = "Age is required!")
@@ -67,10 +60,7 @@ public class Pets {
     private Double weightKg;
 
     @NotBlank(message = "Color is required!")
-    @Pattern(
-            regexp = "^\\p{Lu}\\p{L}*( \\p{L}+)*$",
-            message = "Regex description: \"Starts with an uppercase letter, followed by letters and single spaces only.\""
-    )
+    @Pattern(regexp = "^\\p{Lu}\\p{L}*( \\p{L}+)*$", message = "Regex description: \"Starts with an uppercase letter, followed by letters and single spaces only.\"")
     @Column(name = "Color")
     private String color;
 
@@ -114,11 +104,13 @@ public class Pets {
 
     @ManyToOne
     @JoinColumn(name = "OwnerCustomerID")
+    @JsonIgnore
     private Customer owner;
 
     @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
+    @JsonIgnore
     private List<CartItem> cartsList = new ArrayList<>();
 
     @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)

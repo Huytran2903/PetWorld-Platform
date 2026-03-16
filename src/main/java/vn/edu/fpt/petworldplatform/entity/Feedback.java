@@ -33,8 +33,9 @@ public class Feedback {
     @Column(name = "ServiceID")
     private Integer serviceId;
 
-    @Column(name = "StaffID")
-    private Integer staffId;
+    @ManyToOne
+    @JoinColumn(name = "StaffID")
+    private Staff staff;
 
     @Column(name = "Rating")
     private Integer rating;
@@ -66,6 +67,12 @@ public class Feedback {
     // Nếu feedback về service
     @Column(name = "ServiceName")
     private String serviceName; // Tạm thời lưu tên, map chi tiết sau nếu cần
+
+    @Column(name = "ReplyMessage", columnDefinition = "NVARCHAR(MAX)")
+    private String replyMessage;
+
+    @Column(name = "RepliedAt")
+    private LocalDateTime repliedAt;
 
     @PrePersist
     protected void onCreate() {

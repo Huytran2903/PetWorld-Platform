@@ -3,6 +3,7 @@ package vn.edu.fpt.petworldplatform.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -56,6 +57,7 @@ public class AdminController {
 
 
     private final CustomerService customerService;
+    private final CartService cartService;
 
     private final ServiceTypeService serviceTypeService;
     private final ServiceItemService serviceItemService;
@@ -350,7 +352,7 @@ public class AdminController {
 
             } else {
                 // 2. Logic Edit: Người dùng KHÔNG chọn ảnh mới -> Giữ nguyên ảnh cũ
-                if (product.getProductId()!= null) {
+                if (product.getProductId() != null) {
                     // Lấy sản phẩm cũ từ Database ra để lấy lại đường dẫn ảnh cũ
                     // Tuỳ vào cách bạn đặt tên hàm trong Service mà thay đổi cho phù hợp nhé:
                     Product oldProduct = productService.getProductById(product.getProductId());
@@ -391,15 +393,25 @@ public class AdminController {
         return "redirect:/admin/manage-product";
     }
 
-    @GetMapping("/admin/customer-manage")
-    public String showCustomerList(Model model) {
-        model.addAttribute("customers", customerService.getAllCustomer());
-        return "admin/customer-manage";
-    }
 
     @GetMapping("/admin/staff-manage")
-    public String showStaffList(Model model) {
-        model.addAttribute("staffs", staffService.getAllStaffs());
+    public String showStaffList(
+            @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword,
+            @RequestParam(name = "page", required = false, defaultValue = "1") int page,
+            @RequestParam(name = "size", required = false, defaultValue = "5") int size, // 5 người/trang
+            Model model) {
+
+        Page<Staff> staffPage = staffService.getStaffsWithPaginationAndSearch(keyword, page, size);
+
+        model.addAttribute("staffs", staffPage.getContent()); // Danh sách hiển thị trên bảng
+        model.addAttribute("currentPage", page);              // Trang hiện tại
+        model.addAttribute("totalPages", staffPage.getTotalPages()); // Tổng số trang
+        model.addAttribute("totalItems", staffPage.getTotalElements()); // Tổng số nhân viên
+
+        model.addAttribute("keyword", keyword);
+
+        model.addAttribute("activeStaffList", staffService.getAvailableStaffs());
+
         return "admin/staff-manage";
     }
 
@@ -459,21 +471,40 @@ public class AdminController {
         return "redirect:/admin/staff-manage";
     }
 
-    @GetMapping("/admin/staff-manage/delete/{id}")
-    public String deleteStaff(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) {
-        try {
-            staffService.deleteStaff(id);
-            redirectAttributes.addFlashAttribute("message", "Staff deleted successfully!");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Error deleting staff: " + e.getMessage());
-        }
+    @PostMapping("/admin/staff/delete")
+    public String deleteStaff(@RequestParam("staffId") Integer staffId,
+                              @RequestParam(value = "transferStaffId", required = false) Integer transferStaffId,
+                              RedirectAttributes ra) {
+        staffService.deleteAndTransferWork(staffId, transferStaffId);
+
+        ra.addFlashAttribute("success", "Xóa và bàn giao công việc thành công!");
         return "redirect:/admin/staff-manage";
+    }
+
+    @GetMapping("/admin/customer-manage")
+    public String showCustomerList(
+            @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword,
+            @RequestParam(name = "page", required = false, defaultValue = "1") int page,
+            @RequestParam(name = "size", required = false, defaultValue = "5") int size,
+            Model model) {
+
+        Page<Customer> customerPage = customerService.getCustomersWithPaginationAndSearch(keyword, page, size);
+
+        model.addAttribute("customers", customerPage.getContent());     // Danh sách hiển thị
+        model.addAttribute("currentPage", page);                        // Trang hiện tại
+        model.addAttribute("totalPages", customerPage.getTotalPages()); // Tổng số trang
+        model.addAttribute("totalItems", customerPage.getTotalElements()); // Tổng số khách hàng
+
+        model.addAttribute("keyword", keyword);
+
+        return "admin/customer-manage";
     }
 
     // --- Edit Customer ---
     @GetMapping("/admin/customer/update-status/{id}")
     public String updateStatus(@PathVariable("id") int id, @RequestParam("isActive") boolean isActive, RedirectAttributes redirectAttributes) {
         try {
+
             customerService.updateCustomerStatus(id, isActive);
             String statusMsg = isActive ? "Unbanned" : "Banned";
             redirectAttributes.addFlashAttribute("message", "Customer has been " + statusMsg + " successfully!");
@@ -488,6 +519,7 @@ public class AdminController {
     @GetMapping("/admin/customer/delete/{id}")
     public String deleteCustomer(@PathVariable("id") int id, RedirectAttributes redirectAttributes) {
         try {
+            cartService.deleteCartByIdCustomer(id);
             customerService.deleteCustomer(id);
             redirectAttributes.addFlashAttribute("message", "Customer deleted successfully!");
         } catch (Exception e) {
@@ -614,18 +646,18 @@ public class AdminController {
             @RequestParam(value = "startDate", required = false) String startDate,
             @RequestParam(value = "endDate", required = false) String endDate,
             Model model) {
-        
+
         LocalDate start = (startDate != null && !startDate.isEmpty()) ?
-            LocalDate.parse(startDate) : LocalDate.of(2020, 1, 1);
-        LocalDate end = (endDate != null && !endDate.isEmpty()) ? 
-            LocalDate.parse(endDate) : LocalDate.now();
-        
+                LocalDate.parse(startDate) : LocalDate.of(2020, 1, 1);
+        LocalDate end = (endDate != null && !endDate.isEmpty()) ?
+                LocalDate.parse(endDate) : LocalDate.now();
+
         PetStatisticsDTO statistics = petService.getPetStatistics(start, end);
-        
+
         model.addAttribute("statistics", statistics);
         model.addAttribute("startDate", startDate);
         model.addAttribute("endDate", endDate);
-        
+
         return "admin/statistics/pet-report";
     }
 
@@ -633,67 +665,67 @@ public class AdminController {
     public ResponseEntity<String> exportPetStatistics(
             @RequestParam(value = "startDate", required = false) String startDate,
             @RequestParam(value = "endDate", required = false) String endDate) {
-        
+
         LocalDate start = (startDate != null && !startDate.isEmpty()) ?
-            LocalDate.parse(startDate) : LocalDate.of(2020, 1, 1);
-        LocalDate end = (endDate != null && !endDate.isEmpty()) ? 
-            LocalDate.parse(endDate) : LocalDate.now();
-        
+                LocalDate.parse(startDate) : LocalDate.of(2020, 1, 1);
+        LocalDate end = (endDate != null && !endDate.isEmpty()) ?
+                LocalDate.parse(endDate) : LocalDate.now();
+
         PetStatisticsDTO statistics = petService.getPetStatistics(start, end);
-        
+
         // Create CSV content
         StringBuilder csv = new StringBuilder();
         csv.append("Pet Statistics Report\n");
         csv.append("Date Range: ").append(start).append(" to ").append(end).append("\n\n");
         csv.append("Category,Dogs,Cats,Others,Total\n");
-        
+
         // Service Pets
-        long dogService = statistics.getDogStats() != null && !statistics.getDogStats().isEmpty() ? 
-            statistics.getDogStats().get(0).getCount() : 0;
-        long catService = statistics.getCatStats() != null && !statistics.getCatStats().isEmpty() ? 
-            statistics.getCatStats().get(0).getCount() : 0;
-        long otherService = statistics.getOtherStats() != null && !statistics.getOtherStats().isEmpty() ? 
-            statistics.getOtherStats().get(0).getCount() : 0;
+        long dogService = statistics.getDogStats() != null && !statistics.getDogStats().isEmpty() ?
+                statistics.getDogStats().get(0).getCount() : 0;
+        long catService = statistics.getCatStats() != null && !statistics.getCatStats().isEmpty() ?
+                statistics.getCatStats().get(0).getCount() : 0;
+        long otherService = statistics.getOtherStats() != null && !statistics.getOtherStats().isEmpty() ?
+                statistics.getOtherStats().get(0).getCount() : 0;
         csv.append("Service Pets,").append(dogService).append(",").append(catService)
-           .append(",").append(otherService).append(",").append(statistics.getTotalServicePets()).append("\n");
-        
+                .append(",").append(otherService).append(",").append(statistics.getTotalServicePets()).append("\n");
+
         // Sale Pets
-        long dogSale = statistics.getDogStats() != null && statistics.getDogStats().size() > 1 ? 
-            statistics.getDogStats().get(1).getCount() : 0;
-        long catSale = statistics.getCatStats() != null && statistics.getCatStats().size() > 1 ? 
-            statistics.getCatStats().get(1).getCount() : 0;
-        long otherSale = statistics.getOtherStats() != null && statistics.getOtherStats().size() > 1 ? 
-            statistics.getOtherStats().get(1).getCount() : 0;
+        long dogSale = statistics.getDogStats() != null && statistics.getDogStats().size() > 1 ?
+                statistics.getDogStats().get(1).getCount() : 0;
+        long catSale = statistics.getCatStats() != null && statistics.getCatStats().size() > 1 ?
+                statistics.getCatStats().get(1).getCount() : 0;
+        long otherSale = statistics.getOtherStats() != null && statistics.getOtherStats().size() > 1 ?
+                statistics.getOtherStats().get(1).getCount() : 0;
         csv.append("Sale Pets,").append(dogSale).append(",").append(catSale)
-           .append(",").append(otherSale).append(",").append(statistics.getTotalSalePets()).append("\n");
-        
+                .append(",").append(otherSale).append(",").append(statistics.getTotalSalePets()).append("\n");
+
         // Sold Pets
-        long dogSold = statistics.getDogStats() != null && statistics.getDogStats().size() > 2 ? 
-            statistics.getDogStats().get(2).getCount() : 0;
-        long catSold = statistics.getCatStats() != null && statistics.getCatStats().size() > 2 ? 
-            statistics.getCatStats().get(2).getCount() : 0;
-        long otherSold = statistics.getOtherStats() != null && statistics.getOtherStats().size() > 2 ? 
-            statistics.getOtherStats().get(2).getCount() : 0;
+        long dogSold = statistics.getDogStats() != null && statistics.getDogStats().size() > 2 ?
+                statistics.getDogStats().get(2).getCount() : 0;
+        long catSold = statistics.getCatStats() != null && statistics.getCatStats().size() > 2 ?
+                statistics.getCatStats().get(2).getCount() : 0;
+        long otherSold = statistics.getOtherStats() != null && statistics.getOtherStats().size() > 2 ?
+                statistics.getOtherStats().get(2).getCount() : 0;
         csv.append("Sold/Completed,").append(dogSold).append(",").append(catSold)
-           .append(",").append(otherSold).append(",").append(statistics.getSoldPets()).append("\n");
-        
+                .append(",").append(otherSold).append(",").append(statistics.getSoldPets()).append("\n");
+
         // Grand Total
-        long dogTotal = statistics.getDogStats() != null ? 
-            statistics.getDogStats().stream().mapToLong(s -> s.getCount()).sum() : 0;
-        long catTotal = statistics.getCatStats() != null ? 
-            statistics.getCatStats().stream().mapToLong(s -> s.getCount()).sum() : 0;
-        long otherTotal = statistics.getOtherStats() != null ? 
-            statistics.getOtherStats().stream().mapToLong(s -> s.getCount()).sum() : 0;
+        long dogTotal = statistics.getDogStats() != null ?
+                statistics.getDogStats().stream().mapToLong(s -> s.getCount()).sum() : 0;
+        long catTotal = statistics.getCatStats() != null ?
+                statistics.getCatStats().stream().mapToLong(s -> s.getCount()).sum() : 0;
+        long otherTotal = statistics.getOtherStats() != null ?
+                statistics.getOtherStats().stream().mapToLong(s -> s.getCount()).sum() : 0;
         csv.append("Grand Total,").append(dogTotal).append(",").append(catTotal)
-           .append(",").append(otherTotal).append(",").append(statistics.getTotalPets()).append("\n");
-        
+                .append(",").append(otherTotal).append(",").append(statistics.getTotalPets()).append("\n");
+
         // Set headers for CSV download
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.TEXT_PLAIN);
         headers.setContentDisposition(ContentDisposition.builder("attachment")
-            .filename("pet-statistics-" + LocalDate.now() + ".csv")
-            .build());
-        
+                .filename("pet-statistics-" + LocalDate.now() + ".csv")
+                .build());
+
         return new ResponseEntity<>(csv.toString(), headers, HttpStatus.OK);
     }
 

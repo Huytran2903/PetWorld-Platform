@@ -13,7 +13,6 @@
     <link rel="stylesheet" th:href="@{/css/customer-manage.css}"/>
 
     <style>
-        /* CSS chia bố cục: Sidebar trái, Content phải */
         body {
             margin: 0;
             overflow: hidden;
@@ -29,10 +28,9 @@
             flex-grow: 1;
             padding: 2rem;
             height: 100vh;
-            overflow-y: auto; /* Cuộn độc lập phần nội dung bên phải */
+            overflow-y: auto;
         }
 
-        /* Chỉnh lại ô search cho đẹp hơn */
         .search-box-custom {
             border-radius: 50px;
             overflow: hidden;
@@ -49,24 +47,23 @@
 <body>
 
 <div class="admin-wrapper">
-
     <div th:replace="~{fragments/sidebar-admin :: aside(activePage='customers')}"></div>
     <div class="admin-main-content">
         <div class="container-fluid p-0">
-
             <div class="d-flex justify-content-between align-items-center mb-4 p-4 rounded-3 shadow-sm"
                  style="background-color: #ffedd8;">
-                <div>
-                    <h2 class="mb-0 fw-bold text-dark">Customer Management</h2>
-                </div>
-
+                <div><h2 class="mb-0 fw-bold text-dark">Customer Management</h2></div>
                 <div class="d-flex gap-3 align-items-center">
-                    <div class="input-group search-box-custom shadow-sm" style="width: 300px;">
+
+                    <form th:action="@{/admin/customer-manage}" method="get"
+                          class="input-group search-box-custom shadow-sm" style="width: 300px;">
                         <span class="input-group-text bg-white border-0 pe-1">
                             <i class="fas fa-search text-muted"></i>
                         </span>
-                        <input type="text" class="form-control border-0 ps-2 py-2" placeholder="Search customer...">
-                    </div>
+                        <input type="text" name="keyword" th:value="${keyword}" class="form-control border-0 ps-2 py-2"
+                               placeholder="Search customer...">
+                    </form>
+
                 </div>
             </div>
 
@@ -86,32 +83,24 @@
                         </thead>
                         <tbody>
                         <tr th:each="customer : ${customers}" class="border-bottom">
-
                             <td class="ps-4 py-3">
                                 <div class="avatar-circle fw-bold text-white d-flex align-items-center justify-content-center rounded-circle shadow-sm"
                                      style="width: 40px; height: 40px; background-color: #FFA54F;"
                                      th:text="${customer.fullName != null and customer.fullName.length() > 0 ? #strings.substring(customer.fullName, 0, 1).toUpperCase() : '?'}">
-                                    J
                                 </div>
                             </td>
-
-                            <td class="fw-bold text-dark" th:text="${customer.fullName}">John Doe</td>
-                            <td class="text-muted" th:text="${customer.email}">john.doe@gmail.com</td>
+                            <td class="fw-bold text-dark" th:text="${customer.fullName}"></td>
+                            <td class="text-muted" th:text="${customer.email}"></td>
                             <td class="text-muted fw-medium"
-                                th:text="${customer.phone != null ? customer.phone : '---'}">+84 9876543210
-                            </td>
-                            <td class="text-muted" th:text="${#temporals.format(customer.createdAt, 'dd-MMM-yyyy')}">
-                                13-Jan-2026
-                            </td>
-
+                                th:text="${customer.phone != null ? customer.phone : '---'}"></td>
+                            <td class="text-muted"
+                                th:text="${#temporals.format(customer.createdAt, 'dd-MMM-yyyy')}"></td>
                             <td class="text-center">
                                 <span class="badge rounded-pill border px-3 py-2"
                                       th:classappend="${customer.isActive} ? 'bg-success-subtle text-success border-success' : 'bg-danger-subtle text-danger border-danger'"
                                       th:text="${customer.isActive} ? 'Active' : 'Banned'">
-                                    Active
                                 </span>
                             </td>
-
                             <td class="text-center">
                                 <div class="d-flex justify-content-center align-items-center gap-2">
                                     <a href="#"
@@ -121,19 +110,17 @@
                                        style="width: 32px; height: 32px;"
                                        th:classappend="${customer.isActive} ? 'bg-danger' : 'bg-success'"
                                        data-bs-toggle="modal"
-                                       data-bs-target="#statusModal"
-                                       title="Change Status">
+                                       data-bs-target="#statusModal">
                                         <i class="bi"
                                            th:classappend="${customer.isActive} ? 'bi-lock-fill' : 'bi-unlock-fill'"></i>
                                     </a>
 
                                     <a href="#"
                                        th:data-href="@{/admin/customer/delete/{id}(id=${customer.customerId})}"
-                                       class="btn btn-sm rounded-circle btn-outline-danger border d-flex align-items-center justify-content-center"
-                                       style="width: 32px; height: 32px;"
-                                       data-bs-toggle="modal"
-                                       data-bs-target="#deleteModal"
-                                       title="Delete">
+                                       th:data-has-pets="${customer.pets != null and !customer.pets.isEmpty()}"
+                                       th:data-name="${customer.fullName}"
+                                       class="btn btn-sm rounded-circle btn-outline-danger border d-flex align-items-center justify-content-center delete-btn"
+                                       style="width: 32px; height: 32px;">
                                         <i class="bi bi-trash-fill"></i>
                                     </a>
                                 </div>
@@ -145,7 +132,7 @@
                                 <div class="empty-state text-muted">
                                     <i class="bi bi-people fs-1 mb-3 text-light d-block"></i>
                                     <h5 class="fw-bold text-dark">No customers found</h5>
-                                    <p class="small">There are no customers registered in the system yet.</p>
+                                    <p class="small">Try adjusting your search or clear the filter.</p>
                                 </div>
                             </td>
                         </tr>
@@ -153,10 +140,40 @@
                         </tbody>
                     </table>
                 </div>
+
+                <div class="card-footer bg-white border-top py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <span class="small text-muted fw-bold" th:text="'Total Customers: ' + ${totalItems}">Total Customers: 0</span>
+
+                    <nav th:if="${totalPages > 1}">
+                        <ul class="pagination pagination-sm mb-0 shadow-sm">
+                            <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
+                                <a class="page-link text-dark"
+                                   th:href="@{/admin/customer-manage(keyword=${keyword}, page=${currentPage - 1})}">
+                                    <i class="bi bi-chevron-left"></i> Prev
+                                </a>
+                            </li>
+
+                            <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPages)}"
+                                th:classappend="${currentPage == i} ? 'active'">
+                                <a class="page-link" th:href="@{/admin/customer-manage(keyword=${keyword}, page=${i})}"
+                                   th:text="${i}">1</a>
+                            </li>
+
+                            <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
+                                <a class="page-link text-dark"
+                                   th:href="@{/admin/customer-manage(keyword=${keyword}, page=${currentPage + 1})}">
+                                    Next <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
             </div>
         </div>
     </div>
 </div>
+
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow">
@@ -165,18 +182,36 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center p-4">
-                <div class="mb-3 text-danger">
-                    <i class="bi bi-x-circle-fill" style="font-size: 3rem;"></i>
-                </div>
-                <p class="fs-5 text-dark">Are you sure you want to <b>permanently delete</b> this customer?</p>
+                <div class="mb-3 text-danger"><i class="bi bi-x-circle-fill" style="font-size: 3rem;"></i></div>
+                <p class="fs-5 text-dark">Are you sure you want to delete <b id="delCustName"></b>?</p>
                 <p class="text-muted small mb-0">This action cannot be undone.</p>
             </div>
             <div class="modal-footer justify-content-center border-0 pb-4 bg-light">
-                <button type="button" class="btn btn-secondary rounded-pill px-4 fw-medium" data-bs-dismiss="modal">
-                    Cancel
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel
                 </button>
-                <a href="" id="btnConfirmDelete" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm">Delete
-                    Customer</a>
+                <a href="" id="btnConfirmDelete" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm">Delete</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="restrictedDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 text-white" style="background-color: #f59e0b;">
+                <h5 class="modal-title fw-bold"><i class="bi bi-shield-exclamation me-2"></i>Restricted</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <div class="mb-3 text-warning"><i class="bi bi-exclamation-triangle-fill" style="font-size: 3rem;"></i>
+                </div>
+                <p class="fs-5 text-dark fw-bold">Cannot Delete Customer</p>
+                <p class="text-secondary">Customer <b id="restCustName"></b> still owns pets in the system.</p>
+                <p class="small text-muted">Please transfer or remove their pets first.</p>
+            </div>
+            <div class="modal-footer justify-content-center border-0 pb-4 bg-light">
+                <button type="button" class="btn btn-secondary rounded-pill px-5" data-bs-dismiss="modal">I Understand
+                </button>
             </div>
         </div>
     </div>
@@ -190,19 +225,16 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body text-center p-4">
-                <div class="mb-3 text-warning">
-                    <i class="bi bi-arrow-repeat" style="font-size: 3rem; color: #FFA54F;"></i>
-                </div>
+                <div class="mb-3 text-warning"><i class="bi bi-arrow-repeat"
+                                                  style="font-size: 3rem; color: #FFA54F;"></i></div>
                 <p class="fs-5 text-dark">Do you want to <b id="statusActionText" class="text-uppercase text-danger">CHANGE</b>
-                    this customer's status?</p>
-                <p class="text-muted small mb-0">This will affect the customer's ability to login.</p>
+                    status?</p>
             </div>
             <div class="modal-footer justify-content-center border-0 pb-4 bg-light">
-                <button type="button" class="btn btn-secondary rounded-pill px-4 fw-medium" data-bs-dismiss="modal">
-                    Cancel
+                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel
                 </button>
                 <a href="" id="btnConfirmStatus" class="btn text-white rounded-pill px-4 fw-bold shadow-sm"
-                   style="background-color: #FFA54F;">Confirm Change</a>
+                   style="background-color: #FFA54F;">Confirm</a>
             </div>
         </div>
     </div>

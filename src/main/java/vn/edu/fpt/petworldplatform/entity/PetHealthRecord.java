@@ -44,7 +44,7 @@ public class PetHealthRecord {
     private AppointmentServiceLine appointmentServiceLine;
 
     @Column(name = "PerformedByStaffID", insertable = false, updatable = false)
-    private Long performedByStaffId;
+    private Integer performedByStaffId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PerformedByStaffID")
