@@ -138,9 +138,9 @@ public class OrderService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-   public List<Order> getAllOrder() {
+    public List<Order> getAllOrder() {
         return orderRepo.findAll();
-   }
+    }
 
     public Order findByOrderCode(String orderCode) {
         return orderRepo.findByOrderCode(orderCode);
@@ -151,9 +151,5 @@ public class OrderService {
         return orderRepo.save(order);
     }
 
-    //List Order
-//    public List<Order> getAllOrder() {
-//        return orderRepo.findAll();
-//    }
 
 }

@@ -13,18 +13,21 @@
             background-color: #f3f4f6;
             font-family: 'Nunito', sans-serif;
         }
+
         .stat-card {
             background: white;
             border-radius: 15px;
             padding: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             border: 1px solid #e5e7eb;
         }
+
         .stat-card h3 {
             font-size: 2rem;
             font-weight: 800;
             margin: 0.5rem 0;
         }
+
         .stat-card p {
             font-size: 0.75rem;
             text-transform: uppercase;
@@ -32,22 +35,26 @@
             color: #6b7280;
             margin-bottom: 0.5rem;
         }
+
         .stat-card .change {
             font-size: 0.75rem;
             margin-top: 0.25rem;
         }
+
         .table-card {
             background: white;
             border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             border: 1px solid #e5e7eb;
         }
+
         .table-card .card-header {
             padding: 1.25rem;
             border-bottom: 1px solid #e5e7eb;
             background: white;
         }
+
         .badge-paid {
             background-color: #d1fae5;
             color: #065f46;
@@ -56,6 +63,7 @@
             border-radius: 0.25rem;
             font-size: 0.75rem;
         }
+
         .badge-pending {
             background-color: #fef3c7;
             color: #92400e;
@@ -64,6 +72,7 @@
             border-radius: 0.25rem;
             font-size: 0.75rem;
         }
+
         .badge-done {
             background-color: #dbeafe;
             color: #1e40af;
@@ -72,11 +81,12 @@
             border-radius: 0.25rem;
             font-size: 0.75rem;
         }
+
         .filter-section {
             background: white;
             padding: 1rem;
             border-radius: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
@@ -87,9 +97,6 @@
     <div class="container-fluid py-4 px-4">
         <!-- Header -->
         <div class="mb-4">
-            <a th:href="@{/admin/dashboard}" class="text-decoration-none text-muted mb-2 d-inline-block">
-                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
-            </a>
             <h2 class="fw-bold text-dark mb-1">Revenue Report</h2>
         </div>
 
@@ -98,12 +105,12 @@
             <form th:action="@{/admin/reports/revenue}" method="get" class="row g-3 align-items-end">
                 <div class="col-md-4">
                     <label for="startDate" class="form-label small fw-bold">From Date</label>
-                    <input type="date" class="form-control" id="startDate" name="startDate" 
+                    <input type="date" class="form-control" id="startDate" name="startDate"
                            th:value="${startDate}">
                 </div>
                 <div class="col-md-4">
                     <label for="endDate" class="form-label small fw-bold">To Date</label>
-                    <input type="date" class="form-control" id="endDate" name="endDate" 
+                    <input type="date" class="form-control" id="endDate" name="endDate"
                            th:value="${endDate}">
                 </div>
                 <div class="col-md-4">
@@ -122,7 +129,8 @@
             <div class="col-md-4">
                 <div class="stat-card">
                     <p>Today's Revenue</p>
-                    <h3 class="text-success" th:text="${#numbers.formatDecimal(todayRevenue, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                    <h3 class="text-success"
+                        th:text="${#numbers.formatDecimal(todayRevenue, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
                         0 ₫
                     </h3>
                     <p class="change" th:classappend="${percentChange >= 0} ? 'text-success' : 'text-danger'">
@@ -136,7 +144,8 @@
             <div class="col-md-4">
                 <div class="stat-card">
                     <p>This Month's Revenue</p>
-                    <h3 class="text-dark" th:text="${#numbers.formatDecimal(monthlyRevenue, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                    <h3 class="text-dark"
+                        th:text="${#numbers.formatDecimal(monthlyRevenue, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
                         0 ₫
                     </h3>
                     <p class="change text-muted" th:text="'Month ' + ${currentMonth}">
@@ -166,58 +175,58 @@
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
-                        <tr>
-                            <th class="px-4 py-3 small fw-bold text-muted text-uppercase">Order ID</th>
-                            <th class="px-4 py-3 small fw-bold text-muted text-uppercase">Customer</th>
-                            <th class="px-4 py-3 small fw-bold text-muted text-uppercase">Date</th>
-                            <th class="px-4 py-3 small fw-bold text-muted text-uppercase">Amount</th>
-                            <th class="px-4 py-3 small fw-bold text-muted text-uppercase">Payment Method</th>
-                            <th class="px-4 py-3 small fw-bold text-muted text-uppercase">Status</th>
-                        </tr>
+                    <tr>
+                        <th class="px-4 py-3 small fw-bold text-muted text-uppercase">Order ID</th>
+                        <th class="px-4 py-3 small fw-bold text-muted text-uppercase">Customer</th>
+                        <th class="px-4 py-3 small fw-bold text-muted text-uppercase">Date</th>
+                        <th class="px-4 py-3 small fw-bold text-muted text-uppercase">Amount</th>
+                        <th class="px-4 py-3 small fw-bold text-muted text-uppercase">Payment Method</th>
+                        <th class="px-4 py-3 small fw-bold text-muted text-uppercase">Status</th>
+                    </tr>
                     </thead>
                     <tbody>
-                        <tr th:if="${#lists.isEmpty(transactions)}">
-                            <td colspan="6" class="text-center py-4 text-muted">
-                                <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
-                                No transactions available
-                            </td>
-                        </tr>
-                        <tr th:each="transaction : ${transactions}">
-                            <td class="px-4 py-3 fw-bold text-dark" th:text="${transaction.orderCode}">
-                                #ORD-0001
-                            </td>
-                            <td class="px-4 py-3" th:text="${transaction.customerName}">
-                                Customer Name
-                            </td>
-                            <td class="px-4 py-3" th:text="${#temporals.format(transaction.orderDate, 'dd/MM/yyyy HH:mm')}">
-                                01/01/2026
-                            </td>
-                            <td class="px-4 py-3 fw-bold" 
-                                th:text="${#numbers.formatDecimal(transaction.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
-                                0 ₫
-                            </td>
-                            <td class="px-4 py-3">
-                                <span th:if="${transaction.paymentMethod != null}" 
+                    <tr th:if="${#lists.isEmpty(transactions)}">
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            <i class="fas fa-inbox fa-3x mb-3 d-block"></i>
+                            No transactions available
+                        </td>
+                    </tr>
+                    <tr th:each="transaction : ${transactions}">
+                        <td class="px-4 py-3 fw-bold text-dark" th:text="${transaction.orderCode}">
+                            #ORD-0001
+                        </td>
+                        <td class="px-4 py-3" th:text="${transaction.customerName}">
+                            Customer Name
+                        </td>
+                        <td class="px-4 py-3" th:text="${#temporals.format(transaction.orderDate, 'dd/MM/yyyy HH:mm')}">
+                            01/01/2026
+                        </td>
+                        <td class="px-4 py-3 fw-bold"
+                            th:text="${#numbers.formatDecimal(transaction.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' ₫'">
+                            0 ₫
+                        </td>
+                        <td class="px-4 py-3">
+                                <span th:if="${transaction.paymentMethod != null}"
                                       th:text="${transaction.paymentMethod.toUpperCase()}"
                                       class="badge bg-secondary">
                                     COD
                                 </span>
-                                <span th:unless="${transaction.paymentMethod != null}" class="text-muted">-</span>
-                            </td>
-                            <td class="px-4 py-3">
-                                <span th:if="${transaction.status == 'paid' || transaction.status == 'done'}" 
+                            <span th:unless="${transaction.paymentMethod != null}" class="text-muted">-</span>
+                        </td>
+                        <td class="px-4 py-3">
+                                <span th:if="${transaction.status == 'paid' || transaction.status == 'done'}"
                                       class="badge-paid">
                                     <span th:text="${transaction.status.toUpperCase()}">PAID</span>
                                 </span>
-                                <span th:if="${transaction.status == 'pending'}" class="badge-pending">
+                            <span th:if="${transaction.status == 'pending'}" class="badge-pending">
                                     PENDING
                                 </span>
-                                <span th:if="${transaction.status != 'paid' && transaction.status != 'done' && transaction.status != 'pending'}" 
-                                      class="badge-done">
+                            <span th:if="${transaction.status != 'paid' && transaction.status != 'done' && transaction.status != 'pending'}"
+                                  class="badge-done">
                                     <span th:text="${transaction.status.toUpperCase()}">OTHER</span>
                                 </span>
-                            </td>
-                        </tr>
+                        </td>
+                    </tr>
                     </tbody>
                 </table>
             </div>

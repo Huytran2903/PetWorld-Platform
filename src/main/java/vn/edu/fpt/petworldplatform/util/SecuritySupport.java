@@ -5,6 +5,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
+import vn.edu.fpt.petworldplatform.config.CustomUserDetails; // Import class này
 import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.service.CustomerService;
 
@@ -16,15 +17,23 @@ public class SecuritySupport {
     public Customer getCurrentAuthenticatedCustomer() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
             return null;
         }
 
         Object principal = authentication.getPrincipal();
 
-        if (principal instanceof Customer) {
-            return (Customer) principal;
-        } else if (principal instanceof OAuth2User) {
+        // 1. TRƯỜNG HỢP FORM LOGIN
+        if (principal instanceof CustomUserDetails) {
+            CustomUserDetails userDetails = (CustomUserDetails) principal;
+            Object account = userDetails.getAccount();
+
+            if (account instanceof Customer) {
+                return (Customer) account;
+            }
+        }
+        // 2. TRƯỜNG HỢP GOOGLE LOGIN
+        else if (principal instanceof OAuth2User) {
             OAuth2User oauth2User = (OAuth2User) principal;
             String email = oauth2User.getAttribute("email");
             return customerService.findByEmail(email).orElse(null);

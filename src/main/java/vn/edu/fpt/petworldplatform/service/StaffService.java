@@ -44,35 +44,6 @@ public class StaffService {
         return staffRepo.save(staff);
     }
 
-    //Login - HuyTPN
-    public Optional<Staff> login(String usernameOrEmail, String rawPassword) {
-        String input = usernameOrEmail == null ? "" : usernameOrEmail.trim();
-
-        Optional<Staff> staffOpt = staffRepo.findByUsernameIgnoreCase(input);
-
-        if (staffOpt.isEmpty()) {
-            staffOpt = staffRepo.findByEmailIgnoreCase(input);
-        }
-
-        if (staffOpt.isPresent()) {
-            String storedHash = staffOpt.get().getPasswordHash();
-
-            boolean passwordValid = false;
-            if (storedHash != null) {
-                if (storedHash.startsWith("$2a$") || storedHash.startsWith("$2b$") || storedHash.startsWith("$2y$")) {
-                    passwordValid = passwordEncoder.matches(rawPassword, storedHash);
-                } else {
-                    passwordValid = rawPassword.equals(storedHash);
-                }
-            }
-
-            if (passwordValid) {
-                return staffOpt;
-            }
-        }
-
-        return Optional.empty();
-    }
 
     public Optional<Staff> findByUsername(String username) {
         return staffRepo.findByUsername(username);
@@ -84,6 +55,14 @@ public class StaffService {
 
     public List<Staff> getAvailableStaffs() {
         return staffRepo.findByIsActiveTrue();
+    }
+
+    public Boolean isEmailExists(String email) {
+        return staffRepo.existsByEmail(email);
+    }
+
+    public Boolean isPhoneExists(String phone) {
+        return staffRepo.existsByPhone(phone);
     }
 
     public Optional<Staff> findById(Long staffId) {
@@ -183,55 +162,51 @@ public class StaffService {
     @Transactional
     public void deleteAndTransferWork(Integer oldStaffId, Integer newStaffId) {
 
+        // 1. Kiểm tra nhân viên cũ có tồn tại không
         Staff oldStaff = staffRepo.findById(oldStaffId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhân viên cần xóa!"));
 
-        Staff newStaff = null;
+        // ==========================================
+        // CHỐT CHẶN BẢO VỆ NGHIỆP VỤ: KIỂM TRA IN-PROGRESS
+        // ==========================================
+        long inProgressCount = appointmentServiceRepo.countInProgressServices(oldStaffId);
+
+        if (inProgressCount > 0) {
+            throw new IllegalStateException("Hủy thao tác! Nhân viên này đang có " + inProgressCount + " dịch vụ đang thực hiện (In-Progress). Vui lòng hoàn thành hoặc gán lại dịch vụ trước khi xóa.");
+        }
+
+        // 2. Kiểm tra nhân viên mới (nếu có chọn bàn giao)
         if (newStaffId != null) {
-            newStaff = staffRepo.findById(newStaffId)
-                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhân viên nhận bàn giao!"));
-        }
-
-        // 2. Chuyển toàn bộ hồ sơ Tiêm chủng
-        List<PetVaccinations> vaccines = petVaccinationRepo.findByPerformedByStaff(oldStaff);
-        if (!vaccines.isEmpty() && newStaff != null) {
-            for (PetVaccinations v : vaccines) {
-                v.setPerformedByStaff(newStaff);
+            if (!staffRepo.existsById(newStaffId)) {
+                throw new IllegalArgumentException("Không tìm thấy nhân viên nhận bàn giao!");
             }
-            petVaccinationRepo.saveAll(vaccines);
         }
 
-        List<PetHealthRecord> healthRecords = petHealthRecordRepo.findByPerformedByStaff(oldStaff);
-        if (!healthRecords.isEmpty() && newStaff != null) {
-            for (PetHealthRecord h : healthRecords) {
-                h.setPerformedByStaff(newStaff);
-            }
-            petHealthRecordRepo.saveAll(healthRecords);
+        // ==========================================
+        // BƯỚC 1: XỬ LÝ VIỆC TƯƠNG LAI / CHƯA HOÀN THÀNH
+        // ==========================================
+        if (newStaffId != null) {
+            // Có người nhận -> Bàn giao việc dở dang
+            petVaccinationRepo.transferFutureVaccinations(oldStaffId, newStaffId);
+            appointmentServiceRepo.transferPendingServices(oldStaffId, newStaffId);
+        } else {
+            // Không ai nhận -> Trả dịch vụ về trạng thái vô chủ
+            appointmentServiceRepo.unassignPendingServices(oldStaffId);
         }
 
+        // ==========================================
+        // BƯỚC 2: CHỐT CHẶN KHÓA NGOẠI (QUÉT SẠCH DẤU VẾT QUÁ KHỨ)
+        // ==========================================
+        petVaccinationRepo.clearAllVaccinationReferences(oldStaffId);
+        appointmentServiceRepo.clearAllStaffReferences(oldStaffId);
+        petHealthRecordRepo.unassignAllHealthRecords(oldStaffId);
 
-        List<AppointmentServiceLine> assignedServices = appointmentServiceRepo.findByAssignedStaff(oldStaff);
-        if (!assignedServices.isEmpty()) {
-            if (newStaff != null) {
-                for (AppointmentServiceLine s : assignedServices) {
-                    s.setAssignedStaff(newStaff);
-                }
-            } else {
-                for (AppointmentServiceLine s : assignedServices) {
-                    s.setAssignedStaff(null);
-                    s.setServiceStatus("pending");
-                }
-            }
-            appointmentServiceRepo.saveAll(assignedServices);
-        }
-
-        // 5. Xóa Lịch làm việc (Schedule)
+        // ==========================================
+        // BƯỚC 3: XÓA DỮ LIỆU PHỤ THUỘC & XÓA STAFF
+        // ==========================================
         staffScheduleRepo.deleteByStaff(oldStaff);
-
-        // 6. Xóa Feedback liên quan
         feedbackRepo.deleteByStaff(oldStaff);
 
-        // 7. CUỐI CÙNG: Xóa nhân viên một cách an toàn
         staffRepo.delete(oldStaff);
     }
 

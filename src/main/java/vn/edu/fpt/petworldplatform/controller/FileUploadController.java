@@ -21,7 +21,6 @@ public class FileUploadController {
 
     private static final String UPLOAD_DIR = "uploads";
 
-    // Bỏ hàm getImageView vì bạn không cần trang HTML
 
     @PostMapping("/uploadFile")
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {

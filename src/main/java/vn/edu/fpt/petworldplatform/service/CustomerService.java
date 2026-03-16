@@ -73,21 +73,6 @@ public class CustomerService {
         return false;
     }
 
-    public Optional<Customer> login(String usernameOrEmail, String rawPassword) {
-        Optional<Customer> customerOpt = customerRepo.findByEmail(usernameOrEmail);
-
-        if (customerOpt.isEmpty()) {
-            customerOpt = customerRepo.findByUsername(usernameOrEmail);
-        }
-
-        if (customerOpt.isPresent()) {
-            if (passwordEncoder.matches(rawPassword, customerOpt.get().getPasswordHash())) {
-                return customerOpt;
-            }
-        }
-        return Optional.empty();
-    }
-
     @Transactional
     public String verifyEmailToken(String token) {
         Optional<VerificationToken> tokenOpt = verificationTokenRepo.findByToken(token);
@@ -115,7 +100,7 @@ public class CustomerService {
 
     public void sendResetPasswordEmail(String email) throws Exception {
         Customer customer = customerRepo.findByEmail(email)
-                .orElseThrow(() -> new Exception("Email không tồn tại trong hệ thống"));
+                .orElseThrow(() -> new Exception("Email has not exist!"));
 
         if (customer.getAuthProvider() == AuthProvider.GOOGLE) {
             throw new Exception("Email này được liên kết với Google. Vui lòng đăng nhập bằng nút Google!");
@@ -131,7 +116,6 @@ public class CustomerService {
         VerificationToken newToken = new VerificationToken(otp, customer);
         verificationTokenRepo.save(newToken);
 
-        // 4. Chuẩn bị giao diện Email HTML có chứa OTP
         String subject = "Mã xác thực (OTP) đặt lại mật khẩu - Pet World";
         String htmlContent = "<div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; max-width: 600px; margin: 0 auto; border-radius: 8px;'>"
                 + "<div style='text-align: center; margin-bottom: 20px;'>"

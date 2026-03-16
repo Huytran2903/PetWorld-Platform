@@ -168,7 +168,7 @@ public class CartController {
     public String checkoutOrder(Model model) {
         // 1. Kiểm tra xem có dữ liệu order được truyền sang không
         if (!model.containsAttribute("order")) {
-            return "redirect:/"; // Tránh lỗi màn hình trắng khi người dùng nhấn F5
+            return "redirect:/";
         }
 
         // 2. Lấy đối tượng order "tạm" từ bộ nhớ đệm
@@ -176,7 +176,6 @@ public class CartController {
 
         if (tempOrder != null && tempOrder.getOrderID() != null) {
             // 3. Truy vấn lại Order THẬT từ Database để lấy toàn bộ dữ liệu (bao gồm cả OrderItems)
-            // Chú ý: Đổi getOrderID() thành getter đúng của bạn nếu Lombok sinh tên khác
             Order realOrder = orderRepo.findById(tempOrder.getOrderID()).orElse(tempOrder);
 
             // 4. Ghi đè order thật vào lại Model cho Thymeleaf đọc
@@ -206,21 +205,7 @@ public class CartController {
             // =================================================================
             // 2. BẢO VỆ LỚP 2: Lấy Customer ID an toàn (ĐÃ SỬA Ở ĐÂY)
             // =================================================================
-            Integer customerId = null;
-            Object principal = authentication.getPrincipal();
-
-            if (principal instanceof Customer customer) {
-                // Trường hợp 1: Session lưu sẵn object Customer
-                customerId = customer.getCustomerId();
-            } else if (principal instanceof org.springframework.security.oauth2.core.user.OAuth2User oauth2User) {
-                // Trường hợp 2: Đăng nhập Google -> Lấy Email để dò ID
-                String email = oauth2User.getAttribute("email");
-                customerId = customerService.findIdByEmail(email);
-            } else {
-                // Trường hợp 3: Form thường nhưng chỉ có tên -> Lấy Username để dò ID
-                customerId = customerService.findIdByUsername(authentication.getName());
-            }
-            // =================================================================
+            Integer customerId = getCustomerIdFromAuth(authentication);
 
             // 3. BẢO VỆ LỚP 3: Chặn đứng lỗi SQL INSERT NULL
             if (customerId == null) {
@@ -229,7 +214,6 @@ public class CartController {
             }
 
             // 4. GỌI SERVICE TẠO ĐƠN HÀNG TRONG DATABASE
-            // Lưu ý: Mình đổi lại thành 'Orders' để khớp với tên Entity trong Database của bạn
             Order newOrder = orderService.createOrder(
                     customerId, shipName, shipPhone, shipAddress, note, paymentMethod
             );
@@ -253,7 +237,6 @@ public class CartController {
             }
 
         } catch (Exception e) {
-            // Bắt các lỗi: Giỏ hàng trống, Sản phẩm hết hàng, Lỗi Database...
             ra.addFlashAttribute("errorMessage", "Lỗi xử lý: " + e.getMessage());
             return "redirect:/cart/view";
         }
@@ -262,14 +245,12 @@ public class CartController {
     @GetMapping("/cart/remove/{id}")
     public String removeCartItem(@PathVariable("id") Integer cartItemId, RedirectAttributes ra) {
         try {
-            // Gọi Service để xóa
             cartService.removeCartItem(cartItemId);
             ra.addFlashAttribute("successMessage", "Đã xóa thành công!");
         } catch (Exception e) {
             ra.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
         }
 
-        // Xóa xong thì load lại đúng trang giỏ hàng đó
         return "redirect:/cart/view";
     }
 

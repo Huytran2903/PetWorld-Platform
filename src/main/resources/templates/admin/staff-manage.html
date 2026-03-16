@@ -144,11 +144,13 @@
                                     <button type="button"
                                             class="btn btn-sm rounded-circle btn-outline-danger border d-flex align-items-center justify-content-center shadow-sm delete-staff-btn"
                                             style="width: 32px; height: 32px;"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#transferDeleteModal"
                                             th:data-id="${staff.staffId}"
                                             th:data-name="${staff.fullName}"
-                                            th:data-vaccines="${staff.vaccinations != null ? staff.vaccinations.size() : 0}"
-                                            th:data-health="${staff.healthRecords != null ? staff.healthRecords.size() : 0}"
-                                            th:data-appointments="${staff.appointmentServiceLines != null ? staff.appointmentServiceLines.size() : 0}">
+                                            th:data-vaccines="${staff.pendingVaccinesCount}"
+                                            th:data-health="${staff.pendingHealthRecordsCount}"
+                                            th:data-appointments="${staff.pendingAppointmentsCount}">
                                         <i class="bi bi-trash-fill"></i>
                                     </button>
                                 </div>

@@ -14,6 +14,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import vn.edu.fpt.petworldplatform.config.CustomUserDetails;
 import vn.edu.fpt.petworldplatform.dto.PetCreateDTO;
 import vn.edu.fpt.petworldplatform.dto.ProfileFormDTO;
 import vn.edu.fpt.petworldplatform.entity.Appointment;
@@ -66,25 +67,41 @@ public class CustomerController {
     public String profileShow(Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        if (auth == null || !auth.isAuthenticated() || auth.getPrincipal().equals("anonymousUser")) {
+        // 1. Kiểm tra chưa đăng nhập
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
             return "redirect:/login";
         }
 
-        if (auth.getPrincipal() instanceof Staff) {
-            return "redirect:/admin/dashboard";
+        // 2. Chặn Staff đi lạc vào trang Profile của khách (Đuổi về Dashboard)
+        if (auth.getPrincipal() instanceof CustomUserDetails) {
+            Object account = ((CustomUserDetails) auth.getPrincipal()).getAccount();
+            if (account instanceof Staff) {
+                Staff staff = (Staff) account;
+
+                String roleName = staff.getRole().getRoleName().toUpperCase();
+
+                if ("ADMIN".equals(roleName)) {
+                    return "redirect:/admin/reports/revenue";
+                } else {
+                    return "redirect:/staff/assigned_list";
+                }
+            }
         }
 
+        // 3. Lấy thông tin Customer
         Customer authUser = securitySupport.getCurrentAuthenticatedCustomer();
-        if (authUser == null) return "redirect:/login";
 
+        if (authUser == null) {
+            return "redirect:/login";
+        }
+
+        // 4. Lấy data mới nhất từ Database để hiển thị
         Customer currentFreshUser = customerService.findById(authUser.getCustomerId()).orElse(null);
 
         if (currentFreshUser != null) {
             model.addAttribute("user", currentFreshUser);
 
-
             boolean canChangePassword = currentFreshUser.getAuthProvider() != AuthProvider.GOOGLE;
-
             model.addAttribute("hasPassword", canChangePassword);
 
             return "auth/viewProfile";
@@ -433,11 +450,11 @@ public class CustomerController {
                 String fileName = UUID.randomUUID().toString() + "_" + imageFile.getOriginalFilename();
 
                 // 4. Đường dẫn vật lý chi tiết của file ảnh
-               Path filePath = uploadPath.resolve(fileName);
+                Path filePath = uploadPath.resolve(fileName);
 
                 // 5. Copy file từ request của người dùng lưu vào ổ cứng
                 try (InputStream inputStream = imageFile.getInputStream()) {
-                     Files.copy(inputStream, filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    Files.copy(inputStream, filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
                 }
 
                 // 6. [QUAN TRỌNG] Gán lại đường dẫn Web để lưu vào Database

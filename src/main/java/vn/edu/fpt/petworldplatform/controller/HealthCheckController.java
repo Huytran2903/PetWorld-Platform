@@ -80,8 +80,6 @@ public class HealthCheckController {
 
         }
 
-
-
         model.addAttribute("appointments", healthCheckService.getAssignedAppointments(staff.getStaffId()));
 
         return "staff/assigned_list";

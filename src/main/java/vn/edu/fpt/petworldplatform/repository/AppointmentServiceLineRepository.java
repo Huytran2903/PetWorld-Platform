@@ -15,6 +15,7 @@ import java.util.Optional;
 public interface AppointmentServiceLineRepository extends JpaRepository<AppointmentServiceLine, Integer> {
 
     List<AppointmentServiceLine> findByAssignedStaff(Staff staff);
+
     List<AppointmentServiceLine> findByAppointment_Id(Integer appointmentId);
 
     @Query("SELECT asl FROM AppointmentServiceLine asl JOIN FETCH asl.service s WHERE asl.appointment.id IN :appointmentIds")
@@ -71,4 +72,23 @@ public interface AppointmentServiceLineRepository extends JpaRepository<Appointm
 
     // delete all lines belonging to an appointment
     void deleteAllByAppointment(Appointment appointment);
+
+    // 1. Chuyển giao dịch vụ (Bọc TRIM và LOWER để diệt khoảng trắng thừa)
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(value = "UPDATE AppointmentServices SET AssignedStaffID = :newStaffId WHERE AssignedStaffID = :oldStaffId AND LTRIM(RTRIM(LOWER(ServiceStatus))) IN ('pending', 'assigned', 'in_progress')", nativeQuery = true)
+    void transferPendingServices(@Param("oldStaffId") Integer oldStaffId, @Param("newStaffId") Integer newStaffId);
+
+    // 2. Trả về vô chủ (NULL) nếu không bàn giao
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(value = "UPDATE AppointmentServices SET AssignedStaffID = NULL, ServiceStatus = 'pending' WHERE AssignedStaffID = :oldStaffId AND LTRIM(RTRIM(LOWER(ServiceStatus))) IN ('pending', 'assigned', 'in_progress')", nativeQuery = true)
+    void unassignPendingServices(@Param("oldStaffId") Integer oldStaffId);
+
+    // 3. Quét sạch dấu vết quá khứ
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(value = "UPDATE AppointmentServices SET AssignedStaffID = NULL WHERE AssignedStaffID = :oldStaffId", nativeQuery = true)
+    void clearAllStaffReferences(@Param("oldStaffId") Integer oldStaffId);
+
+    // Đếm In-Progress
+    @Query("SELECT COUNT(a) FROM AppointmentServiceLine a WHERE a.assignedStaff.staffId = :staffId AND a.serviceStatus = 'in_progress'")
+    long countInProgressServices(@Param("staffId") Integer staffId);
 }
