@@ -267,6 +267,10 @@ public class AppointmentService implements IAppointmentService {
         }
         appointmentServiceLineRepository.save(line);
 
+        if (appointment.getStaffId() == null) {
+            appointment.setStaff(staff);
+        }
+
         long assignedCount = appointmentServiceLineRepository
                 .countByAppointment_IdAndAssignedStaffIdIsNotNull(appointmentId);
 
@@ -353,25 +357,44 @@ public class AppointmentService implements IAppointmentService {
     }
 
     @Override
-
     public void updateStatus(Integer id, String status) {
-
         Appointment appointment = getAppointmentById(id);
 
         List<String> validStatuses = List.of("pending", "confirmed", "in_progress", "done", "canceled", "no_show");
-
         if (!validStatuses.contains(status.toLowerCase())) {
-
             throw new IllegalArgumentException("Invalid status: " + status);
-
         }
 
         appointment.setStatus(status.toLowerCase());
-
         appointment.setUpdatedAt(LocalDateTime.now());
-
         appointmentRepository.save(appointment);
-
     }
 
+    @Override
+    @Transactional
+    public void updateAppointmentManager(Integer appointmentId, Integer staffId) {
+        Appointment appointment = getAppointmentById(appointmentId);
+
+        String status = appointment.getStatus() != null ? appointment.getStatus().toLowerCase() : "";
+        if ("canceled".equals(status) || "no_show".equals(status)) {
+            throw new IllegalStateException("Cannot change manager for canceled or no_show appointments.");
+        }
+
+        Staff staff = staffRepository.findById(staffId)
+                .orElseThrow(() -> new IllegalArgumentException("Staff not found: " + staffId));
+        if (!Boolean.TRUE.equals(staff.getIsActive())) {
+            throw new IllegalStateException("Selected staff is not active.");
+        }
+
+        // Ensure the selected staff is assigned to at least one service line of this appointment
+        List<AppointmentServiceLine> assignedLines =
+                appointmentServiceLineRepository.findByAppointment_IdAndAssignedStaffId(appointmentId, staffId);
+        if (assignedLines.isEmpty()) {
+            throw new IllegalStateException("Selected staff is not assigned to this appointment.");
+        }
+
+        appointment.setStaff(staff);
+        appointment.setUpdatedAt(LocalDateTime.now());
+        appointmentRepository.save(appointment);
+    }
 }

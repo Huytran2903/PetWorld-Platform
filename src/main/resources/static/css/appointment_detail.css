@@ -168,6 +168,61 @@
     gap: 10px;
 }
 
+/* Manager summary form */
+.summary-form .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.summary-form label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy2);
+    margin-bottom: 4px;
+}
+
+.summary-form input[type="number"],
+.summary-form input[type="text"],
+.summary-form textarea {
+    width: 100%;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    font-size: 14px;
+    color: var(--text);
+    background-color: #f9fafb;
+}
+
+.summary-form textarea {
+    min-height: 70px;
+    resize: vertical;
+}
+
+.summary-form .grid2 {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 16px;
+    row-gap: 12px;
+}
+
+/* Tạo khoảng trắng rõ ràng giữa 2 ô trong grid2 (Condition Before/After) */
+.summary-form .grid2 > div:first-child input,
+.summary-form .grid2 > div:first-child textarea {
+    margin-right: 6px;
+}
+
+.summary-form .grid2 > div:last-child input,
+.summary-form .grid2 > div:last-child textarea {
+    margin-left: 6px;
+}
+
+@media (max-width: 768px) {
+    .summary-form .grid2 {
+        grid-template-columns: 1fr;
+    }
+}
+
 .btn {
     padding: 10px 16px;
     border-radius: 8px;
@@ -195,4 +250,80 @@
     background: #fff;
     border-color: #fca5a5;
     color: #b91c1c;
+}
+
+/* Modals: đảm bảo không hiện sẵn phần nội dung Service Note */
+/* Simple modal behavior using :target (no JS/bootstrap needed) */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 1050;
+    background: rgba(15, 23, 42, 0.45);
+    overflow-y: auto;
+}
+
+.modal:target {
+    display: block;
+}
+
+.modal-dialog {
+    margin: 60px auto;
+    max-width: 720px;
+}
+
+.modal-content {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 25px 50px rgba(15, 23, 42, 0.35);
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: #f8fafc;
+}
+
+.modal-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--navy);
+}
+
+.modal-body {
+    padding: 14px 16px 16px;
+}
+
+.modal .btn-close {
+    border: none;
+    background: transparent;
+    width: 20px;
+    height: 20px;
+    position: relative;
+    cursor: pointer;
+}
+
+.modal .btn-close::before,
+.modal .btn-close::after {
+    content: "";
+    position: absolute;
+    top: 9px;
+    left: 3px;
+    right: 3px;
+    height: 2px;
+    background: #64748b;
+}
+
+.modal .btn-close::before {
+    transform: rotate(45deg);
+}
+
+.modal .btn-close::after {
+    transform: rotate(-45deg);
 }

@@ -51,10 +51,16 @@ public class ProductController {
 
     //Pet List
     @GetMapping("/pets")
-    public String getAllPet(Model model) {
-        model.addAttribute("pet", petService.getAllPets());
+    public String getAllPet(Model model, @RequestParam(name = "kw", required = false, defaultValue = "") String keyword) {
+        if(!keyword.equals("")) {
+            model.addAttribute("pet", petService.searchPetByName(keyword));
+        }
+        else {
+            model.addAttribute("pet", petService.getAllPets());
+        }
         return "/product/petList";
     }
+
 
     //Product Detail
     @GetMapping("/product/detail/{id}")

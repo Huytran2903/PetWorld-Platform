@@ -3,6 +3,10 @@ package vn.edu.fpt.petworldplatform.controller;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,8 +22,13 @@ import vn.edu.fpt.petworldplatform.config.CustomUserDetails;
 import vn.edu.fpt.petworldplatform.dto.PetCreateDTO;
 import vn.edu.fpt.petworldplatform.dto.ProfileFormDTO;
 import vn.edu.fpt.petworldplatform.entity.Appointment;
+import vn.edu.fpt.petworldplatform.entity.AppointmentSummary;
+import vn.edu.fpt.petworldplatform.entity.AppointmentSummaryPhoto;
 import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.Pets;
+import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryPhotoRepository;
+import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryRepository;
+import vn.edu.fpt.petworldplatform.entity.*;
 import vn.edu.fpt.petworldplatform.repository.PetHealthPhotoRepository;
 import vn.edu.fpt.petworldplatform.repository.PetHealthRecordRepository;
 import vn.edu.fpt.petworldplatform.entity.*;
@@ -38,7 +47,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 
@@ -52,6 +63,8 @@ public class CustomerController {
     private final SecuritySupport securitySupport;
 
     private final PetService petService;
+
+    private final FeedbackService feedbackService;
 
 
     @Autowired
@@ -199,6 +212,12 @@ public class CustomerController {
     }
 
 
+    @Autowired
+    private AppointmentSummaryRepository appointmentSummaryRepository;
+
+    @Autowired
+    private AppointmentSummaryPhotoRepository appointmentSummaryPhotoRepository;
+
     @GetMapping("/customer/appointments")
     public String appointmentHistory(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
@@ -216,16 +235,35 @@ public class CustomerController {
             model.addAttribute("healthPhotosByAppointmentId", java.util.Map.of());
             model.addAttribute("healthRecordByServiceLineId", java.util.Map.of());
             model.addAttribute("healthPhotosByServiceLineId", java.util.Map.of());
+            model.addAttribute("reviewedServiceLineIds", java.util.Set.of());
+            model.addAttribute("appointmentSummaryByAppointmentId", java.util.Map.of());
         } else {
             List<vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine> lines = bookingService.findServiceLinesByAppointmentIds(apptIds);
             java.util.Map<Integer, List<vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine>> linesByApptId =
                     lines.stream().collect(java.util.stream.Collectors.groupingBy(l -> l.getAppointment().getId()));
             model.addAttribute("serviceLinesByAppointmentId", linesByApptId);
 
+            Set<Integer> reviewedServiceLineIds = new HashSet<>();
+            for (vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine line : lines) {
+                if (line.getId() == null || line.getService() == null || line.getService().getId() == null || line.getAppointment() == null) {
+                    continue;
+                }
+                boolean reviewed = feedbackService.hasAlreadyReviewed(
+                        line.getAppointment().getId(),
+                        line.getService().getId(),
+                        customer.getCustomerId()
+                );
+                if (reviewed) {
+                    reviewedServiceLineIds.add(line.getId());
+                }
+            }
+            model.addAttribute("reviewedServiceLineIds", reviewedServiceLineIds);
+
             java.util.Map<Integer, PetHealthRecord> recordByAppointmentId = new java.util.HashMap<>();
             java.util.Map<Integer, List<PetHealthPhoto>> photosByAppointmentId = new java.util.HashMap<>();
             java.util.Map<Integer, PetHealthRecord> healthRecordByServiceLineId = new java.util.HashMap<>();
             java.util.Map<Integer, List<PetHealthPhoto>> healthPhotosByServiceLineId = new java.util.HashMap<>();
+            java.util.Map<Integer, AppointmentSummary> summaryByAppointmentId = new java.util.HashMap<>();
             java.util.Map<Integer, String> serviceStaffByAppointmentId = new java.util.HashMap<>();
 
             for (Appointment appt : appointments) {
@@ -234,34 +272,18 @@ public class CustomerController {
                         ? appt.getStaff().getFullName()
                         : "N/A";
 
-                petHealthRecordRepository.findTopByAppointment_IdOrderByUpdatedAtDesc(apptId).ifPresentOrElse(record -> {
-                    recordByAppointmentId.put(apptId, record);
-                    photosByAppointmentId.put(apptId, petHealthPhotoRepository.findByRecord_Id(record.getId()));
+                appointmentSummaryRepository.findByAppointment_Id(apptId).ifPresentOrElse(summary -> {
+                    summaryByAppointmentId.put(apptId, summary);
 
-                    String performedStaff = (record.getPerformedByStaff() != null && record.getPerformedByStaff().getFullName() != null)
-                            ? record.getPerformedByStaff().getFullName()
+                    String performedStaff = (summary.getSummaryByStaff() != null && summary.getSummaryByStaff().getFullName() != null)
+                            ? summary.getSummaryByStaff().getFullName()
                             : fallbackStaff;
                     serviceStaffByAppointmentId.put(apptId, performedStaff);
                 }, () -> serviceStaffByAppointmentId.put(apptId, fallbackStaff));
-
-                List<PetHealthRecord> recordsByAppointment = petHealthRecordRepository.findByAppointment_Id(apptId);
-                for (PetHealthRecord recordByLine : recordsByAppointment) {
-                    if (recordByLine.getAppointmentServiceLineId() == null || recordByLine.getId() == null) {
-                        continue;
-                    }
-                    healthRecordByServiceLineId.put(recordByLine.getAppointmentServiceLineId(), recordByLine);
-                    healthPhotosByServiceLineId.put(
-                            recordByLine.getAppointmentServiceLineId(),
-                            petHealthPhotoRepository.findByRecord_Id(recordByLine.getId())
-                    );
-                }
             }
 
-            model.addAttribute("healthRecordByAppointmentId", recordByAppointmentId);
-            model.addAttribute("healthPhotosByAppointmentId", photosByAppointmentId);
+            model.addAttribute("appointmentSummaryByAppointmentId", summaryByAppointmentId);
             model.addAttribute("serviceStaffByAppointmentId", serviceStaffByAppointmentId);
-            model.addAttribute("healthRecordByServiceLineId", healthRecordByServiceLineId);
-            model.addAttribute("healthPhotosByServiceLineId", healthPhotosByServiceLineId);
         }
 
         return "customer/appointment-history";
@@ -287,15 +309,17 @@ public class CustomerController {
         model.addAttribute("appointment", appt);
         model.addAttribute("serviceLines", bookingService.findServiceLinesByAppointmentId(id));
 
-        PetHealthRecord healthRecord = petHealthRecordRepository.findTopByAppointment_IdOrderByUpdatedAtDesc(id).orElse(null);
-        model.addAttribute("healthRecord", healthRecord);
-        model.addAttribute("healthPhotos", healthRecord == null
-                ? java.util.List.of()
-                : petHealthPhotoRepository.findByRecord_Id(healthRecord.getId()));
+        AppointmentSummary summary = appointmentSummaryRepository.findByAppointment_Id(id).orElse(null);
+        model.addAttribute("appointmentSummary", summary);
+
+        List<AppointmentSummaryPhoto> summaryPhotos = summary != null
+                ? appointmentSummaryPhotoRepository.findBySummary_Id(summary.getId())
+                : List.of();
+        model.addAttribute("summaryPhotos", summaryPhotos);
 
         String serviceStaffName = "N/A";
-        if (healthRecord != null && healthRecord.getPerformedByStaff() != null && healthRecord.getPerformedByStaff().getFullName() != null) {
-            serviceStaffName = healthRecord.getPerformedByStaff().getFullName();
+        if (summary != null && summary.getSummaryByStaff() != null && summary.getSummaryByStaff().getFullName() != null) {
+            serviceStaffName = summary.getSummaryByStaff().getFullName();
         } else if (appt.getStaff() != null && appt.getStaff().getFullName() != null) {
             serviceStaffName = appt.getStaff().getFullName();
         }
@@ -369,52 +393,76 @@ public class CustomerController {
     private PetRepo petRepo;
 
     @GetMapping("/customer/pet/my-pets")
-    public String showMyPets(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false) String petType,
-            HttpSession session,
-            Model model) {
+    public String showMyPets(HttpSession session,
+                             Model model,
+                             @RequestParam(defaultValue = "0") int page,
+                             @RequestParam(required = false) String search,
+                             @RequestParam(required = false) String petType) {
 
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
         if (customer == null) {
             return "redirect:/login";
         }
 
-        // Create pagination: 6 pets per page, sorted by createdAt descending
-        Pageable pageable = PageRequest.of(page, 6, Sort.by("createdAt").descending());
+        int pageSize = 6;
+        int safePage = Math.max(page, 0);
+        Pageable pageable = PageRequest.of(safePage, pageSize, Sort.by("petID").descending());
+
+        String normalizedSearch = search == null ? "" : search.trim();
+        String selectedPetType = normalizePetTypeFilter(petType);
+        String petTypeForQuery = mapPetTypeForQuery(selectedPetType);
 
         Page<Pets> petPage;
-        boolean hasSearch = search != null && !search.trim().isEmpty();
-        boolean hasFilter = petType != null && !petType.trim().isEmpty();
+        boolean hasSearch = !normalizedSearch.isEmpty();
 
-        if (hasSearch && hasFilter) {
-            // Both search and filter
+        if (petTypeForQuery != null && hasSearch) {
             petPage = petRepo.findByOwner_CustomerIdAndPetTypeAndNameContainingIgnoreCase(
-                    customer.getCustomerId(), petType, search.trim(), pageable);
+                    customer.getCustomerId(), petTypeForQuery, normalizedSearch, pageable);
+        } else if (petTypeForQuery != null) {
+            petPage = petRepo.findByOwner_CustomerIdAndPetType(customer.getCustomerId(), petTypeForQuery, pageable);
         } else if (hasSearch) {
-            // Search only
-            petPage = petRepo.findByOwner_CustomerIdAndNameContainingIgnoreCase(
-                    customer.getCustomerId(), search.trim(), pageable);
-        } else if (hasFilter) {
-            // Filter only
-            petPage = petRepo.findByOwner_CustomerIdAndPetType(
-                    customer.getCustomerId(), petType, pageable);
+            petPage = petRepo.findByOwner_CustomerIdAndNameContainingIgnoreCase(customer.getCustomerId(), normalizedSearch, pageable);
         } else {
-            // Get all pets
             petPage = petRepo.findByOwner_CustomerId(customer.getCustomerId(), pageable);
         }
 
-        model.addAttribute("myPets", petPage.getContent());
-        model.addAttribute("currentPage", page);
+        List<Pets> myPets = petPage.getContent();
+
+        model.addAttribute("myPets", myPets);
+        model.addAttribute("search", normalizedSearch);
+        model.addAttribute("selectedPetType", selectedPetType);
+        model.addAttribute("currentPage", safePage);
         model.addAttribute("totalPages", petPage.getTotalPages());
         model.addAttribute("totalItems", petPage.getTotalElements());
-        model.addAttribute("hasNext", petPage.hasNext());
         model.addAttribute("hasPrevious", petPage.hasPrevious());
-        model.addAttribute("search", search);
-        model.addAttribute("selectedPetType", petType);
+        model.addAttribute("hasNext", petPage.hasNext());
 
         return "customer/pet/my-pets";
+    }
+
+    private String normalizePetTypeFilter(String petType) {
+        if (petType == null) {
+            return null;
+        }
+        String value = petType.trim().toLowerCase();
+        if (value.isEmpty()) {
+            return null;
+        }
+        if (!value.equals("dog") && !value.equals("cat") && !value.equals("other")) {
+            return null;
+        }
+        return value;
+    }
+
+    private String mapPetTypeForQuery(String normalizedPetType) {
+        if (normalizedPetType == null) {
+            return null;
+        }
+        return switch (normalizedPetType) {
+            case "dog" -> "Dog";
+            case "cat" -> "Cat";
+            default -> "Other";
+        };
     }
 
     // Backward-compatible mapping: some pages might still link to /customer/pet/create
@@ -518,20 +566,7 @@ public class CustomerController {
             existingPet.setName(petFromForm.getName());
             existingPet.setAgeMonths(petFromForm.getAgeMonths());
             existingPet.setPetType(petFromForm.getPetType());
-
-            // Debug logging for breed
-            System.out.println("DEBUG: petFromForm.getBreed() = " + petFromForm.getBreed());
-            System.out.println("DEBUG: existingPet.getBreed() before = " + existingPet.getBreed());
-
-            if (petFromForm.getBreed() == null || petFromForm.getBreed().trim().isEmpty()) {
-                System.out.println("DEBUG: Breed is null or empty, keeping existing value");
-                // Keep existing breed if new one is empty
-            } else {
-                existingPet.setBreed(petFromForm.getBreed());
-            }
-
-            System.out.println("DEBUG: existingPet.getBreed() after = " + existingPet.getBreed());
-
+            existingPet.setBreed(petFromForm.getBreed());
             existingPet.setWeightKg(petFromForm.getWeightKg());
             existingPet.setColor(petFromForm.getColor());
             existingPet.setNote(petFromForm.getNote());

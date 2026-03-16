@@ -194,10 +194,12 @@ CREATE TABLE dbo.Appointments (
     AppointmentCode VARCHAR(100) NOT NULL UNIQUE,
     CustomerID INT NOT NULL,
     PetID INT NOT NULL,
+    StaffID INT NULL,
     AppointmentDate DATETIME2 NOT NULL,
     EndTime DATETIME2 NULL,
     Note NVARCHAR(255) NULL,
-    Status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    Status VARCHAR(20) NOT NULL DEFAULT 'pending'
+        CHECK (Status IN ('pending','confirmed','in_progress','done','canceled','no_show', 'check_in')),
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2 NULL,
     RescheduledAt DATETIME2 NULL,
@@ -206,9 +208,7 @@ CREATE TABLE dbo.Appointments (
     CancellationReason NVARCHAR(255) NULL,
     CONSTRAINT FK_App_Customer FOREIGN KEY (CustomerID) REFERENCES dbo.Customers(CustomerID),
     CONSTRAINT FK_App_Pet FOREIGN KEY (PetID) REFERENCES dbo.Pets(PetID),
-    CONSTRAINT CK_Appointments_Status CHECK (
-        Status IN ('pending','confirmed','checked_in','in_progress','done','canceled','no_show')
-    )
+    CONSTRAINT FK_App_Staff FOREIGN KEY (StaffID) REFERENCES dbo.Staff(StaffID)
 );
 GO
 
@@ -216,11 +216,15 @@ CREATE TABLE dbo.AppointmentServices (
     AppointmentServiceID INT IDENTITY(1,1) PRIMARY KEY,
     AppointmentID INT NOT NULL,
     ServiceID INT NOT NULL,
+    AssignedStaffID INT NULL,
     Price DECIMAL(12,2) NOT NULL CHECK (Price >= 0),
     Quantity INT NOT NULL DEFAULT 1 CHECK (Quantity > 0),
+    ServiceStatus VARCHAR(20) NOT NULL DEFAULT 'pending'
+        CHECK (ServiceStatus IN ('pending','assigned','in_progress','done','canceled','no_show')),
     LineTotal AS (Price * Quantity) PERSISTED,
     CONSTRAINT FK_AppSvc_App FOREIGN KEY (AppointmentID) REFERENCES dbo.Appointments(AppointmentID),
     CONSTRAINT FK_AppSvc_Service FOREIGN KEY (ServiceID) REFERENCES dbo.Services(ServiceID),
+    CONSTRAINT FK_AppSvc_AssignedStaff FOREIGN KEY (AssignedStaffID) REFERENCES dbo.Staff(StaffID),
     CONSTRAINT UQ_AppSvc UNIQUE (AppointmentID, ServiceID)
 );
 GO
@@ -278,12 +282,71 @@ CREATE TABLE dbo.PetHealthRecords (
     Findings NVARCHAR(MAX) NULL,
     Recommendations NVARCHAR(MAX) NULL,
     AppointmentID INT NULL,
+    AppointmentServiceID INT NULL,
     PerformedByStaffID INT NULL,
     Note NVARCHAR(500) NULL,
+    WarningFlag BIT NOT NULL DEFAULT 0,
+    IsDraft BIT NOT NULL DEFAULT 0,
+    IsDeleted BIT NOT NULL DEFAULT 0,
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    UpdatedAt DATETIME2 NULL,
     CONSTRAINT FK_Health_Pet FOREIGN KEY (PetID) REFERENCES dbo.Pets(PetID),
     CONSTRAINT FK_Health_App FOREIGN KEY (AppointmentID) REFERENCES dbo.Appointments(AppointmentID) ON DELETE SET NULL,
+    CONSTRAINT FK_Health_AppSvc FOREIGN KEY (AppointmentServiceID) REFERENCES dbo.AppointmentServices(AppointmentServiceID) ON DELETE SET NULL,
     CONSTRAINT FK_Health_Staff FOREIGN KEY (PerformedByStaffID) REFERENCES dbo.Staff(StaffID)
+);
+GO
+
+CREATE TABLE dbo.PetHealthPhotos (
+    HealthPhotoID INT IDENTITY(1,1) PRIMARY KEY,
+    HealthRecordID INT NOT NULL,
+    ImageUrl VARCHAR(500) NOT NULL,
+    CapturedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_HealthPhoto_Record FOREIGN KEY (HealthRecordID) REFERENCES dbo.PetHealthRecords(HealthRecordID) ON DELETE CASCADE
+);
+GO
+
+CREATE TABLE dbo.ServiceNotes (
+    ServiceNoteID INT IDENTITY(1,1) PRIMARY KEY,
+    AppointmentID INT NOT NULL,
+    AppointmentServiceID INT NOT NULL,
+    StaffID INT NOT NULL,
+    Note NVARCHAR(MAX) NULL,
+    Status VARCHAR(20) NOT NULL DEFAULT 'done'
+        CHECK (Status IN ('draft','done')),
+    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    UpdatedAt DATETIME2 NULL,
+    CONSTRAINT FK_ServiceNote_Appointment FOREIGN KEY (AppointmentID) REFERENCES dbo.Appointments(AppointmentID) ON DELETE CASCADE,
+    CONSTRAINT FK_ServiceNote_ServiceLine FOREIGN KEY (AppointmentServiceID) REFERENCES dbo.AppointmentServices(AppointmentServiceID) ON DELETE CASCADE,
+    CONSTRAINT FK_ServiceNote_Staff FOREIGN KEY (StaffID) REFERENCES dbo.Staff(StaffID)
+);
+GO
+
+CREATE TABLE dbo.ServiceNotePhotos (
+    ServiceNotePhotoID INT IDENTITY(1,1) PRIMARY KEY,
+    ServiceNoteID INT NOT NULL,
+    ImageUrl VARCHAR(500) NOT NULL,
+    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_ServiceNotePhoto_Note FOREIGN KEY (ServiceNoteID) REFERENCES dbo.ServiceNotes(ServiceNoteID) ON DELETE CASCADE
+);
+GO
+
+CREATE TABLE dbo.AppointmentSummaries (
+    SummaryID INT IDENTITY(1,1) PRIMARY KEY,
+    AppointmentID INT NOT NULL UNIQUE,
+    WeightKg DECIMAL(5,2) NULL,
+    Temperature DECIMAL(4,2) NULL,
+    ConditionBefore NVARCHAR(500) NULL,
+    ConditionAfter NVARCHAR(500) NULL,
+    Findings NVARCHAR(MAX) NULL,
+    Recommendations NVARCHAR(MAX) NULL,
+    Note NVARCHAR(500) NULL,
+    WarningFlag BIT NOT NULL DEFAULT 0,
+    SummaryByStaffID INT NULL,
+    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    UpdatedAt DATETIME2 NULL,
+    CONSTRAINT FK_Summary_Appointment FOREIGN KEY (AppointmentID) REFERENCES dbo.Appointments(AppointmentID) ON DELETE CASCADE,
+    CONSTRAINT FK_Summary_Staff FOREIGN KEY (SummaryByStaffID) REFERENCES dbo.Staff(StaffID)
 );
 GO
 
@@ -505,6 +568,8 @@ CREATE INDEX IX_Appointments_StatusDate ON dbo.Appointments(Status, AppointmentD
 CREATE INDEX IX_Appointments_Code ON dbo.Appointments(AppointmentCode);
 CREATE INDEX IX_AppSvc_Appointment ON dbo.AppointmentServices(AppointmentID);
 CREATE INDEX IX_AppSvc_Service ON dbo.AppointmentServices(ServiceID);
+CREATE INDEX IX_AppSvc_AssignedStaff ON dbo.AppointmentServices(AssignedStaffID) WHERE AssignedStaffID IS NOT NULL;
+CREATE INDEX IX_AppSvc_Status ON dbo.AppointmentServices(ServiceStatus);
 
 -- Staff schedules / assignments
 CREATE INDEX IX_Schedule_Staff ON dbo.StaffSchedules(StaffID, WorkDate);
@@ -529,6 +594,13 @@ CREATE INDEX IX_Feedbacks_Status ON dbo.Feedbacks(Status, CreatedAt DESC);
 CREATE INDEX IX_PetVacc_Pet ON dbo.PetVaccinations(PetID, AdministeredDate DESC);
 CREATE INDEX IX_PetVacc_NextDue ON dbo.PetVaccinations(NextDueDate) WHERE NextDueDate IS NOT NULL;
 CREATE INDEX IX_Health_Pet ON dbo.PetHealthRecords(PetID, CheckDate DESC);
+CREATE INDEX IX_Health_Appointment ON dbo.PetHealthRecords(AppointmentID) WHERE AppointmentID IS NOT NULL;
+CREATE INDEX IX_Health_ServiceLine ON dbo.PetHealthRecords(AppointmentServiceID) WHERE AppointmentServiceID IS NOT NULL;
+CREATE INDEX IX_ServiceNotes_Appointment ON dbo.ServiceNotes(AppointmentID);
+CREATE INDEX IX_ServiceNotes_ServiceLine ON dbo.ServiceNotes(AppointmentServiceID);
+CREATE INDEX IX_ServiceNotes_Staff ON dbo.ServiceNotes(StaffID);
+CREATE INDEX IX_ServiceNotePhotos_Note ON dbo.ServiceNotePhotos(ServiceNoteID);
+CREATE INDEX IX_Summaries_Appointment ON dbo.AppointmentSummaries(AppointmentID);
 
 -- Cart
 CREATE INDEX IX_CartItems_Cart ON dbo.CartItems(CartID);
@@ -597,134 +669,11 @@ INSERT INTO dbo.AccessControl(RoleID, PermissionCode, IsAllowed) VALUES
 (@StaffRoleID, 'SYSTEM.ACL', 0);
 GO
 
+-- Drop old constraint
+ALTER TABLE dbo.Appointments
+DROP CONSTRAINT CK__Appointme__Statu__7D439ABD;
 
-/* =========================================================
-   Migration: Assign staff per service line in appointment
-   Date: 2026-03-03
-   Safe to run multiple times (idempotent)
-   ========================================================= */
-
--- 1) Ensure appointment status check-constraint supports checked_in
-IF EXISTS (
-    SELECT 1
-    FROM sys.check_constraints
-    WHERE name = 'CK__Appointme__Statu__7D439ABD'
-      AND parent_object_id = OBJECT_ID('dbo.Appointments')
-)
-BEGIN
-    ALTER TABLE dbo.Appointments
-    DROP CONSTRAINT CK__Appointme__Statu__7D439ABD;
-END
-GO
-
-IF EXISTS (
-    SELECT 1
-    FROM sys.check_constraints
-    WHERE name = 'CK_Appointments_Status'
-      AND parent_object_id = OBJECT_ID('dbo.Appointments')
-)
-BEGIN
-    ALTER TABLE dbo.Appointments
-    DROP CONSTRAINT CK_Appointments_Status;
-END
-GO
-
+-- Recreate with checked_in added
 ALTER TABLE dbo.Appointments
 ADD CONSTRAINT CK_Appointments_Status
 CHECK (Status IN ('pending','confirmed','checked_in','in_progress','done','canceled','no_show'));
-GO
-
--- 2) Add AssignedStaffID on AppointmentServices only if missing
-IF COL_LENGTH('dbo.AppointmentServices', 'AssignedStaffID') IS NULL
-BEGIN
-    ALTER TABLE dbo.AppointmentServices
-    ADD AssignedStaffID INT NULL;
-END
-GO
-
--- 3) Add FK only if missing
-IF NOT EXISTS (
-    SELECT 1
-    FROM sys.foreign_keys
-    WHERE name = 'FK_AppSvc_AssignedStaff'
-      AND parent_object_id = OBJECT_ID('dbo.AppointmentServices')
-)
-BEGIN
-    ALTER TABLE dbo.AppointmentServices
-    ADD CONSTRAINT FK_AppSvc_AssignedStaff
-    FOREIGN KEY (AssignedStaffID) REFERENCES dbo.Staff(StaffID);
-END
-GO
-
--- 4) Add index only if missing
-IF NOT EXISTS (
-    SELECT 1
-    FROM sys.indexes
-    WHERE name = 'IX_AppSvc_AssignedStaff'
-      AND object_id = OBJECT_ID('dbo.AppointmentServices')
-)
-BEGIN
-    CREATE INDEX IX_AppSvc_AssignedStaff
-    ON dbo.AppointmentServices(AssignedStaffID);
-END
-GO
-
--- 5) Optional backfill: copy appointment-level assignment to service lines
-UPDATE s
-SET s.AssignedStaffID = a.StaffID
-FROM dbo.AppointmentServices s
-JOIN dbo.Appointments a ON a.AppointmentID = s.AppointmentID
-WHERE s.AssignedStaffID IS NULL
-  AND a.StaffID IS NOT NULL;
-GO
-
--- 6) Add ServiceStatus on AppointmentServices only if missing
-IF COL_LENGTH('dbo.AppointmentServices', 'ServiceStatus') IS NULL
-BEGIN
-    ALTER TABLE dbo.AppointmentServices
-    ADD ServiceStatus VARCHAR(20) NOT NULL CONSTRAINT DF_AppSvc_ServiceStatus DEFAULT 'pending';
-END
-GO
-
--- 7) Add check constraint for service status (drop old first if exists)
-IF EXISTS (
-    SELECT 1
-    FROM sys.check_constraints
-    WHERE name = 'CK_AppSvc_ServiceStatus'
-      AND parent_object_id = OBJECT_ID('dbo.AppointmentServices')
-)
-BEGIN
-    ALTER TABLE dbo.AppointmentServices
-    DROP CONSTRAINT CK_AppSvc_ServiceStatus;
-END
-GO
-
-ALTER TABLE dbo.AppointmentServices
-ADD CONSTRAINT CK_AppSvc_ServiceStatus
-CHECK (ServiceStatus IN ('pending','assigned','in_progress','done','canceled','no_show'));
-GO
-
--- 8) Backfill existing rows by assignment
-UPDATE dbo.AppointmentServices
-SET ServiceStatus = CASE
-    WHEN AssignedStaffID IS NULL THEN 'pending'
-    ELSE 'assigned'
-END
-WHERE ServiceStatus IS NULL OR LTRIM(RTRIM(ServiceStatus)) = '';
-GO
-
--- 9) Verification queries
-SELECT name AS column_name
-FROM sys.columns
-WHERE object_id = OBJECT_ID('dbo.AppointmentServices')
-  AND name = 'AssignedStaffID';
-
-SELECT fk.name AS foreign_key_name
-FROM sys.foreign_keys fk
-WHERE fk.parent_object_id = OBJECT_ID('dbo.AppointmentServices')
-  AND fk.name = 'FK_AppSvc_AssignedStaff';
-
-SELECT i.name AS index_name
-FROM sys.indexes i
-WHERE i.object_id = OBJECT_ID('dbo.AppointmentServices')
-  AND i.name = 'IX_AppSvc_AssignedStaff';

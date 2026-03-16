@@ -21,4 +21,5 @@ public interface IAppointmentService {
     ByteArrayInputStream exportToExcel(AppointmentFilterRequest filter);
     List<Appointment> getStaffAppointments(Integer staffId, String status);
     void updateStatus(Integer id, String status);
+    void updateAppointmentManager(Integer appointmentId, Integer staffId);
 }

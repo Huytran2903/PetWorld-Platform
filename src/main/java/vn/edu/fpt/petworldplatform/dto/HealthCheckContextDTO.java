@@ -17,4 +17,5 @@ public class HealthCheckContextDTO {
     private String status;
     private String customerName;
     private String staffName;
+    private Boolean manager;
 }

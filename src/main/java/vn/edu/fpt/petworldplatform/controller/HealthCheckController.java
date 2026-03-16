@@ -24,19 +24,12 @@ import org.springframework.web.bind.annotation.*;
 
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import vn.edu.fpt.petworldplatform.dto.AppointmentSummaryRequest;
 import vn.edu.fpt.petworldplatform.dto.HealthCheckContextDTO;
 
-import vn.edu.fpt.petworldplatform.dto.SaveHealthReportDraftRequest;
-
-import vn.edu.fpt.petworldplatform.dto.SubmitHealthReportRequest;
-
-import vn.edu.fpt.petworldplatform.dto.UpdateHealthReportRequest;
-
-import vn.edu.fpt.petworldplatform.entity.PetHealthRecord;
+import vn.edu.fpt.petworldplatform.dto.ServiceNoteRequest;
 
 import vn.edu.fpt.petworldplatform.entity.Staff;
-
-import vn.edu.fpt.petworldplatform.repository.PetHealthRecordRepository;
 
 import vn.edu.fpt.petworldplatform.service.IHealthCheckService;
 
@@ -63,8 +56,6 @@ public class HealthCheckController {
     private final IHealthCheckService healthCheckService;
 
     private final StaffService staffService;
-
-    private final PetHealthRecordRepository petHealthRecordRepository;
 
 
 
@@ -204,27 +195,9 @@ public class HealthCheckController {
 
 
 
-            SubmitHealthReportRequest submitRequest = new SubmitHealthReportRequest();
-
-            SaveHealthReportDraftRequest draftRequest = new SaveHealthReportDraftRequest();
-
-
-
-            petHealthRecordRepository
-                    .findByAppointment_IdAndAppointmentServiceLine_Id(appointmentId, context.getServiceLineId())
-                    .ifPresent(record -> {
-
-                        mapRecordToSubmitRequest(record, submitRequest);
-
-                        mapRecordToDraftRequest(record, draftRequest);
-
-                    });
-
-
+            ServiceNoteRequest submitRequest = new ServiceNoteRequest();
 
             model.addAttribute("submitRequest", submitRequest);
-
-            model.addAttribute("draftRequest", draftRequest);
 
             return "staff/post-check";
 
@@ -246,7 +219,7 @@ public class HealthCheckController {
 
                                @RequestParam(required = false) Integer serviceLineId,
 
-                               @ModelAttribute("submitRequest") SubmitHealthReportRequest request,
+                               @ModelAttribute("submitRequest") ServiceNoteRequest request,
 
                                Principal principal,
 
@@ -267,12 +240,12 @@ public class HealthCheckController {
         try {
 
             if (serviceLineId != null) {
-                healthCheckService.submitHealthReport(staff.getStaffId(), appointmentId, serviceLineId, request);
+                healthCheckService.submitServiceNote(staff.getStaffId(), appointmentId, serviceLineId, request);
             } else {
-                healthCheckService.submitHealthReport(staff.getStaffId(), appointmentId, request);
+                throw new IllegalStateException("Service line is required.");
             }
 
-            redirectAttributes.addFlashAttribute("message", "Health report submitted. Appointment moved to done.");
+            redirectAttributes.addFlashAttribute("message", "Service note submitted. Service marked done.");
 
             return "redirect:/staff/appointment_detail?id=" + appointmentId;
 
@@ -292,19 +265,17 @@ public class HealthCheckController {
 
 
 
-    @PostMapping("/{appointmentId}/draft")
+    @PostMapping("/{appointmentId}/summary")
 
-    public String saveDraft(@PathVariable Integer appointmentId,
+    public String submitSummary(@PathVariable Integer appointmentId,
 
-                            @RequestParam(required = false) Integer serviceLineId,
+                                @ModelAttribute AppointmentSummaryRequest request,
 
-                            @ModelAttribute("draftRequest") SaveHealthReportDraftRequest request,
+                                Principal principal,
 
-                            Principal principal,
+                                HttpSession session,
 
-                            HttpSession session,
-
-                            RedirectAttributes redirectAttributes) {
+                                RedirectAttributes redirectAttributes) {
 
         Staff staff = resolveCurrentStaff(principal, session);
 
@@ -318,13 +289,9 @@ public class HealthCheckController {
 
         try {
 
-            if (serviceLineId != null) {
-                healthCheckService.saveDraft(staff.getStaffId(), appointmentId, serviceLineId, request);
-            } else {
-                healthCheckService.saveDraft(staff.getStaffId(), appointmentId, request);
-            }
+            healthCheckService.submitAppointmentSummary(staff.getStaffId(), appointmentId, request);
 
-            redirectAttributes.addFlashAttribute("message", "Draft saved.");
+            redirectAttributes.addFlashAttribute("message", "Appointment summary saved.");
 
         } catch (Exception e) {
 
@@ -332,117 +299,7 @@ public class HealthCheckController {
 
         }
 
-
-
-        String redirect = "redirect:/staff/health-check/report?appointmentId=" + appointmentId;
-        if (serviceLineId != null) {
-            redirect += "&serviceLineId=" + serviceLineId;
-        }
-        return redirect;
-
-    }
-
-
-
-    @PostMapping("/record/{recordId}/update-24h")
-
-    public String updateWithin24h(@PathVariable Integer recordId,
-
-                                  @RequestParam Integer appointmentId,
-
-                                  @ModelAttribute UpdateHealthReportRequest request,
-
-                                  Principal principal,
-
-                                  HttpSession session,
-
-                                  RedirectAttributes redirectAttributes) {
-
-        Staff staff = resolveCurrentStaff(principal, session);
-
-        if (staff == null) {
-
-            return "redirect:/login?error=no_staff_context";
-
-        }
-
-
-
-        try {
-
-            healthCheckService.updateWithin24h(staff.getStaffId(), recordId, request);
-
-            redirectAttributes.addFlashAttribute("message", "Health report updated.");
-
-            return "redirect:/staff/appointment_detail?id=" + appointmentId;
-
-        } catch (Exception e) {
-
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-
-            return "redirect:/staff/health-check/report?appointmentId=" + appointmentId;
-
-        }
-
-    }
-
-
-
-    private void mapRecordToSubmitRequest(PetHealthRecord record, SubmitHealthReportRequest submitRequest) {
-
-        if (record.getWeightKg() != null) {
-
-            submitRequest.setWeightKg(record.getWeightKg().doubleValue());
-
-        }
-
-        if (record.getTemperature() != null) {
-
-            submitRequest.setTemperature(record.getTemperature().doubleValue());
-
-        }
-
-        submitRequest.setConditionBefore(record.getConditionBefore());
-
-        submitRequest.setConditionAfter(record.getConditionAfter());
-
-        submitRequest.setFindings(record.getFindings());
-
-        submitRequest.setRecommendations(record.getRecommendations());
-
-        submitRequest.setConditionNotes(record.getNote());
-
-        submitRequest.setWarningFlag(record.getWarningFlag());
-
-    }
-
-
-
-    private void mapRecordToDraftRequest(PetHealthRecord record, SaveHealthReportDraftRequest draftRequest) {
-
-        if (record.getWeightKg() != null) {
-
-            draftRequest.setWeightKg(record.getWeightKg().doubleValue());
-
-        }
-
-        if (record.getTemperature() != null) {
-
-            draftRequest.setTemperature(record.getTemperature().doubleValue());
-
-        }
-
-        draftRequest.setConditionBefore(record.getConditionBefore());
-
-        draftRequest.setConditionAfter(record.getConditionAfter());
-
-        draftRequest.setFindings(record.getFindings());
-
-        draftRequest.setRecommendations(record.getRecommendations());
-
-        draftRequest.setConditionNotes(record.getNote());
-
-        draftRequest.setWarningFlag(record.getWarningFlag());
+        return "redirect:/staff/appointment_detail?id=" + appointmentId;
 
     }
 

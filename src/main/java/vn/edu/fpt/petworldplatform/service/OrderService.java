@@ -23,6 +23,9 @@ public class OrderService {
     private CartItemRepository cartItemRepo;
 
     @Autowired
+    private CustomerRepo customerRepo;
+
+    @Autowired
     private ProductRepo productRepo;
 
     @Autowired
@@ -90,6 +93,11 @@ public class OrderService {
                 oi.setPetID(ci.getPet().getPetID());
                 oi.setItemName(ci.getPet().getName());
                 oi.setUnitPrice(ci.getPet().getSalePrice());
+
+                Pets pet = ci.getPet();
+                Customer owner = customerRepo.findById(customerId).get();
+                pet.setOwner(owner);
+                pet.setIsAvailable(false);
             }
 
             oi.setQuantity(ci.getQuantity());
@@ -138,6 +146,7 @@ public class OrderService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    //List Order
     public List<Order> getAllOrder() {
         return orderRepo.findAll();
     }
@@ -152,4 +161,60 @@ public class OrderService {
     }
 
 
+    @Transactional
+    public void updateOrderStatusByAdmin(Integer orderID, String newStatus) {
+        // Bước 1: Lấy dữ liệu hiện tại từ DB lên để so sánh
+        Order order = orderRepo.findById(orderID)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng ID: " + orderID));
+
+        String currentStatus = order.getStatus().toLowerCase();
+        String targetStatus = newStatus.toLowerCase().trim();
+
+        // Bước 2: Luật chặn thay đổi trạng thái "Cuối"
+        if ("done".equals(currentStatus) || "canceled".equals(currentStatus)) {
+            throw new RuntimeException("Đơn hàng đã kết thúc (Done/Canceled), không thể sửa!");
+        }
+
+        // Bước 3: Luật chặn Paid -> Pending
+        if ("paid".equals(currentStatus) && "pending".equals(targetStatus)) {
+            throw new RuntimeException("Đơn đã thanh toán (Paid), không thể quay về Chờ xử lý!");
+        }
+
+        // BƯỚC 4: Luật chặn Paid -> Canceled (Mới thêm theo yêu cầu của bạn)
+        if ("paid".equals(currentStatus) && "canceled".equals(targetStatus)) {
+            throw new RuntimeException("Đơn đã thanh toán MoMo, không được phép Hủy. Hãy dùng Refund (Hoàn tiền)!");
+        }
+
+        // Bước 5: Nếu vượt qua hết các "cửa ải" trên thì mới cho phép đổi
+        order.setStatus(targetStatus);
+
+        // Bước 6: Lưu xuống DB
+        orderRepo.saveAndFlush(order);
+    }
+
+    @Transactional
+    public void cancelOrderById(Integer orderId) {
+        Order order = orderRepo.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng!"));
+
+        // RÀNG BUỘC: Chỉ cho phép hủy nếu đơn hàng ở trạng thái pending
+        if (!"pending".equalsIgnoreCase(order.getStatus())) {
+            throw new RuntimeException("Chỉ đơn hàng ở trạng thái 'Chờ xử lý' mới có thể hủy.");
+        }
+
+        // 1. Chuyển trạng thái đơn hàng sang canceled
+        order.setStatus("canceled");
+        orderRepo.save(order);
+
+        // 2. Trả lại thú cưng (Pets) về trạng thái AVAILABLE nếu có trong đơn hàng
+//        if (order.getOrderItems() != null) {
+//            for (OrderItems item : order.getOrderItems()) {
+//                if (item.getPet() != null) {
+//                    Pets pet = item.getPet();
+//                    pet.setStatus("AVAILABLE");
+//                    petRepo.save(pet);
+//                }
+//            }
+//        }
+    }
 }

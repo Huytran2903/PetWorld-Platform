@@ -330,5 +330,38 @@ public class CartController {
         return "customer/order-history";
     }
 
+    @PostMapping("/orders/cancel/{id}")
+    public String cancelOrder(@PathVariable("id") Integer orderId,
+                              Authentication authentication,
+                              RedirectAttributes redirectAttributes) {
+        try {
+            // 1. Lấy thông tin khách hàng đang đăng nhập (Tận dụng hàm lấy ID bạn đã có)
+            Integer customerId = getCustomerIdFromAuth(authentication);
+
+            // 2. Tìm đơn hàng để kiểm tra quyền sở hữu (Bảo mật: Tránh việc khách A hủy đơn khách B)
+            Order order = orderRepo.findById(orderId)
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng!"));
+
+            if (!order.getCustomer().getCustomerId().equals(customerId)) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Bạn không có quyền hủy đơn hàng này!");
+                return "redirect:/order-history";
+            }
+
+            // 3. Gọi Service để thực thi logic hủy (đã bao gồm trả lại Pet về AVAILABLE)
+            orderService.cancelOrderById(orderId);
+
+            // 4. Thông báo thành công qua URL parameter để HTML hiển thị Alert
+            return "redirect:/order-history?canceledSuccess=true";
+
+        } catch (RuntimeException e) {
+            // Bắt các lỗi như: đơn không ở trạng thái pending, không tìm thấy đơn...
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/order-history";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Đã xảy ra lỗi hệ thống khi hủy đơn.");
+            return "redirect:/cart/order-history";
+        }
+    }
+
 
 }

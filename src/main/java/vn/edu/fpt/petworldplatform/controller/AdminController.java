@@ -63,14 +63,21 @@ public class AdminController {
 
     private final ServiceTypeService serviceTypeService;
     private final ServiceItemService serviceItemService;
+    @Autowired
+    private OrderService orderService;
 
 
     //Manage Pet - OanhTP
     //List
     @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("/admin/manage-pet")
-    public String getAllPets(Model model) {
-        model.addAttribute("pets", petService.findAllPets());
+    public String getAllPets(Model model, @RequestParam(value = "kw", required = false, defaultValue = "")                              String keyword) {
+        if(!keyword.equals("")) {
+            model.addAttribute("pets", petService.searchPetByName(keyword));
+        }
+        else {
+            model.addAttribute("pets", petService.findAllPets());
+        }
         return "admin/managePet";
     }
 
@@ -288,8 +295,15 @@ public class AdminController {
     //Manage Product - OanhTP
     @PreAuthorize("hasAuthority('MANAGE_PRODUCT')")
     @GetMapping("/admin/manage-product")
-    public String getAllProducts(Model model) {
-        model.addAttribute("products", productService.getAllProducts());
+    public String getAllProducts(Model model, @RequestParam(value = "kw", required = false, defaultValue = "") String keyword) {
+
+        if(!keyword.equals("")) {
+            model.addAttribute("products", productService.searchProductsByName(keyword));
+        }
+        else {
+            model.addAttribute("products", productService.getAllProducts());
+        }
+
         return "admin/manageProduct";
     }
 
@@ -761,8 +775,33 @@ public class AdminController {
     //Manage Order - OanhTP
     @PreAuthorize("hasAuthority('MANAGE_ORDER')")
     @GetMapping("/admin/manage-order")
-    public String getAllOrder() {
+    public String getAllOrder(Model model) {
+        model.addAttribute("ord", orderService.getAllOrder());
         return "customer/manage-order";
+    }
+
+    @PostMapping("/admin/orders/update-status")
+    public String updateStatus(@RequestParam("orderID") Integer orderID,
+                               @RequestParam("status") String status,
+                               RedirectAttributes redirectAttributes) {
+        try {
+            // 1. Gọi Service để thực hiện logic nghiệp vụ
+            orderService.updateOrderStatusByAdmin(orderID, status);
+
+            // 2. Nếu thành công, gửi thông báo xanh
+            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật trạng thái đơn hàng #" + orderID + " thành công!");
+
+        } catch (RuntimeException e) {
+            // 3. Nếu Service ném lỗi (ví dụ: Đơn Paid không được về Pending)
+            // Ta bắt lấy cái tin nhắn lỗi đó để hiển thị ra màn hình
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        } catch (Exception e) {
+            // Phòng hờ các lỗi hệ thống khác
+            redirectAttributes.addFlashAttribute("errorMessage", "Đã xảy ra lỗi hệ thống: " + e.getMessage());
+        }
+
+        // 4. Redirect về trang danh sách (Để tránh việc F5 gây lặp lại request)
+        return "redirect:/admin/manage-order";
     }
 
 }

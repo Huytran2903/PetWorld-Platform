@@ -1,72 +1,317 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feedback Manager</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/pet-dashboard.css}">
-    <script th:src="@{/js/pet-dashboard.js}"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <link rel="stylesheet" th:href="@{/css/sidebar-admin.css}">
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #f8f9fa;
+            font-family: 'Nunito Sans', sans-serif;
+        }
+        .admin-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+        .admin-main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .feedback-item {
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            background: #fff;
+            transition: box-shadow 0.2s;
+        }
+        .feedback-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .fb-type {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+        .type-service { background: #dbeafe; color: #1d4ed8; }
+        .type-product { background: #fef3c7; color: #b45309; }
+        .type-general { background: #e0e7ff; color: #4338ca; }
+        .status-pending { background: #fef3c7; color: #b45309; }
+        .status-approved { background: #d1fae5; color: #065f46; }
+        .status-rejected { background: #fee2e2; color: #991b1b; }
+        .star-filled { color: #f59e0b; }
+        .star-empty { color: #d1d5db; }
+        .reply-box {
+            background: #f0fdf4;
+            border-left: 4px solid #22c55e;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 12px;
+        }
+        .reply-form {
+            margin-top: 12px;
+            display: none;
+        }
+        .reply-form textarea {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 10px;
+            resize: vertical;
+            font-family: inherit;
+        }
+        .fb-image-link img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            transition: transform 0.2s;
+        }
+        .fb-image-link img:hover {
+            transform: scale(1.1);
+        }
+    </style>
 </head>
-<body class="bg-gray-50">
+<body>
 
-<div class="min-h-screen p-6">
-    <div class="max-w-7xl mx-auto fade-in">
-        <div class="flex justify-between items-end mb-6">
-            <div>
-                <h2 class="text-3xl font-extrabold text-gray-800">Feedback Manager</h2>
-                <p class="text-sm text-gray-500 mt-1">Review and respond to customer feedback (Feature 7).</p>
-            </div>
-            <div class="flex gap-2">
-                <button class="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-50 font-medium">All Reviews</button>
-                <button class="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg shadow-sm hover:bg-gray-50 font-medium">Pending Only</button>
-            </div>
-        </div>
+<div class="admin-wrapper">
 
-        <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
-            <table class="w-full text-left">
-                <thead class="bg-gray-50 border-b border-gray-200">
-                <tr>
-                    <th class="p-5 text-sm font-bold text-gray-600 uppercase tracking-wide">Type / Info</th>
-                    <th class="p-5 text-sm font-bold text-gray-600 uppercase tracking-wide">Rating</th>
-                    <th class="p-5 text-sm font-bold text-gray-600 uppercase tracking-wide w-1/3">Content</th>
-                    <th class="p-5 text-sm font-bold text-gray-600 uppercase tracking-wide">Status</th>
-                    <th class="p-5 text-right text-sm font-bold text-gray-600 uppercase tracking-wide">Action</th>
-                </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                <tr class="hover:bg-blue-50/50 transition duration-200">
-                    <td class="p-5 align-top">
-                        <span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded uppercase">Service</span>
-                        <div class="mt-2 font-bold text-gray-800">Spa Bathing</div>
-                        <div class="text-xs text-gray-500">by Customer #101</div>
-                    </td>
-                    <td class="p-5 align-top">
-                        <div class="flex text-yellow-400 text-sm gap-1"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
-                        <span class="text-xs font-bold text-gray-400 mt-1 block">5.0 / 5.0</span>
-                    </td>
-                    <td class="p-5 align-top">
-                        <div class="font-bold text-gray-800 mb-1">"Very satisfied!"</div>
-                        <p class="text-sm text-gray-600 italic">"The groomer was very gentle with LuLu. Highly recommend!"</p>
-                    </td>
-                    <td class="p-5 align-top">
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span> Pending
-                                </span>
-                    </td>
-                    <td class="p-5 align-top text-right">
-                        <div class="flex justify-end gap-2">
-                            <button class="w-8 h-8 rounded bg-green-100 text-green-600 hover:bg-green-600 hover:text-white transition flex items-center justify-center" title="Approve"><i class="fa-solid fa-check"></i></button>
-                            <button class="w-8 h-8 rounded bg-red-100 text-red-500 hover:bg-red-500 hover:text-white transition flex items-center justify-center" title="Reject"><i class="fa-solid fa-xmark"></i></button>
+    <div th:replace="~{fragments/sidebar-admin :: aside(activePage='feedback')}"></div>
+
+    <div class="admin-main-content">
+
+        <nav class="navbar navbar-expand-lg navbar-custom sticky-top bg-white shadow-sm">
+            <div class="container-fluid px-md-4">
+                <a class="navbar-brand fw-bold text-dark" href="#">
+                    <i class="bi bi-chat-dots me-2"></i>Feedback Manager
+                </a>
+                <div class="ms-auto d-flex align-items-center">
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle user-profile"
+                           id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img th:src="@{/images/logo-petshop.png}" alt="avatar" class="border"
+                                 style="width: 40px; height: 40px; border-radius: 50%;">
+                            <div class="d-none d-sm-block text-start ms-2">
+                                <div class="fw-bold text-dark" style="font-size: 14px;"
+                                     th:text="${session.staffName ?: 'Admin User'}">Admin User</div>
+                                <div class="small text-muted" style="font-size: 12px; line-height: 1;"
+                                     th:text="${session.staffRole ?: 'Administrator'}">Administrator</div>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="dropdownUser1">
+                            <li><a class="dropdown-item py-2" href="#"><i class="bi bi-person me-2"></i> Profile</a></li>
+                            <li><a class="dropdown-item py-2" th:href="@{/admin/config}"><i class="bi bi-gear me-2"></i> Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger py-2" th:href="@{/logout}"><i class="bi bi-box-arrow-right me-2"></i> Sign out</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container-fluid py-4 px-md-4">
+
+            <!-- Page Header -->
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+                <div>
+                    <h3 class="fw-bold mb-1 text-dark">Feedback Manager</h3>
+                    <p class="text-muted mb-0">Review, approve or reject customer feedback and send replies.</p>
+                </div>
+            </div>
+
+            <!-- Flash Messages -->
+            <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i>
+                <span th:text="${message}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-circle me-2"></i>
+                <span th:text="${error}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- Filters -->
+            <div class="bg-white p-3 rounded-3 shadow-sm border-0 mb-4">
+                <form th:action="@{/admin/feedback}" method="get" class="d-flex align-items-end gap-3 flex-wrap">
+                    <div>
+                        <label for="statusFilter" class="form-label fw-bold small text-muted text-uppercase mb-1">Status</label>
+                        <select id="statusFilter" name="status" class="form-select form-select-sm" style="min-width: 150px;">
+                            <option value="">All Statuses</option>
+                            <option value="pending" th:selected="${currentStatus == 'pending'}">Pending</option>
+                            <option value="approved" th:selected="${currentStatus == 'approved'}">Approved</option>
+                            <option value="rejected" th:selected="${currentStatus == 'rejected'}">Rejected</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="typeFilter" class="form-label fw-bold small text-muted text-uppercase mb-1">Type</label>
+                        <select id="typeFilter" name="type" class="form-select form-select-sm" style="min-width: 150px;">
+                            <option value="">All Types</option>
+                            <option value="general" th:selected="${currentType == 'general'}">General</option>
+                            <option value="service" th:selected="${currentType == 'service'}">Service</option>
+                            <option value="product" th:selected="${currentType == 'product'}">Product</option>
+                        </select>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-sm btn-dark fw-bold">
+                            <i class="bi bi-funnel me-1"></i> Filter
+                        </button>
+                        <a th:href="@{/admin/feedback}" class="btn btn-sm btn-outline-secondary fw-bold">
+                            <i class="bi bi-x-lg me-1"></i> Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Feedback Count -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0" style="color: #FFA54F;">
+                    <i class="bi bi-chat-left-text me-2"></i>All Feedback
+                </h5>
+                <span class="badge bg-secondary rounded-pill" th:text="${#lists.size(feedbacks)} + ' items'">0 items</span>
+            </div>
+
+            <!-- Empty State -->
+            <div th:if="${#lists.isEmpty(feedbacks)}" class="bg-white rounded-3 shadow-sm p-5 text-center">
+                <i class="bi bi-inbox fs-1 d-block mb-3 text-muted"></i>
+                <p class="text-muted mb-0">No feedback found.</p>
+            </div>
+
+            <!-- Feedback List -->
+            <div th:unless="${#lists.isEmpty(feedbacks)}">
+                <div th:each="fb : ${feedbacks}" class="feedback-item">
+                    <!-- Header -->
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span class="fb-type" th:classappend="'type-' + ${fb.type}"
+                                  th:text="${#strings.capitalize(fb.type)}">General</span>
+                            <span class="text-muted small">
+                                <i class="bi bi-clock me-1"></i>
+                                <span th:text="${#temporals.format(fb.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
+                            </span>
+                            <span class="text-muted small" th:if="${fb.customer != null}">
+                                <i class="bi bi-person me-1"></i>
+                                <span th:text="${fb.customer.fullName != null ? fb.customer.fullName : fb.customer.username}"></span>
+                            </span>
+                            <span class="text-muted small" th:if="${fb.customer == null and fb.email != null}">
+                                <i class="bi bi-envelope me-1"></i>
+                                <span th:text="${fb.email}"></span>
+                            </span>
                         </div>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+                        <span class="badge rounded-pill" th:classappend="'status-' + ${fb.status}"
+                              th:text="${#strings.capitalize(fb.status)}">Pending</span>
+                    </div>
+
+                    <!-- Service/Product Name -->
+                    <div th:if="${fb.serviceName != null and !fb.serviceName.isEmpty()}" class="mb-2">
+                        <small class="text-muted">Service:</small>
+                        <span class="fw-bold" th:text="${fb.serviceName}"></span>
+                    </div>
+
+                    <!-- Rating -->
+                    <div th:if="${fb.rating != null}" class="mb-2">
+                        <th:block th:each="i : ${#numbers.sequence(1, 5)}">
+                            <i th:classappend="${i <= fb.rating} ? 'fas fa-star star-filled' : 'far fa-star star-empty'"></i>
+                        </th:block>
+                        <span class="text-muted small ms-1" th:text="'(' + ${fb.rating} + '/5)'"></span>
+                    </div>
+
+                    <!-- Subject & Comment -->
+                    <div class="mb-2">
+                        <p th:if="${fb.subject != null and !fb.subject.isEmpty()}" class="fw-bold mb-1" th:text="${fb.subject}"></p>
+                        <p class="text-secondary mb-0" th:text="${fb.comment}"></p>
+                    </div>
+
+                    <!-- Images -->
+                    <div th:if="${fb.imageUrls != null and !fb.imageUrls.isEmpty()}" class="d-flex gap-2 flex-wrap mb-2">
+                        <th:block th:each="imgUrl : ${#strings.arraySplit(fb.imageUrls, ',')}">
+                            <a th:href="${imgUrl}" target="_blank" class="fb-image-link">
+                                <img th:src="${imgUrl}" alt="Feedback image"/>
+                            </a>
+                        </th:block>
+                    </div>
+
+                    <!-- Existing Reply -->
+                    <div th:if="${fb.replyMessage != null and !fb.replyMessage.isEmpty()}" class="reply-box">
+                        <div class="fw-bold small mb-1">
+                            <i class="bi bi-reply me-1"></i> Admin Reply
+                            <span class="text-muted fw-normal" th:if="${fb.repliedAt != null}"
+                                  th:text="' — ' + ${#temporals.format(fb.repliedAt, 'dd/MM/yyyy HH:mm')}"></span>
+                        </div>
+                        <p class="mb-0" th:text="${fb.replyMessage}"></p>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-flex gap-2 mt-3">
+                        <th:block th:if="${fb.status == 'pending'}">
+                            <form th:action="@{'/admin/feedback/' + ${fb.id} + '/approve'}" method="post">
+                                <button type="submit" class="btn btn-sm btn-success fw-bold">
+                                    <i class="bi bi-check-lg me-1"></i> Approve
+                                </button>
+                            </form>
+                            <form th:action="@{'/admin/feedback/' + ${fb.id} + '/reject'}" method="post">
+                                <button type="submit" class="btn btn-sm btn-danger fw-bold">
+                                    <i class="bi bi-x-lg me-1"></i> Reject
+                                </button>
+                            </form>
+                        </th:block>
+                        <button type="button" class="btn btn-sm btn-outline-secondary fw-bold"
+                                th:onclick="'toggleReply(' + ${fb.id} + ')'">
+                            <i class="bi bi-reply me-1"></i>
+                            <span th:text="${fb.replyMessage != null and !fb.replyMessage.isEmpty()} ? 'Edit Reply' : 'Reply'"></span>
+                        </button>
+                    </div>
+
+                    <!-- Reply Form (hidden) -->
+                    <div th:id="'reply-form-' + ${fb.id}" class="reply-form">
+                        <form th:action="@{'/admin/feedback/' + ${fb.id} + '/reply'}" method="post">
+                            <textarea name="replyMessage" rows="3" placeholder="Type your reply here..."
+                                      required th:text="${fb.replyMessage}"></textarea>
+                            <div class="d-flex gap-2 mt-2">
+                                <button type="submit" class="btn btn-sm btn-dark fw-bold">
+                                    <i class="bi bi-send me-1"></i> Send Reply
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        th:onclick="'toggleReply(' + ${fb.id} + ')'">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function toggleReply(id) {
+        var el = document.getElementById('reply-form-' + id);
+        if (el.style.display === 'none' || el.style.display === '') {
+            el.style.display = 'block';
+            el.querySelector('textarea').focus();
+        } else {
+            el.style.display = 'none';
+        }
+    }
+</script>
 </body>
 </html>

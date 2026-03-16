@@ -154,3 +154,29 @@ select.status-cancelled {
     color: #3b82f6; /* Icon màu xanh dương giống hình */
 }
 
+/* Tổng quát cho ô select */
+/* 1. Sửa lại cấu trúc chung của ô Select */
+.status-select {
+    border-radius: 30px !important;
+    font-size: 0.85rem !important;
+    font-weight: 600 !important;
+    height: 32px !important;
+    padding-left: 15px !important; /* Đẩy chữ sang phải một chút để cân bằng */
+    padding-right: 25px !important; /* Nhường chỗ cho mũi tên Bootstrap */
+    text-align: left; /* Để mặc định hoặc dùng text-align-last */
+    text-align-last: center; /* Hỗ trợ căn giữa chữ trong ô select trên Chrome/Edge */
+    width: 130px !important; /* Cố định độ rộng để các ô đều nhau */
+    cursor: pointer;
+    border: none !important;
+}
+
+/* 2. Đảm bảo màu chữ Paid có độ tương phản cao */
+.status-paid {
+    background-color: #cce5ff !important;
+    color: #004085 !important; /* Màu xanh đậm để nổi trên nền xanh nhạt */
+}
+
+.status-pending { background-color: #fff3cd !important; color: #856404 !important; }
+.status-shipped { background-color: #d1ecf1 !important; color: #0c5460 !important; }
+.status-done { background-color: #d4edda !important; color: #155724 !important; }
+.status-canceled { background-color: #f8d7da !important; color: #721c24 !important; }

@@ -123,7 +123,7 @@
                             <p class="text-sm text-gray-500" th:text="${pet.breed}">Breed</p>
                         </div>
                         <span class="px-3 py-1 rounded-full text-xs font-bold"
-                              th:classappend="${pet.petType == 'dog' ? 'bg-blue-100 text-blue-700' : (pet.petType == 'cat' ? 'bg-emerald-100 text-emerald-700' : 'bg-purple-100 text-purple-700')}"
+                            th:classappend="${#strings.toLowerCase(pet.petType) == 'dog' ? 'bg-blue-100 text-blue-700' : (#strings.toLowerCase(pet.petType) == 'cat' ? 'bg-emerald-100 text-emerald-700' : 'bg-purple-100 text-purple-700')}"
                               th:text="${#strings.capitalize(pet.petType)}">Dog</span>
                     </div>
 
