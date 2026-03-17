@@ -1,18 +1,18 @@
-<!-- Đặt file này vào: src/main/resources/templates/staff/profile.html -->
-
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hồ sơ nhân viên - PetShop</title>
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <!-- Sidebar CSS -->
     <link rel="stylesheet" th:href="@{/css/sidebar-staff.css}">
     <style>
+        /* Thêm smooth scroll cho nút bấm trượt nhanh */
+        html {
+            scroll-behavior: smooth;
+        }
+
         :root {
             --primary-color: #f59e0b;
             --secondary-color: #d97706;
@@ -53,8 +53,14 @@
         }
 
         @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to   { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .back-link {
@@ -73,7 +79,9 @@
             transform: translateX(-5px);
         }
 
-        .back-link i { margin-right: 8px; }
+        .back-link i {
+            margin-right: 8px;
+        }
 
         .page-header h1 {
             font-size: 32px;
@@ -101,11 +109,19 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-8px); }
-            to   { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .alert i { font-size: 18px; }
+        .alert i {
+            font-size: 18px;
+        }
 
         .alert-success {
             background: #d1fae5;
@@ -137,14 +153,14 @@
         .card {
             background: var(--bg-white);
             border-radius: 18px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
             border: 1px solid var(--border-color);
             overflow: hidden;
             transition: box-shadow 0.3s ease;
         }
 
         .card:hover {
-            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
         }
 
         .card-header {
@@ -195,7 +211,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 14px rgba(245,158,11,0.35);
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
             position: relative;
         }
 
@@ -241,7 +257,9 @@
             font-size: 14px;
         }
 
-        .info-row:last-child { border-bottom: none; }
+        .info-row:last-child {
+            border-bottom: none;
+        }
 
         .info-row .label {
             color: var(--text-muted);
@@ -263,7 +281,11 @@
         }
 
         /* ===== RIGHT: Form Cards ===== */
-        .right-col { display: flex; flex-direction: column; gap: 24px; }
+        .right-col {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
 
         /* ===== Form Styles ===== */
         .form-row {
@@ -277,7 +299,9 @@
             flex-direction: column;
         }
 
-        .form-group.full { grid-column: 1 / -1; }
+        .form-group.full {
+            grid-column: 1 / -1;
+        }
 
         .form-group label {
             font-size: 13px;
@@ -315,13 +339,13 @@
         .form-group textarea:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(245,158,11,0.15);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
         }
 
         .form-group input.is-invalid,
         .form-group textarea.is-invalid {
             border-color: var(--danger-color);
-            box-shadow: 0 0 0 3px rgba(239,68,68,0.12);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
         }
 
         .form-group input:disabled {
@@ -345,7 +369,9 @@
             gap: 5px;
         }
 
-        .error-msg i { font-size: 11px; }
+        .error-msg i {
+            font-size: 11px;
+        }
 
         /* ===== Buttons ===== */
         .btn {
@@ -365,23 +391,23 @@
         .btn-primary {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             color: white;
-            box-shadow: 0 2px 8px rgba(245,158,11,0.3);
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 16px rgba(245,158,11,0.4);
+            box-shadow: 0 5px 16px rgba(245, 158, 11, 0.4);
         }
 
         .btn-danger {
             background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             color: white;
-            box-shadow: 0 2px 8px rgba(239,68,68,0.3);
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
         }
 
         .btn-danger:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 16px rgba(239,68,68,0.4);
+            box-shadow: 0 5px 16px rgba(239, 68, 68, 0.4);
         }
 
         .form-actions {
@@ -417,57 +443,50 @@
                 grid-template-columns: 1fr;
             }
 
-            .page-header h1 { font-size: 24px; }
+            .page-header h1 {
+                font-size: 24px;
+            }
         }
     </style>
 </head>
 <body>
 
-<!-- Sidebar -->
 <div th:replace="~{fragments/sidebar-staff :: aside(activePage='profile')}"></div>
 
-<!-- Main Content -->
 <main class="main-content">
 
-    <!-- Page Header -->
     <div class="page-header">
         <a th:href="@{/staff/dashboard}" class="back-link">
             <i class="fas fa-arrow-left"></i> Quay lại Dashboard
         </a>
-        <h1><i class="fas fa-user-circle" style="color: var(--primary-color); margin-right: 10px;"></i>Hồ sơ của tôi</h1>
+        <h1><i class="fas fa-user-circle" style="color: var(--primary-color); margin-right: 10px;"></i>Hồ sơ của tôi
+        </h1>
         <p>Xem và cập nhật thông tin hồ sơ nhân viên</p>
     </div>
 
-    <!-- Success Alert -->
     <div th:if="${successMessage}" class="alert alert-success">
         <i class="fas fa-check-circle"></i>
         <span th:text="${successMessage}">Thành công!</span>
     </div>
 
-    <!-- Error Alert -->
     <div th:if="${errorMessage}" class="alert alert-error">
         <i class="fas fa-exclamation-circle"></i>
         <span th:text="${errorMessage}">Lỗi</span>
     </div>
 
-    <!-- Password Errors (from redirect flash) -->
     <div th:if="${passwordErrors}" class="alert alert-error">
         <i class="fas fa-exclamation-circle"></i>
         <span>Đổi mật khẩu thất bại. Vui lòng kiểm tra lại.</span>
     </div>
 
-    <!-- ===== 2-Column Layout ===== -->
     <div class="profile-grid">
 
-        <!-- LEFT: Avatar + Info Summary -->
         <div class="avatar-card card">
             <div class="card-body">
-                <!-- Avatar -->
                 <div class="avatar-wrap">
                     <i class="fas fa-user"></i>
                 </div>
 
-                <!-- Tên + Role -->
                 <h2 th:text="${staff.fullName != null ? staff.fullName : staff.username}">Tên nhân viên</h2>
 
                 <div>
@@ -479,7 +498,13 @@
                     </span>
                 </div>
 
-                <!-- Quick Info -->
+                <div style="margin-bottom: 22px;">
+                    <a href="#password-section" class="btn btn-danger"
+                       style="padding: 8px 20px; font-size: 13px; border-radius: 50px; box-shadow: 0 4px 10px rgba(239,68,68,0.3);">
+                        <i class="fas fa-lock"></i> Đổi mật khẩu
+                    </a>
+                </div>
+
                 <div class="info-row">
                     <span class="label"><i class="fas fa-at"></i> Username</span>
                     <span class="value" th:text="${staff.username}">admin</span>
@@ -494,23 +519,24 @@
                 </div>
                 <div class="info-row">
                     <span class="label"><i class="fas fa-briefcase"></i> Ngày bắt đầu</span>
-                    <span class="value" th:text="${staff.hireDate != null ? #temporals.format(staff.hireDate, 'dd/MM/yyyy') : '—'}">—</span>
+                    <span class="value"
+                          th:text="${staff.hireDate != null ? #temporals.format(staff.hireDate, 'dd/MM/yyyy') : '—'}">—</span>
                 </div>
                 <div class="info-row">
                     <span class="label"><i class="fas fa-calendar-check"></i> Tạo lúc</span>
-                    <span class="value" th:text="${staff.createdAt != null ? #temporals.format(staff.createdAt, 'dd/MM/yyyy HH:mm') : '—'}">—</span>
+                    <span class="value"
+                          th:text="${staff.createdAt != null ? #temporals.format(staff.createdAt, 'dd/MM/yyyy HH:mm') : '—'}">—</span>
                 </div>
                 <div class="info-row">
                     <span class="label"><i class="fas fa-sync-alt"></i> Cập nhật</span>
-                    <span class="value" th:text="${staff.updatedAt != null ? #temporals.format(staff.updatedAt, 'dd/MM/yyyy HH:mm') : 'Chưa cập nhật'}">—</span>
+                    <span class="value"
+                          th:text="${staff.updatedAt != null ? #temporals.format(staff.updatedAt, 'dd/MM/yyyy HH:mm') : 'Chưa cập nhật'}">—</span>
                 </div>
             </div>
         </div>
 
-        <!-- RIGHT: Edit Forms -->
         <div class="right-col">
 
-            <!-- ===== Card 1: Edit Profile ===== -->
             <div class="card">
                 <div class="card-header">
                     <i class="fas fa-edit"></i>
@@ -520,7 +546,6 @@
                     <form th:action="@{/staff/profile}" method="post">
                         <div class="form-row">
 
-                            <!-- Username (disabled) -->
                             <div class="form-group">
                                 <label>
                                     <i class="fas fa-at"></i> Username
@@ -528,81 +553,55 @@
                                 <input type="text" th:value="${staff.username}" disabled>
                             </div>
 
-                            <!-- Email -->
                             <div class="form-group">
                                 <label>
                                     <i class="fas fa-envelope"></i> Email <span class="required">*</span>
                                 </label>
                                 <input type="email"
                                        name="email"
-                                       th:value="${profileForm.email}"
-                                       th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''"
+                                       th:value="${staff.email}"
                                        placeholder="email@petshop.com">
-                                <div th:if="${#fields.hasErrors('email')}" class="error-msg">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    <span th:errors="profileForm.email">Email error</span>
-                                </div>
                             </div>
 
-                            <!-- Phone -->
                             <div class="form-group">
                                 <label>
                                     <i class="fas fa-phone"></i> Số điện thoại
                                 </label>
                                 <input type="text"
                                        name="phone"
-                                       th:value="${profileForm.phone}"
-                                       th:classappend="${#fields.hasErrors('phone')} ? 'is-invalid' : ''"
+                                       th:value="${staff.phone}"
                                        placeholder="0912345678">
-                                <div th:if="${#fields.hasErrors('phone')}" class="error-msg">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    <span th:errors="profileForm.phone">Phone error</span>
-                                </div>
                             </div>
 
-                            <!-- Full Name -->
                             <div class="form-group">
                                 <label>
                                     <i class="fas fa-user"></i> Tên đầy đủ
                                 </label>
                                 <input type="text"
                                        name="fullName"
-                                       th:value="${profileForm.fullName}"
-                                       th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid' : ''"
+                                       th:value="${staff.fullName}"
                                        placeholder="Nguyễn Văn A">
-                                <div th:if="${#fields.hasErrors('fullName')}" class="error-msg">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    <span th:errors="profileForm.fullName">Name error</span>
-                                </div>
                             </div>
 
-                            <!-- Hire Date -->
                             <div class="form-group">
                                 <label>
                                     <i class="fas fa-briefcase"></i> Ngày bắt đầu làm việc
                                 </label>
                                 <input type="date"
                                        name="hireDate"
-                                       th:value="${profileForm.hireDate}">
+                                       th:value="${staff.hireDate}">
                             </div>
 
-                            <!-- Bio (full width) -->
                             <div class="form-group full">
                                 <label>
                                     <i class="fas fa-file-alt"></i> Giới thiệu (Bio)
                                 </label>
                                 <textarea name="bio"
-                                          th:classappend="${#fields.hasErrors('bio')} ? 'is-invalid' : ''"
                                           placeholder="Nhập mô tả ngắn về bạn..."
-                                          th:text="${profileForm.bio}"></textarea>
-                                <div th:if="${#fields.hasErrors('bio')}" class="error-msg">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    <span th:errors="profileForm.bio">Bio error</span>
-                                </div>
+                                          th:text="${staff.bio != null ? staff.bio : ''}"></textarea>
                             </div>
 
-                        </div><!-- /form-row -->
-
+                        </div>
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> Lưu hồ sơ
@@ -610,10 +609,8 @@
                         </div>
                     </form>
                 </div>
-            </div><!-- /card edit profile -->
-
-            <!-- ===== Card 2: Change Password ===== -->
-            <div class="card">
+            </div>
+            <div class="card" id="password-section">
                 <div class="card-header">
                     <i class="fas fa-lock"></i>
                     <h3>Đổi mật khẩu</h3>
@@ -622,7 +619,6 @@
                     <form th:action="@{/staff/profile/change-password}" method="post">
                         <div class="form-row">
 
-                            <!-- Current Password -->
                             <div class="form-group full">
                                 <label>
                                     <i class="fas fa-key"></i> Mật khẩu hiện tại <span class="required">*</span>
@@ -633,7 +629,6 @@
                                        placeholder="Nhập mật khẩu hiện tại">
                             </div>
 
-                            <!-- New Password -->
                             <div class="form-group">
                                 <label>
                                     <i class="fas fa-lock"></i> Mật khẩu mới <span class="required">*</span>
@@ -645,7 +640,6 @@
                                 <span class="hint">Ít nhất 6 ký tự</span>
                             </div>
 
-                            <!-- Confirm Password -->
                             <div class="form-group">
                                 <label>
                                     <i class="fas fa-lock"></i> Xác nhận mật khẩu <span class="required">*</span>
@@ -656,8 +650,7 @@
                                        placeholder="Nhập lại mật khẩu mới">
                             </div>
 
-                        </div><!-- /form-row -->
-
+                        </div>
                         <div class="form-actions">
                             <button type="submit" class="btn btn-danger">
                                 <i class="fas fa-key"></i> Đổi mật khẩu
@@ -665,11 +658,9 @@
                         </div>
                     </form>
                 </div>
-            </div><!-- /card change password -->
-
-        </div><!-- /right-col -->
-    </div><!-- /profile-grid -->
-
+            </div>
+        </div>
+    </div>
 </main>
 </body>
 </html>

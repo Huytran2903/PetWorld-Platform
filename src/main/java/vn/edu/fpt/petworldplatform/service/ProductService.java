@@ -35,7 +35,9 @@ public class ProductService {
         return productRepo.searchAllByNameContainingIgnoreCase(keywork);
     }
 
-
+    public List<Product> getRandomProducts(int limit) {
+        return productRepo.findRandomProducts(limit);
+    }
 
 
 }

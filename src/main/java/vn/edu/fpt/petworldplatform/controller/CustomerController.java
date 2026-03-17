@@ -508,8 +508,6 @@ public class CustomerController {
                 // 6. [QUAN TRỌNG] Gán lại đường dẫn Web để lưu vào Database
                 imageUrlPath = "/uploads/" + fileName;
 
-                // Debug để bạn dễ theo dõi trên console
-                System.out.println("DEBUG: Đã lưu ảnh thành công vào: " + filePath.toAbsolutePath());
             }
 
             petDTO.setImageUrl(imageUrlPath);

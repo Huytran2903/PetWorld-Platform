@@ -70,24 +70,66 @@
     <div class="container pb-5">
         <div class="section-header d-md-flex justify-content-between align-items-center mb-5">
             <h2 class="display-3 fw-normal">Products</h2>
-            <a th:href="@{/shop/products}" class="btn btn-outline-dark btn-lg text-uppercase fs-6 rounded-1">Explore
+            <a th:href="@{/products}" class="btn btn-outline-dark btn-lg text-uppercase fs-6 rounded-1">Explore
                 More</a>
         </div>
         <div class="products-carousel swiper">
             <div class="swiper-wrapper">
-                <div class="swiper-slide">
-                    <div class="card product-card position-relative border-0 shadow-sm">
-                        <div class="z-1 position-absolute top-0 start-0 m-3">
-                            <span class="badge bg-white text-dark border shadow-sm px-3 py-2">New</span>
+
+                <div class="swiper-slide" th:each="p : ${products}" th:if="${p.isActive} == true" style="width: 250px;">
+                    <div class="pw-card h-100 shadow-sm border rounded-3 p-2">
+                        <div class="pw-img-box" style="height: 200px; overflow: hidden;"><a
+                                th:href="@{'/product/detail/' + ${p.productId}}">
+                            <img th:src="${p.imageUrl != null and !p.imageUrl.isEmpty() ? p.imageUrl : '/images/default-product.png'}"
+                                 alt="Product Image" class="img-fluid w-100 h-100" style="object-fit: cover;">
+                        </a>
                         </div>
-                        <img th:src="@{/images/item1.jpg}" class="img-fluid w-100 rounded-3" alt="Product">
-                        <div class="card-body px-0">
-                            <h5 class="product-title fw-bold">Grey Hoodie</h5>
-                            <div class="d-flex align-items-center gap-2 mb-2">
-                                <iconify-icon icon="clarity:star-solid" class="text-warning"></iconify-icon>
-                                <span class="small">5.0 (125)</span>
+
+                        <div class="pw-card-body mt-2">
+                            <p class="pw-product-name mb-1" style="font-size: 0.9rem; font-weight: 600;">
+                                <i class="bi bi-patch-check-fill text-primary me-1"></i>
+                                <span th:text="${p.name}">Product Name</span>
+                            </p>
+
+                            <div class="pw-price-row mb-2">
+                                <div th:if="${p.discountPercent != null and p.discountPercent > 0}">
+                                    <div class="d-flex align-items-center gap-2">
+                                <span class="pw-price fw-bold" style="color: #FFB25B; font-size: 1rem;"
+                                      th:text="${#numbers.formatDecimal(p.salePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                                        <span class="badge bg-danger text-white rounded-pill"
+                                              style="font-size: 0.65rem;"
+                                              th:text="'-' + ${p.discountPercent} + '%'"></span>
+                                    </div>
+                                    <del class="text-muted" style="font-size: 0.75rem;"
+                                         th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></del>
+                                </div>
+
+                                <div th:unless="${p.discountPercent != null and p.discountPercent > 0}">
+                            <span class="pw-price fw-bold text-dark" style="font-size: 1rem;"
+                                  th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                                </div>
                             </div>
-                            <span class="product-price fw-bold" style="color: #FFA54F;">$18.00</span>
+
+                            <div class="d-flex flex-column gap-2 mt-auto">
+                                <div class="pw-stock-info" style="font-size: 0.7rem;">
+                                    <i class="bi bi-box-seam"></i>
+                                    <span th:if="${p.stock > 0}">Stock: <strong th:text="${p.stock}">6</strong></span>
+                                    <span th:unless="${p.stock > 0}" class="text-danger">Sold out</span>
+                                </div>
+
+                                <div class="pw-action-buttons d-flex gap-1">
+                                    <a th:if="${p.stock > 0}" th:href="@{'/cart/add-product/' + ${p.productId}}"
+                                       class="btn btn-sm p-1 flex-fill"
+                                       style="background-color: #FFA54F; color: white; font-size: 0.7rem;">
+                                        <i class="bi bi-cart-plus"></i> ADD
+                                    </a>
+                                    <a th:href="@{'/product/detail/' + ${p.productId}}"
+                                       class="btn btn-sm btn-outline-secondary p-1 flex-fill"
+                                       style="font-size: 0.7rem;">
+                                        <i class="bi bi-eye"></i> Detail
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

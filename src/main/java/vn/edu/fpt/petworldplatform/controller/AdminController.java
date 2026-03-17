@@ -63,8 +63,7 @@ public class AdminController {
 
     private final ServiceTypeService serviceTypeService;
     private final ServiceItemService serviceItemService;
-    @Autowired
-    private OrderService orderService;
+
 
 
     //Manage Pet - OanhTP
