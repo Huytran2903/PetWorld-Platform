@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 
 import org.springframework.http.ResponseEntity;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 
 import org.springframework.ui.Model;
@@ -69,7 +70,7 @@ public class AdminAppointmentController {
     }
 
     @GetMapping
-
+    @PreAuthorize("hasAuthority('MANAGE_APPOINTMENT')")
     public String listAppointments(@ModelAttribute("filter") AppointmentFilterRequest filter, Model model) {
 
         Page<Appointment> appointmentPage = appointmentService.getAppointments(filter);
@@ -87,10 +88,10 @@ public class AdminAppointmentController {
     }
 
     @PostMapping("/{id}/cancel")
-
+    @PreAuthorize("hasAuthority('MANAGE_APPOINTMENT')")
     public String cancelAppointment(@PathVariable Integer id, @RequestParam String reason,
 
-            RedirectAttributes redirectAttributes) {
+                                    RedirectAttributes redirectAttributes) {
 
         try {
 
@@ -109,7 +110,7 @@ public class AdminAppointmentController {
     }
 
     @PostMapping("/{id}/delete")
-
+    @PreAuthorize("hasAuthority('MANAGE_APPOINTMENT')")
     public String deleteAppointment(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
 
         try {
@@ -129,7 +130,7 @@ public class AdminAppointmentController {
     }
 
     @GetMapping("/export")
-
+    @PreAuthorize("hasAuthority('MANAGE_APPOINTMENT')")
     public ResponseEntity<InputStreamResource> exportToExcel(@ModelAttribute AppointmentFilterRequest filter) {
 
         ByteArrayInputStream in = appointmentService.exportToExcel(filter);
@@ -151,7 +152,7 @@ public class AdminAppointmentController {
     }
 
     @GetMapping("/{id}")
-
+    @PreAuthorize("hasAuthority('MANAGE_APPOINTMENT')")
     public String viewDetail(@PathVariable Integer id, Model model) {
 
         Appointment appointment = appointmentService.getAppointmentById(id);
@@ -240,14 +241,14 @@ public class AdminAppointmentController {
     }
 
     @PostMapping("/{id}/service-lines/{lineId}/assign")
-
+    @PreAuthorize("hasAuthority('MANAGE_APPOINTMENT')")
     public String assignStaffToLine(@PathVariable Integer id,
 
-            @PathVariable Integer lineId,
+                                    @PathVariable Integer lineId,
 
-            @RequestParam Integer staffId,
+                                    @RequestParam Integer staffId,
 
-            RedirectAttributes redirectAttributes) {
+                                    RedirectAttributes redirectAttributes) {
 
         try {
 

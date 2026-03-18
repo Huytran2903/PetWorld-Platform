@@ -27,8 +27,8 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
-    <div class="row">
-        <div class="col-lg-7 col-md-12 mb-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-9 col-md-12 mb-4">
             <div class="card shadow-sm border-0 h-100">
                 <div class="card-body p-4 p-md-5">
 
@@ -38,50 +38,50 @@
                             <label for="configKey" class="form-label fw-bold text-dark">
                                 Config Key <span class="text-danger">*</span>
                             </label>
-                            <input type="text" class="form-control form-control-lg fs-6" id="configKey"
-                                   th:field="*{configKey}"
-                                   placeholder="Click for suggestions or type a custom key..." list="configKeysList"
-                                   autocomplete="off" required>
+                            <select class="form-select form-select-lg fs-6" id="configKey" th:field="*{configKey}"
+                                    required>
+                                <option value="" disabled selected>-- Select a predefined Configuration Key --</option>
 
-                            <datalist id="configKeysList">
-                                <option value="SHOP_ADDRESS">Shop Address</option>
-                                <option value="SHOP_EMAIL">Contact Email</option>
-                                <option value="SHOP_PHONE">Hotline / Phone Number</option>
-                                <option value="SLOGAN_MAIN">Main Slogan</option>
-                                <option value="SLOGAN_SUB">Sub Slogan</option>
-                                <option value="FOOTER_COPYRIGHT">Footer Copyright Text</option>
-                                <option value="LINK_FACEBOOK">Facebook Fanpage Link</option>
-                                <option value="LINK_YOUTUBE">YouTube Channel Link</option>
-                                <option value="LINK_INSTAGRAM">Instagram Link</option>
-                                <option value="LINK_TWITTER">Twitter (X) Link</option>
-                            </datalist>
+                                <optgroup label="Shop Information">
+                                    <option value="SHOP_ADDRESS">SHOP_ADDRESS (Shop Address)</option>
+                                    <option value="SHOP_EMAIL">SHOP_EMAIL (Contact Email)</option>
+                                    <option value="SHOP_PHONE">SHOP_PHONE (Hotline / Phone Number)</option>
+                                </optgroup>
 
-                            <div class="form-text mt-2 text-muted">
-                                <i class="fas fa-info-circle me-1"></i> Choose from the list or create a new key
-                                (UPPERCASE, no spaces, use `_` as separator).
-                            </div>
+                                <optgroup label="Slogans & Texts">
+                                    <option value="SLOGAN_MAIN">SLOGAN_MAIN (Main Slogan)</option>
+                                    <option value="SLOGAN_SUB">SLOGAN_SUB (Sub Slogan)</option>
+                                    <option value="FOOTER_COPYRIGHT">FOOTER_COPYRIGHT (Footer Copyright Text)</option>
+                                </optgroup>
+
+                                <optgroup label="Social Links">
+                                    <option value="LINK_FACEBOOK">LINK_FACEBOOK (Facebook Fanpage Link)</option>
+                                    <option value="LINK_YOUTUBE">LINK_YOUTUBE (YouTube Channel Link)</option>
+                                    <option value="LINK_INSTAGRAM">LINK_INSTAGRAM (Instagram Link)</option>
+                                    <option value="LINK_TWITTER">LINK_TWITTER (Twitter/X Link)</option>
+                                </optgroup>
+                            </select>
                         </div>
 
                         <div class="mb-4">
                             <label for="configValue" class="form-label fw-bold text-dark">
                                 Config Value <span class="text-danger">*</span>
                             </label>
-                            <input type="text" class="form-control form-control-lg fs-6" id="configValue"
-                                   th:field="*{configValue}"
-                                   placeholder="Enter the display value..." required>
+                            <textarea class="form-control fs-6" id="configValue" th:field="*{configValue}"
+                                      rows="4" placeholder="Enter the display value here..." required></textarea>
                         </div>
 
                         <div class="mb-5">
                             <label for="dataType" class="form-label fw-bold text-dark">Data Type</label>
-                            <select class="form-select form-select-lg fs-6" id="dataType" th:field="*{dataType}">
-                                <option value="STRING">String (Text)</option>
+                            <select class="form-select form-select-lg fs-6 w-50" id="dataType" th:field="*{dataType}">
+                                <option value="STRING">String (Text/Links)</option>
                                 <option value="NUMBER">Number (Numeric)</option>
                                 <option value="BOOLEAN">Boolean (True/False)</option>
                             </select>
                         </div>
 
                         <div class="d-flex justify-content-end border-top pt-4">
-                            <button type="reset" class="btn btn-light border px-4 me-3">Clear</button>
+                            <button type="reset" class="btn btn-light border px-4 me-3">Clear Form</button>
                             <button type="submit" class="btn btn-primary px-4 shadow-sm">
                                 <i class="fas fa-save me-1"></i> Save Configuration
                             </button>
@@ -91,64 +91,8 @@
                 </div>
             </div>
         </div>
-
-        <div class="col-lg-5 col-md-12 mb-4">
-            <div class="card shadow-sm border-0 h-100"
-                 style="background-color: #fffaf5; border: 1px solid #ffe8cc !important;">
-                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
-                    <h5 class="fw-bold text-dark mb-0">
-                        <i class="fas fa-lightbulb text-warning me-2"></i>Configuration Guide
-                    </h5>
-                </div>
-                <div class="card-body px-4 pb-4">
-                    <p class="text-muted small mb-3">Below is the list of supported <b>Config Keys</b> used to
-                        dynamically display content on the storefront.</p>
-
-                    <div class="table-responsive bg-white rounded border">
-                        <table class="table table-sm table-hover mb-0 align-middle">
-                            <thead class="table-light text-muted" style="font-size: 0.85rem;">
-                            <tr>
-                                <th class="px-3 py-2">Config Key</th>
-                                <th class="px-3 py-2">Usage / Location</th>
-                            </tr>
-                            </thead>
-                            <tbody style="font-size: 0.9rem;">
-                            <tr>
-                                <td class="px-3"><code class="text-dark fw-bold">SHOP_ADDRESS</code></td>
-                                <td class="px-3 text-muted">Header Address</td>
-                            </tr>
-                            <tr>
-                                <td class="px-3"><code class="text-dark fw-bold">SHOP_EMAIL</code></td>
-                                <td class="px-3 text-muted">Header Email</td>
-                            </tr>
-                            <tr>
-                                <td class="px-3"><code class="text-dark fw-bold">SLOGAN_MAIN</code></td>
-                                <td class="px-3 text-muted">Main Header Slogan</td>
-                            </tr>
-                            <tr>
-                                <td class="px-3"><code class="text-dark fw-bold">SLOGAN_SUB</code></td>
-                                <td class="px-3 text-muted">Sub Header Slogan</td>
-                            </tr>
-                            <tr>
-                                <td class="px-3"><code class="text-dark fw-bold">FOOTER_COPYRIGHT</code></td>
-                                <td class="px-3 text-muted">Footer Copyright Info</td>
-                            </tr>
-                            <tr>
-                                <td class="px-3"><code class="text-dark fw-bold">LINK_FACEBOOK</code></td>
-                                <td class="px-3 text-muted">Footer Facebook Icon</td>
-                            </tr>
-                            <tr>
-                                <td class="px-3"><code class="text-dark fw-bold">LINK_YOUTUBE</code></td>
-                                <td class="px-3 text-muted">Footer YouTube Icon</td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

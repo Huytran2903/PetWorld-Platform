@@ -36,6 +36,7 @@
                             </div>
                         </div>
 
+
                         <form th:action="@{${formMode == 'create' ? '/admin/staff-manage/create' : '/admin/staff-manage/update'}}"
                               th:object="${newStaff}"
                               method="POST">
@@ -66,8 +67,13 @@
                                     <label class="form-label">Email</label>
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                                        <input type="email" class="form-control" th:field="*{email}"
-                                               placeholder="A.2842@example.com" required>
+                                        <input type="email" th:field="*{email}"
+                                               class="form-control"
+                                               th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''"
+                                               required>
+
+                                        <div class="invalid-feedback fw-medium" th:if="${#fields.hasErrors('email')}"
+                                             th:errors="*{email}"></div>
                                     </div>
                                 </div>
 
@@ -75,8 +81,12 @@
                                     <label class="form-label">Phone</label>
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="bi bi-telephone"></i></span>
-                                        <input type="tel" class="form-control" th:field="*{phone}"
-                                               placeholder="(+84) ...">
+                                        <input type="text" th:field="*{phone}"
+                                               class="form-control"
+                                               th:classappend="${#fields.hasErrors('phone')} ? 'is-invalid' : ''">
+
+                                        <div class="invalid-feedback fw-medium" th:if="${#fields.hasErrors('phone')}"
+                                             th:errors="*{phone}"></div>
                                     </div>
                                 </div>
 

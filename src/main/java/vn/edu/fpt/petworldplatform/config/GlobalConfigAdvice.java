@@ -9,6 +9,7 @@ import vn.edu.fpt.petworldplatform.entity.SystemConfigs;
 import vn.edu.fpt.petworldplatform.service.CartService;
 import vn.edu.fpt.petworldplatform.service.ConfigService;
 import vn.edu.fpt.petworldplatform.service.CustomerService;
+import vn.edu.fpt.petworldplatform.util.SecuritySupport;
 
 import java.util.HashMap;
 import java.util.List;
@@ -24,42 +25,27 @@ public class GlobalConfigAdvice {
     private CartService cartService;
 
     @Autowired
+    private SecuritySupport securitySupport;
+
+    @Autowired
     private CustomerService customerService;
 
     // Hàm này sẽ tự động chạy ở MỌI TRANG để đếm giỏ hàng
     @ModelAttribute("cartCount")
-    public int getCartCountGlobal(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-            return 0; // Chưa đăng nhập thì giỏ = 0
-        }
+    public int getCartCountGlobal() {
         try {
-            Integer customerId = getCustomerIdFromAuth(authentication);
+            Integer customerId = securitySupport.getCurrentAuthenticatedCustomerId();
+
             if (customerId != null) {
                 return cartService.getCountCartItems(customerId);
             }
         } catch (Exception e) {
             System.out.println("Lỗi đếm giỏ hàng: " + e.getMessage());
         }
+
         return 0;
     }
 
-    // Hàm xử lý ID thông minh (Google & Form) mang sang đây dùng chung
-    private Integer getCustomerIdFromAuth(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return null;
-        }
-        // Nếu là Google
-        if (authentication.getPrincipal() instanceof org.springframework.security.oauth2.core.user.OAuth2User oauth2User) {
-            String email = oauth2User.getAttribute("email");
-            return customerService.findIdByEmail(email);
-        }
-        // Nếu là Customer lưu sẵn
-        if (authentication.getPrincipal() instanceof Customer customer) {
-            return customer.getCustomerId();
-        }
-        // Nếu là Form thường
-        return customerService.findIdByUsername(authentication.getName());
-    }
 
     @ModelAttribute("globalConfigs")
     public Map<String, String> populateGlobalConfigs() {

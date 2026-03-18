@@ -37,7 +37,9 @@ public class ProductService {
         return productRepo.searchAllByNameContainingIgnoreCase(keywork, pageable);
     }
 
-
+    public List<Product> getRandomProducts(int limit) {
+        return productRepo.findRandomProducts(limit);
+    }
 
 
 }

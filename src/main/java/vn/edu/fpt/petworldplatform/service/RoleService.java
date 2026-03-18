@@ -23,7 +23,25 @@ public class RoleService {
     @Autowired
     private AccessControlRepository accessRepo;
 
-    private final List<String> ALL_PERMISSION_CODES = List.of("MANAGE_USERS", "MANAGE_ORDERS", "MANAGE_PRODUCTS", "VIEW_REPORTS", "SYSTEM_SETTINGS");
+    private final List<String> ALL_PERMISSION_CODES = List.of(
+            // 1. Nhóm Quản lý tài khoản
+            "MANAGE_STAFF",
+            "MANAGE_CUSTOMER",
+
+            // 2. Nhóm Quản lý Cửa hàng & Sản phẩm
+            "MANAGE_CATEGORY",
+            "MANAGE_PRODUCT",
+            "MANAGE_ORDER",
+
+            // 3. Nhóm Quản lý Dịch vụ Spa / Thú y
+            "MANAGE_PET",
+            "MANAGE_SERVICE",
+            "MANAGE_APPOINTMENT",
+
+            // 4. Nhóm Báo cáo & Cài đặt chung
+            "VIEW_REPORT",
+            "SYSTEM_SETTINGS"
+    );
 
     public List<Role> getAllRoles() {
         return roleRepo.findAll();

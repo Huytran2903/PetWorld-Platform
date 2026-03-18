@@ -23,4 +23,6 @@ public interface CustomerRepo extends JpaRepository<Customer, Integer> {
             "LOWER(c.email) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(c.phone) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Page<Customer> searchCustomers(@Param("keyword") String keyword, Pageable pageable);
+
+    long countByIsActiveTrue();
 }

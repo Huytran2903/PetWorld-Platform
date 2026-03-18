@@ -1,6 +1,9 @@
 package vn.edu.fpt.petworldplatform.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import vn.edu.fpt.petworldplatform.entity.PetHealthRecord;
 import vn.edu.fpt.petworldplatform.entity.Staff;
 
@@ -15,5 +18,10 @@ public interface PetHealthRecordRepository extends JpaRepository<PetHealthRecord
     Optional<PetHealthRecord> findByAppointment_IdAndAppointmentServiceLine_Id(Integer appointmentId, Integer serviceLineId);
 
     Optional<PetHealthRecord> findByAppointmentServiceLine_Id(Integer serviceLineId);
-    List<PetHealthRecord> findByPerformedByStaff(Staff staff);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query(value = "UPDATE PetHealthRecords SET PerformedByStaffID = NULL WHERE PerformedByStaffID = :oldStaffId", nativeQuery = true)
+    void unassignAllHealthRecords(@Param("oldStaffId") Integer oldStaffId);
+
+
 }

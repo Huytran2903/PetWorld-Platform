@@ -3,25 +3,31 @@ package vn.edu.fpt.petworldplatform.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import vn.edu.fpt.petworldplatform.entity.AccessControl;
+import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.Staff;
 import vn.edu.fpt.petworldplatform.repository.AccessControlRepository;
+import vn.edu.fpt.petworldplatform.repository.CustomerRepo;
 import vn.edu.fpt.petworldplatform.repository.StaffRepository;
+import vn.edu.fpt.petworldplatform.config.CustomUserDetails;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
-public class StaffUserDetailsService implements UserDetailsService {
+public class CustomUserDetailsService implements UserDetailsService {
 
     @Autowired
     private StaffRepository staffRepo;
+
+    @Autowired
+    private CustomerRepo customerRepo;
 
     @Autowired
     private AccessControlRepository accessControlRepo;
@@ -29,8 +35,17 @@ public class StaffUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        Staff staff = staffRepo.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy tài khoản nhân viên: " + username));
+        // 1. CUSTOMER
+        Optional<Customer> customerOpt = customerRepo.findByUsername(username);
+        if (customerOpt.isPresent()) {
+            Customer customer = customerOpt.get();
+            List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
+
+            // Trả về CustomUserDetails kèm theo đối tượng Customer
+            return new CustomUserDetails(customer.getUsername(), customer.getPasswordHash(), customer.getIsActive() != null ? customer.getIsActive() : true, authorities, customer);
+        }
+
+        Staff staff = staffRepo.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy tài khoản: " + username));
 
         List<GrantedAuthority> authorities = new ArrayList<>();
 
@@ -42,18 +57,12 @@ public class StaffUserDetailsService implements UserDetailsService {
                     authorities.add(new SimpleGrantedAuthority(acc.getPermissionCode()));
                 }
             }
-
             authorities.add(new SimpleGrantedAuthority("ROLE_" + staff.getRole().getRoleName().toUpperCase()));
         }
 
-        return new User(
-                staff.getUsername(),
-                staff.getPasswordHash(),
-                staff.getIsActive() != null ? staff.getIsActive() : true,
-                true,
-                true,
-                true,
-                authorities
-        );
+        // Trả về CustomUserDetails kèm theo đối tượng Staff
+        return new CustomUserDetails(staff.getUsername(), staff.getPasswordHash(), staff.getIsActive() != null ? staff.getIsActive() : true, authorities, staff);
+
     }
+
 }

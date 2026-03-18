@@ -1,6 +1,7 @@
 package vn.edu.fpt.petworldplatform.config;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -14,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import vn.edu.fpt.petworldplatform.service.CustomUserDetailsService;
 
 @Configuration
 @EnableWebSecurity
@@ -23,6 +25,12 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 public class SecurityConfig {
 
     private final GoogleLoginSuccessHandler googleLoginSuccessHandler;
+    private final CustomUserDetailsService customUserDetailsService;
+
+    private final CustomLoginSuccessHandler customLoginSuccessHandler;
+
+    @Value("${petworld.security.remember-me.key}")
+    private String rememberMeKey;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
@@ -36,56 +44,50 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(Customizer.withDefaults())
-                .securityContext(context -> context
-                        .securityContextRepository(new HttpSessionSecurityContextRepository())
-                )
-                .httpBasic(Customizer.withDefaults())
+        http.csrf(csrf -> csrf.disable()).securityContext(context -> context.securityContextRepository(new HttpSessionSecurityContextRepository())).httpBasic(Customizer.withDefaults())
                 // --- PHÂN QUYỀN ---
                 .authorizeHttpRequests(auth -> auth
                         // A. Link Tĩnh
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/fonts/**", "/webjars/**").permitAll()
 
                         // B. Link Public
-                        .requestMatchers("/", "/home", "/index").permitAll()
-                        .requestMatchers("/login", "/register", "/do-register", "/verify").permitAll()
-                        .requestMatchers("/do-login").permitAll()
+                        .requestMatchers("/", "/home", "/index").permitAll().requestMatchers("/login", "/register", "/do-register", "/verify").permitAll().requestMatchers("/do-login").permitAll()
 
                         .requestMatchers("/uploads/**").permitAll()
 
-                        .requestMatchers("/reset-password/**", "/forgot-password", "/verify-forgot-password-otp").permitAll()
-                        .requestMatchers("/staff/**").permitAll()
+                        .requestMatchers("/reset-password/**", "/forgot-password", "/verify-forgot-password-otp").permitAll().requestMatchers("/staff/**").permitAll()
                         // --------------------
 
                         .requestMatchers("/profile/**").authenticated()
 
                         // D. Còn lại khóa hết
-                        .anyRequest().authenticated()
-                )
-
-                // --- CẤU HÌNH FORM LOGIN ---
+                        .anyRequest().authenticated())
 
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .loginProcessingUrl("/login-security-check")
-                        .defaultSuccessUrl("/", true)
+                        .loginProcessingUrl("/do-login")
+                        //Security gọi DaoAuthenticationProvider tự goji CustomUserDetailService xử lí chia luồng staff, customer
+                        //với set ROLE-....
+                        //DaoAuthenticationProvider sẽ dựa vào passwordEncoder coi hash mk theo phương pháp nào rồi quét
+                        //check mk có đúng hay không
+                        .successHandler(customLoginSuccessHandler)
+                        .failureUrl("/login?error")
                         .permitAll()
+                )
+
+                // --- REMEMBER ME ---
+                .rememberMe(remember -> remember
+                        .key(rememberMeKey)
+                        .rememberMeParameter("remember-me")
+                        .userDetailsService(customUserDetailsService)
+                        .tokenValiditySeconds(7 * 24 * 60 * 60)
                 )
 
                 // --- GOOGLE LOGIN ---
-                .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/login")
-                        .successHandler(googleLoginSuccessHandler)
-                )
+                .oauth2Login(oauth2 -> oauth2.loginPage("/login").successHandler(googleLoginSuccessHandler))
 
                 // --- LOGOUT ---
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout")
-                        .deleteCookies("JSESSIONID")
-                        .permitAll()
-                );
+                .logout(logout -> logout.logoutUrl("/logout").logoutSuccessUrl("/login?logout").deleteCookies("JSESSIONID").permitAll());
 
         return http.build();
     }

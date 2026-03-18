@@ -149,7 +149,7 @@ public class OrderService {
     //List Order
     public List<Order> getAllOrder() {
         return orderRepo.findAll();
-   }
+    }
 
     public Order findByOrderCode(String orderCode) {
         return orderRepo.findByOrderCode(orderCode);

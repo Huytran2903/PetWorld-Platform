@@ -2,6 +2,7 @@ package vn.edu.fpt.petworldplatform.controller;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -20,11 +21,13 @@ public class BookingController {
 
     private final BookingService bookingService;
 
-    /** Book Service Appointment - use case: Customer clicks "Book Service Appointment" on Home. */
+    /**
+     * Book Service Appointment - use case: Customer clicks "Book Service Appointment" on Home.
+     */
     @GetMapping("/booking")
     public String bookingPage(HttpSession session, Model model,
-                               @RequestParam(required = false) String type,
-                               RedirectAttributes redirectAttributes) {
+                              @RequestParam(required = false) String type,
+                              RedirectAttributes redirectAttributes) {
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
         if (customer == null) {
             return "redirect:/login";
@@ -45,7 +48,9 @@ public class BookingController {
         return "appointment/booking";
     }
 
-    /** Confirm booking - validates lead time (BR-17) and operating hours (08:00–20:00). */
+    /**
+     * Confirm booking - validates lead time (BR-17) and operating hours (08:00–20:00).
+     */
     @PostMapping("/create")
     public String createBooking(HttpSession session,
                                 @RequestParam Integer petId,

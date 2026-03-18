@@ -1,5 +1,6 @@
 package vn.edu.fpt.petworldplatform.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import vn.edu.fpt.petworldplatform.dto.ChangePasswordForm;
 import vn.edu.fpt.petworldplatform.dto.StaffProfileForm;
 import vn.edu.fpt.petworldplatform.entity.Staff;
@@ -12,13 +13,14 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import vn.edu.fpt.petworldplatform.util.SecuritySupport;
 
 /**
  * Controller Staff Profile
- *
+ * <p>
  * Giả định: sau khi login, Authentication.getPrincipal() trả về Staff entity
  * (hoặc custom UserDetails chứa staffId).
- *
+ * <p>
  * Nếu project dùng custom UserDetails khác, thay getStaffIdFromAuth() cho phù hợp.
  */
 @Controller
@@ -27,27 +29,20 @@ public class StaffProfileController {
 
     private final StaffProfileService service;
 
+    @Autowired
+    private SecuritySupport securitySupport;
+
     public StaffProfileController(StaffProfileService service) {
         this.service = service;
     }
 
-    // -------------------------------------------------------
-    // Helper: lấy StaffID từ Authentication
-    // -------------------------------------------------------
-    private Integer getStaffIdFromAuth() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof Staff) {
-            return ((Staff) auth.getPrincipal()).getStaffId();
-        }
-        throw new RuntimeException("Chưa đăng nhập hoặc Principal không hợp lệ");
-    }
 
     // -------------------------------------------------------
     // GET /staff/profile — hiển thị form profile
     // -------------------------------------------------------
     @GetMapping("/profile")
     public String showProfile(Model model) {
-        Integer staffId = getStaffIdFromAuth();
+        Integer staffId = securitySupport.getCurrentAuthenticatedStaffId();
         Staff staff = service.getStaffById(staffId);
 
         // Nếu chưa có form trong model (không phải redirect sau lỗi), tạo mới từ entity
@@ -79,7 +74,7 @@ public class StaffProfileController {
                                 Model model) {
         if (result.hasErrors()) {
             // Trả về view trực tiếp (không redirect) để giữ BindingResult
-            Integer staffId = getStaffIdFromAuth();
+            Integer staffId = securitySupport.getCurrentAuthenticatedStaffId();
             Staff staff = service.getStaffById(staffId);
 
             // Thêm passwordForm rỗng cho section đổi mật khẩu
@@ -90,7 +85,7 @@ public class StaffProfileController {
         }
 
         try {
-            Integer staffId = getStaffIdFromAuth();
+            Integer staffId = securitySupport.getCurrentAuthenticatedStaffId();
             service.updateProfile(staffId, form);
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật hồ sơ thành công!");
         } catch (IllegalArgumentException e) {
@@ -114,7 +109,7 @@ public class StaffProfileController {
         }
 
         try {
-            Integer staffId = getStaffIdFromAuth();
+            Integer staffId = securitySupport.getCurrentAuthenticatedStaffId();
             service.changePassword(staffId, form);
             redirectAttributes.addFlashAttribute("successMessage", "Đổi mật khẩu thành công!");
         } catch (IllegalArgumentException e) {

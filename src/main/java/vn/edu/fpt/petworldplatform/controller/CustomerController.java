@@ -18,6 +18,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import vn.edu.fpt.petworldplatform.config.CustomUserDetails;
 import vn.edu.fpt.petworldplatform.dto.PetCreateDTO;
 import vn.edu.fpt.petworldplatform.dto.ProfileFormDTO;
 import vn.edu.fpt.petworldplatform.entity.Appointment;
@@ -30,10 +31,20 @@ import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryRepository;
 import vn.edu.fpt.petworldplatform.entity.*;
 import vn.edu.fpt.petworldplatform.repository.PetHealthPhotoRepository;
 import vn.edu.fpt.petworldplatform.repository.PetHealthRecordRepository;
+import vn.edu.fpt.petworldplatform.entity.*;
 import vn.edu.fpt.petworldplatform.repository.PetRepo;
 import vn.edu.fpt.petworldplatform.service.*;
 import vn.edu.fpt.petworldplatform.util.SecuritySupport;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -69,25 +80,41 @@ public class CustomerController {
     public String profileShow(Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        if (auth == null || !auth.isAuthenticated() || auth.getPrincipal().equals("anonymousUser")) {
+        // 1. Kiểm tra chưa đăng nhập
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
             return "redirect:/login";
         }
 
-        if (auth.getPrincipal() instanceof Staff) {
-            return "redirect:/admin/dashboard";
+        // 2. Chặn Staff đi lạc vào trang Profile của khách (Đuổi về Dashboard)
+        if (auth.getPrincipal() instanceof CustomUserDetails) {
+            Object account = ((CustomUserDetails) auth.getPrincipal()).getAccount();
+            if (account instanceof Staff) {
+                Staff staff = (Staff) account;
+
+                String roleName = staff.getRole().getRoleName().toUpperCase();
+
+                if ("ADMIN".equals(roleName)) {
+                    return "redirect:/admin/reports/revenue";
+                } else {
+                    return "redirect:/staff/assigned_list";
+                }
+            }
         }
 
+        // 3. Lấy thông tin Customer
         Customer authUser = securitySupport.getCurrentAuthenticatedCustomer();
-        if (authUser == null) return "redirect:/login";
 
+        if (authUser == null) {
+            return "redirect:/login";
+        }
+
+        // 4. Lấy data mới nhất từ Database để hiển thị
         Customer currentFreshUser = customerService.findById(authUser.getCustomerId()).orElse(null);
 
         if (currentFreshUser != null) {
             model.addAttribute("user", currentFreshUser);
 
-
             boolean canChangePassword = currentFreshUser.getAuthProvider() != AuthProvider.GOOGLE;
-
             model.addAttribute("hasPassword", canChangePassword);
 
             return "auth/viewProfile";
@@ -460,23 +487,27 @@ public class CustomerController {
             String imageUrlPath = null;
 
             if (imageFile != null && !imageFile.isEmpty()) {
-                String fileName = System.currentTimeMillis() + "_" + imageFile.getOriginalFilename();
 
-                String projectDir = System.getProperty("user.dir");
+                Path uploadPath = Paths.get("uploads");
 
-                java.nio.file.Path uploadPath = java.nio.file.Paths.get(projectDir, "src", "main", "resources", "static", "images");
-
-                if (!java.nio.file.Files.exists(uploadPath)) {
-                    java.nio.file.Files.createDirectories(uploadPath);
+                // 2. Tạo thư mục nếu chưa tồn tại trên ổ cứng
+                if (!Files.exists(uploadPath)) {
+                    Files.createDirectories(uploadPath);
                 }
 
-                java.nio.file.Path filePath = uploadPath.resolve(fileName);
-                try (java.io.InputStream inputStream = imageFile.getInputStream()) {
-                    java.nio.file.Files.copy(inputStream, filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                String fileName = UUID.randomUUID().toString() + "_" + imageFile.getOriginalFilename();
+
+                // 4. Đường dẫn vật lý chi tiết của file ảnh
+                Path filePath = uploadPath.resolve(fileName);
+
+                // 5. Copy file từ request của người dùng lưu vào ổ cứng
+                try (InputStream inputStream = imageFile.getInputStream()) {
+                    Files.copy(inputStream, filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
                 }
 
-                imageUrlPath = "/images/" + fileName;
-                System.out.println("DEBUG: Đã lưu ảnh vào SRC: " + filePath.toAbsolutePath());
+                // 6. [QUAN TRỌNG] Gán lại đường dẫn Web để lưu vào Database
+                imageUrlPath = "/uploads/" + fileName;
+
             }
 
             petDTO.setImageUrl(imageUrlPath);
@@ -540,28 +571,29 @@ public class CustomerController {
             existingPet.setOwner(existingPet.getOwner());
 
             if (imageFile != null && !imageFile.isEmpty()) {
-                String fileName = System.currentTimeMillis() + "_" + imageFile.getOriginalFilename();
-                String projectDir = System.getProperty("user.dir");
+                // 1. Tạo tên file duy nhất chống trùng lặp (dùng UUID kết hợp tên gốc)
+                String fileName = java.util.UUID.randomUUID().toString() + "_" + imageFile.getOriginalFilename();
 
-                java.nio.file.Path pathSrc = java.nio.file.Paths.get(projectDir, "src", "main", "resources", "static", "images");
-                if (!java.nio.file.Files.exists(pathSrc)) {
-                    java.nio.file.Files.createDirectories(pathSrc);
+                // 2. Trỏ thẳng đến thư mục "uploads" ở thư mục gốc dự án
+                java.nio.file.Path uploadPath = java.nio.file.Paths.get("uploads");
+
+                // 3. Tạo thư mục nếu chưa có
+                if (!java.nio.file.Files.exists(uploadPath)) {
+                    java.nio.file.Files.createDirectories(uploadPath);
                 }
-                java.nio.file.Path fileSrc = pathSrc.resolve(fileName);
 
+                // 4. Đường dẫn vật lý chi tiết
+                java.nio.file.Path filePath = uploadPath.resolve(fileName);
+
+                // 5. Lưu file vào ổ cứng (Chỉ cần lưu 1 lần duy nhất!)
                 try (java.io.InputStream inputStream = imageFile.getInputStream()) {
-                    java.nio.file.Files.copy(inputStream, fileSrc, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    java.nio.file.Files.copy(inputStream, filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
                 }
 
-                java.nio.file.Path pathTarget = java.nio.file.Paths.get(projectDir, "target", "classes", "static", "images");
-                if (!java.nio.file.Files.exists(pathTarget)) {
-                    java.nio.file.Files.createDirectories(pathTarget);
-                }
-                java.nio.file.Path fileTarget = pathTarget.resolve(fileName);
-                java.nio.file.Files.copy(fileSrc, fileTarget, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                existingPet.setImageUrl("/images/" + fileName);
+                // 6. Gán đường dẫn mới cho entity (Bắt đầu bằng /uploads/)
+                existingPet.setImageUrl("/uploads/" + fileName);
 
-                System.out.println("DEBUG: Đã lưu ảnh vào cả SRC và TARGET: " + fileName);
+                System.out.println("DEBUG: Đã lưu ảnh vào thư mục ngoài: " + filePath.toAbsolutePath());
             }
 
             petService.savePet(existingPet);

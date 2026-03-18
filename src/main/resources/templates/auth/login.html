@@ -24,16 +24,16 @@
 
             <div class="login-form-container">
                 <h1 class="login-form-title">Welcome Back</h1>
-                <p class="login-form-subtitle">Enter your email and password to access your account</p>
+                <p class="login-form-subtitle">Enter your username and password to access your account</p>
 
                 <div th:if="${param.error}" class="alert alert-danger py-2" role="alert" style="font-size: 0.9rem;">
                     <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                    <span>Username hoặc mật khẩu không đúng, hoặc tài khoản chưa kích hoạt!</span>
+                    <span>Invalid username or password, or account is locked!</span>
                 </div>
 
                 <div th:if="${param.logout}" class="alert alert-success py-2" role="alert" style="font-size: 0.9rem;">
                     <i class="bi bi-check-circle-fill me-2"></i>
-                    <span>Đăng xuất thành công.</span>
+                    <span>You have been logged out successfully.</span>
                 </div>
 
                 <div th:if="${message}" class="alert alert-success py-2" role="alert" style="font-size: 0.9rem;">
@@ -47,6 +47,7 @@
                 </div>
 
                 <form th:action="@{/do-login}" method="POST">
+
                     <div class="login-form-group">
                         <label for="username">USERNAME</label>
                         <input type="text" id="username" name="username" placeholder="Enter your username" required/>
@@ -59,9 +60,11 @@
                     </div>
 
                     <div class="login-form-options">
-                        <div class="login-remember-me">
-                            <input type="checkbox" id="login-remember" name="remember-me"/>
-                            <label for="login-remember">Remember Me</label>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="remember-me" id="rememberMe">
+                            <label class="form-check-label" for="rememberMe">
+                                Remember Me
+                            </label>
                         </div>
 
                         <a href="#" class="login-forgot-link" data-bs-toggle="modal"
@@ -96,7 +99,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header bg-warning border-0">
-                <h5 class="modal-title text-white fw-bold" id="verificationLabel">Thông Báo Hệ Thống</h5>
+                <h5 class="modal-title text-white fw-bold" id="verificationLabel">System Notification</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center py-4">
@@ -105,7 +108,7 @@
                 <p id="verifyMessage" class="text-muted"></p>
             </div>
             <div class="modal-footer justify-content-center border-0">
-                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -116,7 +119,7 @@
         <div class="modal-content">
 
             <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold" id="forgotPasswordLabel">Khôi phục mật khẩu</h5>
+                <h5 class="modal-title fw-bold" id="forgotPasswordLabel">Reset Password</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 

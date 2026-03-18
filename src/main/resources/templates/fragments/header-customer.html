@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
 
 <header th:fragment="header(activePage)" class="bg-white">
@@ -17,115 +18,102 @@
                 </div>
 
                 <div class="col-sm-4 col-lg-5 d-none d-lg-block">
-                    <div class="slogan-box text-center">
-                        <h5 class="slogan-title mb-1 text-white fw-bold"
+                    <div class="slogan-box text-center text-white">
+                        <h5 class="fw-bold mb-1"
                             th:text="${globalConfigs != null and globalConfigs['SLOGAN_MAIN'] != null ? globalConfigs['SLOGAN_MAIN'] : 'We Care Your Pets'}">
-                            We Care Your Pets</h5>
-                        <p class="slogan-sub mb-0 text-white small"
+                            We Care Your Pets
+                        </h5>
+
+                        <p class="small mb-0"
                            th:text="${globalConfigs != null and globalConfigs['SLOGAN_SUB'] != null ? globalConfigs['SLOGAN_SUB'] : 'Healthy • Happy • Loved'}">
-                            Healthy • Happy • Loved</p>
+                            Healthy • Happy • Loved
+                        </p>
                     </div>
                 </div>
 
-                <div class="col-sm-8 col-lg-4 d-flex justify-content-end align-items-center mt-3 mt-sm-0">
-
-                    <div th:if="${session.loggedInAccount != null}" class="d-flex align-items-center">
+                <div class="col-sm-8 col-lg-4 d-flex justify-content-end align-items-center">
+                    <div sec:authorize="isAuthenticated()" class="d-flex align-items-center">
                         <a th:href="@{/profile}"
-                           class="d-flex align-items-center gap-2 text-decoration-none text-white border-end pe-3 me-3"
-                           title="Hồ sơ">
+                           class="d-flex align-items-center gap-2 text-decoration-none text-white border-end pe-3 me-3">
                             <iconify-icon icon="healthicons:person" class="fs-4"></iconify-icon>
-                            <span class="fw-bold" th:text="${session.loggedInAccount.fullName}">User</span>
+                            <span class="fw-bold"
+                                  th:text="${session.loggedInAccount?.fullName ?: #authentication.name}">User</span>
                         </a>
-                        <a th:href="@{/logout}" class="text-white d-flex align-items-center" title="Đăng xuất">
+                        <a th:href="@{/logout}" class="text-white" title="Logout">
                             <iconify-icon icon="mdi:logout" class="fs-4"></iconify-icon>
                         </a>
                     </div>
 
-                    <div th:if="${session.loggedInAccount == null}">
-                        <a th:href="@{/login}" class="btn btn-outline-light fw-bold rounded-pill px-4 shadow-sm">
-                            <i class="fa-solid fa-right-to-bracket me-2"></i>Login
-                        </a>
+                    <div sec:authorize="!isAuthenticated()">
+                        <a th:href="@{/login}" class="btn btn-outline-light fw-bold rounded-pill px-4">Login</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="container-fluid">
-        <hr class="m-0 border-white opacity-25">
-    </div>
-
     <div class="container">
-        <nav class="main-menu d-flex navbar navbar-expand-lg py-2">
-
-            <div class="d-flex d-lg-none align-items-center mt-2">
-                <a th:href="@{/cart/view}" class="mx-2 text-dark position-relative">
+        <nav class="navbar navbar-expand-lg py-2">
+            <div class="d-flex d-lg-none align-items-center">
+                <a th:href="@{/cart/view}" class="mx-2 text-dark position-relative"
+                   sec:authorize="hasRole('CUSTOMER') or hasAuthority('OIDC_USER') or isAnonymous()">
                     <iconify-icon icon="mdi:cart" class="fs-4"></iconify-icon>
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle pt-1 text-white"
-                          style="font-size: 10px; padding: 4px 6px; background-color: #FFA54F;"
-                          th:text="${cartCount != null ? cartCount : 0}">0</span>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle"
+                          style="background-color: #FFA54F;" th:text="${cartCount ?: 0}">0</span>
                 </a>
-                <button class="navbar-toggler border-0 shadow-none ms-2" type="button" data-bs-toggle="offcanvas"
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas"
                         data-bs-target="#offcanvasNavbar">
                     <span class="navbar-toggler-icon"></span>
                 </button>
             </div>
 
             <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar">
-                <div class="offcanvas-header justify-content-end border-bottom">
-                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-                </div>
-
                 <div class="offcanvas-body justify-content-between align-items-center">
-                    <ul class="navbar-nav menu-list list-unstyled d-flex gap-md-4 mb-0 fw-medium">
+                    <ul class="navbar-nav gap-md-4 mb-0 fw-medium">
                         <li class="nav-item">
                             <a th:href="@{/}" class="nav-link"
-                               th:classappend="${activePage == 'home'} ? 'fw-bold' : 'text-dark'"
-                               th:style="${activePage == 'home'} ? 'color: #FFA54F; border-bottom: 2px solid #FFA54F;' : ''">Home</a>
+                               th:style="${activePage == 'home'} ? 'color:#FFA54F; border-bottom:2px solid #FFA54F;' : ''">Home</a>
                         </li>
 
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="shopDropdown" data-bs-toggle="dropdown"
-                               th:classappend="${activePage != null and #strings.startsWith(activePage, 'shop')} ? 'fw-bold' : 'text-dark'"
-                               th:style="${activePage != null and #strings.startsWith(activePage, 'shop')} ? 'color: #FFA54F; border-bottom: 2px solid #FFA54F;' : ''">Shop</a>
-                            <ul class="dropdown-menu shadow-sm border-0 mt-1">
-                                <li><a th:href="@{/pets}" class="dropdown-item py-2"><i
-                                        class="fa-solid fa-paw me-2"></i> Pets</a></li>
-                                <li><a th:href="@{/products}" class="dropdown-item py-2"><i
-                                        class="fa-solid fa-box-open me-2"></i> Products</a></li>
+                            <a class="nav-link dropdown-toggle" href="#" id="shopDropdown" data-bs-toggle="dropdown">Shop</a>
+                            <ul class="dropdown-menu border-0 shadow-sm">
+                                <li><a th:href="@{/pets}" class="dropdown-item">Pets</a></li>
+                                <li><a th:href="@{/products}" class="dropdown-item">Products</a></li>
                             </ul>
                         </li>
 
-                        <li class="nav-item">
-                            <a th:href="@{/appointment/booking}" class="nav-link"
-                               th:classappend="${activePage == 'booking'} ? 'fw-bold' : 'text-dark'"
-                               th:style="${activePage == 'booking'} ? 'color: #FFA54F; border-bottom: 2px solid #FFA54F;' : ''">Book
-                                Appointment</a>
+                        <li class="nav-item"
+                            sec:authorize="hasRole('CUSTOMER') or hasAuthority('OIDC_USER') or isAnonymous()">
+                            <a th:href="@{/appointment/booking}" class="nav-link">Book Appointment</a>
+                        </li>
+
+                        <li class="nav-item" sec:authorize="hasRole('CUSTOMER') or hasAuthority('OIDC_USER')">
+                            <a th:href="@{/customer/pet/my-pets}" class="nav-link">My Pets</a>
                         </li>
 
                         <li class="nav-item">
-                            <a th:href="@{/customer/pet/my-pets}" class="nav-link"
-                               th:classappend="${activePage == 'mypets'} ? 'fw-bold' : 'text-dark'"
-                               th:style="${activePage == 'mypets'} ? 'color: #FFA54F; border-bottom: 2px solid #FFA54F;' : ''">My
-                                Pets</a>
+                            <a th:href="@{/feedback}" class="nav-link">Feedback</a>
                         </li>
 
-                        <li class="nav-item">
-                            <a th:href="@{/feedback}" class="nav-link"
-                               th:classappend="${activePage == 'feedback'} ? 'fw-bold' : 'text-dark'"
-                               th:style="${activePage == 'feedback'} ? 'color: #FFA54F; border-bottom: 2px solid #FFA54F;' : ''">
-                                <i class="fas fa-comment-dots me-1"></i>Feedback
-                            </a>
+                        <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                            <a th:href="@{/admin/reports/revenue}" class="nav-link fw-bold"
+                               style="color: #dc3545 !important;">Admin Panel</a>
+                        </li>
+
+                        <li class="nav-item"
+                            sec:authorize="isAuthenticated() and !hasRole('ADMIN') and !hasRole('CUSTOMER') and !hasAuthority('OIDC_USER')">
+                            <a th:href="@{/staff/assigned_list}" class="nav-link fw-bold"
+                               style="color: #0d6efd !important;">Staff Panel</a>
                         </li>
                     </ul>
 
-                    <div class="d-none d-lg-flex align-items-center gap-4">
-                        <a th:href="@{/cart/view}"
-                           class="text-decoration-none text-dark position-relative hover-orange">
+                    <div class="d-none d-lg-flex"
+                         sec:authorize="hasRole('CUSTOMER') or hasAuthority('OIDC_USER') or isAnonymous()">
+                        <a th:href="@{/cart/view}" class="text-dark position-relative">
                             <iconify-icon icon="mdi:cart" class="fs-4"></iconify-icon>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle pt-1 text-white"
-                                  style="font-size: 10px; padding: 4px 6px; background-color: #FFA54F;"
-                                  th:text="${cartCount != null ? cartCount : 0}">0</span>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle"
+                                  style="background-color: #FFA54F;" th:text="${cartCount ?: 0}">0</span>
                         </a>
                     </div>
                 </div>

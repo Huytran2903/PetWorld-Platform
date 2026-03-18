@@ -31,4 +31,6 @@ public interface StaffRepository extends JpaRepository<Staff, Integer> {
             "LOWER(s.email) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(s.phone) LIKE LOWER(CONCAT('%', :keyword, '%'))")
     Page<Staff> searchStaffs(@Param("keyword") String keyword, Pageable pageable);
+
+    boolean existsByPhone(String phone);
 }

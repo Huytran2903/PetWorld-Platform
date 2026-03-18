@@ -10,10 +10,20 @@
     </div>
 
     <nav class="nav flex-column gap-2">
-        <a th:href="@{/admin/dashboard}" class="nav-link-custom d-flex align-items-center"
-           th:classappend="${activePage == 'dashboard' ? 'active-state' : ''}">
-            <i class="bi bi-speedometer2 me-3 fs-5"></i>
-            Dashboard
+
+        <a th:href="@{/}" class="nav-link-custom d-flex align-items-center text-warning" target="_blank"
+        >
+            <i class="fa-solid fa-house me-3 fs-5"></i>
+            View Homepage
+            <i class="fa-solid fa-arrow-up-right-from-square ms-auto" style="font-size: 0.8rem;"></i>
+        </a>
+
+        <hr class="border-secondary my-2 opacity-25">
+
+        <a th:href="@{/admin/reports/revenue}" class="nav-link-custom d-flex align-items-center"
+           th:classappend="${activePage == 'reports-revenue' ? 'active-state' : ''}">
+            <i class="fa-solid fa-chart-line me-3 fs-5"></i>
+            Revenue Report
         </a>
 
         <a th:href="@{/admin/appointments}" class="nav-link-custom d-flex align-items-center"
@@ -21,11 +31,6 @@
             <i class="bi bi-calendar-check-fill me-3 fs-5"></i> Appointment management
         </a>
 
-        <a th:href="@{/admin/reports/revenue}" class="nav-link-custom d-flex align-items-center"
-           th:classappend="${activePage == 'reports-revenue' ? 'active-state' : ''}">
-            <i class="fa-solid fa-chart-line me-3 fs-5"></i>
-            Revenue Report
-        </a>
 
         <a th:href="@{/admin/statistics/pets}" class="nav-link-custom d-flex align-items-center"
            th:classappend="${activePage == 'pet-report' ? 'active-state' : ''}">

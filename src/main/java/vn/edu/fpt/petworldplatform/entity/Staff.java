@@ -82,4 +82,35 @@ public class Staff {
     @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
     @ToString.Exclude
     private List<Appointment> appointments;
+
+    public long getPendingVaccinesCount() {
+        if (this.vaccinations == null) return 0;
+        LocalDate today = LocalDate.now();
+        return this.vaccinations.stream()
+                .filter(v -> v.getNextDueDate() != null && !v.getNextDueDate().isBefore(today))
+                .count();
+    }
+
+    // 1. Đếm việc CẦN BÀN GIAO (pending, assigned)
+    public long getPendingAppointmentsCount() {
+        if (this.appointmentServiceLines == null || this.appointmentServiceLines.isEmpty()) return 0;
+        return this.appointmentServiceLines.stream()
+                .filter(service -> {
+                    String status = service.getServiceStatus();
+                    return status != null && (status.equalsIgnoreCase("assigned") || status.equalsIgnoreCase("pending"));
+                })
+                .count();
+    }
+
+    // 2. Đếm việc ĐANG LÀM DỞ (in_progress) - Dùng để chặn xóa
+    public long getInProgressAppointmentsCount() {
+        if (this.appointmentServiceLines == null || this.appointmentServiceLines.isEmpty()) return 0;
+        return this.appointmentServiceLines.stream()
+                .filter(service -> "in_progress".equalsIgnoreCase(service.getServiceStatus()))
+                .count();
+    }
+
+    public long getPendingHealthRecordsCount() {
+        return 0;
+    }
 }

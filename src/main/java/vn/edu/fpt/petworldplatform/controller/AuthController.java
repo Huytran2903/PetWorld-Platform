@@ -38,9 +38,6 @@ public class AuthController {
     private CustomerService customerService;
 
     @Autowired
-    private StaffService staffService;
-
-    @Autowired
     private SecuritySupport securitySupport;
 
     private final SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
@@ -117,79 +114,6 @@ public class AuthController {
         return "redirect:/";
     }
 
-    @PostMapping("/do-login")
-    public String handleLogin(@RequestParam String username,
-                              @RequestParam String password,
-                              Model model,
-                              HttpSession session,
-                              HttpServletRequest request,
-                              HttpServletResponse response) {
-
-        Optional<Customer> customerOpt = customerService.login(username, password);
-
-        if (customerOpt.isPresent()) {
-            Customer customer = customerOpt.get();
-
-            if (!customer.getIsActive()) {
-                model.addAttribute("error", "Your account has been locked!");
-                return "auth/login";
-            }
-
-            session.setAttribute("loggedInAccount", customer);
-
-            List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
-
-            UsernamePasswordAuthenticationToken authToken =
-                    new UsernamePasswordAuthenticationToken(customer, null, authorities);
-
-            SecurityContext context = SecurityContextHolder.createEmptyContext();
-            context.setAuthentication(authToken);
-            SecurityContextHolder.setContext(context);
-
-            securityContextRepository.saveContext(context, request, response);
-
-            return "redirect:/";
-        }
-
-        Optional<Staff> staffOpt = staffService.login(username, password);
-
-        if (staffOpt.isPresent()) {
-            Staff staff = staffOpt.get();
-
-            if (!staff.getIsActive()) {
-                model.addAttribute("error", "Staff account is locked!");
-                return "auth/login";
-            }
-
-            if (staff.getRole() == null || staff.getRole().getRoleName() == null || staff.getRole().getRoleName().isBlank()) {
-                model.addAttribute("error", "Staff account has no valid role. Please contact administrator.");
-                return "auth/login";
-            }
-
-            String normalizedRole = staff.getRole().getRoleName().trim().toUpperCase();
-
-            String roleName = "ROLE_" + normalizedRole;
-            List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(roleName));
-
-            UsernamePasswordAuthenticationToken authToken =
-                    new UsernamePasswordAuthenticationToken(staff, null, authorities);
-
-            SecurityContext context = SecurityContextHolder.createEmptyContext();
-            context.setAuthentication(authToken);
-            SecurityContextHolder.setContext(context);
-
-            securityContextRepository.saveContext(context, request, response);
-
-            if ("ADMIN".equals(normalizedRole)) {
-                return "redirect:/admin/dashboard";
-            }
-
-            return "redirect:/staff/assigned_list";
-        }
-
-        model.addAttribute("error", "Invalid username or password");
-        return "auth/login";
-    }
 
     @GetMapping("/profile/change-password")
     public String showChangePasswordForm(Model model) {

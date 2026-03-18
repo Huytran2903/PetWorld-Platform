@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -58,23 +59,19 @@ public class AdminController {
     @Autowired
     private ProductService productService;
 
+    private final OrderService orderService;
 
     private final CustomerService customerService;
     private final CartService cartService;
 
     private final ServiceTypeService serviceTypeService;
     private final ServiceItemService serviceItemService;
-    @Autowired
-    private OrderService orderService;
 
-    @GetMapping("/admin/dashboard")
-    public String viewDashboard() {
-        return "admin/admin-dashboard";
-    }
 
 
     //Manage Pet - OanhTP
     //List
+    @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("/admin/manage-pet")
     public String getAllPets(Model model, @RequestParam(value = "kw", required = false, defaultValue = "")                              String keyword, @RequestParam(value = "page", defaultValue = "0") int page) {
 
@@ -99,6 +96,7 @@ public class AdminController {
     }
 
     //Edit Pet
+    @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("admin/pet/edit/{id}")
     public String updatePet(Model model, @PathVariable("id") Integer id) {
         Pets pet = petService.getPetById(id);
@@ -125,6 +123,7 @@ public class AdminController {
     }
 
     //Create Pet
+    @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("/admin/pet/new")
     public String createPet(Model model) {
         model.addAttribute("selectedPet", new PetFormDTO());
@@ -134,6 +133,7 @@ public class AdminController {
     }
 
     //Delete Pet
+    @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("/admin/pet/delete/{id}")
     public String deletePet(@PathVariable("id") Integer id) {
         petService.removePet(id);
@@ -141,6 +141,7 @@ public class AdminController {
     }
 
 
+    @PreAuthorize("hasAuthority('MANAGE_PET')")
     @PostMapping("/admin/pet/save")
     public String savePet(@Validated @ModelAttribute("selectedPet") Pets pet,
                           BindingResult result,
@@ -237,6 +238,7 @@ public class AdminController {
 
     //Manage Categories - OanhTP
     //List
+    @PreAuthorize("hasAuthority('MANAGE_CATEGORY')")
     @GetMapping("/admin/manage-categories")
     public String getAllCategories(Model model) {
 
@@ -246,6 +248,7 @@ public class AdminController {
     }
 
     //Edit
+    @PreAuthorize("hasAuthority('MANAGE_CATEGORY')")
     @GetMapping("/admin/category/edit/{id}")
     public String editCategory(Model model, @PathVariable("id") Integer id) {
         model.addAttribute("selectedCate", categoryService.getCategoryById(id));
@@ -256,6 +259,7 @@ public class AdminController {
 
 
     //Create
+    @PreAuthorize("hasAuthority('MANAGE_CATEGORY')")
     @GetMapping("/admin/category/new")
     public String createCategory(Model model) {
         model.addAttribute("selectedCate", new Categories());
@@ -265,6 +269,7 @@ public class AdminController {
     }
 
     //Save
+    @PreAuthorize("hasAuthority('MANAGE_CATEGORY')")
     @PostMapping("/admin/category/save")
     public String saveCategory(@Validated @ModelAttribute("selectedCate") Categories cate, BindingResult result, Model model, @RequestParam("mode") String formMode) {
 
@@ -278,6 +283,7 @@ public class AdminController {
     }
 
     //Delete
+    @PreAuthorize("hasAuthority('MANAGE_CATEGORY')")
     @GetMapping("/admin/category/delete/{id}")
     public String deleteCategory(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) {
         try {
@@ -301,6 +307,7 @@ public class AdminController {
 
 
     //Manage Product - OanhTP
+    @PreAuthorize("hasAuthority('MANAGE_PRODUCT')")
     @GetMapping("/admin/manage-product")
     public String getAllProducts(
             Model model,
@@ -333,6 +340,7 @@ public class AdminController {
         return "admin/manageProduct";
     }
     //Create
+    @PreAuthorize("hasAuthority('MANAGE_PRODUCT')")
     @GetMapping("/admin/product/new")
     public String createProduct(Model model) {
         model.addAttribute("selectedPro", new Product());
@@ -343,6 +351,7 @@ public class AdminController {
         return "admin/product-form";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_PRODUCT')")
     @PostMapping("/admin/product/save")
     public String saveProduct(@Validated @ModelAttribute("selectedPro") Product product,
                               BindingResult result,
@@ -409,6 +418,7 @@ public class AdminController {
         return "redirect:/admin/manage-product";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_PRODUCT')")
     @GetMapping("/admin/product/edit/{id}")
     public String updateProduct(Model model, @PathVariable("id") Integer id) {
         model.addAttribute("selectedPro", productService.getProductById(id));
@@ -420,6 +430,7 @@ public class AdminController {
         return "admin/product-form";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_PRODUCT')")
     @GetMapping("/admin/product/delete/{id}")
     public String deleteProduct(@PathVariable("id") Integer id) {
         productService.deleteById(id);
@@ -427,6 +438,7 @@ public class AdminController {
     }
 
 
+    @PreAuthorize("hasAuthority('MANAGE_STAFF')")
     @GetMapping("/admin/staff-manage")
     public String showStaffList(
             @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword,
@@ -448,6 +460,7 @@ public class AdminController {
         return "admin/staff-manage";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_STAFF')")
     @GetMapping("/admin/staff-manage/create")
     public String showStaffForm(Model model) {
         model.addAttribute("newStaff", new StaffFormDTO());
@@ -456,12 +469,26 @@ public class AdminController {
         return "admin/add-editStaffProfile";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_STAFF')")
     @PostMapping("/admin/staff-manage/create")
-    public String createStaff(@ModelAttribute("newStaff") StaffFormDTO staffDTO, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
+    public String createStaff(@ModelAttribute("newStaff") StaffFormDTO staffDTO,
+                              BindingResult bindingResult,
+                              Model model,
+                              RedirectAttributes redirectAttributes) {
+
+        if (staffService.isEmailExists(staffDTO.getEmail())) {
+            bindingResult.rejectValue("email", "error.email", "This email is already in use!");
+        }
+
+        if (staffDTO.getPhone() != null && !staffDTO.getPhone().trim().isEmpty()) {
+            if (staffService.isPhoneExists(staffDTO.getPhone())) {
+                bindingResult.rejectValue("phone", "error.phone", "This phone number is already in use!");
+            }
+        }
+
         if (bindingResult.hasErrors()) {
             model.addAttribute("roles", roleService.getAllRoles());
             model.addAttribute("formMode", "create");
-
             return "admin/add-editStaffProfile";
         }
 
@@ -476,6 +503,7 @@ public class AdminController {
     }
 
 
+    @PreAuthorize("hasAuthority('MANAGE_STAFF')")
     @GetMapping("/admin/edit-staff/{id}")
     public String showEditStaffForm(@PathVariable("id") Integer id, Model model) {
         model.addAttribute("newStaff", staffService.getStaffDtoById(id));
@@ -485,6 +513,7 @@ public class AdminController {
         return "admin/add-editStaffProfile";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_STAFF')")
     @PostMapping("/admin/staff-manage/update")
     public String updateStaff(@Valid @ModelAttribute("newStaff") StaffFormDTO staffDTO, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
 
@@ -504,6 +533,7 @@ public class AdminController {
         return "redirect:/admin/staff-manage";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_STAFF')")
     @PostMapping("/admin/staff/delete")
     public String deleteStaff(@RequestParam("staffId") Integer staffId,
                               @RequestParam(value = "transferStaffId", required = false) Integer transferStaffId,
@@ -514,6 +544,7 @@ public class AdminController {
         return "redirect:/admin/staff-manage";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_CUSTOMER')")
     @GetMapping("/admin/customer-manage")
     public String showCustomerList(
             @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword,
@@ -534,6 +565,7 @@ public class AdminController {
     }
 
     // --- Edit Customer ---
+    @PreAuthorize("hasAuthority('MANAGE_CUSTOMER')")
     @GetMapping("/admin/customer/update-status/{id}")
     public String updateStatus(@PathVariable("id") int id, @RequestParam("isActive") boolean isActive, RedirectAttributes redirectAttributes) {
         try {
@@ -549,6 +581,7 @@ public class AdminController {
     }
 
     // --- Delete Customer ---
+    @PreAuthorize("hasAuthority('MANAGE_CUSTOMER')")
     @GetMapping("/admin/customer/delete/{id}")
     public String deleteCustomer(@PathVariable("id") int id, RedirectAttributes redirectAttributes) {
         try {
@@ -564,12 +597,14 @@ public class AdminController {
 
 
     // Service Manager
+    @PreAuthorize("hasAuthority('MANAGE_SERVICE')")
     @GetMapping("/admin/service-manager")
     public String serviceManager() {
         return "admin/service-manager";
     }
 
     // Manage Service Types (list + form)
+    @PreAuthorize("hasAuthority('MANAGE_SERVICE')")
     @GetMapping("/admin/service-type")
     public String listServiceTypes(Model model, @RequestParam(required = false) Integer editId) {
         model.addAttribute("serviceTypes", serviceTypeService.findAll());
@@ -585,6 +620,7 @@ public class AdminController {
         return "admin/service-type";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_SERVICE')")
     @PostMapping("/admin/service-type/save")
     public String saveServiceType(@Valid @ModelAttribute("serviceType") ServiceType serviceType, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
         Integer id = serviceType.getId();
@@ -606,6 +642,7 @@ public class AdminController {
         return "redirect:/admin/service-type";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_SERVICE')")
     @PostMapping("/admin/service-type/delete/{id}")
     public String deleteServiceType(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
         ServiceTypeService.DeleteResult result = serviceTypeService.deleteOrDeactivate(id);
@@ -620,6 +657,7 @@ public class AdminController {
     }
 
     // UC-26: Manage Services (service items: price, duration, etc.)
+    @PreAuthorize("hasAuthority('MANAGE_SERVICE')")
     @GetMapping("/admin/services")
     public String listServices(Model model, @RequestParam(required = false) String typeFilter, @RequestParam(required = false) Integer editId) {
         model.addAttribute("serviceTypes", serviceTypeService.findAll());
@@ -638,6 +676,7 @@ public class AdminController {
         return "admin/service-list";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_SERVICE')")
     @PostMapping("/admin/service/save")
     public String saveService(@Valid @ModelAttribute("service") ServiceItem service, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
         Integer id = service.getId();
@@ -661,6 +700,7 @@ public class AdminController {
         return "redirect:/admin/services";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_SERVICE')")
     @PostMapping("/admin/service/delete/{id}")
     public String deleteService(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
         ServiceItemService.DeleteResult result = serviceItemService.deleteOrDeactivate(id);
@@ -674,6 +714,7 @@ public class AdminController {
         return "redirect:/admin/services";
     }
 
+    @PreAuthorize("hasAuthority('VIEW_REPORT')")
     @GetMapping("/admin/statistics/pets")
     public String showPetStatistics(
             @RequestParam(value = "startDate", required = false) String startDate,
@@ -694,6 +735,7 @@ public class AdminController {
         return "admin/statistics/pet-report";
     }
 
+    @PreAuthorize("hasAuthority('VIEW_REPORT')")
     @GetMapping("/admin/statistics/pets/export")
     public ResponseEntity<String> exportPetStatistics(
             @RequestParam(value = "startDate", required = false) String startDate,
@@ -763,6 +805,7 @@ public class AdminController {
     }
 
     //Manage Order - OanhTP
+    @PreAuthorize("hasAuthority('MANAGE_ORDER')")
     @GetMapping("/admin/manage-order")
     public String getAllOrder(Model model) {
         model.addAttribute("ord", orderService.getAllOrder());
