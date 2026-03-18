@@ -4,6 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -73,36 +76,48 @@ public class AdminController {
     //Manage Pet - OanhTP
     //List
     @GetMapping("/admin/manage-pet")
-    public String getAllPets(Model model, @RequestParam(value = "kw", required = false, defaultValue = "")                              String keyword) {
+    public String getAllPets(Model model, @RequestParam(value = "kw", required = false, defaultValue = "")                              String keyword, @RequestParam(value = "page", defaultValue = "0") int page) {
+
+        int pageSize = 8;
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by("petID").ascending());
+
+        Page<Pets> petPage;
+
         if(!keyword.equals("")) {
-            model.addAttribute("pets", petService.searchPetByName(keyword));
+            petPage = petService.searchPetByName(keyword, pageable);
         }
         else {
-            model.addAttribute("pets", petService.findAllPets());
+            petPage = petService.findAllPets(pageable);
         }
+
+        model.addAttribute("pets", petPage.getContent());           // Danh sách pet của trang hiện tại
+        model.addAttribute("totalPages", petPage.getTotalPages());    // Tổng số trang (để vẽ nút 1, 2, 3...)
+        model.addAttribute("currentPage", page);                      // Trang hiện tại
+        model.addAttribute("kw", keyword);
+
         return "admin/managePet";
     }
 
     //Edit Pet
     @GetMapping("admin/pet/edit/{id}")
     public String updatePet(Model model, @PathVariable("id") Integer id) {
-        Pets petFromDb = petService.getPetById(id);
+        Pets pet = petService.getPetById(id);
 
-        if (petFromDb.getVaccinations() != null && !petFromDb.getVaccinations().isEmpty()) {
-            petFromDb.setIsVaccinated(true);
+        if (pet.getVaccinations() != null && !pet.getVaccinations().isEmpty()) {
+            pet.setIsVaccinated(true);
 
-            PetVaccinations firstVaccination = petFromDb.getVaccinations().get(0);
+            PetVaccinations firstVaccination = pet.getVaccinations().get(0);
 
             if (firstVaccination != null && firstVaccination.getPerformedByStaff() != null) {
-                petFromDb.setVaccinationStaffID(firstVaccination.getPerformedByStaff().getStaffId());
+                pet.setVaccinationStaffID(firstVaccination.getPerformedByStaff().getStaffId());
             } else {
-                petFromDb.setVaccinationStaffID(null);
+                pet.setVaccinationStaffID(null);
             }
         } else {
-            petFromDb.setIsVaccinated(false);
+            pet.setIsVaccinated(false);
         }
 
-        model.addAttribute("selectedPet", petFromDb);
+        model.addAttribute("selectedPet", pet);
         model.addAttribute("formMode", "edit");
         model.addAttribute("staffList", staffService.getAllStaffs());
 
@@ -287,18 +302,36 @@ public class AdminController {
 
     //Manage Product - OanhTP
     @GetMapping("/admin/manage-product")
-    public String getAllProducts(Model model, @RequestParam(value = "kw", required = false, defaultValue = "") String keyword) {
+    public String getAllProducts(
+            Model model,
+            @RequestParam(value = "kw", required = false, defaultValue = "") String keyword,
+            @RequestParam(value = "page", defaultValue = "0") int page) { // Thêm tham số nhận số trang
 
-        if(!keyword.equals("")) {
-            model.addAttribute("products", productService.searchProductsByName(keyword));
+        // 1. Cấu hình phân trang: 8 sản phẩm mỗi trang (bạn có thể đổi thành 10 tùy ý)
+        // Sắp xếp theo ID giảm dần để sản phẩm mới thêm lên đầu
+        int pageSize = 10;
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by("productId").ascending());
+
+        Page<Product> productPage;
+
+        // 2. Gọi hàm Service có chứa Pageable
+        if (!keyword.trim().isEmpty()) {
+            productPage = productService.searchProductsByName(keyword, pageable);
+        } else {
+            productPage = productService.getAllProducts(pageable);
         }
-        else {
-            model.addAttribute("products", productService.getAllProducts());
-        }
+
+
+        model.addAttribute("products", productPage.getContent());
+        model.addAttribute("totalPages", productPage.getTotalPages());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("kw", keyword);
+
+
+        model.addAttribute("totalElements", productPage.getTotalElements());
 
         return "admin/manageProduct";
     }
-
     //Create
     @GetMapping("/admin/product/new")
     public String createProduct(Model model) {

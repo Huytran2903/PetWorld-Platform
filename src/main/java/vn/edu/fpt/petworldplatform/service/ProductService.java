@@ -1,6 +1,8 @@
 package vn.edu.fpt.petworldplatform.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import vn.edu.fpt.petworldplatform.entity.Product;
 import vn.edu.fpt.petworldplatform.repository.ProductRepo;
@@ -14,8 +16,8 @@ public class ProductService {
     private ProductRepo productRepo;
 
 
-    public List<Product> getAllProducts() {
-        return productRepo.findAll();
+    public Page<Product> getAllProducts(Pageable pageable) {
+        return productRepo.findByIsActiveTrue(pageable);
     }
 
     public Product getProductById(Integer id) {
@@ -31,8 +33,8 @@ public class ProductService {
     }
 
     //search
-    public List<Product> searchProductsByName(String keywork) {
-        return productRepo.searchAllByNameContainingIgnoreCase(keywork);
+    public Page<Product> searchProductsByName(String keywork, Pageable pageable) {
+        return productRepo.searchAllByNameContainingIgnoreCase(keywork, pageable);
     }
 
 

@@ -71,5 +71,9 @@ public interface PetRepo extends JpaRepository<Pets, Integer> {
     @Query("SELECT 'SOLD', COUNT(p) FROM Pets p WHERE p.petType = :species AND p.createdAt BETWEEN :startDate AND :endDate AND p.purchasedAt IS NOT NULL")
     List<Object[]> countSoldPetsBySpeciesAndDateRange(@Param("species") String species, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
-    List<Pets> searchAllByNameContainingIgnoreCase(String keyword);
+    //List<Pets> searchAllByNameContainingIgnoreCase(String keyword);
+
+    Page<Pets> findAllByOwnerIsNullAndPriceIsNotNull(Pageable pageable);
+
+    Page<Pets> findAllByNameContainingIgnoreCase(String name, Pageable pageable);
 }

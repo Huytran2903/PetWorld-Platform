@@ -1,8 +1,9 @@
 package vn.edu.fpt.petworldplatform.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import vn.edu.fpt.petworldplatform.dto.PetCreateDTO;
 import vn.edu.fpt.petworldplatform.dto.PetStatisticsDTO;
@@ -12,11 +13,6 @@ import vn.edu.fpt.petworldplatform.repository.CustomerRepo;
 import vn.edu.fpt.petworldplatform.repository.PetRepo;
 import vn.edu.fpt.petworldplatform.util.FileUploadUtil;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -39,11 +35,16 @@ public class PetService {
 
 
     //OanhTP
-    public List<Pets> findAllPets() {
-        return petRepo.findAll();
+    public Page<Pets> findAllPets(Pageable pageable) {
+        return petRepo.findAll(pageable);
     }
 
     // --- 1. Lấy danh sách ---
+    //OanhTP
+    public Page<Pets> getAllPetWithPagination(Pageable pageable) {
+        return petRepo.findAllByOwnerIsNullAndPriceIsNotNull(pageable);
+    }
+
     public List<Pets> getAllPets() {
         return petRepo.findAll();
     }
@@ -75,8 +76,8 @@ public class PetService {
         petRepo.deleteById(id);
     }
 
-    public List<Pets> searchPetByName(String keyword) {
-        return petRepo.searchAllByNameContainingIgnoreCase(keyword);
+    public Page<Pets> searchPetByName(String keyword, Pageable pageable) {
+        return petRepo.findAllByNameContainingIgnoreCase(keyword, pageable);
     }
 
     public void createPet(PetCreateDTO dto) throws IOException {
