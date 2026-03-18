@@ -20,6 +20,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ContentDisposition;
+import vn.edu.fpt.petworldplatform.dto.AdminVaccinationRowDTO;
 import vn.edu.fpt.petworldplatform.dto.PetFormDTO;
 import vn.edu.fpt.petworldplatform.dto.PetStatisticsDTO;
 import vn.edu.fpt.petworldplatform.entity.*;
@@ -28,6 +29,8 @@ import vn.edu.fpt.petworldplatform.entity.Categories;
 import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.entity.ServiceItem;
 import vn.edu.fpt.petworldplatform.entity.ServiceType;
+import vn.edu.fpt.petworldplatform.entity.PetVaccinations;
+import vn.edu.fpt.petworldplatform.repository.PetVaccinationRepository;
 import vn.edu.fpt.petworldplatform.service.*;
 
 import java.io.IOException;
@@ -38,7 +41,10 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.web.bind.annotation.PostMapping;
@@ -66,6 +72,7 @@ public class AdminController {
 
     private final ServiceTypeService serviceTypeService;
     private final ServiceItemService serviceItemService;
+    private final PetVaccinationRepository petVaccinationRepository;
 
 
 
@@ -599,8 +606,41 @@ public class AdminController {
     // Service Manager
     @PreAuthorize("hasAuthority('MANAGE_SERVICE')")
     @GetMapping("/admin/service-manager")
-    public String serviceManager() {
+    public String serviceManager(Model model) {
+        model.addAttribute("vaccinationRows", loadLatestVaccinationRows());
         return "admin/service-manager";
+    }
+
+    @GetMapping("/admin/vaccination-records")
+    public String vaccinationRecords(Model model) {
+        model.addAttribute("vaccinationRows", loadLatestVaccinationRows());
+        return "admin/vaccination-records";
+    }
+
+    private List<AdminVaccinationRowDTO> loadLatestVaccinationRows() {
+        // Latest record per (petId + vaccineName) so the shown nextDueDate is always the newest one.
+        List<PetVaccinations> all = petVaccinationRepository.findAllWithPetOwnerStaffOrderByAdministeredDateDescCreatedAtDesc();
+        Map<String, AdminVaccinationRowDTO> latestByKey = new LinkedHashMap<>();
+        for (PetVaccinations pv : all) {
+            if (pv.getPet() == null || pv.getPet().getPetID() == null) continue;
+            String vaccineName = pv.getVaccineName() != null ? pv.getVaccineName().trim() : "";
+            if (vaccineName.isBlank()) continue;
+            String key = pv.getPet().getPetID() + "|" + vaccineName.toLowerCase(Locale.ROOT);
+            if (latestByKey.containsKey(key)) continue; // newest already added due to ordering
+
+            String ownerName = pv.getPet().getOwner() != null ? pv.getPet().getOwner().getFullName() : null;
+            String performedBy = pv.getPerformedByStaff() != null ? pv.getPerformedByStaff().getFullName() : null;
+            latestByKey.put(key, AdminVaccinationRowDTO.builder()
+                    .petId(pv.getPet().getPetID())
+                    .petName(pv.getPet().getName())
+                    .ownerName(ownerName)
+                    .vaccineName(vaccineName)
+                    .administeredDate(pv.getAdministeredDate())
+                    .nextDueDate(pv.getNextDueDate())
+                    .performedByName(performedBy)
+                    .build());
+        }
+        return new ArrayList<>(latestByKey.values());
     }
 
     // Manage Service Types (list + form)
@@ -695,9 +735,18 @@ public class AdminController {
         }
         service.setName(service.getName().trim());
         if (service.getServiceType() != null) service.setServiceType(service.getServiceType().trim());
-        serviceItemService.save(service);
-        redirectAttributes.addFlashAttribute("message", "Service saved successfully.");
-        return "redirect:/admin/services";
+        try {
+            serviceItemService.save(service);
+            redirectAttributes.addFlashAttribute("message", "Service saved successfully.");
+            return "redirect:/admin/services";
+        } catch (IllegalStateException | IllegalArgumentException ex) {
+            model.addAttribute("serviceTypes", serviceTypeService.findAll());
+            model.addAttribute("services", serviceItemService.findAll());
+            model.addAttribute("typeFilter", "");
+            model.addAttribute("openModal", true);
+            model.addAttribute("error", ex.getMessage());
+            return "admin/service-list";
+        }
     }
 
     @PreAuthorize("hasAuthority('MANAGE_SERVICE')")

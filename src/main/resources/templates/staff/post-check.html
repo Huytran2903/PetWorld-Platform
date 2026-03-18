@@ -47,6 +47,38 @@
                           method="post"
                           enctype="multipart/form-data">
 
+                        <div th:if="${context.serviceType != null and (#strings.equalsIgnoreCase(context.serviceType, 'vaccine') or #strings.equalsIgnoreCase(context.serviceType, 'vaccination'))}"
+                             style="margin-top:12px; padding:12px; border:1px solid #e7ecf4; border-radius:12px; background:#fff7ed;">
+                            <div style="font-weight:800; color:#143a66; margin-bottom:8px;">
+                                Vaccine Record
+                            </div>
+
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                                <div>
+                                    <label for="vaccineName">Vaccine Name</label>
+                                    <input id="vaccineName" type="text" th:field="*{vaccineName}" readonly />
+                                    <small style="display:block; color:#6b7686; font-weight:600; margin-top:4px;">
+                                        Vaccine name is locked to the service name.
+                                    </small>
+                                </div>
+                                <div th:if="${context.oneTimeVaccine != true}">
+                                    <label for="nextDueDate">Next Due Date</label>
+                                    <input id="nextDueDate" type="date" th:field="*{nextDueDate}" />
+                                    <small style="display:block; color:#6b7686; font-weight:600; margin-top:4px;">
+                                        Nếu để trống, hệ thống sẽ khóa không cho tiêm lại loại vaccine này cho tới khi có Next Due.
+                                    </small>
+                                </div>
+                                <div th:if="${context.oneTimeVaccine == true}" style="align-self:flex-end;">
+                                    <strong>Đây là loại vaccine chỉ tiêm 1 lần.</strong>
+                                </div>
+                            </div>
+
+                            <div style="margin-top:12px;">
+                                <label for="vaccineNote">Vaccine Note</label>
+                                <textarea id="vaccineNote" th:field="*{vaccineNote}" placeholder="Số mũi, lô vaccine, phản ứng sau tiêm..."></textarea>
+                            </div>
+                        </div>
+
                         <div style="margin-top:12px;">
                             <label for="note">Service Note</label>
                             <textarea id="note" th:field="*{note}" placeholder="Write what you did, issues found, etc."></textarea>

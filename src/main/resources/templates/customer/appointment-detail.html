@@ -278,97 +278,7 @@
 
 
 
-<<<<<<< HEAD
-        <div class="hero-inner">
-
-
-
-            <div>
-
-
-
-                <h1>Appointment Detail</h1>
-
-
-
-                <p>View detailed information for this appointment.</p>
-
-
-
-            </div>
-
-
-
-            <div style="display:flex; gap:10px; align-items:center;">
-
-
-
-                <a th:href="@{/customer/appointments}" class="btn btn-secondary btn-sm">Back to History</a>
-
-                <div class="type-pill">DETAIL</div>
-
-
-
-            </div>
-
-
-
-        </div>
-
-
-
-    </div>
-
-
-
-
-
-
-
-    <section class="card">
-
-
-
-        <header class="card-header">
-
-
-
-            <div>
-
-
-
-                <h2 class="title" th:text="${appointment.appointmentCode}">APT-20260101-0001</h2>
-
-
-
-                <p class="subtitle">General information</p>
-
-
-
-            </div>
-
-
-
-            <div class="pill">INFO</div>
-
-
-
-        </header>
-
-
-
-
-
-
-
-        <div class="card-body">
-
-
-
-            <div class="info-grid">
-=======
             <div class="hero-inner">
->>>>>>> 27c5588edbe0c9a082fb9ac436206ec0a1a9761d
 
 
 
@@ -856,6 +766,20 @@
 
 
 
+                    </div>
+
+                    <div class="health-notes" th:if="${vaccineRecords != null and !#lists.isEmpty(vaccineRecords)}">
+                        <div class="block" style="border-left:4px solid #f59e0b; background:#fff7ed;">
+                            <strong>Vaccination</strong>
+                            <div th:each="v : ${vaccineRecords}" style="margin-top:8px;">
+                                <div><strong>Name:</strong> <span th:text="${v.vaccineName ?: '-'}">-</span></div>
+                                <div><strong>Administered:</strong> <span th:text="${v.administeredDate ?: '-'}">-</span></div>
+                                <div><strong>Next Due:</strong> <span th:text="${v.nextDueDate ?: '-'}">-</span></div>
+                                <div><strong>Performed By:</strong> <span th:text="${v.performedByName ?: '-'}">-</span></div>
+                                <div><strong>Note:</strong> <span th:text="${v.note ?: '-'}">-</span></div>
+                                <hr style="margin:10px 0; border:0; border-top:1px solid var(--border);" />
+                            </div>
+                        </div>
                     </div>
 
                     <div

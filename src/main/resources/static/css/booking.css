@@ -241,6 +241,14 @@ input:focus, select:focus {
     background-color: var(--primary-pale);
 }
 
+.svc-row.svc-disabled {
+    opacity: 0.55;
+}
+
+.svc-row.svc-disabled input[type="checkbox"] {
+    cursor: not-allowed;
+}
+
 .col-check { width: 50px; text-align: center !important; }
 .col-type { width: 120px; }
 .col-name { font-weight: 700; color: var(--text); }

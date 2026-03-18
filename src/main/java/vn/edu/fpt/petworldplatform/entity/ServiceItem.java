@@ -49,6 +49,11 @@ public class ServiceItem {
     @Builder.Default
     private Boolean isActive = true;
 
+    // Chỉ áp dụng cho serviceType = 'vaccination'
+    @Column(name = "IsOneTimeVaccine", nullable = false)
+    @Builder.Default
+    private Boolean isOneTimeVaccine = false;
+
     @CreationTimestamp
     @Column(name = "CreatedAt", nullable = false, updatable = false)
     private LocalDateTime createdAt;

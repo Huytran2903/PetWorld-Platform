@@ -66,7 +66,7 @@
 
         <a href="#serviceSubmenu" data-bs-toggle="collapse"
            class="nav-link-custom d-flex align-items-center justify-content-between"
-           th:classappend="${activePage == 'service-type' or activePage == 'service-list' ? 'active-state' : ''}"
+           th:classappend="${activePage == 'service-type' or activePage == 'service-list' or activePage == 'vaccination-records' ? 'active-state' : ''}"
            aria-expanded="false" aria-controls="serviceSubmenu">
             <div>
                 <i class="bi bi-briefcase-medical me-3 fs-5"></i>
@@ -76,7 +76,7 @@
         </a>
 
         <div class="collapse" id="serviceSubmenu"
-             th:classappend="${activePage == 'service-type' or activePage == 'service-list' ? 'show' : ''}">
+             th:classappend="${activePage == 'service-type' or activePage == 'service-list' or activePage == 'vaccination-records' ? 'show' : ''}">
 
             <ul class="nav flex-column ms-4 ps-3 my-2 gap-2" style="border-left: 2px solid rgba(255,255,255,0.3);">
 
@@ -93,6 +93,14 @@
                        class="nav-link p-0 text-white opacity-75 hover-opacity-100 d-flex align-items-center"
                        th:style="${activePage == 'service-list' ? 'opacity: 1 !important; font-weight: bold;' : ''}">
                         <i class="bi bi-list-ul me-2"></i> Service List
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a th:href="@{/admin/vaccination-records}"
+                       class="nav-link p-0 text-white opacity-75 hover-opacity-100 d-flex align-items-center"
+                       th:style="${activePage == 'vaccination-records' ? 'opacity: 1 !important; font-weight: bold;' : ''}">
+                        <i class="bi bi-shield-plus me-2"></i> Vaccination Records
                     </a>
                 </li>
 

@@ -9,9 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -28,6 +26,7 @@ import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryPhotoRepository;
 import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryRepository;
+import vn.edu.fpt.petworldplatform.repository.PetVaccinationRepository;
 import vn.edu.fpt.petworldplatform.entity.*;
 import vn.edu.fpt.petworldplatform.repository.PetHealthPhotoRepository;
 import vn.edu.fpt.petworldplatform.repository.PetHealthRecordRepository;
@@ -47,10 +46,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.Set;
-import java.util.UUID;
 
 
 @Controller
@@ -218,6 +219,9 @@ public class CustomerController {
     @Autowired
     private AppointmentSummaryPhotoRepository appointmentSummaryPhotoRepository;
 
+    @Autowired
+    private PetVaccinationRepository petVaccinationRepository;
+
     @GetMapping("/customer/appointments")
     public String appointmentHistory(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
@@ -284,6 +288,26 @@ public class CustomerController {
 
             model.addAttribute("appointmentSummaryByAppointmentId", summaryByAppointmentId);
             model.addAttribute("serviceStaffByAppointmentId", serviceStaffByAppointmentId);
+
+            // Vaccine records (batch)
+            Map<Integer, List<vn.edu.fpt.petworldplatform.dto.VaccineRecordViewDTO>> vaccineRecordsByAppointmentId = new LinkedHashMap<>();
+            List<PetVaccinations> vaccineRows = petVaccinationRepository.findByAppointmentIdsWithStaff(apptIds);
+            if (!vaccineRows.isEmpty()) {
+                vaccineRecordsByAppointmentId = vaccineRows.stream()
+                        .filter(v -> v.getAppointment() != null && v.getAppointment().getId() != null)
+                        .collect(Collectors.groupingBy(
+                                v -> v.getAppointment().getId(),
+                                LinkedHashMap::new,
+                                Collectors.mapping(v -> vn.edu.fpt.petworldplatform.dto.VaccineRecordViewDTO.builder()
+                                        .vaccineName(v.getVaccineName())
+                                        .administeredDate(v.getAdministeredDate())
+                                        .nextDueDate(v.getNextDueDate())
+                                        .note(v.getNote())
+                                        .performedByName(v.getPerformedByStaff() != null ? v.getPerformedByStaff().getFullName() : null)
+                                        .build(), Collectors.toList())
+                        ));
+            }
+            model.addAttribute("vaccineRecordsByAppointmentId", vaccineRecordsByAppointmentId);
         }
 
         return "customer/appointment-history";
@@ -316,6 +340,19 @@ public class CustomerController {
                 ? appointmentSummaryPhotoRepository.findBySummary_Id(summary.getId())
                 : List.of();
         model.addAttribute("summaryPhotos", summaryPhotos);
+
+        List<vn.edu.fpt.petworldplatform.dto.VaccineRecordViewDTO> vaccineRecords = petVaccinationRepository
+                .findByAppointmentIdWithStaff(id)
+                .stream()
+                .map(v -> vn.edu.fpt.petworldplatform.dto.VaccineRecordViewDTO.builder()
+                        .vaccineName(v.getVaccineName())
+                        .administeredDate(v.getAdministeredDate())
+                        .nextDueDate(v.getNextDueDate())
+                        .note(v.getNote())
+                        .performedByName(v.getPerformedByStaff() != null ? v.getPerformedByStaff().getFullName() : null)
+                        .build())
+                .toList();
+        model.addAttribute("vaccineRecords", vaccineRecords);
 
         String serviceStaffName = "N/A";
         if (summary != null && summary.getSummaryByStaff() != null && summary.getSummaryByStaff().getFullName() != null) {
