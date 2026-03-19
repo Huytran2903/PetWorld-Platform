@@ -194,9 +194,12 @@ public class HealthCheckController {
 
             model.addAttribute("context", context);
 
-
-
             ServiceNoteRequest submitRequest = new ServiceNoteRequest();
+            if (context.getServiceType() != null
+                    && (context.getServiceType().equalsIgnoreCase("vaccine")
+                    || context.getServiceType().equalsIgnoreCase("vaccination"))) {
+                submitRequest.setVaccineName(context.getServiceName());
+            }
 
             model.addAttribute("submitRequest", submitRequest);
 

@@ -19,20 +19,25 @@ import vn.edu.fpt.petworldplatform.entity.Appointment;
 import vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine;
 import vn.edu.fpt.petworldplatform.entity.AppointmentSummary;
 import vn.edu.fpt.petworldplatform.entity.AppointmentSummaryPhoto;
+import vn.edu.fpt.petworldplatform.entity.PetVaccinations;
 import vn.edu.fpt.petworldplatform.entity.ServiceNote;
 import vn.edu.fpt.petworldplatform.entity.ServiceNotePhoto;
 import vn.edu.fpt.petworldplatform.entity.Staff;
 import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryPhotoRepository;
 import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryRepository;
+import vn.edu.fpt.petworldplatform.repository.PetVaccinationRepository;
 import vn.edu.fpt.petworldplatform.repository.ServiceNotePhotoRepository;
 import vn.edu.fpt.petworldplatform.repository.ServiceNoteRepository;
 import vn.edu.fpt.petworldplatform.service.IAssignedAppointmentService;
 import vn.edu.fpt.petworldplatform.service.StaffService;
+import vn.edu.fpt.petworldplatform.dto.VaccineRecordViewDTO;
 
 import java.security.Principal;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 import java.util.Optional;
 
 @Controller
@@ -46,6 +51,7 @@ public class StaffController {
     private final ServiceNotePhotoRepository serviceNotePhotoRepository;
     private final AppointmentSummaryRepository appointmentSummaryRepository;
     private final AppointmentSummaryPhotoRepository appointmentSummaryPhotoRepository;
+    private final PetVaccinationRepository petVaccinationRepository;
 
     @PreAuthorize("hasAuthority('MANAGE_APPOINTMENT')")
     @GetMapping("/assigned_list")
@@ -140,6 +146,50 @@ public class StaffController {
 
         model.addAttribute("serviceNoteByLineId", serviceNoteByLineId);
         model.addAttribute("serviceNotePhotosByLineId", serviceNotePhotosByLineId);
+
+        // Vaccine records for this appointment (for summary view)
+        List<VaccineRecordViewDTO> vaccineRecords = petVaccinationRepository.findByAppointmentIdWithStaff(id).stream()
+                .map(v -> VaccineRecordViewDTO.builder()
+                        .vaccineName(v.getVaccineName())
+                        .administeredDate(v.getAdministeredDate())
+                        .nextDueDate(v.getNextDueDate())
+                        .note(v.getNote())
+                        .performedByName(v.getPerformedByStaff() != null ? v.getPerformedByStaff().getFullName() : null)
+                        .build())
+                .toList();
+        model.addAttribute("vaccineRecords", vaccineRecords);
+
+        Map<Integer, VaccineRecordViewDTO> vaccineRecordByLineId = new LinkedHashMap<>();
+        if (isManager && !myServiceLines.isEmpty()) {
+            List<PetVaccinations> vaccineRecordRows = petVaccinationRepository.findByAppointmentIdWithStaff(id);
+            if (!vaccineRecordRows.isEmpty()) {
+                for (AppointmentServiceLine line : myServiceLines) {
+                    if (line == null || line.getId() == null || line.getService() == null) continue;
+                    String serviceType = line.getService().getServiceType();
+                    if (serviceType == null) continue;
+                    String st = serviceType.trim().toLowerCase(Locale.ROOT);
+                    if (!"vaccine".equals(st) && !"vaccination".equals(st)) continue;
+
+                    String targetName = line.getService().getName() != null ? line.getService().getName().trim() : "";
+                    if (targetName.isEmpty()) continue;
+
+                    PetVaccinations matched = vaccineRecordRows.stream()
+                            .filter(v -> v.getVaccineName() != null && v.getVaccineName().trim().equalsIgnoreCase(targetName))
+                            .findFirst()
+                            .orElse(null);
+                    if (matched == null) continue;
+
+                    vaccineRecordByLineId.put(line.getId(), VaccineRecordViewDTO.builder()
+                            .vaccineName(matched.getVaccineName())
+                            .administeredDate(matched.getAdministeredDate())
+                            .nextDueDate(matched.getNextDueDate())
+                            .note(matched.getNote())
+                            .performedByName(matched.getPerformedByStaff() != null ? matched.getPerformedByStaff().getFullName() : null)
+                            .build());
+                }
+            }
+        }
+        model.addAttribute("vaccineRecordByLineId", vaccineRecordByLineId);
 
         // Flatten all service note photos for manager to pick as evidence
         List<ServiceNotePhoto> allServiceNotePhotos = serviceNotePhotosByLineId.values().stream()

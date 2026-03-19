@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.petworldplatform.entity.ServiceItem;
+import vn.edu.fpt.petworldplatform.repository.PetVaccinationRepository;
 import vn.edu.fpt.petworldplatform.repository.ServiceItemRepository;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.Optional;
 public class ServiceItemService {
 
     private final ServiceItemRepository serviceItemRepository;
+    private final PetVaccinationRepository petVaccinationRepository;
 
     public List<ServiceItem> findAll() {
         return serviceItemRepository.findAllByOrderByServiceTypeAscNameAsc();
@@ -43,6 +45,39 @@ public class ServiceItemService {
 
     @Transactional
     public ServiceItem save(ServiceItem entity) {
+        if (entity == null) throw new IllegalArgumentException("Service is required.");
+
+        Integer id = entity.getId();
+        if (id != null) {
+            Optional<ServiceItem> existingOpt = serviceItemRepository.findById(id);
+            if (existingOpt.isPresent()) {
+                ServiceItem existing = existingOpt.get();
+                boolean existingIsVaccine = existing.getServiceType() != null
+                        && existing.getServiceType().trim().equalsIgnoreCase("vaccination");
+                boolean newIsVaccine = entity.getServiceType() != null
+                        && entity.getServiceType().trim().equalsIgnoreCase("vaccination");
+
+                // Prevent retroactive behavior changes for vaccine services that already have usage/records.
+                if (existingIsVaccine && newIsVaccine) {
+                    Boolean oldMode = existing.getIsOneTimeVaccine();
+                    Boolean newMode = entity.getIsOneTimeVaccine();
+                    boolean modeChanged = (oldMode == null ? Boolean.FALSE : oldMode) != (newMode == null ? Boolean.FALSE : newMode);
+
+                    if (modeChanged) {
+                        long usedAppointments = serviceItemRepository.countAppointmentsByServiceId(id);
+                        long vaccinationRecords = 0;
+                        if (existing.getName() != null && !existing.getName().isBlank()) {
+                            vaccinationRecords = petVaccinationRepository.countByVaccineNameIgnoreCase(existing.getName().trim());
+                        }
+                        if (usedAppointments > 0 || vaccinationRecords > 0) {
+                            throw new IllegalStateException(
+                                    "Cannot change the vaccine schedule mode (one-time vs. due-date) because this service already has existing vaccination/appointment data."
+                            );
+                        }
+                    }
+                }
+            }
+        }
         return serviceItemRepository.save(entity);
     }
 

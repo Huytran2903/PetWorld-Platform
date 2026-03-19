@@ -7,16 +7,21 @@ import vn.edu.fpt.petworldplatform.entity.Appointment;
 import vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine;
 import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.Pets;
+import vn.edu.fpt.petworldplatform.entity.PetVaccinations;
 import vn.edu.fpt.petworldplatform.entity.ServiceItem;
 import vn.edu.fpt.petworldplatform.repository.AppointmentRepository;
 import vn.edu.fpt.petworldplatform.repository.AppointmentServiceLineRepository;
 import vn.edu.fpt.petworldplatform.repository.CustomerRepo;
 import vn.edu.fpt.petworldplatform.repository.PetRepo;
+import vn.edu.fpt.petworldplatform.repository.PetVaccinationRepository;
 import vn.edu.fpt.petworldplatform.repository.ServiceItemRepository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,6 +39,7 @@ public class BookingService {
     private final CustomerRepo customerRepo;
     private final PetRepo petRepo;
     private final ServiceItemRepository serviceItemRepository;
+    private final PetVaccinationRepository petVaccinationRepository;
 
     public List<Pets> findPetsByCustomerId(Integer customerId) {
         return petRepo.findByOwner_CustomerId(customerId);
@@ -105,6 +111,7 @@ public class BookingService {
         String code = generateAppointmentCode();
         
         List<ServiceItem> services = serviceItemRepository.findAllById(serviceIds);
+        validateVaccineEligibilityOrThrow(petId, appointmentDate.toLocalDate(), services);
         int totalDuration = 0;
         boolean hasBoarding = false;
         
@@ -153,6 +160,52 @@ public class BookingService {
             }
         }
         return appointment;
+    }
+
+    /**
+     * Rule: Once a pet has been vaccinated for a vaccine type, it cannot book that same vaccine
+     * again until the latest NextDueDate (inclusive). If NextDueDate is NULL, we treat it as
+     * "not eligible again" (lock indefinitely) to avoid duplicate bookings.
+     */
+    private void validateVaccineEligibilityOrThrow(Integer petId, LocalDate appointmentDate, List<ServiceItem> services) {
+        if (petId == null || appointmentDate == null || services == null || services.isEmpty()) return;
+
+        for (ServiceItem svc : services) {
+            if (svc == null) continue;
+            if (!isVaccineService(svc)) continue;
+
+            String vaccineName = (svc.getName() != null) ? svc.getName().trim() : "";
+            if (vaccineName.isEmpty()) continue;
+
+            Optional<PetVaccinations> latestOpt =
+                    petVaccinationRepository.findTopByPet_PetIDAndVaccineNameIgnoreCaseOrderByAdministeredDateDescCreatedAtDesc(
+                            petId, vaccineName
+                    );
+
+            if (latestOpt.isEmpty()) continue; // never vaccinated => eligible
+
+            PetVaccinations latest = latestOpt.get();
+            LocalDate lockUntil = latest.getNextDueDate(); // may be null
+
+            // If nextDueDate is null, lock indefinitely (must be handled by staff/admin to set next due)
+            if (lockUntil == null) {
+                throw new IllegalArgumentException("This pet has already received vaccine '" + vaccineName + "'. It cannot be booked again (missing next due date).");
+            }
+
+            // Eligible only when appointmentDate is on/after nextDueDate
+            if (appointmentDate.isBefore(lockUntil)) {
+                throw new IllegalArgumentException(
+                        "Vaccine '" + vaccineName + "' is not eligible until " + lockUntil.format(DateTimeFormatter.ISO_DATE) + "."
+                );
+            }
+        }
+    }
+
+    private boolean isVaccineService(ServiceItem svc) {
+        String t = svc.getServiceType();
+        if (t == null) return false;
+        String type = t.trim().toLowerCase(Locale.ROOT);
+        return "vaccine".equals(type) || "vaccination".equals(type);
     }
 
     private String generateAppointmentCode() {

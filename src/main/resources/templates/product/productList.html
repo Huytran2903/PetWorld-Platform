@@ -15,6 +15,33 @@
           rel="stylesheet">
 
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
+
+    <style>
+        .pagination .page-link {
+            color: #333;
+            border: none;
+            margin: 0 5px;
+            border-radius: 8px !important;
+            transition: all 0.3s ease;
+        }
+
+        .pagination .page-link:hover {
+            background-color: #fff3e6;
+            color: #FFA54F;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #FFA54F !important;
+            border-color: #FFA54F !important;
+            color: white !important;
+            box-shadow: 0 4px 10px rgba(255, 165, 79, 0.3);
+        }
+
+        .pagination .page-item.disabled .page-link {
+            background-color: #f8f9fa;
+            color: #ccc;
+        }
+    </style>
 </head>
 <body>
 
@@ -27,7 +54,7 @@
 
             <div class="d-flex gap-2">
                 <button class="pw-btn-filter active">All</button>
-                <button class="pw-btn-filter">Type <i class="bi bi-chevron-down"></i></button>
+                <button class="pw-btn-filter">Categories <i class="bi bi-chevron-down"></i></button>
                 <button class="pw-btn-filter">Price <i class="bi bi-chevron-down"></i></button>
             </div>
 
@@ -36,7 +63,7 @@
                     <span class="input-group-text bg-white border-end-0" style="border-radius: 50px 0 0 50px;">
                         <i class="bi bi-search text-muted"></i>
                     </span>
-                    <input type="text" id="kw" name="kw" th:value="${param.kw}"
+                    <input type="text" id="kw" name="kw" th:value="${kw}"
                            class="form-control border-start-0 ps-0 shadow-none"
                            placeholder="Search products..." style="height: 42px;">
                     <button class="btn px-4 text-white fw-bold" type="submit"
@@ -51,11 +78,11 @@
     <main class="container-fluid px-lg-5 py-4">
         <div class="pw-product-heading mb-4">
             <h2>Products</h2>
-            <span class="text-secondary" th:text="${#lists.size(product)} + ' products found'">0 products found</span>
+            <span class="text-secondary" th:text="${totalElements != null ? totalElements : 0} + ' products found'">0 products found</span>
         </div>
 
         <div class="row g-4 row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5">
-            <div class="col" th:each="p : ${product}" th:if="${p.isActive} == true">
+            <div class="col" th:each="p : ${product}" >
                 <div class="pw-card">
                     <div class="pw-img-box">
                         <img th:src="${p.imageUrl}" alt="Product Image">
@@ -117,6 +144,27 @@
                 </div>
             </div>
         </div>
+
+        <nav th:if="${totalPages > 1}" class="mt-5">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a class="page-link shadow-sm border-0"
+                       th:href="@{/products(page=${currentPage - 1}, kw=${kw})}">Previous</a>
+                </li>
+
+                <li class="page-item mx-1" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                    th:classappend="${i == currentPage} ? 'active'">
+                    <a class="page-link shadow-sm border-0 rounded"
+                       th:href="@{/products(page=${i}, kw=${kw})}" th:text="${i + 1}"></a>
+                </li>
+
+                <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                    <a class="page-link shadow-sm border-0"
+                       th:href="@{/products(page=${currentPage + 1}, kw=${kw})}">Next</a>
+                </li>
+            </ul>
+        </nav>
+
     </main>
 </div>
 

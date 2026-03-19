@@ -11,6 +11,8 @@ public class HealthCheckContextDTO {
     private Integer appointmentId;
     private Integer serviceLineId;
     private String serviceName;
+    private String serviceType;
+    private Boolean oneTimeVaccine;
     private String appointmentCode;
     private Integer petId;
     private String petName;

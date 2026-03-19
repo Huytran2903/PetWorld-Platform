@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" th:href="@{/css/managePet.css}"/>
     <link rel="stylesheet" th:href="@{/css/sidebar-admin.css}">
+
+
 </head>
 <body>
 
@@ -17,15 +19,15 @@
     <div th:replace="~{fragments/sidebar-admin :: aside(activePage='pets')}"></div>
 
     <div class="app-container flex-grow-1 w-100">
-        <header class="page-header py-4 shadow-sm mb-4">
+        <header class="page-header py-4 shadow-sm mb-4 bg-white">
             <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
                 <div>
                     <h1 class="h3 mb-1 fw-bold text-dark">Pet Management System</h1>
                 </div>
                 <a th:href="@{/admin/pet/new}"
                    class="btn btn-add-new d-flex align-items-center gap-2 px-4 py-2 shadow-sm text-decoration-none"
-                   style="background-color: #FFA54F; color: white; border-radius: 50px;">
-                    <i class="bi bi-plus-circle fs-4"></i>
+                   style="background-color: #FFA54F; color: white; border-radius: 50px; font-weight: 600;">
+                    <i class="bi bi-plus-circle fs-5"></i>
                     Add New Pet
                 </a>
             </div>
@@ -33,39 +35,32 @@
 
         <main class="container-fluid px-4">
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                <div class="card-header bg-white py-3 border-0">
+                <div class="card-header bg-white py-4 border-0">
                     <div class="row g-3 align-items-center">
-                        <div class="col-md-4">
+                        <div class="col-md-5">
                             <form th:action="@{/admin/manage-pet}" method="get">
                                 <div class="search-box position-relative d-flex align-items-center">
                                     <span class="position-absolute start-0 translate-middle-y ms-3 text-muted" style="top: 50%; z-index: 5;">
                                         <i class="bi bi-search"></i>
                                     </span>
-                                    <input type="text" name="kw" th:value="${param.kw}"
+                                    <input type="text" name="kw" th:value="${kw}"
                                            class="form-control rounded-pill ps-5 pe-5 shadow-sm"
                                            placeholder="Search pet by name..."
-                                           style="height: 45px;">
+                                           style="height: 45px; border: 1px solid #eee;">
                                     <button type="submit"
-                                            class="btn rounded-pill position-absolute end-0 me-1 text-white"
+                                            class="btn rounded-pill position-absolute end-0 me-1 text-white fw-bold"
                                             style="height: 38px; padding: 0 20px; background-color: #FFA54F; border: none;">
                                         Search
                                     </button>
                                 </div>
                             </form>
                         </div>
-                        <div class="col-md-2">
-                            <select class="form-select rounded-pill shadow-sm" style="height: 45px;">
-                                <option selected>Type</option>
-                                <option>Dogs</option>
-                                <option>Cats</option>
-                            </select>
-                        </div>
                     </div>
                 </div>
 
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light text-uppercase small fw-bold">
+                        <thead class="table-light text-uppercase small fw-bold text-muted">
                         <tr>
                             <th class="ps-4">ID</th>
                             <th>Image</th>
@@ -82,11 +77,10 @@
                         </thead>
                         <tbody>
                         <tr th:each="p : ${pets}">
-                            <td class="ps-4 fw-bold" th:text="${p.petID}"></td>
+                            <td class="ps-4 fw-bold text-secondary" th:text="${p.petID}"></td>
                             <td>
                                 <img th:src="${#strings.isEmpty(p.imageUrl)} ? '/uploads/default-pet.png' : (@{${#strings.startsWith(p.imageUrl, '/uploads/') ? p.imageUrl : '/uploads/' + p.imageUrl}})"
-                                     class="rounded-3 border" alt="pet" width="80" height="90"
-                                     style="object-fit: cover;">
+                                     alt="pet" width="70" height="70" class="rounded-3 shadow-sm" style="object-fit: cover;">
                             </td>
                             <td><div class="fw-bold text-dark" th:text="${p.name}"></div></td>
                             <td th:text="${p.breed}"></td>
@@ -104,7 +98,7 @@
                             </td>
                             <td th:text="${p.ageMonths + ' Months'}"></td>
                             <td>
-                                <span class="badge rounded-pill"
+                                <span class="badge rounded-pill px-3 py-1"
                                       th:classappend="${p.gender == 'Male' ? 'bg-primary-subtle text-primary' : 'bg-danger-subtle text-danger'}">
                                      <i th:class="${p.gender == 'Male' ? 'bi bi-gender-male' : 'bi bi-gender-female'}"></i>
                                      <span th:text="${p.gender}"></span>
@@ -131,7 +125,7 @@
                                 </span>
                             </td>
                             <td class="text-end pe-4">
-                                <div class="btn-group shadow-sm rounded-pill overflow-hidden">
+                                <div class="btn-group shadow-sm rounded-pill overflow-hidden bg-white border">
                                     <a th:href="@{'/admin/pet/edit/' + ${p.petID}}" class="btn btn-sm btn-outline-secondary border-0 px-3">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
@@ -147,6 +141,27 @@
                         </tbody>
                     </table>
                 </div>
+
+                <div class="card-footer bg-white py-4 border-0" th:if="${totalPages > 1}">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center align-items-center mb-0">
+                            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                                <a class="page-link shadow-sm border-0" th:href="@{/admin/manage-pet(page=${currentPage - 1}, kw=${kw})}">Previous</a>
+                            </li>
+
+                            <li class="page-item mx-1" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                                th:classappend="${i == currentPage} ? 'active'">
+                                <a class="page-link shadow-sm border-0"
+                                   th:href="@{/admin/manage-pet(page=${i}, kw=${kw})}"
+                                   th:text="${i + 1}"></a>
+                            </li>
+
+                            <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                                <a class="page-link shadow-sm border-0" th:href="@{/admin/manage-pet(page=${currentPage + 1}, kw=${kw})}">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
             </div>
         </main>
     </div>
@@ -156,17 +171,11 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content shadow border-0" style="border-radius: 20px;">
             <div class="modal-body text-center p-5">
-                <div class="mb-4">
-                    <i class="bi bi-search" style="font-size: 3.5rem; color: #FFA54F;"></i>
-                </div>
+                <div class="mb-4"><i class="bi bi-search" style="font-size: 3.5rem; color: #FFA54F;"></i></div>
                 <h4 class="fw-bold mb-3">No Results Found</h4>
-                <p class="text-muted mb-4">
-                    We couldn't find any pets matching "<span class="fw-bold text-dark" th:text="${param.kw}"></span>".
-                </p>
+                <p class="text-muted mb-4">We couldn't find any pets matching "<span class="fw-bold text-dark" th:text="${kw}"></span>".</p>
                 <div class="d-flex justify-content-center">
-                    <a th:href="@{/admin/manage-pet}" class="btn btn-dark rounded-pill px-5 py-2">
-                        View All Pets
-                    </a>
+                    <a th:href="@{/admin/manage-pet}" class="btn btn-dark rounded-pill px-5 py-2">View All Pets</a>
                 </div>
             </div>
         </div>
@@ -197,7 +206,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // Logic cho Modal Xóa
     const deleteModal = document.getElementById('deleteConfirmationModal');
     if (deleteModal) {
         deleteModal.addEventListener('show.bs.modal', event => {

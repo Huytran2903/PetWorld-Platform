@@ -254,6 +254,20 @@
                                         </div>
                                     </div>
 
+                                    <div class="health-notes" style="padding: 0;"
+                                         th:if="${isManager and vaccineRecordByLineId != null and vaccineRecordByLineId.containsKey(item.id)}">
+                                        <div class="block" style="border-left:4px solid #f59e0b; background:#fff7ed;">
+                                            <strong>Vaccine Record</strong>
+                                            <div style="margin-top:8px;">
+                                                <div><strong>Name:</strong> <span th:text="${vaccineRecordByLineId.get(item.id).vaccineName ?: '-'}">-</span></div>
+                                                <div><strong>Administered:</strong> <span th:text="${vaccineRecordByLineId.get(item.id).administeredDate ?: '-'}">-</span></div>
+                                                <div><strong>Next Due:</strong> <span th:text="${vaccineRecordByLineId.get(item.id).nextDueDate ?: '-'}">-</span></div>
+                                                <div><strong>Performed By:</strong> <span th:text="${vaccineRecordByLineId.get(item.id).performedByName ?: '-'}">-</span></div>
+                                                <div style="margin-top:6px;"><strong>Note:</strong> <span th:text="${vaccineRecordByLineId.get(item.id).note ?: '-'}">-</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div
                                         class="health-photos"
                                         style="padding: 0;"
@@ -291,7 +305,7 @@
                         <th:block th:each="item : ${myServiceLines}">
                             <a
                                 class="btn btn-primary"
-                                th:if="${appointment.status != null and (appointment.status.toLowerCase() == 'checked_in' or appointment.status.toLowerCase() == 'in_progress') and item.serviceStatus != null and item.serviceStatus.toLowerCase() == 'in_progress'}"
+                                th:if="${appointment.status != null and (appointment.status.toLowerCase() == 'checked_in' or appointment.status.toLowerCase() == 'in_progress') and item.serviceStatus != null and item.serviceStatus.toLowerCase() == 'in_progress' and item.assignedStaffId != null and currentStaffId != null and item.assignedStaffId == currentStaffId}"
                                 th:href="@{/staff/health-check/report(appointmentId=${appointment.id},serviceLineId=${item.id})}"
                                 th:text="${'Continue ' + (item.service != null ? item.service.name : 'Service')}"
                             >
@@ -299,7 +313,7 @@
                             </a>
 
                             <form
-                                th:if="${appointment.status != null and (appointment.status.toLowerCase() == 'checked_in' or appointment.status.toLowerCase() == 'in_progress') and (item.serviceStatus == null or item.serviceStatus.toLowerCase() == 'pending' or item.serviceStatus.toLowerCase() == 'assigned')}"
+                                th:if="${appointment.status != null and (appointment.status.toLowerCase() == 'checked_in' or appointment.status.toLowerCase() == 'in_progress') and (item.serviceStatus == null or item.serviceStatus.toLowerCase() == 'pending' or item.serviceStatus.toLowerCase() == 'assigned') and item.assignedStaffId != null and currentStaffId != null and item.assignedStaffId == currentStaffId}"
                                 th:action="@{'/staff/health-check/' + ${appointment.id} + '/execute'}"
                                 method="post"
                                 style="display: inline-block;"
@@ -368,6 +382,20 @@
                             <div class="block">
                                 <strong>Notes:</strong>
                                 <span th:text="${appointmentSummary.note ?: '-'}">-</span>
+                            </div>
+                        </div>
+
+                        <div class="health-notes" th:if="${vaccineRecords != null and !#lists.isEmpty(vaccineRecords)}">
+                            <div class="block" style="border-left:4px solid #f59e0b; background:#fff7ed;">
+                                <strong>Vaccination</strong>
+                                <div th:each="v : ${vaccineRecords}" style="margin-top:8px;">
+                                    <div><strong>Name:</strong> <span th:text="${v.vaccineName ?: '-'}">-</span></div>
+                                    <div><strong>Administered:</strong> <span th:text="${v.administeredDate ?: '-'}">-</span></div>
+                                    <div><strong>Next Due:</strong> <span th:text="${v.nextDueDate ?: '-'}">-</span></div>
+                                    <div><strong>Performed By:</strong> <span th:text="${v.performedByName ?: '-'}">-</span></div>
+                                    <div style="margin-top:6px;"><strong>Note:</strong> <span th:text="${v.note ?: '-'}">-</span></div>
+                                    <hr style="margin:10px 0; border:0; border-top:1px solid #e7ecf4;" />
+                                </div>
                             </div>
                         </div>
 

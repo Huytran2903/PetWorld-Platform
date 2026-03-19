@@ -21,7 +21,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Locale;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -41,6 +43,7 @@ public class HealthCheckService implements IHealthCheckService {
     private final ServiceNotePhotoRepository serviceNotePhotoRepository;
     private final AppointmentSummaryRepository appointmentSummaryRepository;
     private final AppointmentSummaryPhotoRepository appointmentSummaryPhotoRepository;
+    private final PetVaccinationRepository petVaccinationRepository;
 
     @Override
     public List<Appointment> getAssignedAppointments(Integer staffId) {
@@ -102,10 +105,15 @@ public class HealthCheckService implements IHealthCheckService {
         boolean isManager = appointment.getStaffId() != null
                 && appointment.getStaffId().equals(staffId);
 
+        boolean oneTimeVaccine = serviceLine.getService() != null
+                && Boolean.TRUE.equals(serviceLine.getService().getIsOneTimeVaccine());
+
         return HealthCheckContextDTO.builder()
                 .appointmentId(appointment.getId())
                 .serviceLineId(serviceLine.getId())
                 .serviceName(serviceLine.getService() != null ? serviceLine.getService().getName() : null)
+                .serviceType(serviceLine.getService() != null ? serviceLine.getService().getServiceType() : null)
+                .oneTimeVaccine(oneTimeVaccine)
                 .appointmentCode(appointment.getAppointmentCode())
                 .petId(appointment.getPetId())
                 .petName(appointment.getPet() != null ? appointment.getPet().getName() : null)
@@ -251,9 +259,55 @@ public class HealthCheckService implements IHealthCheckService {
         replaceServiceNotePhotos(savedNote, storedPhotoUrls);
 
         markServiceLineDone(serviceLine);
+        createVaccinationRecordIfNeeded(staff, appointment, serviceLine, request);
         refreshAppointmentStatusByServiceLines(appointment);
         appointment.setUpdatedAt(LocalDateTime.now());
         appointmentRepository.save(appointment);
+    }
+
+    private void createVaccinationRecordIfNeeded(Staff staff, Appointment appointment, AppointmentServiceLine serviceLine, ServiceNoteRequest request) {
+        if (staff == null || appointment == null || serviceLine == null) return;
+        if (serviceLine.getService() == null) return;
+
+        String type = serviceLine.getService().getServiceType();
+        if (type == null) return;
+        String normalized = type.trim().toLowerCase(Locale.ROOT);
+        if (!"vaccine".equals(normalized) && !"vaccination".equals(normalized)) return;
+
+        if (appointment.getPet() == null || appointment.getPet().getId() == null) {
+            throw new IllegalStateException("Pet not found for vaccination record.");
+        }
+
+        // Vaccine name is locked to the service name to avoid mismatches.
+        String vaccineName = (serviceLine.getService().getName() != null ? serviceLine.getService().getName().trim() : "");
+        if (vaccineName.isEmpty()) {
+            throw new IllegalStateException("Vaccine name is required.");
+        }
+
+        LocalDate today = LocalDate.now();
+        petVaccinationRepository
+                .findTopByPet_PetIDAndVaccineNameIgnoreCaseOrderByAdministeredDateDescCreatedAtDesc(appointment.getPet().getId(), vaccineName)
+                .ifPresent(latest -> {
+                    LocalDate nextDue = latest.getNextDueDate();
+                    if (nextDue == null) {
+                        throw new IllegalStateException("This pet already has vaccine '" + vaccineName + "' with missing next due date. Cannot record again.");
+                    }
+                    if (today.isBefore(nextDue)) {
+                        throw new IllegalStateException("Vaccine '" + vaccineName + "' is not eligible until " + nextDue + ".");
+                    }
+                });
+
+        PetVaccinations v = new PetVaccinations();
+        v.setPet(appointment.getPet());
+        v.setAppointment(appointment);
+        v.setPerformedByStaff(staff);
+        v.setVaccineName(vaccineName);
+        v.setAdministeredDate(today);
+        if (request != null) {
+            v.setNextDueDate(request.getNextDueDate());
+            v.setNote(request.getVaccineNote());
+        }
+        petVaccinationRepository.save(v);
     }
 
     @Override

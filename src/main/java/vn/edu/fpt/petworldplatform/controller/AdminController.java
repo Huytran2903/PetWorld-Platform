@@ -4,6 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,6 +20,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ContentDisposition;
+import vn.edu.fpt.petworldplatform.dto.AdminVaccinationRowDTO;
 import vn.edu.fpt.petworldplatform.dto.PetFormDTO;
 import vn.edu.fpt.petworldplatform.dto.PetStatisticsDTO;
 import vn.edu.fpt.petworldplatform.entity.*;
@@ -25,6 +29,8 @@ import vn.edu.fpt.petworldplatform.entity.Categories;
 import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.entity.ServiceItem;
 import vn.edu.fpt.petworldplatform.entity.ServiceType;
+import vn.edu.fpt.petworldplatform.entity.PetVaccinations;
+import vn.edu.fpt.petworldplatform.repository.PetVaccinationRepository;
 import vn.edu.fpt.petworldplatform.service.*;
 
 import java.io.IOException;
@@ -35,7 +41,10 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.web.bind.annotation.PostMapping;
@@ -63,19 +72,33 @@ public class AdminController {
 
     private final ServiceTypeService serviceTypeService;
     private final ServiceItemService serviceItemService;
+    private final PetVaccinationRepository petVaccinationRepository;
 
 
     //Manage Pet - OanhTP
     //List
     @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("/admin/manage-pet")
-    public String getAllPets(Model model, @RequestParam(value = "kw", required = false, defaultValue = "")                              String keyword) {
+    public String getAllPets(Model model, @RequestParam(value = "kw", required = false, defaultValue = "")                              String keyword, @RequestParam(value = "page", defaultValue = "0") int page,
+                                   @RequestParam(name = "type", defaultValue = "All", required = false) String type) {
+
+        int pageSize = 8;
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by("petID").ascending());
+
+        Page<Pets> petPage;
+
         if(!keyword.equals("")) {
-            model.addAttribute("pets", petService.searchPetByName(keyword));
+            petPage = petService.findPetByNameAndType(keyword, type, pageable);
         }
         else {
-            model.addAttribute("pets", petService.findAllPets());
+            petPage = petService.findAllPets(pageable);
         }
+
+        model.addAttribute("pets", petPage.getContent());           // Danh sách pet của trang hiện tại
+        model.addAttribute("totalPages", petPage.getTotalPages());    // Tổng số trang (để vẽ nút 1, 2, 3...)
+        model.addAttribute("currentPage", page);                      // Trang hiện tại
+        model.addAttribute("kw", keyword);
+
         return "admin/managePet";
     }
 
@@ -83,23 +106,23 @@ public class AdminController {
     @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("admin/pet/edit/{id}")
     public String updatePet(Model model, @PathVariable("id") Integer id) {
-        Pets petFromDb = petService.getPetById(id);
+        Pets pet = petService.getPetById(id);
 
-        if (petFromDb.getVaccinations() != null && !petFromDb.getVaccinations().isEmpty()) {
-            petFromDb.setIsVaccinated(true);
+        if (pet.getVaccinations() != null && !pet.getVaccinations().isEmpty()) {
+            pet.setIsVaccinated(true);
 
-            PetVaccinations firstVaccination = petFromDb.getVaccinations().get(0);
+            PetVaccinations firstVaccination = pet.getVaccinations().get(0);
 
             if (firstVaccination != null && firstVaccination.getPerformedByStaff() != null) {
-                petFromDb.setVaccinationStaffID(firstVaccination.getPerformedByStaff().getStaffId());
+                pet.setVaccinationStaffID(firstVaccination.getPerformedByStaff().getStaffId());
             } else {
-                petFromDb.setVaccinationStaffID(null);
+                pet.setVaccinationStaffID(null);
             }
         } else {
-            petFromDb.setIsVaccinated(false);
+            pet.setIsVaccinated(false);
         }
 
-        model.addAttribute("selectedPet", petFromDb);
+        model.addAttribute("selectedPet", pet);
         model.addAttribute("formMode", "edit");
         model.addAttribute("staffList", staffService.getAllStaffs());
 
@@ -293,18 +316,36 @@ public class AdminController {
     //Manage Product - OanhTP
     @PreAuthorize("hasAuthority('MANAGE_PRODUCT')")
     @GetMapping("/admin/manage-product")
-    public String getAllProducts(Model model, @RequestParam(value = "kw", required = false, defaultValue = "") String keyword) {
+    public String getAllProducts(
+            Model model,
+            @RequestParam(value = "kw", required = false, defaultValue = "") String keyword,
+            @RequestParam(value = "page", defaultValue = "0") int page) { // Thêm tham số nhận số trang
 
-        if(!keyword.equals("")) {
-            model.addAttribute("products", productService.searchProductsByName(keyword));
+        // 1. Cấu hình phân trang: 8 sản phẩm mỗi trang (bạn có thể đổi thành 10 tùy ý)
+        // Sắp xếp theo ID giảm dần để sản phẩm mới thêm lên đầu
+        int pageSize = 10;
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by("productId").ascending());
+
+        Page<Product> productPage;
+
+        // 2. Gọi hàm Service có chứa Pageable
+        if (!keyword.trim().isEmpty()) {
+            productPage = productService.searchProductsByName(keyword, pageable);
+        } else {
+            productPage = productService.getAllProducts(pageable);
         }
-        else {
-            model.addAttribute("products", productService.getAllProducts());
-        }
+
+
+        model.addAttribute("products", productPage.getContent());
+        model.addAttribute("totalPages", productPage.getTotalPages());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("kw", keyword);
+
+
+        model.addAttribute("totalElements", productPage.getTotalElements());
 
         return "admin/manageProduct";
     }
-
     //Create
     @PreAuthorize("hasAuthority('MANAGE_PRODUCT')")
     @GetMapping("/admin/product/new")
@@ -565,8 +606,41 @@ public class AdminController {
     // Service Manager
     @PreAuthorize("hasAuthority('MANAGE_SERVICE')")
     @GetMapping("/admin/service-manager")
-    public String serviceManager() {
+    public String serviceManager(Model model) {
+        model.addAttribute("vaccinationRows", loadLatestVaccinationRows());
         return "admin/service-manager";
+    }
+
+    @GetMapping("/admin/vaccination-records")
+    public String vaccinationRecords(Model model) {
+        model.addAttribute("vaccinationRows", loadLatestVaccinationRows());
+        return "admin/vaccination-records";
+    }
+
+    private List<AdminVaccinationRowDTO> loadLatestVaccinationRows() {
+        // Latest record per (petId + vaccineName) so the shown nextDueDate is always the newest one.
+        List<PetVaccinations> all = petVaccinationRepository.findAllWithPetOwnerStaffOrderByAdministeredDateDescCreatedAtDesc();
+        Map<String, AdminVaccinationRowDTO> latestByKey = new LinkedHashMap<>();
+        for (PetVaccinations pv : all) {
+            if (pv.getPet() == null || pv.getPet().getPetID() == null) continue;
+            String vaccineName = pv.getVaccineName() != null ? pv.getVaccineName().trim() : "";
+            if (vaccineName.isBlank()) continue;
+            String key = pv.getPet().getPetID() + "|" + vaccineName.toLowerCase(Locale.ROOT);
+            if (latestByKey.containsKey(key)) continue; // newest already added due to ordering
+
+            String ownerName = pv.getPet().getOwner() != null ? pv.getPet().getOwner().getFullName() : null;
+            String performedBy = pv.getPerformedByStaff() != null ? pv.getPerformedByStaff().getFullName() : null;
+            latestByKey.put(key, AdminVaccinationRowDTO.builder()
+                    .petId(pv.getPet().getPetID())
+                    .petName(pv.getPet().getName())
+                    .ownerName(ownerName)
+                    .vaccineName(vaccineName)
+                    .administeredDate(pv.getAdministeredDate())
+                    .nextDueDate(pv.getNextDueDate())
+                    .performedByName(performedBy)
+                    .build());
+        }
+        return new ArrayList<>(latestByKey.values());
     }
 
     // Manage Service Types (list + form)
@@ -661,9 +735,18 @@ public class AdminController {
         }
         service.setName(service.getName().trim());
         if (service.getServiceType() != null) service.setServiceType(service.getServiceType().trim());
-        serviceItemService.save(service);
-        redirectAttributes.addFlashAttribute("message", "Service saved successfully.");
-        return "redirect:/admin/services";
+        try {
+            serviceItemService.save(service);
+            redirectAttributes.addFlashAttribute("message", "Service saved successfully.");
+            return "redirect:/admin/services";
+        } catch (IllegalStateException | IllegalArgumentException ex) {
+            model.addAttribute("serviceTypes", serviceTypeService.findAll());
+            model.addAttribute("services", serviceItemService.findAll());
+            model.addAttribute("typeFilter", "");
+            model.addAttribute("openModal", true);
+            model.addAttribute("error", ex.getMessage());
+            return "admin/service-list";
+        }
     }
 
     @PreAuthorize("hasAuthority('MANAGE_SERVICE')")

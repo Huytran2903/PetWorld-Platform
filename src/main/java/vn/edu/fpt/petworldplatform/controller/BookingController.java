@@ -111,7 +111,10 @@ public class BookingController {
             return "redirect:/appointment/booking";
         }
 
-        redirectAttributes.addFlashAttribute("message", "Your appointment has been booked successfully. We will send you a confirmation shortly.");
+        redirectAttributes.addFlashAttribute(
+                "message",
+                "Your appointment has been booked successfully and is pending staff assignment. We will confirm once a staff member is assigned."
+        );
         return "redirect:/customer/appointments";
     }
 }

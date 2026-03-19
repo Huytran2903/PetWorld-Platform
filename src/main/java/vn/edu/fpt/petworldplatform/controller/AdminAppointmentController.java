@@ -32,6 +32,8 @@ import vn.edu.fpt.petworldplatform.entity.AppointmentSummaryPhoto;
 import vn.edu.fpt.petworldplatform.entity.ServiceNote;
 import vn.edu.fpt.petworldplatform.entity.ServiceNotePhoto;
 import vn.edu.fpt.petworldplatform.entity.Staff;
+import vn.edu.fpt.petworldplatform.repository.PetVaccinationRepository;
+import vn.edu.fpt.petworldplatform.dto.VaccineRecordViewDTO;
 import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryPhotoRepository;
 import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryRepository;
 import vn.edu.fpt.petworldplatform.repository.ServiceNotePhotoRepository;
@@ -60,6 +62,7 @@ public class AdminAppointmentController {
     private final ServiceNoteRepository serviceNoteRepository;
     private final ServiceNotePhotoRepository serviceNotePhotoRepository;
     private final AppointmentSummaryPhotoRepository appointmentSummaryPhotoRepository;
+    private final PetVaccinationRepository petVaccinationRepository;
 
     @ModelAttribute("filter")
 
@@ -196,6 +199,17 @@ public class AdminAppointmentController {
                 ? appointmentSummaryPhotoRepository.findBySummary_Id(summary.getId())
                 : List.of();
         model.addAttribute("summaryPhotos", summaryPhotos);
+
+        List<VaccineRecordViewDTO> vaccineRecords = petVaccinationRepository.findByAppointmentIdWithStaff(id).stream()
+                .map(v -> VaccineRecordViewDTO.builder()
+                        .vaccineName(v.getVaccineName())
+                        .administeredDate(v.getAdministeredDate())
+                        .nextDueDate(v.getNextDueDate())
+                        .note(v.getNote())
+                        .performedByName(v.getPerformedByStaff() != null ? v.getPerformedByStaff().getFullName() : null)
+                        .build())
+                .toList();
+        model.addAttribute("vaccineRecords", vaccineRecords);
 
         Map<Integer, ServiceNote> serviceNoteByLineId = new LinkedHashMap<>();
         Map<Integer, List<ServiceNotePhoto>> serviceNotePhotosByLineId = new LinkedHashMap<>();

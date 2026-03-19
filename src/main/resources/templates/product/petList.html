@@ -3,32 +3,131 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>Pet World - Shop Pets</title>
+    <title>Pet World - E-commerce</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" th:href="@{/css/style.css}"/>
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <style>
+        /* CSS Tùy chỉnh cho các nút phân trang màu cam */
+        .pagination .page-link {
+            color: #333;
+            border: none;
+            margin: 0 5px;
+            border-radius: 8px !important;
+            transition: all 0.3s ease;
+        }
+
+        .pagination .page-link:hover {
+            background-color: #fff3e6;
+            color: #FFA54F;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #FFA54F !important; /* Màu cam giao diện */
+            border-color: #FFA54F !important;
+            color: white !important;
+            box-shadow: 0 4px 10px rgba(255, 165, 79, 0.3);
+        }
+
+        .pagination .page-item.disabled .page-link {
+            background-color: #f8f9fa;
+            color: #ccc;
+        }
+
+        .pw-btn-filter {
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            height: 40px; /* Chiều cao cố định cho tất cả */
+            padding: 0 20px;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            color: #333;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            line-height: 1;
+        }
+
+        .pw-btn-filter.active {
+            background-color: #000;
+            color: #fff;
+            border-color: #000;
+        }
+
+        .dropdown-toggle::after {
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        /* Pagination Styling */
+        .pagination .page-link {
+            color: #333;
+            border: none;
+            margin: 0 5px;
+            border-radius: 8px !important;
+            height: 40px;
+            min-width: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pagination .page-item.active .page-link {
+            background-color: #FFA54F !important;
+            color: white !important;
+        }
+    </style>
 </head>
 <body>
 
 <div th:replace="~{fragments/header-customer :: header(activePage='shop-pets')}"></div>
 
 <div class="pet-world-container">
-
     <nav class="pw-filter-bar mt-3">
         <div class="container-fluid px-lg-5 d-flex flex-wrap justify-content-between align-items-center gap-3">
-            <div class="d-flex gap-2">
-                <a th:href="@{/pets}" class="pw-btn-filter" th:classappend="${type == null} ? 'active'">All</a>
-                <button class="pw-btn-filter">Type <i class="bi bi-chevron-down"></i></button>
-                <button class="pw-btn-filter">Price <i class="bi bi-chevron-down"></i></button>
+            <div class="d-flex gap-2 align-items-center flex-wrap">
+                <a th:href="@{/pets(kw=${kw}, sort=${sort}, page=0)}"
+                   class="pw-btn-filter text-decoration-none"
+                   th:classappend="${selectedType == null or selectedType == '' ? 'active' : ''}">
+                    All
+                </a>
+
+                <div class="dropdown">
+                    <a href="#" class="pw-btn-filter text-decoration-none dropdown-toggle"
+                       data-bs-toggle="dropdown" aria-expanded="false"
+                       th:classappend="${selectedType != null and selectedType != '' ? 'active' : ''}">
+                        <span th:text="${(selectedType != null and selectedType != '') ? selectedType : 'Type'}">Type</span>
+                    </a>
+                    <ul class="dropdown-menu shadow border-0">
+                        <li><a class="dropdown-item" th:href="@{/pets(type='Dog', kw=${kw}, sort=${sort}, page=0)}">Dog</a></li>
+                        <li><a class="dropdown-item" th:href="@{/pets(type='Cat', kw=${kw}, sort=${sort}, page=0)}">Cat</a></li>
+                    </ul>
+                </div>
+
+                <div class="dropdown">
+                    <a href="#" class="pw-btn-filter text-decoration-none dropdown-toggle"
+                       data-bs-toggle="dropdown" aria-expanded="false"
+                       th:classappend="${sort != null and sort != '' ? 'active' : ''}">
+                        Price
+                    </a>
+                    <ul class="dropdown-menu shadow border-0">
+                        <li><a class="dropdown-item" th:href="@{/pets(type=${selectedType}, kw=${kw}, sort='asc', page=0)}">Low to High</a></li>
+                        <li><a class="dropdown-item" th:href="@{/pets(type=${selectedType}, kw=${kw}, sort='desc', page=0)}">High to Low</a></li>
+                    </ul>
+                </div>
             </div>
 
             <form th:action="@{/pets}" method="get" class="pw-search-form" style="min-width: 320px;">
+                <input type="hidden" name="type" th:value="${selectedType}">
+                <input type="hidden" name="sort" th:value="${sort}">
+
                 <div class="input-group shadow-sm">
                     <span class="input-group-text bg-white border-end-0" style="border-radius: 50px 0 0 50px;">
                         <i class="bi bi-search text-muted"></i>
                     </span>
-                    <input type="text" id="kw" name="kw" th:value="${kw}"
+                    <input type="text" name="kw" th:value="${kw}"
                            class="form-control border-start-0 ps-0 shadow-none"
                            placeholder="Search pets..." style="height: 42px;">
                     <button class="btn px-4 text-white fw-bold" type="submit"
@@ -42,23 +141,22 @@
 
     <main class="container-fluid px-lg-5 py-4">
         <div class="pw-product-heading mb-4">
-            <h2>Our Pets</h2>
-            <span class="text-secondary" th:text="${pet != null ? pet.size() : 0} + ' pets found'">0 pets found</span>
+            <h2>Pet</h2>
+            <span class="text-secondary" th:text="${totalElements != null ? totalElements : 0} + ' pets found'"></span>
         </div>
 
         <div class="row g-4 row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-5">
-            <div class="col" th:each="p : ${pet}" th:if="${p.price != null and p.owner == null}">
+            <div class="col" th:each="p : ${pet}" th:if="${p.price != null and p.owner == null}" >
                 <div class="pw-card">
                     <div class="pw-img-box">
-                        <img th:src="${p.imageUrl}" alt="Pet Image" class="img-fluid">
+                        <img th:src="${p.imageUrl}" alt="Pet Image">
                     </div>
                     <div class="pw-card-body">
                         <p class="pw-product-name mb-1">
-                            <i class="bi bi-patch-check-fill text-primary me-1" style="font-size: 0.9rem;"></i>
-                            <span th:text="${p.name}">Pet Name</span>
+                            <i class="bi bi-patch-check-fill text-primary me-1"></i>
+                            <span th:text="${p.name}"></span>
                         </p>
-
-                        <div class="pw-vaccine-info mb-3" style="font-size: 0.85rem;">
+                        <div class="pw-vaccine-info mb-3 small">
                             <span th:if="${p.vaccinations != null and !p.vaccinations.isEmpty()}" class="text-success fw-medium">
                                 <i class="bi bi-shield-check-fill"></i> Vaccinated
                             </span>
@@ -70,24 +168,24 @@
                         <div class="pw-price-row mb-2">
                             <div th:if="${p.discountPercent != null and p.discountPercent > 0}">
                                 <div class="d-flex align-items-center gap-2 mb-1">
-                                    <span class="pw-price fw-bold" style="color: #FFB25B; font-size: 1.1rem;"
+                                    <span class="pw-price fw-bold" style="color: #FFB25B;"
                                           th:text="${#numbers.formatDecimal(p.salePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
-                                    <span class="badge bg-danger-subtle text-danger rounded-pill" style="font-size: 0.75rem;"
-                                          th:text="'-' + ${p.discountPercent} + '%'"></span>
+                                    <span class="badge bg-danger-subtle text-danger rounded-pill" th:text="'-' + ${p.discountPercent} + '%'"></span>
                                 </div>
                                 <del class="text-muted small" th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></del>
                             </div>
                             <div th:unless="${p.discountPercent != null and p.discountPercent > 0}">
-                                <span class="pw-price fw-bold text-dark" style="font-size: 1.1rem;"
-                                      th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                                <span class="pw-price fw-bold text-dark" th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
                             </div>
                         </div>
 
                         <div class="pw-action-buttons mt-3">
-                            <a th:href="@{'/cart/add-pet/' + ${p.id}}" class="pw-btn-add text-decoration-none">
-                                <i class="bi bi-cart-plus"></i> <span>ADD</span>
+                            <a th:href="@{'/cart/add-pet/' + ${p.petID}}" class="pw-btn-add text-decoration-none">
+                                <i class="bi bi-cart-plus"></i> ADD
                             </a>
-                            <a th:href="@{'/pet/detail/' + ${p.id}}" class="pw-btn-detail"><i class="bi bi-eye"></i> Detail</a>
+                            <a th:href="@{'/pet/detail/' + ${p.petID}}" class="pw-btn-detail">
+                                <i class="bi bi-eye"></i> Detail
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -96,14 +194,20 @@
 
         <nav th:if="${totalPages > 1}" class="mt-5">
             <ul class="pagination justify-content-center">
-                <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
-                    <a class="page-link" th:href="@{/pets(page=${currentPage - 1}, kw=${kw}, type=${type})}">Previous</a>
+                <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                    <a class="page-link shadow-sm"
+                       th:href="@{/pets(page=${currentPage - 1}, kw=${kw}, type=${selectedType}, sort=${sort})}">Previous</a>
                 </li>
-                <li class="page-item" th:each="i : ${#numbers.sequence(1, totalPages)}" th:classappend="${i == currentPage} ? 'active'">
-                    <a class="page-link" th:href="@{/pets(page=${i}, kw=${kw}, type=${type})}" th:text="${i}"></a>
+
+                <li class="page-item mx-1" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                    th:classappend="${i == currentPage} ? 'active'">
+                    <a class="page-link shadow-sm"
+                       th:href="@{/pets(page=${i}, kw=${kw}, type=${selectedType}, sort=${sort})}" th:text="${i + 1}"></a>
                 </li>
-                <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
-                    <a class="page-link" th:href="@{/pets(page=${currentPage + 1}, kw=${kw}, type=${type})}">Next</a>
+
+                <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                    <a class="page-link shadow-sm"
+                       th:href="@{/pets(page=${currentPage + 1}, kw=${kw}, type=${selectedType}, sort=${sort})}">Next</a>
                 </li>
             </ul>
         </nav>
@@ -115,16 +219,9 @@
         <div class="modal-content shadow-lg border-0" style="border-radius: 20px;">
             <div class="modal-body text-center p-5">
                 <i class="bi bi-search mb-3" style="font-size: 3rem; color: #ff914d; display: block;"></i>
-                <h4 class="mb-3" style="font-weight: 400; color: #333;">Pet Not Found</h4>
-                <p class="text-muted mb-4" style="font-weight: 300;">
-                    Sorry, we couldn't find any pets matching your search.
-                </p>
-                <div class="d-flex justify-content-center">
-                    <a th:href="@{/pets}" class="btn btn-dark rounded-pill px-5"
-                       style="height: 45px; display: flex; align-items: center; justify-content: center;">
-                        OK
-                    </a>
-                </div>
+                <h4 class="mb-3">Pet Not Found</h4>
+                <p class="text-muted mb-4">Sorry, we couldn't find any pets matching your search.</p>
+                <a th:href="@{/pets}" class="btn btn-dark rounded-pill px-5">OK</a>
             </div>
         </div>
     </div>
@@ -142,6 +239,5 @@
         });
     </script>
 </th:block>
-
 </body>
 </html>
