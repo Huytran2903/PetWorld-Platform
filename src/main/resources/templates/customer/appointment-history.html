@@ -277,6 +277,16 @@
                                             <strong>Notes:</strong>
                                             <span th:text="${appointmentSummaryByAppointmentId.get(appt.id).note ?: '-'}">-</span>
                                         </div>
+
+                                        <div style="margin-top: 8px;"
+                                             th:if="${vaccineRecordsByAppointmentId != null and vaccineRecordsByAppointmentId.containsKey(appt.id)}">
+                                            <strong>Vaccination:</strong>
+                                            <div th:each="v : ${vaccineRecordsByAppointmentId.get(appt.id)}" style="margin-top:4px;">
+                                                <span th:text="${v.vaccineName}">Vaccine</span>
+                                                <span class="text-muted" th:text="${v.administeredDate != null ? ' • ' + v.administeredDate : ''}"></span>
+                                                <span class="text-muted" th:text="${v.nextDueDate != null ? ' • Next: ' + v.nextDueDate : ''}"></span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
