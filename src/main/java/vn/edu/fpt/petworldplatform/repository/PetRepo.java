@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import vn.edu.fpt.petworldplatform.entity.Pets;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -75,5 +76,11 @@ public interface PetRepo extends JpaRepository<Pets, Integer> {
 
     Page<Pets> findAllByOwnerIsNullAndPriceIsNotNull(Pageable pageable);
 
-    Page<Pets> findAllByNameContainingIgnoreCase(String name, Pageable pageable);
+    Page<Pets> findAllByPetTypeIgnoreCaseAndOwnerIsNullAndPriceIsNotNull(String type, Pageable pageable);
+
+    Page<Pets> findAllByNameContainingIgnoreCaseAndPetTypeIgnoreCaseAndOwnerIsNullAndPriceIsNotNull(
+            String name, String petType, Pageable pageable
+    );
+
+    Page<Pets> findAllByNameContainingIgnoreCase(String keyword, Pageable pageable);
 }

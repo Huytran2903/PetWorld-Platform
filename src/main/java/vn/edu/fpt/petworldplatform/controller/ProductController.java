@@ -36,11 +36,21 @@ public class ProductController {
     public String getAllProducts(
             Model model,
             @RequestParam(name = "kw", required = false, defaultValue = "") String keyword,
-            @RequestParam(name = "page", defaultValue = "0") int page) { // Thêm tham số nhận số trang
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "sort", required = false) String sort) { // Thêm tham số nhận số trang
 
         // 1. Cấu hình phân trang: 10 sản phẩm mỗi trang, sắp xếp theo ID giảm dần (tùy chọn)
         int pageSize = 10;
-        Pageable pageable = PageRequest.of(page, pageSize, Sort.by("productId").descending());
+        Sort sortOrder;
+        if ("acs".equalsIgnoreCase(sort)) {
+            sortOrder = Sort.by("price").ascending();   //giá từ thấp -> cao
+        } else if ("desc".equalsIgnoreCase(sort)) {
+            sortOrder = Sort.by("price").descending();
+        } else {
+            sortOrder = Sort.by("productId").descending();
+        }
+
+        Pageable pageable = PageRequest.of(page, pageSize, sortOrder);
 
         Page<Product> productPage;
 
@@ -51,12 +61,15 @@ public class ProductController {
             productPage = productService.getAllProducts(pageable);
         }
 
+
+
         // 3. Đẩy dữ liệu ra Model để Thymeleaf xử lý
         model.addAttribute("product", productPage.getContent());            // Danh sách sản phẩm hiển thị trên trang này
         model.addAttribute("totalPages", productPage.getTotalPages());      // Tổng số trang
         model.addAttribute("totalElements", productPage.getTotalElements());// Tổng số sản phẩm (dùng để hiện "X products found")
         model.addAttribute("currentPage", page);                            // Số trang hiện tại
         model.addAttribute("kw", keyword);                                  // Giữ lại từ khóa tìm kiếm
+        model.addAttribute("sort", sort);
 
         return "/product/productList";
     }
@@ -66,18 +79,46 @@ public class ProductController {
     public String getAllPet(
             Model model,
             @RequestParam(name = "kw", required = false, defaultValue = "") String keyword,
-            @RequestParam(name = "page", defaultValue = "0") int page) { // Nhận số trang, mặc định là trang đầu (0)
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "sort", required = false) String sort,
+            @RequestParam(name = "type", defaultValue = "", required = false) String type) { // Nhận số trang, mặc định là trang đầu (0)
 
         // 1. Cấu hình phân trang: 6 bản ghi mỗi trang, sắp xếp theo ID giảm dần
         int pageSize = 10;
-        Pageable pageable = PageRequest.of(page, pageSize, Sort.by("petID").ascending());
+
+        Sort sortOrder;
+        if ("asc".equalsIgnoreCase(sort)) {
+            sortOrder = Sort.by("price").ascending();   //giá từ thấp -> cao
+        } else if ("desc".equalsIgnoreCase(sort)) {
+            sortOrder = Sort.by("price").descending();
+        } else {
+            sortOrder = Sort.by("petID").descending();
+        }
+
+        Pageable pageable = PageRequest.of(page, pageSize, sortOrder);
 
         Page<Pets> petPage;
 
         // 2. Xử lý logic lấy dữ liệu (Phân trang cho cả Search và Get All)
-        if (!keyword.trim().isEmpty()) {
-            petPage = petService.searchPetByName(keyword, pageable);
-        } else {
+
+        boolean hasKeyword = (keyword != null && !keyword.trim().isEmpty());
+        boolean hasType = (type != null && !type.trim().isEmpty());
+
+
+        // 1. Trường hợp: Có CẢ Tên và Loại (Kết hợp filter)
+        if (hasKeyword && hasType) {
+            petPage = petService.findPetByNameAndType(keyword.trim(), type.trim(), pageable);
+        }
+        // 2. Trường hợp: CHỈ có Tên
+        else if (hasKeyword) {
+            petPage = petService.searchPetByName(keyword.trim(), pageable);
+        }
+        // 3. Trường hợp: CHỈ có Loại
+        else if (hasType) {
+            petPage = petService.getAvailablePetsByType(type.trim(), pageable);
+        }
+        // 4. Trường hợp: KHÔNG có gì (Lấy mặc định)
+        else {
             petPage = petService.getAllPetWithPagination(pageable);
         }
 
@@ -87,6 +128,8 @@ public class ProductController {
         model.addAttribute("currentPage", page);                      // Số trang hiện tại
         model.addAttribute("kw", keyword);                            // Giữ từ khóa để khi chuyển trang không bị mất search
         model.addAttribute("totalElements", petPage.getTotalElements());
+        model.addAttribute("sort", sort);
+        model.addAttribute("selectedType", type);
 
         return "/product/petList";
     }

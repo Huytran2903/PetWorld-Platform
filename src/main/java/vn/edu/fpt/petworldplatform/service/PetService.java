@@ -76,8 +76,29 @@ public class PetService {
         petRepo.deleteById(id);
     }
 
+    public Page<Pets> findPetByNameAndType(String keyword, String type, Pageable pageable) {
+        // Đảm bảo keyword không bị null để tránh lỗi SQL
+        String searchName = (keyword != null) ? keyword.trim() : "";
+        String searchType = (type != null) ? type.trim() : "";
+
+        return petRepo.findAllByNameContainingIgnoreCaseAndPetTypeIgnoreCaseAndOwnerIsNullAndPriceIsNotNull(
+                searchName, searchType, pageable
+        );
+    }
+
     public Page<Pets> searchPetByName(String keyword, Pageable pageable) {
         return petRepo.findAllByNameContainingIgnoreCase(keyword, pageable);
+    }
+
+    public Page<Pets> getAvailablePetsByType(String type, Pageable pageable) {
+
+        // Nếu không truyền type, hoặc chọn "All" -> Lấy tất cả pet đang bán
+        if (type == null || type.trim().isEmpty() || type.equalsIgnoreCase("All")) {
+            return petRepo.findAllByOwnerIsNullAndPriceIsNotNull(pageable);
+        }
+
+        // Nếu có chọn Type cụ thể ("Dog", "Cat", "Bird"...) -> Lọc theo loại và đang bán
+        return petRepo.findAllByPetTypeIgnoreCaseAndOwnerIsNullAndPriceIsNotNull(type, pageable);
     }
 
     public void createPet(PetCreateDTO dto) throws IOException {
@@ -235,5 +256,6 @@ public class PetService {
 
         return normalized;
     }
+
 
 }

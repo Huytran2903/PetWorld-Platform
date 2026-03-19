@@ -73,7 +73,8 @@ public class AdminController {
     //List
     @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("/admin/manage-pet")
-    public String getAllPets(Model model, @RequestParam(value = "kw", required = false, defaultValue = "")                              String keyword, @RequestParam(value = "page", defaultValue = "0") int page) {
+    public String getAllPets(Model model, @RequestParam(value = "kw", required = false, defaultValue = "")                              String keyword, @RequestParam(value = "page", defaultValue = "0") int page,
+                                   @RequestParam(name = "type", defaultValue = "All", required = false) String type) {
 
         int pageSize = 8;
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by("petID").ascending());
@@ -81,7 +82,7 @@ public class AdminController {
         Page<Pets> petPage;
 
         if(!keyword.equals("")) {
-            petPage = petService.searchPetByName(keyword, pageable);
+            petPage = petService.findPetByNameAndType(keyword, type, pageable);
         }
         else {
             petPage = petService.findAllPets(pageable);
