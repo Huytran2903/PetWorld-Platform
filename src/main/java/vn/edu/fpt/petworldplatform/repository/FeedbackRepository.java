@@ -1,6 +1,8 @@
 package vn.edu.fpt.petworldplatform.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import vn.edu.fpt.petworldplatform.entity.Feedback;
 import vn.edu.fpt.petworldplatform.entity.Staff;
 
@@ -21,4 +23,10 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Integer> {
     List<Feedback> findByTypeOrderByCreatedAtDesc(String type);
 
     List<Feedback> findByStatusAndTypeOrderByCreatedAtDesc(String status, String type);
+
+    Page<Feedback> findByStatus(String status, Pageable pageable);
+
+    Page<Feedback> findByType(String type, Pageable pageable);
+
+    Page<Feedback> findByStatusAndType(String status, String type, Pageable pageable);
 }

@@ -22,7 +22,7 @@
                     <p class="text-gray-500 font-medium" th:text="${pet.breed}">Golden Retriever</p>
 
                     <div class="mt-6 flex flex-col gap-3">
-                        <a th:href="@{/booking(petId=${pet.petID})}" class="w-full py-3 rounded-xl bg-orange-600 text-white font-bold hover:bg-orange-700 shadow-lg shadow-orange-200 transition">
+                        <a th:href="@{/appointment/booking}" class="w-full py-3 rounded-xl bg-orange-600 text-white font-bold hover:bg-orange-700 shadow-lg shadow-orange-200 transition">
                             <i class="fa-regular fa-calendar-check mr-2"></i> Book Appointment
                         </a>
                         <a th:href="@{/customer/pet/pet-update(id=${pet.petID})}" class="w-full py-3 rounded-xl border-2 border-gray-100 text-gray-600 font-bold hover:border-orange-500 hover:text-orange-600 transition">

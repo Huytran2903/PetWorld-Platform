@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.petworldplatform.dto.GeneralFeedbackDTO;
+import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.service.FeedbackService;
 
 import java.io.IOException;
@@ -60,10 +61,15 @@ public class FeedbackController {
     }
 
     @GetMapping
-    public String showFeedbackForm(Model model, HttpServletRequest request) {
+    public String showFeedbackForm(Model model, HttpServletRequest request, RedirectAttributes redirectAttributes) {
         // Check if user is logged in using session
         Object loggedInAccount = request.getSession().getAttribute("loggedInAccount");
         boolean isLoggedIn = loggedInAccount != null;
+
+        if (!isLoggedIn) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Please login to submit feedback.");
+            return "redirect:/login";
+        }
         
         model.addAttribute("feedbackDTO", new GeneralFeedbackDTO());
         model.addAttribute("isLoggedIn", isLoggedIn);
@@ -82,6 +88,11 @@ public class FeedbackController {
         // Check if user is logged in using session
         Object loggedInAccount = request.getSession().getAttribute("loggedInAccount");
         boolean isLoggedIn = loggedInAccount != null;
+
+        if (!isLoggedIn) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Please login to submit feedback.");
+            return "redirect:/login";
+        }
         
         model.addAttribute("isLoggedIn", isLoggedIn);
         model.addAttribute("activePage", "feedback");
@@ -97,7 +108,8 @@ public class FeedbackController {
                 feedbackDTO.setImageUrls(imageUrls);
             }
             
-            feedbackService.submitGeneralFeedback(feedbackDTO, isLoggedIn);
+            Customer loggedInCustomer = (loggedInAccount instanceof Customer) ? (Customer) loggedInAccount : null;
+            feedbackService.submitGeneralFeedback(feedbackDTO, loggedInCustomer);
             redirectAttributes.addFlashAttribute("successMessage", "Feedback submitted successfully! Thank you for your feedback.");
             return "redirect:/feedback";
         } catch (Exception e) {

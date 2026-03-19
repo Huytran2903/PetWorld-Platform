@@ -1,6 +1,7 @@
 package vn.edu.fpt.petworldplatform.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -8,22 +9,25 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.petworldplatform.entity.Feedback;
 import vn.edu.fpt.petworldplatform.service.FeedbackService;
 
-import java.util.List;
-
 @Controller
 @RequestMapping("/admin/feedback")
 @RequiredArgsConstructor
 public class AdminFeedbackController {
 
     private final FeedbackService feedbackService;
+    private static final int FEEDBACK_PAGE_SIZE = 6;
 
     @GetMapping
     public String showFeedbackManager(@RequestParam(required = false) String status,
                                       @RequestParam(required = false) String type,
+                                      @RequestParam(defaultValue = "0") int page,
                                       Model model) {
-        List<Feedback> feedbacks = feedbackService.getFeedbacksByFilter(status, type);
+        Page<Feedback> feedbackPage = feedbackService.getFeedbacksByFilter(status, type, page, FEEDBACK_PAGE_SIZE);
 
-        model.addAttribute("feedbacks", feedbacks);
+        model.addAttribute("feedbacks", feedbackPage.getContent());
+        model.addAttribute("feedbackPage", feedbackPage);
+        model.addAttribute("currentPage", feedbackPage.getNumber());
+        model.addAttribute("totalPages", feedbackPage.getTotalPages());
         model.addAttribute("currentStatus", status);
         model.addAttribute("currentType", type);
         model.addAttribute("activePage", "feedback");
