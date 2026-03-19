@@ -43,13 +43,19 @@
             <div class="swiper-wrapper">
                 <div class="swiper-slide py-5">
                     <div class="row banner-content align-items-center">
-                        <div class="img-wrapper col-md-5">
-                            <img th:src="@{/images/banner-img.png}" class="img-fluid" alt="Banner">
-                        </div>
+
                         <div class="content-wrapper col-md-7 p-5 mb-5">
-                            <div class="secondary-font text-primary text-uppercase mb-4">Save 10 - 20 % off</div>
-                            <h2 class="banner-title display-1 fw-normal">Best destination for <span
-                                    class="text-primary">your pets</span></h2>
+
+                            <div class="secondary-font text-primary text-uppercase mb-4 fw-bold"
+                                 th:text="${globalConfigs != null and globalConfigs['DISCOUNT_BANNER'] != null ? globalConfigs['DISCOUNT_BANNER'] : 'SAVE 10 - 20 % OFF'}">
+                                Save 10 - 20 % off
+                            </div>
+
+                            <h2 class="banner-title display-1 fw-normal mb-4"
+                                th:utext="${globalConfigs != null and globalConfigs['HERO_TITLE'] != null ? globalConfigs['HERO_TITLE'] : 'Best destination for <span class=''text-primary''>your pets</span>'}">
+                                Best destination for <span class="text-primary">your pets</span>
+                            </h2>
+
                             <div class="d-flex flex-wrap gap-3">
                                 <a th:href="@{/appointment/booking}"
                                    class="btn btn-primary btn-lg text-uppercase fs-6 rounded-1">Book Service
@@ -58,6 +64,11 @@
                                    class="btn btn-outline-dark btn-lg text-uppercase fs-6 rounded-1">Shop Now</a>
                             </div>
                         </div>
+
+                        <div class="img-wrapper col-md-5 text-center">
+                            <img th:src="@{/images/banner-img.png}" class="img-fluid" alt="Banner">
+                        </div>
+
                     </div>
                 </div>
             </div>

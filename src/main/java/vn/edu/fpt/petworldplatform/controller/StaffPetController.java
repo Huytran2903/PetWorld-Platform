@@ -1,6 +1,7 @@
 package vn.edu.fpt.petworldplatform.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,7 @@ public class StaffPetController {
     @Autowired
     private PetService petService;
 
+    @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping ("/list")
     public String showPetList(Model model) {
         List<Pets> allPets = petService.getAllPets();
@@ -41,12 +43,14 @@ public class StaffPetController {
         return "staff/pet/pet-list";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("/create")
     public String showCreatePet(Model model) {
         model.addAttribute("petDTO", new PetCreateDTO());
         return "staff/pet/pet-create";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_PET')")
     @PostMapping("/create") // Hoặc đường dẫn hiện tại của bạn
     public String handleCreatePet(@ModelAttribute PetCreateDTO petDTO, RedirectAttributes redirectAttributes) {
         try {
@@ -68,6 +72,7 @@ public class StaffPetController {
     }
 
     // Đổi Integer -> Long
+    @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("/detail")
     public String showPetDetail(@RequestParam("id") Integer id, Model model) {
         Pets pet = petService.getPetById(id);
@@ -76,6 +81,7 @@ public class StaffPetController {
     }
 
     // Đổi Integer -> Long
+    @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("/update")
     public String showUpdatePet(@RequestParam("id") Integer id, Model model) {
         Pets pet = petService.getPetById(id);
@@ -83,6 +89,7 @@ public class StaffPetController {
         return "staff/pet/pet-update";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_PET')")
     @PostMapping("/update")
     public String handleUpdatePet(@ModelAttribute Pets pet) {
         petService.updatePet(pet);
@@ -90,6 +97,7 @@ public class StaffPetController {
     }
 
     // Đổi Integer -> Long
+    @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("/history")
     public String showPetHistory(@RequestParam("id") Integer id, Model model) {
         Pets pet = petService.getPetById(id);

@@ -26,11 +26,8 @@ public class GlobalConfigAdvice {
 
     @Autowired
     private SecuritySupport securitySupport;
+    
 
-    @Autowired
-    private CustomerService customerService;
-
-    // Hàm này sẽ tự động chạy ở MỌI TRANG để đếm giỏ hàng
     @ModelAttribute("cartCount")
     public int getCartCountGlobal() {
         try {

@@ -65,7 +65,6 @@ public class AdminController {
     private final ServiceItemService serviceItemService;
 
 
-
     //Manage Pet - OanhTP
     //List
     @PreAuthorize("hasAuthority('MANAGE_PET')")
@@ -779,6 +778,7 @@ public class AdminController {
         return "customer/manage-order";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_ORDER')")
     @PostMapping("/admin/orders/update-status")
     public String updateStatus(@RequestParam("orderID") Integer orderID,
                                @RequestParam("status") String status,

@@ -58,6 +58,9 @@ public class SecurityConfig {
                         .requestMatchers("/reset-password/**", "/forgot-password", "/verify-forgot-password-otp").permitAll().requestMatchers("/staff/**").permitAll()
                         // --------------------
 
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/staff/**").hasRole("STAFF")
+
                         .requestMatchers("/profile/**").authenticated()
 
                         // D. Còn lại khóa hết

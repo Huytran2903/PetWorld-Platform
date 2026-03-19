@@ -2,6 +2,7 @@ package vn.edu.fpt.petworldplatform.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import vn.edu.fpt.petworldplatform.entity.Appointment;
@@ -62,4 +63,16 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     @Query("SELECT a FROM Appointment a WHERE a.id = :appointmentId AND a.staffId = :staffId")
     Optional<Appointment> findByIdAndAssignedStaff(@Param("appointmentId") Integer appointmentId,
                                                    @Param("staffId") Long staffId);
+
+    @Modifying
+    @Query(value = "UPDATE Appointments SET StaffID = :newStaffId WHERE StaffID = :oldStaffId AND Status IN ('Pending', 'Confirmed', 'Pending')", nativeQuery = true)
+    void transferPendingAppointments(@Param("oldStaffId") Integer oldStaffId, @Param("newStaffId") Integer newStaffId);
+
+    @Modifying
+    @Query(value = "UPDATE Appointments SET StaffID = NULL WHERE StaffID = :oldStaffId AND Status IN ('Pending', 'Confirmed')", nativeQuery = true)
+    void unassignPendingAppointments(@Param("oldStaffId") Integer oldStaffId);
+
+    @Modifying
+    @Query(value = "UPDATE Appointments SET StaffID = NULL WHERE StaffID = :oldStaffId", nativeQuery = true)
+    void clearAllStaffReferences(@Param("oldStaffId") Integer oldStaffId);
 }

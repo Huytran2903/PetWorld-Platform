@@ -23,7 +23,13 @@ public class Role {
     private String roleName;
 
     @OneToMany(mappedBy = "role", fetch = FetchType.LAZY)
-    @JsonIgnore // Ngắt vòng lặp khi trả về API JSON
-    @ToString.Exclude // Ngắt vòng lặp khi in log
+    @JsonIgnore
+    @ToString.Exclude
     private List<Staff> staffs;
+
+    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnore
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<AccessControl> accessControls;
 }

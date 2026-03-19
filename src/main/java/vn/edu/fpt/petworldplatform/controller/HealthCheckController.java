@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpSession;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 import org.springframework.security.core.Authentication;
@@ -60,7 +61,7 @@ public class HealthCheckController {
 
 
     @GetMapping("/assigned")
-
+    @PreAuthorize("hasAuthority('MANAGE_APPOINTMENT')")
     public String getAssignedAppointments(Principal principal, HttpSession session, Model model) {
 
         Staff staff = resolveCurrentStaff(principal, session);
@@ -80,7 +81,7 @@ public class HealthCheckController {
 
 
     @PostMapping("/{appointmentId}/check-in")
-
+    @PreAuthorize("hasAuthority('MANAGE_APPOINTMENT')")
     public String checkIn(@PathVariable Integer appointmentId,
 
                           Principal principal,
@@ -120,7 +121,7 @@ public class HealthCheckController {
 
 
     @PostMapping("/{appointmentId}/execute")
-
+    @PreAuthorize("hasAuthority('MANAGE_APPOINTMENT')")
     public String execute(@PathVariable Integer appointmentId,
 
                           @RequestParam(required = false) Integer serviceLineId,
@@ -162,7 +163,7 @@ public class HealthCheckController {
 
 
     @GetMapping("/report")
-
+    @PreAuthorize("hasAuthority('MANAGE_APPOINTMENT')")
     public String viewReportScreen(@RequestParam Integer appointmentId,
 
                                    @RequestParam(required = false) Integer serviceLineId,

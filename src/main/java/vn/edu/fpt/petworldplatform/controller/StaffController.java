@@ -2,6 +2,7 @@ package vn.edu.fpt.petworldplatform.controller;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -46,6 +47,7 @@ public class StaffController {
     private final AppointmentSummaryRepository appointmentSummaryRepository;
     private final AppointmentSummaryPhotoRepository appointmentSummaryPhotoRepository;
 
+    @PreAuthorize("hasAuthority('MANAGE_APPOINTMENT')")
     @GetMapping("/assigned_list")
     public String viewAssignedList(
             Principal principal,
@@ -71,6 +73,7 @@ public class StaffController {
         return "staff/assigned_list";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_APPOINTMENT')")
     @GetMapping("/appointment_detail")
     public String viewAppointmentDetail(@RequestParam Integer id,
                                         Principal principal,
@@ -156,6 +159,7 @@ public class StaffController {
         return "staff/appointment_detail";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_APPOINTMENT')")
     @PostMapping("/appointment/checkin")
     public String checkIn(@RequestParam Integer id,
                           Principal principal,
@@ -176,6 +180,7 @@ public class StaffController {
         return "redirect:/staff/appointment_detail?id=" + id;
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_APPOINTMENT')")
     @PostMapping("/appointment/no-show")
     public String reportNoShow(@RequestParam Integer id,
                                Principal principal,
@@ -196,6 +201,7 @@ public class StaffController {
         return "redirect:/staff/appointment_detail?id=" + id;
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_APPOINTMENT')")
     @GetMapping("/booking")
     public String staffBooking() {
         return "redirect:/booking";

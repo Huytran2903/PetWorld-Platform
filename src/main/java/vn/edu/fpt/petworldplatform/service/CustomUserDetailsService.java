@@ -35,13 +35,11 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        // 1. CUSTOMER
         Optional<Customer> customerOpt = customerRepo.findByUsername(username);
         if (customerOpt.isPresent()) {
             Customer customer = customerOpt.get();
             List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"));
 
-            // Trả về CustomUserDetails kèm theo đối tượng Customer
             return new CustomUserDetails(customer.getUsername(), customer.getPasswordHash(), customer.getIsActive() != null ? customer.getIsActive() : true, authorities, customer);
         }
 
@@ -60,7 +58,6 @@ public class CustomUserDetailsService implements UserDetailsService {
             authorities.add(new SimpleGrantedAuthority("ROLE_" + staff.getRole().getRoleName().toUpperCase()));
         }
 
-        // Trả về CustomUserDetails kèm theo đối tượng Staff
         return new CustomUserDetails(staff.getUsername(), staff.getPasswordHash(), staff.getIsActive() != null ? staff.getIsActive() : true, authorities, staff);
 
     }

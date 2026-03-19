@@ -28,6 +28,7 @@ public class StaffService {
     private final StaffScheduleRepository staffScheduleRepo;
     private final FeedbackRepository feedbackRepo;
     private final AppointmentServiceLineRepository appointmentServiceRepo;
+    private final AppointmentRepository appointmentRepo;
 
     @Autowired
     private RoleRepo roleRepo;
@@ -189,9 +190,14 @@ public class StaffService {
             // Có người nhận -> Bàn giao việc dở dang
             petVaccinationRepo.transferFutureVaccinations(oldStaffId, newStaffId);
             appointmentServiceRepo.transferPendingServices(oldStaffId, newStaffId);
+
+            // [THÊM MỚI]: Chuyển giao bảng Appointments (Lịch hẹn chính)
+            appointmentRepo.transferPendingAppointments(oldStaffId, newStaffId);
         } else {
             // Không ai nhận -> Trả dịch vụ về trạng thái vô chủ
             appointmentServiceRepo.unassignPendingServices(oldStaffId);
+
+            appointmentRepo.unassignPendingAppointments(oldStaffId);
         }
 
         // ==========================================
@@ -200,6 +206,12 @@ public class StaffService {
         petVaccinationRepo.clearAllVaccinationReferences(oldStaffId);
         appointmentServiceRepo.clearAllStaffReferences(oldStaffId);
         petHealthRecordRepo.unassignAllHealthRecords(oldStaffId);
+
+        // [THÊM MỚI]: Set NULL cho StaffID ở tất cả các Lịch hẹn trong quá khứ
+        appointmentRepo.clearAllStaffReferences(oldStaffId);
+
+        // Đẩy tất cả các lệnh UPDATE xuống Database trước khi chạy lệnh DELETE
+        staffRepo.flush();
 
         // ==========================================
         // BƯỚC 3: XÓA DỮ LIỆU PHỤ THUỘC & XÓA STAFF

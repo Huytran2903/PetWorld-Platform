@@ -1,6 +1,7 @@
 package vn.edu.fpt.petworldplatform.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ public class AdminFeedbackController {
 
     private final FeedbackService feedbackService;
 
+    @PreAuthorize("hasAuthority('MANAGE_FEEDBACK')")
     @GetMapping
     public String showFeedbackManager(@RequestParam(required = false) String status,
                                       @RequestParam(required = false) String type,
@@ -30,6 +32,7 @@ public class AdminFeedbackController {
         return "admin/feedback-manager";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_FEEDBACK')")
     @PostMapping("/{id}/approve")
     public String approve(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
         try {
@@ -41,6 +44,7 @@ public class AdminFeedbackController {
         return "redirect:/admin/feedback";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_FEEDBACK')")
     @PostMapping("/{id}/reject")
     public String reject(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
         try {
@@ -52,6 +56,7 @@ public class AdminFeedbackController {
         return "redirect:/admin/feedback";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_FEEDBACK')")
     @PostMapping("/{id}/reply")
     public String reply(@PathVariable Integer id,
                         @RequestParam String replyMessage,
