@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout_user :: layout(~{::section})}">
+<head>
+    <title>Notification Detail</title>
+</head>
+<body>
+<section>
+    <style>
+        .detail-wrap {
+            max-width: 860px;
+            margin: 24px auto;
+            padding: 0 12px;
+        }
+
+        .detail-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+        }
+
+        .detail-title {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 800;
+            color: #111827;
+        }
+
+        .detail-meta {
+            color: #6b7280;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+
+        .detail-message {
+            margin: 0;
+            font-size: 16px;
+            line-height: 1.7;
+            color: #374151;
+            white-space: pre-wrap;
+        }
+
+        .detail-message-box {
+            margin-top: 16px;
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .type-chip {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: #fff7ed;
+            color: #9a3412;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: none;
+        }
+    </style>
+
+    <div class="detail-wrap">
+        <a class="btn btn-sm btn-outline-secondary mb-3" th:href="@{/customer/notifications}">
+            <i class="fas fa-arrow-left"></i>
+            Back to notifications
+        </a>
+
+        <div class="detail-card">
+            <h1 class="detail-title" th:text="${notification.title}">Notification title</h1>
+            <div class="detail-meta">
+                <i class="fas fa-clock"></i>
+                <span th:text="${#temporals.format(notification.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 12:00</span>
+            </div>
+
+            <div class="type-chip"
+                 th:text="${notification.type == 'feedback_reply' ? 'Admin Reply' : (notification.type == 'feedback_status' ? 'Feedback Status' : 'Notification')}">
+                Feedback Status
+            </div>
+
+            <div class="detail-message-box">
+                <p class="detail-message" th:text="${notification.message}">Notification detail message</p>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>
