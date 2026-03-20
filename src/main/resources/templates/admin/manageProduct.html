@@ -18,7 +18,7 @@
             margin: 0 3px;
             border-radius: 8px !important;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             padding: 8px 16px;
             font-weight: 500;
         }
@@ -64,14 +64,17 @@
 
         <main class="container-fluid px-4">
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                <div class="card-header bg-white py-3 border-0">
+                <div class="card-header bg-white py-4 border-0">
                     <div class="row g-3 align-items-center">
-                        <div class="col-md-4">
-                            <form th:action="@{/admin/manage-product}" method="get">
-                                <div class="search-box position-relative d-flex align-items-center">
-                                    <span class="position-absolute start-0 translate-middle-y ms-3 text-muted" style="top: 50%; z-index: 5;">
-                                        <i class="bi bi-search"></i>
-                                    </span>
+                        <div class="col-md-9">
+                            <form th:action="@{/admin/manage-product}" method="get"
+                                  class="d-flex gap-2 align-items-center">
+
+                                <div class="search-box position-relative d-flex align-items-center flex-grow-1">
+                    <span class="position-absolute start-0 translate-middle-y ms-3 text-muted"
+                          style="top: 50%; z-index: 5;">
+                        <i class="bi bi-search"></i>
+                    </span>
                                     <input type="text" name="kw" th:value="${kw}"
                                            class="form-control rounded-pill ps-5 pe-5 shadow-sm"
                                            placeholder="Search product by name..."
@@ -82,6 +85,26 @@
                                         Search
                                     </button>
                                 </div>
+
+                                <select name="categoryId" class="form-select admin-filter-select shadow-sm rounded-pill"
+                                        style="height: 45px; width: auto; min-width: 180px;"
+                                        th:classappend="${selectedCategoryId != null ? 'active' : ''}"
+                                        onchange="this.form.submit()">
+                                    <option value="">Category: All</option>
+
+                                    <option th:each="c : ${categories}"
+                                            th:value="${c.categoryID}"
+                                            th:text="${c.name}"
+                                            th:selected="${c.categoryID == selectedCategoryId}">
+                                    </option>
+                                </select>
+
+                                <a th:href="@{/admin/manage-product}"
+                                   class="btn btn-light rounded-pill d-flex align-items-center justify-content-center shadow-sm"
+                                   style="height: 45px; width: 45px; flex-shrink: 0;" title="Reset all filters">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                </a>
+
                             </form>
                         </div>
                     </div>
@@ -106,7 +129,8 @@
                         <tr th:each="p: ${products}">
                             <td class="ps-4 fw-bold" th:text="${p.productId}"></td>
                             <td>
-                                <img th:src="${p.imageUrl}" class="rounded-3 border shadow-sm" alt="product" width="75" height="75" style="object-fit: cover;">
+                                <img th:src="${p.imageUrl}" class="rounded-3 border shadow-sm" alt="product" width="75"
+                                     height="75" style="object-fit: cover;">
                             </td>
                             <td>
                                 <div class="fw-bold text-dark" th:text="${p.name}">Product Name</div>
@@ -116,23 +140,28 @@
                                     <span class="fw-bold fs-6" style="color: #FFB25B;"
                                           th:text="${#numbers.formatDecimal(p.salePrice, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></span>
                                     <br>
-                                    <del class="text-muted small" th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></del>
+                                    <del class="text-muted small"
+                                         th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></del>
                                 </div>
                                 <div th:unless="${p.discountPercent != null and p.discountPercent > 0}">
-                                    <span class="text-dark fw-bold" th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></span>
+                                    <span class="text-dark fw-bold"
+                                          th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' VNĐ'"></span>
                                 </div>
                             </td>
                             <td>
                                 <span th:if="${p.discountPercent != null and p.discountPercent > 0}"
                                       class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2 fw-bold"
                                       th:text="${'-' + #numbers.formatDecimal(p.discountPercent, 0, 0) + '%'}"></span>
-                                <span th:unless="${p.discountPercent != null and p.discountPercent > 0}" class="text-muted small fst-italic">None</span>
+                                <span th:unless="${p.discountPercent != null and p.discountPercent > 0}"
+                                      class="text-muted small fst-italic">None</span>
                             </td>
                             <td>
-                                <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1" th:text="${p.category.name}">Category</span>
+                                <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1"
+                                      th:text="${p.category.name}">Category</span>
                             </td>
                             <td>
-                                <span class="badge bg-warning-subtle text-warning rounded-pill px-3 py-1" th:text="${p.stock}">0</span>
+                                <span class="badge bg-warning-subtle text-warning rounded-pill px-3 py-1"
+                                      th:text="${p.stock}">0</span>
                             </td>
                             <td>
                                 <span class="badge rounded-pill px-3 py-1"
@@ -141,7 +170,8 @@
                             </td>
                             <td class="text-end pe-4">
                                 <div class="btn-group shadow-sm rounded-pill overflow-hidden">
-                                    <a th:href="@{'/admin/product/edit/' + ${p.productId}}" class="btn btn-sm btn-outline-secondary border-0 px-3">
+                                    <a th:href="@{'/admin/product/edit/' + ${p.productId}}"
+                                       class="btn btn-sm btn-outline-secondary border-0 px-3">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
                                     <button type="button" class="btn btn-sm btn-outline-danger border-0 px-3"
@@ -161,7 +191,8 @@
                     <nav aria-label="Page navigation">
                         <ul class="pagination justify-content-center align-items-center mb-0">
                             <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                                <a class="page-link shadow-sm border-0" th:href="@{/admin/manage-product(page=${currentPage - 1}, kw=${kw})}">Previous</a>
+                                <a class="page-link shadow-sm border-0"
+                                   th:href="@{/admin/manage-product(page=${currentPage - 1}, kw=${kw})}">Previous</a>
                             </li>
 
                             <li class="page-item mx-1" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
@@ -172,7 +203,8 @@
                             </li>
 
                             <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
-                                <a class="page-link shadow-sm border-0" th:href="@{/admin/manage-product(page=${currentPage + 1}, kw=${kw})}">Next</a>
+                                <a class="page-link shadow-sm border-0"
+                                   th:href="@{/admin/manage-product(page=${currentPage + 1}, kw=${kw})}">Next</a>
                             </li>
                         </ul>
                     </nav>

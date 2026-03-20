@@ -79,18 +79,17 @@ public class AdminController {
     //List
     @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("/admin/manage-pet")
-    public String getAllPets(Model model, @RequestParam(value = "kw", required = false, defaultValue = "")                              String keyword, @RequestParam(value = "page", defaultValue = "0") int page,
-                                   @RequestParam(name = "type", defaultValue = "All", required = false) String type) {
+    public String getAllPets(Model model, @RequestParam(value = "kw", required = false, defaultValue = "") String keyword, @RequestParam(value = "page", defaultValue = "0") int page,
+                             @RequestParam(name = "type", defaultValue = "All", required = false) String type) {
 
         int pageSize = 8;
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by("petID").ascending());
 
         Page<Pets> petPage;
 
-        if(!keyword.equals("")) {
+        if (!keyword.equals("")) {
             petPage = petService.findPetByNameAndType(keyword, type, pageable);
-        }
-        else {
+        } else {
             petPage = petService.findAllPets(pageable);
         }
 
@@ -319,33 +318,42 @@ public class AdminController {
     public String getAllProducts(
             Model model,
             @RequestParam(value = "kw", required = false, defaultValue = "") String keyword,
-            @RequestParam(value = "page", defaultValue = "0") int page) { // Thêm tham số nhận số trang
+            @RequestParam(value = "categoryId", required = false) Integer categoryId,
+            @RequestParam(value = "page", defaultValue = "0") int page) {
 
-        // 1. Cấu hình phân trang: 8 sản phẩm mỗi trang (bạn có thể đổi thành 10 tùy ý)
-        // Sắp xếp theo ID giảm dần để sản phẩm mới thêm lên đầu
+        // 1. Cấu hình phân trang: 10 sản phẩm mỗi trang, sắp xếp theo ID tăng dần
         int pageSize = 10;
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by("productId").ascending());
 
         Page<Product> productPage;
 
-        // 2. Gọi hàm Service có chứa Pageable
-        if (!keyword.trim().isEmpty()) {
-            productPage = productService.searchProductsByName(keyword, pageable);
+        // 2. Logic Filter giống hệt trang Customer
+        boolean hasKeyword = (keyword != null && !keyword.trim().isEmpty());
+        boolean hasCategory = (categoryId != null && categoryId > 0);
+
+        if (hasKeyword && hasCategory) {
+            productPage = productService.searchProductsByNameAndCategory(keyword.trim(), categoryId, pageable);
+        } else if (hasKeyword) {
+            productPage = productService.searchProductsByName(keyword.trim(), pageable);
+        } else if (hasCategory) {
+            productPage = productService.getProductsByCategory(categoryId, pageable);
         } else {
             productPage = productService.getAllProducts(pageable);
         }
 
-
+        // 3. Đẩy dữ liệu ra giao diện
         model.addAttribute("products", productPage.getContent());
         model.addAttribute("totalPages", productPage.getTotalPages());
         model.addAttribute("currentPage", page);
         model.addAttribute("kw", keyword);
-
-
         model.addAttribute("totalElements", productPage.getTotalElements());
+
+        model.addAttribute("categories", categoryService.getAllCategories());
+        model.addAttribute("selectedCategoryId", categoryId);
 
         return "admin/manageProduct";
     }
+
     //Create
     @PreAuthorize("hasAuthority('MANAGE_PRODUCT')")
     @GetMapping("/admin/product/new")
@@ -582,21 +590,6 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("message", "Customer has been " + statusMsg + " successfully!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", "Error updating status: " + e.getMessage());
-        }
-
-        return "redirect:/admin/customer-manage";
-    }
-
-    // --- Delete Customer ---
-    @PreAuthorize("hasAuthority('MANAGE_CUSTOMER')")
-    @GetMapping("/admin/customer/delete/{id}")
-    public String deleteCustomer(@PathVariable("id") int id, RedirectAttributes redirectAttributes) {
-        try {
-            cartService.deleteCartByIdCustomer(id);
-            customerService.deleteCustomer(id);
-            redirectAttributes.addFlashAttribute("message", "Customer deleted successfully!");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Error deleting customer: " + e.getMessage());
         }
 
         return "redirect:/admin/customer-manage";

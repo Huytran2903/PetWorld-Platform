@@ -67,6 +67,12 @@ public class Customer implements UserDetails     {
     @Column(name = "UpdatedAt")
     private LocalDateTime updatedAt;
 
+    @Column(name = "FailedAttempts")
+    private Integer failedAttempts = 0;
+
+    @Column(name = "LockedUntil")
+    private LocalDateTime lockedUntil;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of();

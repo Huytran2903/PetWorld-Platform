@@ -29,6 +29,8 @@ public class SecurityConfig {
 
     private final CustomLoginSuccessHandler customLoginSuccessHandler;
 
+    private final CustomLoginFailureHandler customLoginFailureHandler;
+
     @Value("${petworld.security.remember-me.key}")
     private String rememberMeKey;
 
@@ -74,7 +76,7 @@ public class SecurityConfig {
                         //DaoAuthenticationProvider sẽ dựa vào passwordEncoder coi hash mk theo phương pháp nào rồi quét
                         //check mk có đúng hay không
                         .successHandler(customLoginSuccessHandler)
-                        .failureUrl("/login?error")
+                        .failureHandler(customLoginFailureHandler)
                         .permitAll()
                 )
 

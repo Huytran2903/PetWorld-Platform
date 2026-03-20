@@ -19,4 +19,9 @@ public interface ProductRepo extends JpaRepository<Product, Integer> {
 
     @Query(value = "SELECT TOP (:limit) * FROM products ORDER BY NEWID()", nativeQuery = true)
     List<Product> findRandomProducts(@Param("limit") int limit);
+
+    Page<Product> findByCategory_CategoryIDAndIsActiveTrue(Integer categoryId, Pageable pageable);
+
+    // 2. Tìm theo Tên (chứa từ khóa) + ID danh mục + sản phẩm đang Active
+    Page<Product> searchAllByNameContainingIgnoreCaseAndCategory_CategoryIDAndIsActiveTrue(String name, Integer categoryId, Pageable pageable);
 }

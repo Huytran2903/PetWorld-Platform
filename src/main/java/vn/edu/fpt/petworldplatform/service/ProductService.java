@@ -41,5 +41,13 @@ public class ProductService {
         return productRepo.findRandomProducts(limit);
     }
 
+    public Page<Product> getProductsByCategory(Integer categoryId, Pageable pageable) {
+        return productRepo.findByCategory_CategoryIDAndIsActiveTrue(categoryId, pageable);
+    }
+
+    public Page<Product> searchProductsByNameAndCategory(String keyword, Integer categoryId, Pageable pageable) {
+        return productRepo.searchAllByNameContainingIgnoreCaseAndCategory_CategoryIDAndIsActiveTrue(keyword, categoryId, pageable);
+    }
+
 
 }

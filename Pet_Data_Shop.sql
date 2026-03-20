@@ -677,3 +677,19 @@ DROP CONSTRAINT CK__Appointme__Statu__7D439ABD;
 ALTER TABLE dbo.Appointments
 ADD CONSTRAINT CK_Appointments_Status
 CHECK (Status IN ('pending','confirmed','checked_in','in_progress','done','canceled','no_show'));
+
+-- 1. Thêm cột cho bảng Customers
+ALTER TABLE dbo.Customers 
+ADD FailedAttempts INT NOT NULL DEFAULT 0;
+
+ALTER TABLE dbo.Customers 
+ADD LockedUntil DATETIME2 NULL;
+GO
+
+-- 2. Thêm cột cho bảng Staff (Bảo vệ tài khoản nhân viên/admin)
+ALTER TABLE dbo.Staff 
+ADD FailedAttempts INT NOT NULL DEFAULT 0;
+
+ALTER TABLE dbo.Staff 
+ADD LockedUntil DATETIME2 NULL;
+GO

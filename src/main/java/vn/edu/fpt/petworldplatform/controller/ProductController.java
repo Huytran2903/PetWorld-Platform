@@ -23,6 +23,8 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
+    @Autowired
+    private CategoryService categoryService;
 
 
     @Autowired
@@ -37,39 +39,56 @@ public class ProductController {
             Model model,
             @RequestParam(name = "kw", required = false, defaultValue = "") String keyword,
             @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "sort", required = false) String sort) { // Thêm tham số nhận số trang
+            @RequestParam(name = "sort", required = false) String sort,
+            @RequestParam(name = "categoryId", required = false) Integer categoryId) {
 
         // 1. Cấu hình phân trang: 10 sản phẩm mỗi trang, sắp xếp theo ID giảm dần (tùy chọn)
         int pageSize = 10;
         Sort sortOrder;
-        if ("acs".equalsIgnoreCase(sort)) {
-            sortOrder = Sort.by("price").ascending();   //giá từ thấp -> cao
+        // Đã sửa lỗi chính tả "acs" thành "asc"
+        if ("asc".equalsIgnoreCase(sort)) {
+            sortOrder = Sort.by("price").ascending();   // giá từ thấp -> cao
         } else if ("desc".equalsIgnoreCase(sort)) {
-            sortOrder = Sort.by("price").descending();
+            sortOrder = Sort.by("price").descending();  // giá từ cao -> thấp
         } else {
-            sortOrder = Sort.by("productId").descending();
+            sortOrder = Sort.by("productId").descending(); // Mặc định mới nhất lên đầu
         }
 
         Pageable pageable = PageRequest.of(page, pageSize, sortOrder);
-
         Page<Product> productPage;
 
-        // 2. Gọi service và truyền thêm đối tượng pageable vào
-        if(!keyword.trim().isEmpty()) {
-            productPage = productService.searchProductsByName(keyword, pageable);
-        } else {
+        // 2. Xử lý logic lấy dữ liệu (Phân trang cho Search và Filter)
+        boolean hasKeyword = (keyword != null && !keyword.trim().isEmpty());
+        boolean hasCategory = (categoryId != null && categoryId > 0);
+
+        // 1. Trường hợp: Có CẢ Tên (Search) và Danh mục (Filter)
+        if (hasKeyword && hasCategory) {
+            productPage = productService.searchProductsByNameAndCategory(keyword.trim(), categoryId, pageable);
+        }
+        // 2. Trường hợp: CHỈ có Tên
+        else if (hasKeyword) {
+            productPage = productService.searchProductsByName(keyword.trim(), pageable);
+        }
+        // 3. Trường hợp: CHỈ có Danh mục
+        else if (hasCategory) {
+            productPage = productService.getProductsByCategory(categoryId, pageable);
+        }
+        // 4. Trường hợp: KHÔNG có gì (Lấy mặc định)
+        else {
             productPage = productService.getAllProducts(pageable);
         }
 
+        // Lấy toàn bộ danh mục để đẩy ra HTML tạo menu Sidebar/Dropdown
+        model.addAttribute("categories", categoryService.getAllCategories());
 
-
-        // 3. Đẩy dữ liệu ra Model để Thymeleaf xử lý
-        model.addAttribute("product", productPage.getContent());            // Danh sách sản phẩm hiển thị trên trang này
-        model.addAttribute("totalPages", productPage.getTotalPages());      // Tổng số trang
-        model.addAttribute("totalElements", productPage.getTotalElements());// Tổng số sản phẩm (dùng để hiện "X products found")
-        model.addAttribute("currentPage", page);                            // Số trang hiện tại
-        model.addAttribute("kw", keyword);                                  // Giữ lại từ khóa tìm kiếm
+        model.addAttribute("product", productPage.getContent());
+        model.addAttribute("totalPages", productPage.getTotalPages());
+        model.addAttribute("totalElements", productPage.getTotalElements());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("kw", keyword);
         model.addAttribute("sort", sort);
+        // THÊM: Trả về category đang được chọn để HTML giữ trạng thái "active"
+        model.addAttribute("selectedCategoryId", categoryId);
 
         return "/product/productList";
     }
