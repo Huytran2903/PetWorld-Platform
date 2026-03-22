@@ -14,10 +14,10 @@ public class ProfileFormDTO {
 
     private String username;
 
-    @NotBlank(message = "Email không được để trống")
+    @NotBlank(message = "Email is require")
     private String email;
 
-    @NotBlank(message = "Số điện thoại không được để trống")
-    @Pattern(regexp = "^[0-9]{10,12}$", message = "Số điện thoại phải từ 10-12 số")
+    @NotBlank(message = "Phone number is require")
+    @Pattern(regexp = "^[0-9]{10,12}$", message = "Phone number must be 10-12 digits")
     private String phoneNumber;
 }

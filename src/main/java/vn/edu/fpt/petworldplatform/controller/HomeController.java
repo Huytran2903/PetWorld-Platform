@@ -22,9 +22,13 @@ public class HomeController {
             model.addAttribute("products", randomProducts);
         } catch (Exception e) {
             model.addAttribute("products", new ArrayList<>());
-            System.err.println("Lỗi lấy sản phẩm random: " + e.getMessage());
         }
         return "home/home";
 
+    }
+
+    @GetMapping("/about-us")
+    public String aboutUs(){
+        return "customer/about-us";
     }
 }

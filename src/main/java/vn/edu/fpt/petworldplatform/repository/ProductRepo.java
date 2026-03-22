@@ -22,6 +22,5 @@ public interface ProductRepo extends JpaRepository<Product, Integer> {
 
     Page<Product> findByCategory_CategoryIDAndIsActiveTrue(Integer categoryId, Pageable pageable);
 
-    // 2. Tìm theo Tên (chứa từ khóa) + ID danh mục + sản phẩm đang Active
     Page<Product> searchAllByNameContainingIgnoreCaseAndCategory_CategoryIDAndIsActiveTrue(String name, Integer categoryId, Pageable pageable);
 }

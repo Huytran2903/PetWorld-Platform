@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -31,11 +31,20 @@
                     <i class="bi bi-house"></i>
                 </a>
 
-                <a th:href="@{/customer/shopping-cart}" class="nav-btn" data-bs-title="Shopping Cart">
-                    <i class="bi bi-bag"></i>
+                <a th:href="@{/cart/order-history}" class="nav-btn" data-bs-title="Order history">
+                    <i class="bi bi-box"></i>
                 </a>
 
-                <button class="nav-btn"><i class="bi bi-bell"></i></button>
+                <a th:href="@{/customer/notifications}" class="nav-btn position-relative"
+                   sec:authorize="hasRole('CUSTOMER') or hasAuthority('OIDC_USER')" data-bs-title="Notifications">
+
+                    <i class="bi bi-bell"></i>
+
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle"
+                          style="background-color: #ef4444;"
+                          th:if="${unreadNotificationCount > 0}"
+                          th:text="${unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}">0</span>
+                </a>
 
                 <div class="nav-item">
                     <img class="nav-avatar" th:src="@{/images/logo-petshop.png}" alt="User avatar">

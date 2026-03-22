@@ -33,7 +33,6 @@ public class GlobalConfigAdvice {
     @Autowired
     private NotificationService notificationService;
 
-    // Hàm này sẽ tự động chạy ở MỌI TRANG để đếm giỏ hàng
     @ModelAttribute("cartCount")
     public int getCartCountGlobal() {
         try {
@@ -43,7 +42,7 @@ public class GlobalConfigAdvice {
                 return cartService.getCountCartItems(customerId);
             }
         } catch (Exception e) {
-            System.out.println("Lỗi đếm giỏ hàng: " + e.getMessage());
+            System.out.println("Lỗi đếm giỏ hàng DEBUG: " + e.getMessage());
         }
 
         return 0;

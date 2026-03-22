@@ -57,7 +57,7 @@ public class SecurityConfig {
 
                         .requestMatchers("/uploads/**").permitAll()
 
-                        .requestMatchers("/reset-password/**", "/forgot-password", "/verify-forgot-password-otp").permitAll().requestMatchers("/staff/**").permitAll()
+                        .requestMatchers("/reset-password/**", "/forgot-password", "/verify-forgot-password-otp").permitAll()
                         // --------------------
 
                         .requestMatchers("/admin/**").hasRole("ADMIN")

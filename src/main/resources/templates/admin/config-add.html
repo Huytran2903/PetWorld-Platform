@@ -54,18 +54,33 @@
                                     <option value="SHOP_PHONE">SHOP_PHONE (Hotline / Phone Number)</option>
                                 </optgroup>
 
+                                <optgroup label="About Us Page">
+                                    <option value="ABOUT_SUBTITLE">ABOUT_SUBTITLE (About Us Subtitle)</option>
+                                    <option value="ABOUT_STORY">ABOUT_STORY (Our Story Content)</option>
+                                    <option value="ABOUT_MISSION">ABOUT_MISSION (Our Mission Content)</option>
+                                    <option value="VALUE_CARE_DESC">VALUE_CARE_DESC (Expert Care Description)</option>
+                                    <option value="VALUE_FACILITY_DESC">VALUE_FACILITY_DESC (Modern Facilities
+                                        Description)
+                                    </option>
+                                    <option value="VALUE_LOVE_DESC">VALUE_LOVE_DESC (Loving Environment Description)
+                                    </option>
+                                </optgroup>
+
+                                <optgroup label="FAQs (Frequently Asked Questions)">
+                                    <option value="FAQ_Q1">FAQ_Q1 (Question 1)</option>
+                                    <option value="FAQ_A1">FAQ_A1 (Answer 1)</option>
+                                    <option value="FAQ_Q2">FAQ_Q2 (Question 2)</option>
+                                    <option value="FAQ_A2">FAQ_A2 (Answer 2)</option>
+                                    <option value="FAQ_Q3">FAQ_Q3 (Question 3)</option>
+                                    <option value="FAQ_A3">FAQ_A3 (Answer 3)</option>
+                                </optgroup>
+
                                 <optgroup label="Slogans & Texts">
                                     <option value="SLOGAN_MAIN">SLOGAN_MAIN (Main Slogan)</option>
                                     <option value="SLOGAN_SUB">SLOGAN_SUB (Sub Slogan)</option>
                                     <option value="FOOTER_COPYRIGHT">FOOTER_COPYRIGHT (Footer Copyright Text)</option>
                                 </optgroup>
 
-                                <optgroup label="Social Links">
-                                    <option value="LINK_FACEBOOK">LINK_FACEBOOK (Facebook Fanpage Link)</option>
-                                    <option value="LINK_YOUTUBE">LINK_YOUTUBE (YouTube Channel Link)</option>
-                                    <option value="LINK_INSTAGRAM">LINK_INSTAGRAM (Instagram Link)</option>
-                                    <option value="LINK_TWITTER">LINK_TWITTER (Twitter/X Link)</option>
-                                </optgroup>
                             </select>
                         </div>
 
@@ -74,17 +89,12 @@
                                 Config Value <span class="text-danger">*</span>
                             </label>
                             <textarea class="form-control fs-6" id="configValue" th:field="*{configValue}"
-                                      rows="4" placeholder="Enter the display value here..." required></textarea>
+                                      rows="4"
+                                      placeholder="Enter the display value here (HTML tags like <br> or <b> are allowed for texts)..."
+                                      required></textarea>
                         </div>
 
-                        <div class="mb-5">
-                            <label for="dataType" class="form-label fw-bold text-dark">Data Type</label>
-                            <select class="form-select form-select-lg fs-6 w-50" id="dataType" th:field="*{dataType}">
-                                <option value="STRING">String (Text/Links)</option>
-                                <option value="NUMBER">Number (Numeric)</option>
-                                <option value="BOOLEAN">Boolean (True/False)</option>
-                            </select>
-                        </div>
+                        <input type="hidden" name="dataType" value="STRING"/>
 
                         <div class="d-flex justify-content-end border-top pt-4">
                             <button type="reset" class="btn btn-light border px-4 me-3">Clear Form</button>
