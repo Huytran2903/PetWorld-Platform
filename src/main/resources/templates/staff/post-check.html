@@ -62,10 +62,10 @@
                                     </small>
                                 </div>
                                 <div th:if="${context.oneTimeVaccine != true}">
-                                    <label for="nextDueDate">Next Due Date</label>
-                                    <input id="nextDueDate" type="date" th:field="*{nextDueDate}" />
+                                    <label for="nextDueDate">Next Due Date <span class="text-danger">*</span></label>
+                                    <input id="nextDueDate" type="date" th:field="*{nextDueDate}" required />
                                     <small style="display:block; color:#6b7686; font-weight:600; margin-top:4px;">
-                                        Nếu để trống, hệ thống sẽ khóa không cho tiêm lại loại vaccine này cho tới khi có Next Due.
+                                        Bắt buộc chọn ngày nhắc tiêm nhắc lại cho vaccine này.
                                     </small>
                                 </div>
                                 <div th:if="${context.oneTimeVaccine == true}" style="align-self:flex-end;">

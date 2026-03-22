@@ -91,6 +91,10 @@
         <div class="hero">
             <div class="hero-inner">
                 <div>
+                    <a th:href="@{/staff/assigned_list}" class="hero-back-link">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Back to appointments</span>
+                    </a>
                     <h1>Appointment Details</h1>
                     <p th:text="'View details of appointment ' + ${appointment.appointmentCode}">
                         Static view of appointment APP-000123.
@@ -128,6 +132,9 @@
                                 >
                                     pending
                                 </span>
+                                <span th:if="${appointmentPaymentPaid}" class="badge bg-success ms-2">Đã thanh toán</span>
+                                <span th:if="${!appointmentPaymentPaid and appointment.status != null and appointment.status.toLowerCase() == 'done'}"
+                                      class="badge bg-warning text-dark ms-2">Chưa thanh toán</span>
                             </div>
                         </div>
 
@@ -338,6 +345,8 @@
                             <input type="hidden" name="id" th:value="${appointment.id}" />
                             <button class="btn btn-ghost" type="submit">Report No-show</button>
                         </form>
+
+                        <!-- Confirm COD Payment is placed at the bottom of the page (near Back to list). -->
                     </div>
 
                     <div class="health-report" th:if="${appointmentSummary != null and isManager}">
@@ -417,8 +426,28 @@
                             No summary photos.
                         </div>
 
-                        <div class="actions" style="margin-top:12px;">
-                            <a class="btn btn-secondary" th:href="@{/staff/assigned_list}">Back to list</a>
+                        <div class="actions" style="margin-top:12px; display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap;">
+                            <a class="btn btn-secondary btn-lg" th:href="@{/staff/assigned_list}">Back to list</a>
+
+                            <form
+                                    th:if="${isManager and codPaymentPending}"
+                                    th:action="@{/staff/appointments/{id}/confirm-cod(id=${appointment.id})}"
+                                    method="post"
+                                    style="display:inline-block;"
+                            >
+                                <button
+                                        class="btn btn-lg fw-bold"
+                                        type="submit"
+                                        style="
+                                            background-color:#FFA54F;
+                                            color:#0B3D6B;
+                                            border:2px solid #f59e0b;
+                                            box-shadow: 0 8px 18px rgba(245, 158, 11, 0.25);
+                                        "
+                                >
+                                    <i class="bi bi-cash-coin me-2"></i>Confirm COD Payment
+                                </button>
+                            </form>
                         </div>
                     </div>
 
@@ -436,33 +465,33 @@
                             <div class="grid2">
                                 <div>
                                     <label for="summaryWeightKg">Weight (kg)</label>
-                                    <input id="summaryWeightKg" type="number" step="0.01" min="0" name="weightKg" th:value="${appointmentSummary != null ? appointmentSummary.weightKg : ''}">
+                                    <input id="summaryWeightKg" type="number" step="0.01" min="0" name="weightKg" required th:value="${appointmentSummary != null ? appointmentSummary.weightKg : ''}">
                                 </div>
                                 <div>
                                     <label for="summaryTemperature">Temperature (°C)</label>
-                                    <input id="summaryTemperature" type="number" step="0.01" min="30" max="45" name="temperature" th:value="${appointmentSummary != null ? appointmentSummary.temperature : ''}">
+                                    <input id="summaryTemperature" type="number" step="0.01" min="30" max="45" name="temperature" required th:value="${appointmentSummary != null ? appointmentSummary.temperature : ''}">
                                 </div>
                             </div>
 
                             <div class="grid2" style="margin-top:12px;">
                                 <div>
                                     <label for="summaryConditionBefore">Condition Before</label>
-                                    <textarea id="summaryConditionBefore" name="conditionBefore" th:text="${appointmentSummary != null ? appointmentSummary.conditionBefore : ''}"></textarea>
+                                    <textarea id="summaryConditionBefore" name="conditionBefore" required th:text="${appointmentSummary != null ? appointmentSummary.conditionBefore : ''}"></textarea>
                                 </div>
                                 <div>
                                     <label for="summaryConditionAfter">Condition After</label>
-                                    <textarea id="summaryConditionAfter" name="conditionAfter" th:text="${appointmentSummary != null ? appointmentSummary.conditionAfter : ''}"></textarea>
+                                    <textarea id="summaryConditionAfter" name="conditionAfter" required th:text="${appointmentSummary != null ? appointmentSummary.conditionAfter : ''}"></textarea>
                                 </div>
                             </div>
 
                             <div style="margin-top:12px;">
                                 <label for="summaryFindings">Findings</label>
-                                <textarea id="summaryFindings" name="findings" th:text="${appointmentSummary != null ? appointmentSummary.findings : ''}"></textarea>
+                                <textarea id="summaryFindings" name="findings" required th:text="${appointmentSummary != null ? appointmentSummary.findings : ''}"></textarea>
                             </div>
 
                             <div style="margin-top:12px;">
                                 <label for="summaryRecommendations">Recommendations</label>
-                                <textarea id="summaryRecommendations" name="recommendations" th:text="${appointmentSummary != null ? appointmentSummary.recommendations : ''}"></textarea>
+                                <textarea id="summaryRecommendations" name="recommendations" required th:text="${appointmentSummary != null ? appointmentSummary.recommendations : ''}"></textarea>
                             </div>
 
                             <div style="margin-top:12px;">
@@ -500,10 +529,76 @@
                                 <input id="summaryPhotosUpload" type="file" name="photos" multiple />
                             </div>
 
-                            <div class="actions" style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
-                                <button class="btn btn-primary" type="submit">Submit Summary</button>
-                                <a class="btn btn-secondary" th:href="@{/staff/assigned_list}">Back to list</a>
+                            <div class="actions" style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;">
+                                <a class="btn btn-secondary btn-lg" th:href="@{/staff/assigned_list}">Back to list</a>
+
+                                <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+                                    <form
+                                            th:if="${isManager and codPaymentPending}"
+                                            th:action="@{/staff/appointments/{id}/confirm-cod(id=${appointment.id})}"
+                                            method="post"
+                                            style="display:inline-block;"
+                                    >
+                                        <button
+                                                class="btn btn-lg fw-bold"
+                                                type="submit"
+                                                style="
+                                                    background-color:#FFA54F;
+                                                    color:#0B3D6B;
+                                                    border:2px solid #f59e0b;
+                                                    box-shadow: 0 8px 18px rgba(245, 158, 11, 0.25);
+                                                "
+                                        >
+                                            <i class="bi bi-cash-coin me-2"></i>Confirm COD Payment
+                                        </button>
+                                    </form>
+
+                                    <button class="btn btn-primary btn-lg" type="submit">Submit Summary</button>
+                                </div>
                             </div>
+
+                            <script th:inline="javascript">
+                                (function () {
+                                    const weightEl = document.getElementById('summaryWeightKg');
+                                    const tempEl = document.getElementById('summaryTemperature');
+
+                                    function validateNumberInput() {
+                                        if (!weightEl || !tempEl) return;
+
+                                        const wValRaw = weightEl.value;
+                                        const tValRaw = tempEl.value;
+
+                                        // Weight: must be > 0 and <= 300
+                                        if (wValRaw === '' || isNaN(Number(wValRaw))) {
+                                            weightEl.setCustomValidity('Vui lòng nhập cân nặng hợp lệ.');
+                                        } else {
+                                            const w = Number(wValRaw);
+                                            if (!(w > 0 && w <= 300)) {
+                                                weightEl.setCustomValidity('Cân nặng phải lớn hơn 0 và không quá 300 kg.');
+                                            } else {
+                                                weightEl.setCustomValidity('');
+                                            }
+                                        }
+
+                                        // Temperature: must be between 30 and 45 (inclusive)
+                                        if (tValRaw === '' || isNaN(Number(tValRaw))) {
+                                            tempEl.setCustomValidity('Vui lòng nhập nhiệt độ hợp lệ.');
+                                        } else {
+                                            const t = Number(tValRaw);
+                                            if (!(t >= 30 && t <= 45)) {
+                                                tempEl.setCustomValidity('Nhiệt độ phải từ 30 đến 45 C.');
+                                            } else {
+                                                tempEl.setCustomValidity('');
+                                            }
+                                        }
+                                    }
+
+                                    if (weightEl) weightEl.addEventListener('input', validateNumberInput);
+                                    if (tempEl) tempEl.addEventListener('input', validateNumberInput);
+
+                                    validateNumberInput();
+                                })();
+                            </script>
                         </div>
                     </form>
                 </div>

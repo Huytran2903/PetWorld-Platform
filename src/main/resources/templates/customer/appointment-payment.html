@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{fragments/layout_user}">
+<head>
+    <title>Payment - Appointment</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        body { background-color: #f89d35; }
+        .payment-card { border-radius: 20px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .payment-option { cursor: pointer; transition: all 0.2s; border: 1px solid #eee; border-radius: 12px; }
+        .payment-option:hover { border-color: #f89d35; background-color: #fff9f2; }
+        .form-check-input:checked + .form-check-label { font-weight: bold; color: #f89d35; }
+    </style>
+</head>
+<body>
+<main layout:fragment="content" class="container py-5">
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div class="d-flex align-items-center gap-3 mb-4 text-dark">
+        <i class="bi bi-credit-card-2-front fs-2"></i>
+        <h1 class="h3 mb-0 fw-bold">Appointment Payment</h1>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card payment-card shadow-sm">
+                <div class="card-body p-4">
+                    <div class="mb-3 pb-3 border-bottom">
+                        <span class="text-secondary small">Appointment</span>
+                        <h5 class="fw-bold mb-0" th:text="${appointment != null ? appointment.appointmentCode : ''}">APT-xxx</h5>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span class="text-secondary">Service Total</span>
+                        <span class="fw-bold text-dark" th:text="${totalAmount != null ? #numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT') + ' ₫' : '0 ₫'}"></span>
+                    </div>
+
+                    <hr class="my-3 opacity-25">
+
+                    <h6 class="fw-bold mb-3 small text-uppercase" style="letter-spacing: 1px;">Payment Method</h6>
+                    <form th:action="@{/customer/appointments/{id}/pay(id=${appointment.id})}" method="post">
+                        <div class="payment-methods mb-4">
+                            <div class="form-check payment-option rounded-3 p-3 mb-2 d-flex align-items-center">
+                                <input class="form-check-input ms-0 me-3" type="radio" name="paymentMethod" id="momo" value="MOMO" checked>
+                                <label class="form-check-label d-flex align-items-center gap-2 w-100" for="momo">
+                                    <i class="bi bi-wallet2 text-primary fs-5"></i>
+                                    <span>MoMo Wallet</span>
+                                </label>
+                            </div>
+                            <div class="form-check payment-option rounded-3 p-3 d-flex align-items-center">
+                                <input class="form-check-input ms-0 me-3" type="radio" name="paymentMethod" id="cod" value="COD">
+                                <label class="form-check-label d-flex align-items-center gap-2 w-100" for="cod">
+                                    <i class="bi bi-cash-stack text-success fs-5"></i>
+                                    <span>Cash on Delivery</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-4">
+                            <span class="fw-bold fs-5 text-dark">Total</span>
+                            <span class="fw-bold fs-4 text-dark" th:text="${totalAmount != null ? #numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT') + ' ₫' : '0 ₫'}"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-dark w-100 py-3 rounded-3 fw-bold shadow-sm">Proceed to Checkout</button>
+                        <a th:href="@{/customer/appointments/{id}(id=${appointment.id})}" class="btn btn-link w-100 text-secondary text-decoration-none small mt-2 text-center d-block">Back to Appointment</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

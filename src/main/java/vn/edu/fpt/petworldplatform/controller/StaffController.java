@@ -25,9 +25,11 @@ import vn.edu.fpt.petworldplatform.entity.ServiceNotePhoto;
 import vn.edu.fpt.petworldplatform.entity.Staff;
 import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryPhotoRepository;
 import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryRepository;
+import vn.edu.fpt.petworldplatform.repository.PaymentRepository;
 import vn.edu.fpt.petworldplatform.repository.PetVaccinationRepository;
 import vn.edu.fpt.petworldplatform.repository.ServiceNotePhotoRepository;
 import vn.edu.fpt.petworldplatform.repository.ServiceNoteRepository;
+import vn.edu.fpt.petworldplatform.entity.Payment;
 import vn.edu.fpt.petworldplatform.service.IAssignedAppointmentService;
 import vn.edu.fpt.petworldplatform.service.StaffService;
 import vn.edu.fpt.petworldplatform.dto.VaccineRecordViewDTO;
@@ -52,6 +54,7 @@ public class StaffController {
     private final AppointmentSummaryRepository appointmentSummaryRepository;
     private final AppointmentSummaryPhotoRepository appointmentSummaryPhotoRepository;
     private final PetVaccinationRepository petVaccinationRepository;
+    private final PaymentRepository paymentRepository;
 
     @PreAuthorize("hasAuthority('MANAGE_APPOINTMENT')")
     @GetMapping("/assigned_list")
@@ -205,6 +208,27 @@ public class StaffController {
                 : List.of();
         model.addAttribute("summaryPhotos", summaryPhotos);
         model.addAttribute("isManager", isManager);
+
+        // COD confirmation: show button for manager when appointment is done and COD hasn't been confirmed.
+        boolean codPaymentPending = false;
+        boolean appointmentPaymentPaid = false;
+        try {
+            Payment latestPayment = paymentRepository.findTopByAppointment_IdAndPaymentTypeOrderByCreatedAtDesc(
+                    id,
+                    "service"
+            );
+            appointmentPaymentPaid = latestPayment != null && latestPayment.getPaidAt() != null;
+            codPaymentPending = latestPayment != null
+                    && latestPayment.getMethod() != null
+                    && "cod".equalsIgnoreCase(latestPayment.getMethod())
+                    && latestPayment.getPaidAt() == null
+                    && appointment.getStatus() != null
+                    && "done".equalsIgnoreCase(appointment.getStatus());
+        } catch (Exception ignored) {
+            // In case payment records are missing or query fails, just don't show the button.
+        }
+        model.addAttribute("codPaymentPending", codPaymentPending);
+        model.addAttribute("appointmentPaymentPaid", appointmentPaymentPaid);
 
         return "staff/appointment_detail";
     }

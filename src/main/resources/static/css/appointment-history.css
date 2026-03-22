@@ -256,7 +256,8 @@
 }
 
 #cancelModal.modal,
-#rescheduleModal.modal {
+#rescheduleModal.modal,
+#paymentMethodModal.modal {
     position: fixed;
     z-index: 999;
     left: 0;
@@ -267,8 +268,20 @@
     background-color: rgba(0,0,0,0.45);
 }
 
+#reviewModal.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.45);
+}
+
 #cancelModal .modal-content,
-#rescheduleModal .modal-content {
+#rescheduleModal .modal-content,
+#paymentMethodModal .modal-content {
     background-color: #fff;
     margin: 8% auto;
     padding: 0;
@@ -279,8 +292,29 @@
     overflow: hidden;
 }
 
+#reviewModal .modal-content {
+    background-color: #fff;
+    margin: 8% auto;
+    padding: 0;
+    border: 1px solid var(--border);
+    width: min(640px, calc(100% - 32px));
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+}
+
 #cancelModal .modal-header,
-#rescheduleModal .modal-header {
+#rescheduleModal .modal-header,
+#paymentMethodModal .modal-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fafbfc;
+}
+
+#reviewModal .modal-header {
     padding: 14px 16px;
     border-bottom: 1px solid var(--border);
     display: flex;
@@ -290,12 +324,26 @@
 }
 
 #cancelModal .modal-body,
-#rescheduleModal .modal-body {
+#rescheduleModal .modal-body,
+#paymentMethodModal .modal-body {
+    padding: 14px 16px;
+}
+
+#reviewModal .modal-body {
     padding: 14px 16px;
 }
 
 #cancelModal .modal-footer,
-#rescheduleModal .modal-footer {
+#rescheduleModal .modal-footer,
+#paymentMethodModal .modal-footer {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+#reviewModal .modal-footer {
     padding: 14px 16px;
     border-top: 1px solid var(--border);
     display: flex;
@@ -304,7 +352,14 @@
 }
 
 #cancelModal .close,
-#rescheduleModal .close {
+#rescheduleModal .close,
+#paymentMethodModal .close {
+    cursor: pointer;
+    font-size: 22px;
+    line-height: 1;
+}
+
+#reviewModal .close {
     cursor: pointer;
     font-size: 22px;
     line-height: 1;
@@ -482,6 +537,12 @@ textarea, input[type="datetime-local"] {
 
 .services-table tbody tr:last-child td {
     border-bottom: none;
+}
+
+.services-table tr.services-total-row td {
+    background: #f8fafc;
+    font-weight: 800;
+    border-top: 2px solid var(--border);
 }
 
 .services-table .text-end {

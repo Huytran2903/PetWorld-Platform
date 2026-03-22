@@ -32,15 +32,18 @@ import vn.edu.fpt.petworldplatform.entity.AppointmentSummaryPhoto;
 import vn.edu.fpt.petworldplatform.entity.ServiceNote;
 import vn.edu.fpt.petworldplatform.entity.ServiceNotePhoto;
 import vn.edu.fpt.petworldplatform.entity.Staff;
+import vn.edu.fpt.petworldplatform.repository.PaymentRepository;
 import vn.edu.fpt.petworldplatform.repository.PetVaccinationRepository;
 import vn.edu.fpt.petworldplatform.dto.VaccineRecordViewDTO;
 import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryPhotoRepository;
+import vn.edu.fpt.petworldplatform.entity.Payment;
 import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryRepository;
 import vn.edu.fpt.petworldplatform.repository.ServiceNotePhotoRepository;
 import vn.edu.fpt.petworldplatform.repository.ServiceNoteRepository;
 
 import vn.edu.fpt.petworldplatform.service.AppointmentService;
 
+import java.math.BigDecimal;
 import java.io.ByteArrayInputStream;
 
 import java.util.ArrayList;
@@ -62,6 +65,7 @@ public class AdminAppointmentController {
     private final ServiceNoteRepository serviceNoteRepository;
     private final ServiceNotePhotoRepository serviceNotePhotoRepository;
     private final AppointmentSummaryPhotoRepository appointmentSummaryPhotoRepository;
+    private final PaymentRepository paymentRepository;
     private final PetVaccinationRepository petVaccinationRepository;
 
     @ModelAttribute("filter")
@@ -77,13 +81,19 @@ public class AdminAppointmentController {
     public String listAppointments(@ModelAttribute("filter") AppointmentFilterRequest filter, Model model) {
 
         Page<Appointment> appointmentPage = appointmentService.getAppointments(filter);
+        List<Appointment> appointments = appointmentPage.getContent();
 
-        model.addAttribute("appointments", appointmentPage.getContent());
+        Map<Integer, Boolean> hasPaidByAppointmentId = new LinkedHashMap<>();
+        for (Appointment a : appointments) {
+            if (a.getId() == null) continue;
+            Payment latest = paymentRepository.findTopByAppointment_IdAndPaymentTypeOrderByCreatedAtDesc(a.getId(), "service");
+            hasPaidByAppointmentId.put(a.getId(), latest != null && latest.getPaidAt() != null);
+        }
 
+        model.addAttribute("appointments", appointments);
+        model.addAttribute("hasPaidByAppointmentId", hasPaidByAppointmentId);
         model.addAttribute("currentPage", filter.getPage());
-
         model.addAttribute("totalPages", appointmentPage.getTotalPages());
-
         model.addAttribute("totalItems", appointmentPage.getTotalElements());
 
         return "admin/appt-manage";
@@ -228,6 +238,16 @@ public class AdminAppointmentController {
         }
         model.addAttribute("serviceNoteByLineId", serviceNoteByLineId);
         model.addAttribute("serviceNotePhotosByLineId", serviceNotePhotosByLineId);
+
+        Payment latestPayment = paymentRepository.findTopByAppointment_IdAndPaymentTypeOrderByCreatedAtDesc(id, "service");
+        boolean appointmentPaymentPaid = latestPayment != null && latestPayment.getPaidAt() != null;
+        BigDecimal totalAmount = lines.stream()
+                .map(l -> (l.getPrice() != null ? l.getPrice() : BigDecimal.ZERO)
+                        .multiply(BigDecimal.valueOf(l.getQuantity() != null ? l.getQuantity() : 1)))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        model.addAttribute("appointmentPaymentPaid", appointmentPaymentPaid);
+        model.addAttribute("appointmentTotalAmount", totalAmount);
 
         return "admin/appt-detail";
 

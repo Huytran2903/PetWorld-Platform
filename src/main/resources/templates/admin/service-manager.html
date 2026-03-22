@@ -76,6 +76,7 @@
                             <th>Administered</th>
                             <th>Next due</th>
                             <th>Performed by</th>
+                            <th class="text-end pe-3">Actions</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -93,9 +94,16 @@
                                 <span th:unless="${row.nextDueDate != null}" class="badge bg-secondary-subtle text-secondary border border-secondary">None</span>
                             </td>
                             <td th:text="${row.performedByName != null ? row.performedByName : '-'}">-</td>
+                            <td class="text-end pe-3">
+                                <a th:if="${row.vaccinationId != null}"
+                                   th:href="@{/admin/vaccination-records/{id}/edit(id=${row.vaccinationId})}"
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil-square me-1"></i> Sửa
+                                </a>
+                            </td>
                         </tr>
                         <tr th:if="${vaccinationRows == null || #lists.isEmpty(vaccinationRows)}">
-                            <td colspan="6" class="text-center text-muted py-4">
+                            <td colspan="7" class="text-center text-muted py-4">
                                 No vaccination records found.
                             </td>
                         </tr>

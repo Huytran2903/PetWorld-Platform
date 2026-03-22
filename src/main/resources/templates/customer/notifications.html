@@ -121,10 +121,15 @@
                 <span class="noti-time" th:text="${#temporals.format(n.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 12:00</span>
             </div>
 
-            <span class="noti-type"
-                  th:text="${n.type == 'feedback_reply' ? 'Admin Reply' : (n.type == 'feedback_status' ? 'Feedback Status' : 'Notification')}">
-                Notification
-            </span>
+            <th:block th:switch="${n.type}">
+                <span th:case="'feedback_reply'" class="noti-type">Admin reply</span>
+                <span th:case="'feedback_status'" class="noti-type">Feedback status</span>
+                <span th:case="'appointment_done'" class="noti-type">Service completed</span>
+                <span th:case="'appointment_confirmed'" class="noti-type">Appointment confirmed</span>
+                <span th:case="'payment_success'" class="noti-type">Payment</span>
+                <span th:case="'vaccine_due'" class="noti-type">Vaccination</span>
+                <span th:case="*" class="noti-type">Notification</span>
+            </th:block>
 
             <p class="noti-message"
                th:text="${#strings.length(n.message) > 130 ? #strings.substring(n.message, 0, 130) + '...' : n.message}">
@@ -133,6 +138,11 @@
 
             <div class="noti-actions">
                 <a class="btn btn-sm btn-outline-dark" th:href="@{'/customer/notifications/' + ${n.id}}">View detail</a>
+                <a th:if="${n.type == 'appointment_done' && n.appointmentId != null}"
+                   class="btn btn-sm btn-primary"
+                   th:href="@{'/customer/appointments/' + ${n.appointmentId} + '/payment'}">
+                    Pay now
+                </a>
             </div>
         </div>
 

@@ -11,4 +11,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Integer> {
     
     @Query(value = "SELECT * FROM Payments WHERE OrderID = :orderId AND PaymentType = 'order'", nativeQuery = true)
     Payment findByOrderId(@Param("orderId") Integer orderId);
+
+    Payment findTopByAppointment_IdAndPaymentTypeOrderByCreatedAtDesc(Integer appointmentId, String paymentType);
 }
