@@ -2,12 +2,16 @@ package vn.edu.fpt.petworldplatform.service;
 
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import vn.edu.fpt.petworldplatform.entity.*;
 import vn.edu.fpt.petworldplatform.repository.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -147,9 +151,40 @@ public class OrderService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    public Page<Order> getAllOrder(Pageable pageable){
+       return orderRepo.findAll(pageable);
+    }
+
     //List Order
-    public List<Order> getAllOrder() {
-        return orderRepo.findAll();
+    public Page<Order> getAllOrderFilter(LocalDate startDate, LocalDate endDate, String status, Pageable pageable) {
+
+        boolean hasDate = (startDate != null && endDate != null);
+        boolean hasStatus = (status != null && !status.trim().isEmpty());
+
+        // Trường hợp 1: Có cả Ngày và Status
+        if (hasDate && hasStatus) {
+            return orderRepo.findByCreatedAtBetweenAndStatus(
+                    startDate.atStartOfDay(),
+                    endDate.atTime(LocalTime.MAX),
+                    status,
+                    pageable);
+        }
+
+        // Trường hợp 2: Chỉ lọc theo Ngày
+        if (hasDate) {
+            return orderRepo.findByCreatedAtBetween(
+                    startDate.atStartOfDay(),
+                    endDate.atTime(LocalTime.MAX),
+                    pageable);
+        }
+
+        // Trường hợp 3: Chỉ lọc theo Status (Đây là phần bạn đang thắc mắc)
+        if (hasStatus) {
+            return orderRepo.findByStatus(status, pageable);
+        }
+
+        // Trường hợp 4: Không lọc gì cả (Lấy tất cả)
+        return orderRepo.findAll(pageable);
     }
 
     public Order findByOrderCode(String orderCode) {

@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -85,24 +86,40 @@ public class AdminController {
     //List
     @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("/admin/manage-pet")
-    public String getAllPets(Model model, @RequestParam(value = "kw", required = false, defaultValue = "") String keyword, @RequestParam(value = "page", defaultValue = "0") int page,
-                             @RequestParam(name = "type", defaultValue = "All", required = false) String type) {
+    public String getAllPets(Model model, @RequestParam(value = "kw", required = false, defaultValue = "")                              String keyword, @RequestParam(value = "page", defaultValue = "0") int page,
+                                   @RequestParam(name = "type", defaultValue = "", required = false) String type) {
 
         int pageSize = 8;
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by("petID").ascending());
 
         Page<Pets> petPage;
 
-        if (!keyword.equals("")) {
-            petPage = petService.findPetByNameAndType(keyword, type, pageable);
-        } else {
-            petPage = petService.findAllPets(pageable);
+        boolean hasKeyword = (keyword != null && !keyword.trim().isEmpty());
+        boolean hasType = (type != null && !type.trim().isEmpty());
+
+
+        // 1. Trường hợp: Có CẢ Tên và Loại (Kết hợp filter)
+        if (hasKeyword && hasType) {
+            petPage = petService.findPetByNameAndType(keyword.trim(), type.trim(), pageable);
+        }
+        // 2. Trường hợp: CHỈ có Tên
+        else if (hasKeyword) {
+            petPage = petService.searchPetByName(keyword.trim(), pageable);
+        }
+        // 3. Trường hợp: CHỈ có Loại
+        else if (hasType) {
+            petPage = petService.getAvailablePetsByType(type.trim(), pageable);
+        }
+        // 4. Trường hợp: KHÔNG có gì (Lấy mặc định)
+        else {
+            petPage = petService.getAllPet(pageable);
         }
 
         model.addAttribute("pets", petPage.getContent());           // Danh sách pet của trang hiện tại
         model.addAttribute("totalPages", petPage.getTotalPages());    // Tổng số trang (để vẽ nút 1, 2, 3...)
         model.addAttribute("currentPage", page);                      // Trang hiện tại
         model.addAttribute("kw", keyword);
+        model.addAttribute("selectedType", type);
 
         return "admin/managePet";
     }
@@ -252,10 +269,12 @@ public class AdminController {
     //List
     @PreAuthorize("hasAuthority('MANAGE_CATEGORY')")
     @GetMapping("/admin/manage-categories")
-    public String getAllCategories(Model model) {
-
-        model.addAttribute("categories", categoryService.getAllCategories());
-
+    public String getAllCategories(Model model, @RequestParam(value = "kw", required = false, defaultValue = "") String keyword) {
+         if(!keyword.equals("")) {
+            model.addAttribute("categories", categoryService.searchCateByName(keyword));
+         } else {
+             model.addAttribute("categories", categoryService.getAllCategories());
+         }
         return "admin/manageCategories";
     }
 
@@ -900,8 +919,29 @@ public class AdminController {
     //Manage Order - OanhTP
     @PreAuthorize("hasAuthority('MANAGE_ORDER')")
     @GetMapping("/admin/manage-order")
-    public String getAllOrder(Model model) {
-        model.addAttribute("ord", orderService.getAllOrder());
+    public String getAllOrder(
+            Model model,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "10") int size,
+            @RequestParam(name = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(name = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(name = "statusFilter", required = false) String statusFilter) {
+
+        // 1. Khởi tạo phân trang (thường admin muốn xem đơn mới nhất trước nên dùng Sort)
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+
+        // 2. Gọi hàm getFilteredOrders từ Service (hàm có 4 trường hợp logic)
+        Page<Order> orderPage = orderService.getAllOrderFilter(startDate, endDate, statusFilter, pageable);
+
+        // 3. Đưa dữ liệu danh sách đơn hàng vào Model
+        model.addAttribute("ord", orderPage);
+
+        // 4. QUAN TRỌNG: Gửi ngược lại các giá trị filter để hiển thị trên UI
+        // và để các link phân trang (Previous/Next) có dữ liệu để giữ bộ lọc
+        model.addAttribute("startDate", startDate);
+        model.addAttribute("endDate", endDate);
+        model.addAttribute("statusFilter", statusFilter);
+
         return "customer/manage-order";
     }
 

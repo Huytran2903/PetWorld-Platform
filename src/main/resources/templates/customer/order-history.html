@@ -46,6 +46,37 @@
       border-radius: 14px;
       display: flex; align-items: center; justify-content: center;
     }
+
+    /* CSS Tùy chỉnh cho các nút phân trang màu cam */
+    .pagination .page-link {
+      color: #333;
+      border: none;
+      margin: 0 5px;
+      border-radius: 8px !important;
+      transition: all 0.3s ease;
+      height: 40px;
+      min-width: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pagination .page-link:hover {
+      background-color: #fff3e6;
+      color: #FFA54F;
+    }
+
+    .pagination .page-item.active .page-link {
+      background-color: #FFA54F !important; /* Màu cam giao diện */
+      border-color: #FFA54F !important;
+      color: white !important;
+      box-shadow: 0 4px 10px rgba(255, 165, 79, 0.3);
+    }
+
+    .pagination .page-item.disabled .page-link {
+      background-color: #f8f9fa;
+      color: #ccc;
+    }
   </style>
 </head>
 <body>
@@ -63,7 +94,7 @@
     </div>
   </section>
 
-  <section class="container-fluid px-lg-5 flex-grow-1">
+  <section class="container-fluid px-lg-5 flex-grow-1 pb-5">
     <div class="container-fluid">
 
       <div th:if="${param.canceledSuccess}" class="alert alert-success alert-dismissible fade show rounded-4 mb-4 shadow-sm">
@@ -197,6 +228,29 @@
             </div>
           </div> </th:block>
       </div>
+
+      <nav th:if="${orderHistory.totalPages > 1}" class="mt-5">
+        <ul class="pagination justify-content-center">
+
+          <li class="page-item" th:classappend="${orderHistory.number == 0} ? 'disabled'">
+            <a class="page-link shadow-sm"
+               th:href="@{/cart/order-history(page=${orderHistory.number - 1})}">Previous</a>
+          </li>
+
+          <li class="page-item mx-1" th:each="i : ${#numbers.sequence(0, orderHistory.totalPages - 1)}"
+              th:classappend="${i == orderHistory.number} ? 'active'">
+            <a class="page-link shadow-sm"
+               th:href="@{/cart/order-history(page=${i})}" th:text="${i + 1}"></a>
+          </li>
+
+          <li class="page-item" th:classappend="${orderHistory.number == orderHistory.totalPages - 1} ? 'disabled'">
+            <a class="page-link shadow-sm"
+               th:href="@{/cart/order-history(page=${orderHistory.number + 1})}">Next</a>
+          </li>
+
+        </ul>
+      </nav>
+
     </div>
   </section>
 </main>

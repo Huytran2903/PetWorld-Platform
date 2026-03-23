@@ -11,6 +11,16 @@
     <link rel="stylesheet" th:href="@{/css/managePet.css}"/>
     <link rel="stylesheet" th:href="@{/css/sidebar-admin.css}">
 
+    <style>
+        .cam-tuy-chinh {
+            background-color: #FFA54F !important;
+            border-color: #FFA54F !important;
+            color: #ffffff !important;
+        }
+        .cam-tuy-chinh:focus {
+            box-shadow: 0 0 0 0.25rem rgba(255, 165, 79, 0.25) !important;
+        }
+    </style>
 
 </head>
 <body>
@@ -19,16 +29,15 @@
     <div th:replace="~{fragments/sidebar-admin :: aside(activePage='pets')}"></div>
 
     <div class="app-container flex-grow-1 w-100">
-        <header class="page-header py-4 shadow-sm mb-4 bg-white">
+        <header class="page-header py-4 shadow-sm mb-4">
             <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
                 <div>
                     <h1 class="h3 mb-1 fw-bold text-dark">Pet Management System</h1>
                 </div>
                 <a th:href="@{/admin/pet/new}"
-                   class="btn btn-add-new d-flex align-items-center gap-2 px-4 py-2 shadow-sm text-decoration-none"
-                   style="background-color: #FFA54F; color: white; border-radius: 50px; font-weight: 600;">
-                    <i class="bi bi-plus-circle fs-5"></i>
-                    Add New Pet
+                   class="btn d-flex align-items-center gap-2 px-4 py-2 shadow-sm text-decoration-none text-white"
+                   style="background-color: #FFA54F; border-radius: 50px; font-weight: 600;">
+                    <i class="bi bi-plus-circle fs-5"></i> Add New Pet
                 </a>
             </div>
         </header>
@@ -37,22 +46,37 @@
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
                 <div class="card-header bg-white py-4 border-0">
                     <div class="row g-3 align-items-center">
-                        <div class="col-md-5">
-                            <form th:action="@{/admin/manage-pet}" method="get">
-                                <div class="search-box position-relative d-flex align-items-center">
+                        <div class="col-md-9">
+                            <form th:action="@{/admin/manage-pet}" method="get" class="d-flex gap-2 align-items-center">
+
+                                <div class="search-box position-relative d-flex align-items-center flex-grow-1">
                                     <span class="position-absolute start-0 translate-middle-y ms-3 text-muted" style="top: 50%; z-index: 5;">
                                         <i class="bi bi-search"></i>
                                     </span>
                                     <input type="text" name="kw" th:value="${kw}"
                                            class="form-control rounded-pill ps-5 pe-5 shadow-sm"
                                            placeholder="Search pet by name..."
-                                           style="height: 45px; border: 1px solid #eee;">
+                                           style="height: 45px;">
                                     <button type="submit"
                                             class="btn rounded-pill position-absolute end-0 me-1 text-white fw-bold"
                                             style="height: 38px; padding: 0 20px; background-color: #FFA54F; border: none;">
                                         Search
                                     </button>
                                 </div>
+
+                                <select name="type" class="form-select admin-filter-select shadow-sm"
+                                        th:classappend="${selectedType != null and selectedType != '' ? 'cam-tuy-chinh' : ''}"
+                                        onchange="this.form.submit()">
+                                    <option value="">Type: All</option>
+                                    <option value="Dog" th:selected="${selectedType == 'Dog'}">Dog</option>
+                                    <option value="Cat" th:selected="${selectedType == 'Cat'}">Cat</option>
+                                </select>
+
+                                <a th:href="@{/admin/manage-pet}"
+                                   class="btn btn-light rounded-pill d-flex align-items-center justify-content-center shadow-sm"
+                                   style="height: 45px; width: 45px; flex-shrink: 0;" title="Reset all filters">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                </a>
                             </form>
                         </div>
                     </div>
@@ -67,7 +91,6 @@
                             <th>Pet Name</th>
                             <th>Breed</th>
                             <th>Type</th>
-                            <th>Age</th>
                             <th>Gender</th>
                             <th>Price</th>
                             <th>Discount</th>
@@ -80,10 +103,33 @@
                             <td class="ps-4 fw-bold text-secondary" th:text="${p.petID}"></td>
                             <td>
                                 <img th:src="${#strings.isEmpty(p.imageUrl)} ? '/uploads/default-pet.png' : (@{${#strings.startsWith(p.imageUrl, '/uploads/') ? p.imageUrl : '/uploads/' + p.imageUrl}})"
-                                     alt="pet" width="70" height="70" class="rounded-3 shadow-sm" style="object-fit: cover;">
+                                     alt="pet" width="60" height="60" class="rounded-3 shadow-sm" style="object-fit: cover;">
                             </td>
                             <td><div class="fw-bold text-dark" th:text="${p.name}"></div></td>
                             <td th:text="${p.breed}"></td>
+
+                            <td>
+                                <span class="badge rounded-pill px-3 py-1 fw-medium"
+                                      th:styleappend="${p.petType == 'Dog' ? 'background-color: #ffe8d6; color: #fd7e14;' : (p.petType == 'Cat' ? 'background-color: #fff3cd; color: #cca900;' : 'background-color: #f8f9fa; color: #212529;')}">
+                                    <span th:text="${p.petType}"></span>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge rounded-pill px-3 py-1"
+                                      th:classappend="${p.gender == 'Male' ? 'bg-primary-subtle text-primary' : 'bg-danger-subtle text-danger'}">
+                                     <i th:class="${p.gender == 'Male' ? 'bi bi-gender-male' : 'bi bi-gender-female'}"></i>
+                                     <span th:text="${p.gender}"></span>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="fw-bold" style="color: #FFB25B;"
+                                      th:text="${p.owner == null ? #numbers.formatDecimal(p.salePrice, 0, 'COMMA', 0, 'POINT') + ' đ' : '---'}"></span>
+                            </td>
+                            <td>
+                                <span th:if="${p.discountPercent > 0}" class="badge bg-danger-subtle text-danger rounded-pill px-3"
+                                      th:text="${'-' + p.discountPercent + '%'}"></span>
+                                <span th:unless="${p.discountPercent > 0}" class="text-muted small">---</span>
+                            </td>
                             <td>
                                 <div th:if="${p.owner == null}">
                                     <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-3 py-1">
@@ -96,43 +142,25 @@
                                     </span>
                                 </div>
                             </td>
-                            <td th:text="${p.ageMonths + ' Months'}"></td>
-                            <td>
-                                <span class="badge rounded-pill px-3 py-1"
-                                      th:classappend="${p.gender == 'Male' ? 'bg-primary-subtle text-primary' : 'bg-danger-subtle text-danger'}">
-                                     <i th:class="${p.gender == 'Male' ? 'bi bi-gender-male' : 'bi bi-gender-female'}"></i>
-                                     <span th:text="${p.gender}"></span>
-                                </span>
-                            </td>
-                            <td>
-                                <div th:if="${p.owner == null and p.price != null}">
-                                    <span class="fw-bold fs-6" style="color: #FFB25B;"
-                                          th:text="${#numbers.formatDecimal(p.salePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
-                                </div>
-                                <div th:unless="${p.owner == null}">
-                                    <span class="text-muted small fst-italic">Service Only</span>
-                                </div>
-                            </td>
-                            <td>
-                                <span th:if="${p.discountPercent > 0}" class="badge bg-danger-subtle text-danger rounded-pill px-3 py-1"
-                                      th:text="${'-' + p.discountPercent + '%'}"></span>
-                                <span th:unless="${p.discountPercent > 0}" class="text-muted small">---</span>
-                            </td>
-                            <td>
-                                <span th:class="'badge rounded-pill px-3 py-2 ' + (${p.isAvailable} ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary')">
-                                    <i th:class="${p.isAvailable} ? 'bi bi-check-circle-fill me-1' : 'bi bi-lock-fill me-1'"></i>
-                                    <span th:text="${p.isAvailable ? 'In Stock' : 'Service'}"></span>
-                                </span>
-                            </td>
                             <td class="text-end pe-4">
-                                <div class="btn-group shadow-sm rounded-pill overflow-hidden bg-white border">
-                                    <a th:href="@{'/admin/pet/edit/' + ${p.petID}}" class="btn btn-sm btn-outline-secondary border-0 px-3">
+                                <div class="btn-group shadow-sm rounded-pill overflow-hidden border bg-white">
+                                    <a th:unless="${p.owner != null}"
+                                       th:href="@{'/admin/pet/edit/' + ${p.petID}}"
+                                       class="btn btn-sm btn-outline-secondary border-0 px-3 py-2">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
-                                    <button type="button" class="btn btn-sm btn-outline-danger border-0 px-3"
+
+                                    <button th:if="${p.owner == null}"
+                                            type="button" class="btn btn-sm btn-outline-danger border-0 px-3 py-2"
                                             data-bs-toggle="modal" data-bs-target="#deleteConfirmationModal"
                                             th:data-action="@{'/admin/pet/delete/' + ${p.petID}}"
                                             th:data-name="${p.name}">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+
+                                    <button th:unless="${p.owner == null}"
+                                            type="button" class="btn btn-sm btn-outline-danger border-0 px-3 py-2"
+                                            data-bs-toggle="modal" data-bs-target="#cannotDeleteModal">
                                         <i class="bi bi-trash3"></i>
                                     </button>
                                 </div>
@@ -146,18 +174,18 @@
                     <nav aria-label="Page navigation">
                         <ul class="pagination justify-content-center align-items-center mb-0">
                             <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                                <a class="page-link shadow-sm border-0" th:href="@{/admin/manage-pet(page=${currentPage - 1}, kw=${kw})}">Previous</a>
+                                <a class="page-link shadow-sm" th:href="@{/admin/manage-pet(page=${currentPage - 1}, kw=${kw}, type=${selectedType})}">Previous</a>
                             </li>
 
                             <li class="page-item mx-1" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
                                 th:classappend="${i == currentPage} ? 'active'">
-                                <a class="page-link shadow-sm border-0"
-                                   th:href="@{/admin/manage-pet(page=${i}, kw=${kw})}"
+                                <a class="page-link shadow-sm"
+                                   th:href="@{/admin/manage-pet(page=${i}, kw=${kw}, type=${selectedType})}"
                                    th:text="${i + 1}"></a>
                             </li>
 
                             <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
-                                <a class="page-link shadow-sm border-0" th:href="@{/admin/manage-pet(page=${currentPage + 1}, kw=${kw})}">Next</a>
+                                <a class="page-link shadow-sm" th:href="@{/admin/manage-pet(page=${currentPage + 1}, kw=${kw}, type=${selectedType})}">Next</a>
                             </li>
                         </ul>
                     </nav>
@@ -171,12 +199,10 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content shadow border-0" style="border-radius: 20px;">
             <div class="modal-body text-center p-5">
-                <div class="mb-4"><i class="bi bi-search" style="font-size: 3.5rem; color: #FFA54F;"></i></div>
+                <i class="bi bi-search mb-4" style="font-size: 3.5rem; color: #FFA54F; display: block;"></i>
                 <h4 class="fw-bold mb-3">No Results Found</h4>
-                <p class="text-muted mb-4">We couldn't find any pets matching "<span class="fw-bold text-dark" th:text="${kw}"></span>".</p>
-                <div class="d-flex justify-content-center">
-                    <a th:href="@{/admin/manage-pet}" class="btn btn-dark rounded-pill px-5 py-2">View All Pets</a>
-                </div>
+                <p class="text-muted mb-4">We couldn't find any pets matching your criteria.</p>
+                <a th:href="@{/admin/manage-pet}" class="btn btn-dark rounded-pill px-5 py-2">View All Pets</a>
             </div>
         </div>
     </div>
@@ -190,7 +216,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body py-4 text-center">
-                <i class="bi bi-exclamation-circle text-danger display-1 mb-3"></i>
+                <i class="bi bi-exclamation-triangle text-danger display-4 mb-3"></i>
                 <p class="mb-1 text-secondary">Are you sure you want to delete this pet?</p>
                 <p class="fw-bold fs-5 text-dark" id="petNamePlaceholder"></p>
                 <p class="small text-muted">This action cannot be undone.</p>
@@ -203,9 +229,29 @@
     </div>
 </div>
 
+<div class="modal fade" id="cannotDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title fw-bold text-warning">Cannot Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4 text-center">
+                <i class="bi bi-shield-lock text-warning display-4 mb-3 d-block"></i>
+                <h4 class="fw-bold mb-3">Action Denied</h4>
+                <p class="text-muted mb-0">This pet is currently a <strong>Customer Pet</strong>. You can only delete pets that belong to the shop.</p>
+            </div>
+            <div class="modal-footer border-top-0 justify-content-center pb-4">
+                <button type="button" class="btn btn-secondary px-5 rounded-pill fw-bold" data-bs-dismiss="modal">Understood</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
+    // Logic cho modal xác nhận xóa
     const deleteModal = document.getElementById('deleteConfirmationModal');
     if (deleteModal) {
         deleteModal.addEventListener('show.bs.modal', event => {

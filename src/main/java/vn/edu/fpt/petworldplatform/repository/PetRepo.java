@@ -14,7 +14,12 @@ public interface PetRepo extends JpaRepository<Pets, Integer> {
 
     List<Pets> findByNameContaining(String name);
     List<Pets> findByOwner_CustomerId(Integer customerId);
-    
+
+    //Oanh
+    Page<Pets> findByOwnerIsNullAndPriceIsNotNull(Pageable pageable);
+
+
+
     // Pagination methods
     Page<Pets> findByOwner_CustomerId(Integer customerId, Pageable pageable);
     
@@ -53,7 +58,7 @@ public interface PetRepo extends JpaRepository<Pets, Integer> {
     List<Object[]> countPetsBySpeciesAndDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
     
     // Service vs Sale breakdown
-    @Query("SELECT COUNT(p) FROM Pets p WHERE p.createdAt BETWEEN :startDate AND :endDate AND (p.price IS NULL OR p.price = 0)")
+    @Query("SELECT COUNT(p) FROM Pets p WHERE p.createdAt BETWEEN :startDate AND :endDate AND (p.owner IS NOT NULL OR p.isAvailable = false )")
     long countServicePetsByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
     
     @Query("SELECT COUNT(p) FROM Pets p WHERE p.createdAt BETWEEN :startDate AND :endDate AND p.price IS NOT NULL AND p.price > 0")
@@ -76,7 +81,7 @@ public interface PetRepo extends JpaRepository<Pets, Integer> {
 
     Page<Pets> findAllByOwnerIsNullAndPriceIsNotNull(Pageable pageable);
 
-    Page<Pets> findAllByPetTypeIgnoreCaseAndOwnerIsNullAndPriceIsNotNull(String type, Pageable pageable);
+    Page<Pets> findAllByPetTypeIgnoreCase(String type, Pageable pageable);
 
     Page<Pets> findAllByNameContainingIgnoreCaseAndPetTypeIgnoreCaseAndOwnerIsNullAndPriceIsNotNull(
             String name, String petType, Pageable pageable

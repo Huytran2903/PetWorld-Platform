@@ -1,6 +1,9 @@
 package vn.edu.fpt.petworldplatform.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
@@ -253,11 +256,10 @@ public class CartController {
     public String removeCartItem(@PathVariable("id") Integer cartItemId, RedirectAttributes ra) {
         try {
             cartService.removeCartItem(cartItemId);
-            ra.addFlashAttribute("successMessage", "Đã xóa thành công!");
+            ra.addFlashAttribute("successMessage", "Deleted successfully!");
         } catch (Exception e) {
-            ra.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
+            ra.addFlashAttribute("errorMessage", "Có lỗi xảy ra, không thể xóa sản phẩm!");
         }
-
         return "redirect:/cart/view";
     }
 
@@ -268,9 +270,7 @@ public class CartController {
                              Authentication authentication,
                              RedirectAttributes redirectAttributes) {
 
-        // MoMo callback dùng tham số orderId:
-        // - Với Order payment: orderId = orderCode (vd: PET-...)
-        // - Với Appointment payment: orderId = paymentID (số)
+        // 1. Nếu giao dịch thành công (MoMo trả về resultCode = "0")
         if ("0".equals(resultCode)) {
             try {
                 // Try find as Order payment first
@@ -455,9 +455,9 @@ public class CartController {
 
 
     @GetMapping("/cart/order-history")
-    public String orderHistory(Model model) {
-
-        model.addAttribute("orderHistory", orderService.getAllOrder());
+    public String orderHistory(Model model, @PageableDefault(size = 10, page = 0) Pageable pageable) {
+        Page<Order> orderHistory = orderService.getAllOrder(pageable);
+        model.addAttribute("orderHistory",orderHistory);
         return "customer/order-history";
     }
 
