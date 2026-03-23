@@ -679,6 +679,15 @@ VALUES
 (@StaffRoleID, 'staff02', 'e10adc3949ba59abbe56e057f20f883e', 'staff02@petshop.com', '0923456789', N'Tran Thi B', '2024-02-01', N'Veterinarian, internal medicine specialist'),
 (@StaffRoleID, 'staff03', 'e10adc3949ba59abbe56e057f20f883e', 'staff03@petshop.com', '0934567890', N'Le Van C', '2024-03-10', N'Spa and grooming specialist');
 
+-- Seed thêm theo yêu cầu
+IF @AdminRoleID IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.Staff WHERE Username = 'thanhadmin')
+    INSERT INTO dbo.Staff (RoleID, Username, PasswordHash, Email, Phone, FullName, HireDate, Bio, IsActive)
+    VALUES (@AdminRoleID, 'thanhadmin', 'ab360fe720a97d07db534fecacefdfa9', 'thanhadmin@petshop.com', '0909990001', N'Thanh Admin', CAST(GETDATE() AS DATE), N'Admin account seed', 1);
+
+IF @StaffRoleID IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.Staff WHERE Username = 'thanhstaff')
+    INSERT INTO dbo.Staff (RoleID, Username, PasswordHash, Email, Phone, FullName, HireDate, Bio, IsActive)
+    VALUES (@StaffRoleID, 'thanhstaff', '814dd16d54e715bef23709ed6926dde9', 'thanhstaff@petshop.com', '0909990002', N'Thanh Staff', CAST(GETDATE() AS DATE), N'Staff account seed', 1);
+
 -- Seed Customers
 
 -- Seed Categoriesr

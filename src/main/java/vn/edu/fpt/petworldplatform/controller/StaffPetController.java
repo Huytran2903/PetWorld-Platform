@@ -9,8 +9,6 @@ import vn.edu.fpt.petworldplatform.dto.PetCreateDTO;
 import vn.edu.fpt.petworldplatform.entity.Pets; // Import Pets
 import vn.edu.fpt.petworldplatform.service.PetService;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -20,28 +18,6 @@ public class StaffPetController {
 
     @Autowired
     private PetService petService;
-
-    @PreAuthorize("hasAuthority('MANAGE_PET')")
-    @GetMapping ("/list")
-    public String showPetList(Model model) {
-        List<Pets> allPets = petService.getAllPets();
-
-        List<Pets> shopPets = new ArrayList<>();
-        List<Pets> customerPets = new ArrayList<>();
-
-        for (Pets p : allPets) {
-            if (p.getOwner() == null) {
-                shopPets.add(p);
-            } else {
-                customerPets.add(p);
-            }
-        }
-
-        model.addAttribute("shopPets", shopPets);
-        model.addAttribute("customerPets", customerPets);
-
-        return "staff/pet/pet-list";
-    }
 
     @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("/create")
@@ -57,7 +33,7 @@ public class StaffPetController {
             petService.createPet(petDTO);
 
             redirectAttributes.addFlashAttribute("message", "Tạo thú cưng thành công!");
-            return "redirect:/staff/pet/list"; // Chuyển hướng về trang danh sách sau khi thành công
+            return "redirect:/staff/pet/create";
 
         } catch (IOException e) {
             e.printStackTrace();
