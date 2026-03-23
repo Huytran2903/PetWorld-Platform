@@ -37,6 +37,17 @@ public class RevenueController {
 
             Model model) {
 
+        LocalDate today = LocalDate.now();
+        String dateError = null;
+
+        if (startDate != null && startDate.isAfter(today)) {
+            dateError = "From date cannot be in the future.";
+        } else if (endDate != null && endDate.isAfter(today)) {
+            dateError = "To date cannot be in the future.";
+        } else if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
+            dateError = "From date must be earlier than or equal to To date.";
+        }
+
         // --- Stats cards ---
         model.addAttribute("todayRevenue",    service.getTodayRevenue());
         model.addAttribute("percentChange",   service.getPercentChange());
@@ -50,7 +61,7 @@ public class RevenueController {
 
         // --- Transactions table ---
         List<RevenueDTO> transactions;
-        boolean filtered = (startDate != null || endDate != null);
+        boolean filtered = (startDate != null || endDate != null) && dateError == null;
 
         if (filtered) {
             // Chuyển LocalDate -> LocalDateTime cho query
@@ -69,6 +80,8 @@ public class RevenueController {
         model.addAttribute("filtered",     filtered);
         model.addAttribute("startDate",    startDate);  
         model.addAttribute("endDate",      endDate);
+        model.addAttribute("maxDate",      today);
+        model.addAttribute("dateError",    dateError);
 
         return "admin/report-revenue";
     }
