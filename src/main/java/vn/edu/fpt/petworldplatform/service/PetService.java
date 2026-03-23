@@ -30,9 +30,6 @@ public class PetService {
     @Autowired
     private CustomerRepo customerRepo;
 
-    private static final String UPLOAD_DIR =
-            "src/main/resources/static/images/uploads/";
-
 
     //OanhTP
     public Page<Pets> findAllPets(Pageable pageable) {
@@ -211,16 +208,24 @@ public class PetService {
     private List<PetStatisticsDTO.PetSpeciesStats> getSpeciesStats(String species, LocalDateTime startDateTime, LocalDateTime endDateTime) {
         List<PetStatisticsDTO.PetSpeciesStats> stats = new ArrayList<>();
 
+        boolean isOtherSpecies = "Other".equalsIgnoreCase(species);
+
         // Service pets
-        List<Object[]> serviceResults = petRepo.countServicePetsBySpeciesAndDateRange(species, startDateTime, endDateTime);
+        List<Object[]> serviceResults = isOtherSpecies
+                ? petRepo.countServicePetsByOtherSpeciesAndDateRange(startDateTime, endDateTime)
+                : petRepo.countServicePetsBySpeciesAndDateRange(species, startDateTime, endDateTime);
         long serviceCount = serviceResults.isEmpty() ? 0 : (Long) serviceResults.get(0)[1];
 
         // Sale pets
-        List<Object[]> saleResults = petRepo.countSalePetsBySpeciesAndDateRange(species, startDateTime, endDateTime);
+        List<Object[]> saleResults = isOtherSpecies
+                ? petRepo.countSalePetsByOtherSpeciesAndDateRange(startDateTime, endDateTime)
+                : petRepo.countSalePetsBySpeciesAndDateRange(species, startDateTime, endDateTime);
         long saleCount = saleResults.isEmpty() ? 0 : (Long) saleResults.get(0)[1];
 
         // Sold pets
-        List<Object[]> soldResults = petRepo.countSoldPetsBySpeciesAndDateRange(species, startDateTime, endDateTime);
+        List<Object[]> soldResults = isOtherSpecies
+                ? petRepo.countSoldPetsByOtherSpeciesAndDateRange(startDateTime, endDateTime)
+                : petRepo.countSoldPetsBySpeciesAndDateRange(species, startDateTime, endDateTime);
         long soldCount = soldResults.isEmpty() ? 0 : (Long) soldResults.get(0)[1];
 
         long total = serviceCount + saleCount;

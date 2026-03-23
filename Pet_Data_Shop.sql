@@ -10,7 +10,7 @@
    - FIX: Orders - Payments quan hệ 1-1 (mỗi Order tối đa 1 Payment) bằng UNIQUE filtered index
    - Notifications (NVARCHAR Title/Type/Message); Appointments.Status gồm checked_in
    - AppointmentSummaryPhotos; Feedbacks: ServiceName, ReplyMessage, RepliedAt (khớp entity)
-   - Pets.Species; AppointmentServices.ServiceNote; PetHealthPhotos: PhotoID + CreatedAt (khớp entity)
+   - AppointmentServices.ServiceNote; PetHealthPhotos: PhotoID + CreatedAt (khớp entity)
    - verification_tokens: staff_id + customer_id nullable (token khách hoặc nhân viên)
    - Các migration cũ (AssignStaff*, VaccineService*, Notifications_NVarchar) đã gộp vào script CREATE này
    ========================================================= */

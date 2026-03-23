@@ -70,12 +70,21 @@ public interface PetRepo extends JpaRepository<Pets, Integer> {
     // Species-specific breakdowns
     @Query("SELECT 'SERVICE', COUNT(p) FROM Pets p WHERE p.petType = :species AND p.createdAt BETWEEN :startDate AND :endDate AND (p.price IS NULL OR p.price = 0)")
     List<Object[]> countServicePetsBySpeciesAndDateRange(@Param("species") String species, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
-    
+
+    @Query("SELECT 'SERVICE', COUNT(p) FROM Pets p WHERE p.createdAt BETWEEN :startDate AND :endDate AND (p.price IS NULL OR p.price = 0) AND (p.petType IS NULL OR (LOWER(p.petType) <> 'dog' AND LOWER(p.petType) <> 'cat'))")
+    List<Object[]> countServicePetsByOtherSpeciesAndDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
     @Query("SELECT 'SALE', COUNT(p) FROM Pets p WHERE p.petType = :species AND p.createdAt BETWEEN :startDate AND :endDate AND p.price IS NOT NULL AND p.price > 0")
     List<Object[]> countSalePetsBySpeciesAndDateRange(@Param("species") String species, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
-    
+
+    @Query("SELECT 'SALE', COUNT(p) FROM Pets p WHERE p.createdAt BETWEEN :startDate AND :endDate AND p.price IS NOT NULL AND p.price > 0 AND (p.petType IS NULL OR (LOWER(p.petType) <> 'dog' AND LOWER(p.petType) <> 'cat'))")
+    List<Object[]> countSalePetsByOtherSpeciesAndDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
     @Query("SELECT 'SOLD', COUNT(p) FROM Pets p WHERE p.petType = :species AND p.createdAt BETWEEN :startDate AND :endDate AND p.purchasedAt IS NOT NULL")
     List<Object[]> countSoldPetsBySpeciesAndDateRange(@Param("species") String species, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT 'SOLD', COUNT(p) FROM Pets p WHERE p.createdAt BETWEEN :startDate AND :endDate AND p.purchasedAt IS NOT NULL AND (p.petType IS NULL OR (LOWER(p.petType) <> 'dog' AND LOWER(p.petType) <> 'cat'))")
+    List<Object[]> countSoldPetsByOtherSpeciesAndDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
     //List<Pets> searchAllByNameContainingIgnoreCase(String keyword);
 

@@ -24,7 +24,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AssignedAppointmentService implements IAssignedAppointmentService {
 
-    private static final long CHECK_IN_EARLY_MINUTES = 100000;
+    private static final long CHECK_IN_EARLY_MINUTES = 30;
+    private static final long CHECK_IN_LATE_GRACE_MINUTES = 30;
 
     private static final String STATUS_CONFIRMED = "confirmed";
     private static final String STATUS_CHECKED_IN = "checked_in";
@@ -121,8 +122,20 @@ public class AssignedAppointmentService implements IAssignedAppointmentService {
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime earliestCheckIn = appointment.getAppointmentDate().minusMinutes(CHECK_IN_EARLY_MINUTES);
+        LocalDateTime latestCheckIn = appointment.getAppointmentDate().plusMinutes(CHECK_IN_LATE_GRACE_MINUTES);
+
         if (now.isBefore(earliestCheckIn)) {
-            throw new IllegalStateException("Too early to Check In");
+            throw new IllegalStateException("Too early to Check In. You can check in up to "
+                    + CHECK_IN_EARLY_MINUTES + " minutes before appointment time.");
+        }
+
+        if (now.isAfter(latestCheckIn)) {
+            appointment.setCanceledAt(LocalDateTime.now());
+            appointment.setCancellationReason("Auto-canceled: customer late over "
+                    + CHECK_IN_LATE_GRACE_MINUTES + " minutes.");
+            updateStatus(appointment, "canceled");
+            throw new IllegalStateException("Appointment has been canceled because customer is over "
+                    + CHECK_IN_LATE_GRACE_MINUTES + " minutes late.");
         }
 
         return updateStatus(appointment, STATUS_CHECKED_IN);

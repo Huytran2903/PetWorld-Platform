@@ -12,6 +12,7 @@ import vn.edu.fpt.petworldplatform.entity.ServiceItem;
 import vn.edu.fpt.petworldplatform.repository.AppointmentRepository;
 import vn.edu.fpt.petworldplatform.repository.AppointmentServiceLineRepository;
 import vn.edu.fpt.petworldplatform.repository.CustomerRepo;
+import vn.edu.fpt.petworldplatform.repository.NotificationRepository;
 import vn.edu.fpt.petworldplatform.repository.PetRepo;
 import vn.edu.fpt.petworldplatform.repository.PetVaccinationRepository;
 import vn.edu.fpt.petworldplatform.repository.ServiceItemRepository;
@@ -38,6 +39,7 @@ public class BookingService {
     private final AppointmentRepository appointmentRepository;
     private final AppointmentServiceLineRepository appointmentServiceLineRepository;
     private final CustomerRepo customerRepo;
+    private final NotificationRepository notificationRepository;
     private final PetRepo petRepo;
     private final ServiceItemRepository serviceItemRepository;
     private final PetVaccinationRepository petVaccinationRepository;
@@ -334,10 +336,18 @@ public class BookingService {
      */
     @Transactional
     public void deleteAppointmentIfCanceled(Integer appointmentId, Integer customerId) {
-        Appointment a = appointmentRepository.findById(appointmentId).orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
-        if (!a.getCustomerId().equals(customerId)) throw new IllegalArgumentException("Unauthorized to delete this appointment.");
-        if (!"canceled".equalsIgnoreCase(a.getStatus())) throw new IllegalArgumentException("Only canceled appointments can be deleted.");
-        // delete lines then appointment
+        Appointment a = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
+
+        if (!a.getCustomerId().equals(customerId)) {
+            throw new IllegalArgumentException("Unauthorized to delete this appointment.");
+        }
+        if (!"canceled".equalsIgnoreCase(a.getStatus())) {
+            throw new IllegalArgumentException("Only canceled appointments can be deleted.");
+        }
+
+        // Cách 1: xóa bản ghi phụ thuộc trước, sau đó mới xóa appointment
+        notificationRepository.deleteByAppointment_Id(appointmentId);
         appointmentServiceLineRepository.deleteAllByAppointment(a);
         appointmentRepository.delete(a);
     }

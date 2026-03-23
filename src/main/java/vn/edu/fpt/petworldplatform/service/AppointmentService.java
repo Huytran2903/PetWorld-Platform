@@ -31,6 +31,7 @@ import vn.edu.fpt.petworldplatform.repository.AppointmentRepository;
 import vn.edu.fpt.petworldplatform.repository.AppointmentServiceLineRepository;
 
 import vn.edu.fpt.petworldplatform.repository.StaffRepository;
+import vn.edu.fpt.petworldplatform.repository.NotificationRepository;
 
 import vn.edu.fpt.petworldplatform.repository.spec.AppointmentSpecifications;
 
@@ -58,6 +59,8 @@ public class AppointmentService implements IAppointmentService {
     private final AppointmentServiceLineRepository appointmentServiceLineRepository;
 
     private final StaffRepository staffRepository;
+
+    private final NotificationRepository notificationRepository;
 
     private final NotificationService notificationService;
 
@@ -113,7 +116,7 @@ public class AppointmentService implements IAppointmentService {
     }
 
     @Override
-
+    @Transactional
     public void deleteAppointment(Integer id) {
 
         Appointment appointment = getAppointmentById(id);
@@ -126,6 +129,7 @@ public class AppointmentService implements IAppointmentService {
 
         }
 
+        notificationRepository.deleteByAppointment_Id(id);
         appointmentRepository.delete(appointment);
 
     }

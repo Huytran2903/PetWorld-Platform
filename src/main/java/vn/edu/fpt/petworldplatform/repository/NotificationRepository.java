@@ -20,4 +20,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
 	boolean existsByCustomer_CustomerIdAndAppointment_IdAndType(Integer customerId, Integer appointmentId, String type);
 
 	boolean existsByCustomer_CustomerIdAndTypeAndMessageContaining(Integer customerId, String type, String messagePart);
+
+	void deleteByAppointment_Id(Integer appointmentId);
 }
