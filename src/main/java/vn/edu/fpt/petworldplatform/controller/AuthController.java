@@ -108,6 +108,38 @@ public class AuthController {
         }
     }
 
+
+    @PostMapping("/resend-otp")
+    public String resendRegisterOtp(@RequestParam("email") String email, RedirectAttributes redirectAttributes) {
+        try {
+            customerService.resendOtp(email, "REGISTER");
+            redirectAttributes.addFlashAttribute("message", "A new OTP has been sent to your email!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorOtp", e.getMessage());
+        }
+
+        redirectAttributes.addFlashAttribute("showOtpModal", true);
+        redirectAttributes.addFlashAttribute("emailRegister", email);
+
+        return "redirect:/register";
+    }
+
+
+    @PostMapping("/resend-forgot-password-otp")
+    public String resendForgotOtp(@RequestParam("email") String email, RedirectAttributes redirectAttributes) {
+        try {
+            customerService.resendOtp(email, "FORGOT_PASSWORD");
+            redirectAttributes.addFlashAttribute("message", "A new password reset OTP has been sent!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorOtp", e.getMessage());
+        }
+
+        redirectAttributes.addFlashAttribute("shouldOpenOtp", true);
+        redirectAttributes.addFlashAttribute("emailForgot", email);
+
+        return "redirect:/login";
+    }
+
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();

@@ -12,9 +12,9 @@ import java.util.UUID;
 @NoArgsConstructor
 @Table(name = "verification_tokens")
 public class VerificationToken {
-    public static final int EXPIRATION_FORGOT_PASS = 15; // 15 phút cho quên mật khẩu
-    public static final int EXPIRATION_REGISTER = 10;    // 10 phút cho đăng ký
-    public static final int EXPIRATION_STAFF = 1440;    // 24 giờ cho nhân viên
+    public static final int EXPIRATION_FORGOT_PASS = 1;
+    public static final int EXPIRATION_REGISTER = 1;
+    public static final int EXPIRATION_STAFF = 1440;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
