@@ -2,6 +2,9 @@ package vn.edu.fpt.petworldplatform.controller;
 
 import jakarta.persistence.Column;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -246,11 +249,10 @@ public class CartController {
     public String removeCartItem(@PathVariable("id") Integer cartItemId, RedirectAttributes ra) {
         try {
             cartService.removeCartItem(cartItemId);
-            ra.addFlashAttribute("successMessage", "Đã xóa thành công!");
+            ra.addFlashAttribute("successMessage", "Deleted successfully!");
         } catch (Exception e) {
-            ra.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
+            ra.addFlashAttribute("errorMessage", "Có lỗi xảy ra, không thể xóa sản phẩm!");
         }
-
         return "redirect:/cart/view";
     }
 
@@ -298,7 +300,7 @@ public class CartController {
                     orderService.updateOrder(order);
                 }
             } catch (Exception e) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Thanh toán chưa hoàn tất. Vui lòng thử lại!");
+                redirectAttributes.addFlashAttribute("errorMessage", "Payment not completed. Please try again!");
             }
 
             return "redirect:/cart/view";
@@ -324,9 +326,9 @@ public class CartController {
 
 
     @GetMapping("/cart/order-history")
-    public String orderHistory(Model model) {
-
-        model.addAttribute("orderHistory", orderService.getAllOrder());
+    public String orderHistory(Model model, @PageableDefault(size = 10, page = 0) Pageable pageable) {
+        Page<Order> orderHistory = orderService.getAllOrder(pageable);
+        model.addAttribute("orderHistory",orderHistory);
         return "customer/order-history";
     }
 

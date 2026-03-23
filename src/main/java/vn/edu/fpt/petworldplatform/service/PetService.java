@@ -42,7 +42,7 @@ public class PetService {
     // --- 1. Lấy danh sách ---
     //OanhTP
     public Page<Pets> getAllPetWithPagination(Pageable pageable) {
-        return petRepo.findAllByOwnerIsNullAndPriceIsNotNull(pageable);
+        return petRepo.findByOwnerIsNullAndPriceIsNotNull(pageable);
     }
 
     public List<Pets> getAllPets() {

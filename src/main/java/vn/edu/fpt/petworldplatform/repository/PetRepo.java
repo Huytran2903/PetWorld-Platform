@@ -14,7 +14,12 @@ public interface PetRepo extends JpaRepository<Pets, Integer> {
 
     List<Pets> findByNameContaining(String name);
     List<Pets> findByOwner_CustomerId(Integer customerId);
-    
+
+    //Oanh
+    Page<Pets> findByOwnerIsNullAndPriceIsNotNull(Pageable pageable);
+
+
+
     // Pagination methods
     Page<Pets> findByOwner_CustomerId(Integer customerId, Pageable pageable);
     

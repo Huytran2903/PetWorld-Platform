@@ -180,3 +180,45 @@ select.status-cancelled {
 .status-shipped { background-color: #d1ecf1 !important; color: #0c5460 !important; }
 .status-done { background-color: #d4edda !important; color: #155724 !important; }
 .status-canceled { background-color: #f8d7da !important; color: #721c24 !important; }
+
+
+.pagination .page-link {
+    color: #333;
+    border: none;
+    margin: 0 5px;
+    border-radius: 8px !important;
+    transition: all 0.3s ease;
+    height: 40px;
+    min-width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination .page-link:hover {
+    background-color: #fff3e6;
+    color: #FFA54F;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #FFA54F !important;
+    border-color: #FFA54F !important;
+    color: white !important;
+    box-shadow: 0 4px 10px rgba(255, 165, 79, 0.3);
+}
+
+.pagination .page-item.disabled .page-link {
+    background-color: #f8f9fa;
+    color: #ccc;
+}
+
+.filter-section {
+    background-color: #ffffff;
+    border: 1px solid #eee;
+}
+
+.status-select {
+    border-radius: 5px;
+    padding: 2px 8px;
+    cursor: pointer;
+}

@@ -116,3 +116,64 @@ body {
     color: #ccc;
     box-shadow: none;
 }
+
+.admin-filter-select {
+    height: 45px;
+    border-radius: 50px !important;
+    border: 1px solid #eee !important;
+    padding: 0 15px !important;
+    cursor: pointer;
+    background-color: #fff;
+    transition: all 0.3s ease;
+    /* Thu ngắn thanh Type lại */
+    width: 140px !important;
+    min-width: 140px !important;
+    flex-shrink: 0;
+    font-size: 14px;
+}
+
+.admin-filter-select:focus {
+    border-color: #FFA54F !important;
+    box-shadow: 0 0 0 0.25rem rgba(255, 165, 79, 0.1) !important;
+}
+
+/* Trạng thái Active: Nền đen chữ trắng giống bên Pet List */
+.admin-filter-select.active {
+    background-color: #000 !important;
+    color: #fff !important;
+    border-color: #000 !important;
+}
+
+.search-box input {
+    border: 1px solid #eee !important;
+}
+
+.search-box input:focus {
+    border-color: #FFA54F !important;
+    box-shadow: none !important;
+}
+
+.pagination .page-link {
+    border-radius: 8px !important;
+    margin: 0 3px;
+    color: #333;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #FFA54F !important;
+    color: white !important;
+}
+
+/* Thay mã #FFA500 bằng mã màu cam của bạn */
+.cam-tuy-chinh {
+    background-color: #FFA54F !important;
+    border-color: #FFA54F !important;
+    color: #ffffff !important; /* Đổi màu chữ thành trắng để dễ đọc trên nền cam */
+}
+
+/* Tùy chọn: Đổi luôn màu khi người dùng click vào thẻ select (trạng thái focus) */
+.cam-tuy-chinh:focus {
+    box-shadow: 0 0 0 0.25rem rgba(255, 165, 0, 0.25) !important;
+}
