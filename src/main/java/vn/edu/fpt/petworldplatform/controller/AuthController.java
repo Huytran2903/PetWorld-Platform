@@ -205,10 +205,11 @@ public class AuthController {
         try {
             customerService.sendResetPasswordEmail(email);
 
-            session.setAttribute("resetEmail", email);
 
             redirectAttributes.addFlashAttribute("message", "OTP has been sent to " + email);
             redirectAttributes.addFlashAttribute("openOtpModal", true);
+
+            redirectAttributes.addFlashAttribute("emailForgot", email);
 
             return "redirect:/login";
         } catch (Exception e) {

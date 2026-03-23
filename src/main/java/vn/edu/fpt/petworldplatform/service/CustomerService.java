@@ -95,7 +95,7 @@ public class CustomerService {
 
     @Transactional
     public void resendOtp(String email, String actionType) throws Exception {
-        Customer customer = customerRepo.findByEmail(email).orElseThrow(() -> new Exception("Tài khoản không tồn tại!"));
+        Customer customer = customerRepo.findByEmail(email).orElseThrow(() -> new Exception("Account has not exist!"));
 
         if ("FORGOT_PASSWORD".equals(actionType) && customer.getAuthProvider() == AuthProvider.GOOGLE) {
             throw new Exception("Email này được liên kết với Google. Vui lòng đăng nhập bằng nút Google!");
