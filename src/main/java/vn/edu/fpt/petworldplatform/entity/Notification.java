@@ -33,13 +33,13 @@ public class Notification {
     @JoinColumn(name = "AppointmentID")
     private Appointment appointment;
 
-    @Column(name = "Title", nullable = false, length = 200)
+    @Column(name = "Title", nullable = false, length = 200, columnDefinition = "NVARCHAR(200)")
     private String title;
 
     @Column(name = "Message", nullable = false, columnDefinition = "NVARCHAR(MAX)")
     private String message;
 
-    @Column(name = "Type", nullable = false, length = 50)
+    @Column(name = "Type", nullable = false, length = 50, columnDefinition = "NVARCHAR(50)")
     private String type;
 
     @Column(name = "IsRead")

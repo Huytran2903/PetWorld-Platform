@@ -20,6 +20,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -214,8 +215,19 @@ public class BookingService {
         return "APT-" + shortUuid.toUpperCase();
     }
 
+    /**
+     * Customer appointment list: pending first, then all others ordered by appointment date (newest first).
+     */
     public List<Appointment> findAppointmentsByCustomerId(Integer customerId) {
-        return appointmentRepository.findByCustomerIdOrderByAppointmentDateDesc(customerId);
+        List<Appointment> list = appointmentRepository.findByCustomerIdOrderByAppointmentDateDesc(customerId);
+        list.sort(Comparator
+                .comparing((Appointment a) -> !isPendingAppointmentStatus(a.getStatus()))
+                .thenComparing(Appointment::getAppointmentDate, Comparator.nullsLast(Comparator.reverseOrder())));
+        return list;
+    }
+
+    private static boolean isPendingAppointmentStatus(String status) {
+        return status != null && "pending".equalsIgnoreCase(status.trim());
     }
 
     public List<Appointment> findActiveAppointmentsByCustomerId(Integer customerId) {

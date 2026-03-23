@@ -76,13 +76,26 @@
                 <span th:text="${#temporals.format(notification.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 12:00</span>
             </div>
 
-            <div class="type-chip"
-                 th:text="${notification.type == 'feedback_reply' ? 'Admin Reply' : (notification.type == 'feedback_status' ? 'Feedback Status' : 'Notification')}">
-                Feedback Status
-            </div>
+            <th:block th:switch="${notification.type}">
+                <div th:case="'feedback_reply'" class="type-chip">Admin reply</div>
+                <div th:case="'feedback_status'" class="type-chip">Feedback status</div>
+                <div th:case="'appointment_done'" class="type-chip">Service completed</div>
+                <div th:case="'appointment_confirmed'" class="type-chip">Appointment confirmed</div>
+                <div th:case="'payment_success'" class="type-chip">Payment</div>
+                <div th:case="'vaccine_due'" class="type-chip">Vaccination</div>
+                <div th:case="*" class="type-chip">Notification</div>
+            </th:block>
 
             <div class="detail-message-box">
                 <p class="detail-message" th:text="${notification.message}">Notification detail message</p>
+            </div>
+
+            <div th:if="${notification.type == 'appointment_done' && notification.appointmentId != null}"
+                 style="margin-top: 14px;">
+                <a class="btn btn-sm btn-primary"
+                   th:href="@{'/customer/appointments/' + ${notification.appointmentId} + '/payment'}">
+                    Pay now
+                </a>
             </div>
         </div>
     </div>

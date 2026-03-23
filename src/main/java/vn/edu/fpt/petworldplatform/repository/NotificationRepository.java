@@ -16,4 +16,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Inte
 	Page<Notification> findByCustomer_CustomerId(Integer customerId, Pageable pageable);
 
 	Optional<Notification> findByIdAndCustomer_CustomerId(Integer id, Integer customerId);
+
+	boolean existsByCustomer_CustomerIdAndAppointment_IdAndType(Integer customerId, Integer appointmentId, String type);
+
+	boolean existsByCustomer_CustomerIdAndTypeAndMessageContaining(Integer customerId, String type, String messagePart);
 }

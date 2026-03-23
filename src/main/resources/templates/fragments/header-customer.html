@@ -110,11 +110,7 @@
                                style="color: #dc3545 !important;">Admin Panel</a>
                         </li>
 
-                        <li class="nav-item"
-                            sec:authorize="isAuthenticated() and !hasRole('ADMIN') and !hasRole('CUSTOMER') and !hasAuthority('OIDC_USER')">
-                            <a th:href="@{/staff/assigned_list}" class="nav-link fw-bold"
-                               style="color: #0d6efd !important;">Staff Panel</a>
-                        </li>
+                        <!-- Staff Panel is shown on staff layout/sidebar only. -->
                     </ul>
 
                     <div class="d-none d-lg-flex"

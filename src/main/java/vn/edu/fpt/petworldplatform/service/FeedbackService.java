@@ -89,6 +89,38 @@ public class FeedbackService {
     }
 
     /**
+     * Get the service review feedback for a given appointment + service + customer.
+     */
+    public java.util.Optional<Feedback> getServiceReview(Integer appointmentId, Integer serviceId, Integer customerId) {
+        return feedbackRepository.findTopByAppointmentIdAndServiceIdAndCustomer_CustomerIdOrderByCreatedAtDesc(
+                appointmentId, serviceId, customerId);
+    }
+
+    /**
+     * Update customer's own service review (comment, rating, subject only).
+     */
+    public void updateCustomerServiceReview(Integer feedbackId, Integer customerId, String comment, Integer rating, String subject) {
+        Feedback feedback = feedbackRepository.findById(feedbackId)
+                .orElseThrow(() -> new IllegalArgumentException("Feedback not found."));
+        if (feedback.getCustomer() == null || !feedback.getCustomer().getCustomerId().equals(customerId)) {
+            throw new IllegalArgumentException("You can only update your own feedback.");
+        }
+        if (!"service".equalsIgnoreCase(feedback.getType())) {
+            throw new IllegalArgumentException("This feedback is not a service review.");
+        }
+        if (comment != null) {
+            feedback.setComment(comment.trim());
+        }
+        if (rating != null && rating >= 1 && rating <= 5) {
+            feedback.setRating(rating);
+        }
+        if (subject != null) {
+            feedback.setSubject(subject.trim());
+        }
+        feedbackRepository.save(feedback);
+    }
+
+    /**
      * Submit a service review for a completed appointment.
      */
     public Feedback submitServiceReview(ServiceReviewDTO dto, Integer appointmentId, Customer customer) {

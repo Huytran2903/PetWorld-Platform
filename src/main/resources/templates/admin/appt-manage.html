@@ -112,6 +112,16 @@
             color: #721c24;
         }
 
+        .payment-paid {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .payment-unpaid {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
         .btn-export {
             background-color: #198754;
             color: #fff;
@@ -245,6 +255,7 @@
                         <th>Pet Name</th>
                         <th>Date</th>
                         <th>Status</th>
+                        <th>Payment</th>
                         <th class="text-center">Action</th>
                     </tr>
                     </thead>
@@ -258,6 +269,13 @@
                             <span class="badge-status"
                                   th:classappend="' status-' + ${appt.status != null ? appt.status.toLowerCase() : 'pending'}"
                                   th:text="${appt.status}">pending</span>
+                        </td>
+                        <td>
+                            <span th:if="${appt.status == 'done'}"
+                                  class="badge-status"
+                                  th:classappend="${hasPaidByAppointmentId != null and hasPaidByAppointmentId[appt.id]} ? ' payment-paid' : ' payment-unpaid'"
+                                  th:text="${hasPaidByAppointmentId != null and hasPaidByAppointmentId[appt.id]} ? 'Paid' : 'Unpaid'">Paid/Unpaid</span>
+                            <span th:if="${appt.status != 'done'}" class="text-muted">-</span>
                         </td>
                         <td class="text-center">
                             <div class="action-container">

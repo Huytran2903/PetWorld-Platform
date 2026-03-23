@@ -41,6 +41,20 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
+    public boolean existsForCustomerAppointmentType(Integer customerId, Integer appointmentId, String type) {
+        if (customerId == null || appointmentId == null || type == null || type.isBlank()) {
+            return false;
+        }
+        return notificationRepository.existsByCustomer_CustomerIdAndAppointment_IdAndType(customerId, appointmentId, type);
+    }
+
+    public boolean existsForCustomerTypeMessagePart(Integer customerId, String type, String messagePart) {
+        if (customerId == null || type == null || type.isBlank() || messagePart == null || messagePart.isBlank()) {
+            return false;
+        }
+        return notificationRepository.existsByCustomer_CustomerIdAndTypeAndMessageContaining(customerId, type, messagePart);
+    }
+
     public long getUnreadCount(Integer customerId) {
         if (customerId == null) {
             return 0;

@@ -48,6 +48,17 @@ public class WorkScheduleController {
         LocalDate weekEnd = endDate != null
                 ? endDate
                 : weekStart.plusDays(6);
+        if (weekEnd.isBefore(weekStart)) {
+            LocalDate tmp = weekStart;
+            weekStart = weekEnd;
+            weekEnd = tmp;
+        }
+
+        LocalDate currentWeekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDate currentWeekEnd = currentWeekStart.plusDays(6);
+        boolean isCurrentWeek = weekStart.equals(currentWeekStart) && weekEnd.equals(currentWeekEnd);
+        boolean isPrevWeek = weekStart.equals(currentWeekStart.minusWeeks(1)) && weekEnd.equals(currentWeekEnd.minusWeeks(1));
+        boolean isNextWeek = weekStart.equals(currentWeekStart.plusWeeks(1)) && weekEnd.equals(currentWeekEnd.plusWeeks(1));
 
         try {
             model.addAttribute("activePage", "work-schedule");
@@ -58,6 +69,9 @@ public class WorkScheduleController {
             model.addAttribute("nextWeekEnd", weekEnd.plusWeeks(1));
             model.addAttribute("prevWeekStart", weekStart.minusWeeks(1));
             model.addAttribute("prevWeekEnd", weekEnd.minusWeeks(1));
+            model.addAttribute("isCurrentWeek", isCurrentWeek);
+            model.addAttribute("isPrevWeek", isPrevWeek);
+            model.addAttribute("isNextWeek", isNextWeek);
             return "staff/work_schedule";
         } catch (Exception e) {
             model.addAttribute("error", e.getMessage());
@@ -68,6 +82,9 @@ public class WorkScheduleController {
             model.addAttribute("nextWeekEnd", weekEnd.plusWeeks(1));
             model.addAttribute("prevWeekStart", weekStart.minusWeeks(1));
             model.addAttribute("prevWeekEnd", weekEnd.minusWeeks(1));
+            model.addAttribute("isCurrentWeek", isCurrentWeek);
+            model.addAttribute("isPrevWeek", isPrevWeek);
+            model.addAttribute("isNextWeek", isNextWeek);
             return "staff/work_schedule";
         }
     }

@@ -30,13 +30,16 @@
 
                 <div class="card-body">
                     <div class="toolbar">
-                        <a class="btn btn-ghost"
+                        <a class="btn"
+                           th:classappend="${isPrevWeek} ? ' btn-primary' : ' btn-ghost'"
                            th:href="@{/staff/work-schedule(startDate=${prevWeekStart}, endDate=${prevWeekEnd})}">Previous Week</a>
 
-                        <a class="btn btn-primary"
+                        <a class="btn"
+                           th:classappend="${isCurrentWeek} ? ' btn-primary' : ' btn-ghost'"
                            th:href="@{/staff/work-schedule}">Current Week</a>
 
-                        <a class="btn btn-ghost"
+                        <a class="btn"
+                           th:classappend="${isNextWeek} ? ' btn-primary' : ' btn-ghost'"
                            th:href="@{/staff/work-schedule(startDate=${nextWeekStart}, endDate=${nextWeekEnd})}">Next Week</a>
                     </div>
 
@@ -57,7 +60,8 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr th:each="item : ${schedules}">
+                            <tr th:each="item : ${schedules}"
+                                th:classappend="${item.displayStatus != null} ? (${#strings.equalsIgnoreCase(item.displayStatus, 'done')} ? ' row-done' : ' row-pending') : ''">
                                 <td th:text="${#temporals.format(item.workDate, 'dd/MM/yyyy (EEE)')}">01/03/2026 (Mon)</td>
                                 <td th:text="${#temporals.format(item.startTime, 'HH:mm')}">08:00</td>
                                 <td th:text="${#temporals.format(item.endTime, 'HH:mm')}">12:00</td>

@@ -109,6 +109,14 @@
     font-size: 14px;
 }
 
+.schedule-table tbody tr.row-done {
+    background: #ecfdf5;
+}
+
+.schedule-table tbody tr.row-pending {
+    background: #fff7ed;
+}
+
 .empty-state {
     border: 1px dashed var(--border);
     border-radius: 10px;

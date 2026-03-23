@@ -23,6 +23,8 @@ import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
 import java.util.Locale;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,11 +46,36 @@ public class HealthCheckService implements IHealthCheckService {
     private final AppointmentSummaryRepository appointmentSummaryRepository;
     private final AppointmentSummaryPhotoRepository appointmentSummaryPhotoRepository;
     private final PetVaccinationRepository petVaccinationRepository;
+    private final NotificationService notificationService;
 
     @Override
     public List<Appointment> getAssignedAppointments(Integer staffId) {
         validateStaffActive(staffId);
-        return appointmentRepository.findByStaffIdOrderByAppointmentDateDesc(staffId);
+        List<Appointment> list = new ArrayList<>();
+        for (Appointment a : appointmentRepository.findByStaffIdOrderByAppointmentDateDesc(staffId)) {
+            if (!isExcludedFromStaffWorklist(a.getStatus())) {
+                list.add(a);
+            }
+        }
+        list.sort(Comparator
+                .comparing((Appointment ap) -> isDoneAppointmentStatus(ap.getStatus()))
+                .thenComparing(Appointment::getAppointmentDate, Comparator.nullsLast(Comparator.naturalOrder())));
+        return list;
+    }
+
+    private static boolean isDoneAppointmentStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return false;
+        }
+        return "done".equals(status.trim().toLowerCase(Locale.ROOT));
+    }
+
+    private static boolean isExcludedFromStaffWorklist(String status) {
+        if (status == null || status.isBlank()) {
+            return false;
+        }
+        String s = status.trim().toLowerCase(Locale.ROOT);
+        return "canceled".equals(s) || "cancelled".equals(s) || "rejected".equals(s);
     }
 
     @Override
@@ -297,6 +324,12 @@ public class HealthCheckService implements IHealthCheckService {
                     }
                 });
 
+        // Vaccine có next due date (không phải one-time) thì bắt buộc phải chọn ngày
+        boolean oneTimeVaccine = Boolean.TRUE.equals(serviceLine.getService().getIsOneTimeVaccine());
+        if (!oneTimeVaccine && (request == null || request.getNextDueDate() == null)) {
+            throw new IllegalArgumentException("Vaccine có lịch tiêm nhắc lại, bắt buộc phải chọn Next Due Date.");
+        }
+
         PetVaccinations v = new PetVaccinations();
         v.setPet(appointment.getPet());
         v.setAppointment(appointment);
@@ -352,6 +385,8 @@ public class HealthCheckService implements IHealthCheckService {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new IllegalStateException("Appointment not found."));
 
+        String oldStatus = appointment.getStatus() != null ? appointment.getStatus().toLowerCase() : null;
+
         if (!isAppointmentManager(appointment, staffId)) {
             throw new IllegalStateException("Only appointment manager can submit summary.");
         }
@@ -362,6 +397,30 @@ public class HealthCheckService implements IHealthCheckService {
                 .allMatch(line -> "done".equals(lower(line.getServiceStatus())));
         if (!allDone) {
             throw new IllegalStateException("All service lines must be done before summary.");
+        }
+
+        if (request == null) {
+            throw new IllegalArgumentException("Health summary is required.");
+        }
+
+        // Prevent "submit empty summary" => accidentally marking appointment as done.
+        if (request.getWeightKg() == null) {
+            throw new IllegalArgumentException("Weight is required.");
+        }
+        if (request.getTemperature() == null) {
+            throw new IllegalArgumentException("Temperature is required.");
+        }
+        if (isBlank(request.getConditionBefore())) {
+            throw new IllegalArgumentException("Condition Before is required.");
+        }
+        if (isBlank(request.getConditionAfter())) {
+            throw new IllegalArgumentException("Condition After is required.");
+        }
+        if (isBlank(request.getFindings())) {
+            throw new IllegalArgumentException("Findings is required.");
+        }
+        if (isBlank(request.getRecommendations())) {
+            throw new IllegalArgumentException("Recommendations is required.");
         }
 
         validateNumericFields(request.getWeightKg(), request.getTemperature());
@@ -406,6 +465,26 @@ public class HealthCheckService implements IHealthCheckService {
         appointment.setStatus("done");
         appointment.setUpdatedAt(LocalDateTime.now());
         appointmentRepository.save(appointment);
+
+        boolean transitioningToDone = oldStatus == null || !"done".equalsIgnoreCase(oldStatus);
+        if (transitioningToDone) {
+            String title = "Service completed";
+            String apptCode = appointment.getAppointmentCode() != null ? appointment.getAppointmentCode() : "-";
+            String apptDate = appointment.getAppointmentDate() != null
+                    ? appointment.getAppointmentDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                    : "-";
+
+            String message = "Service for appointment " + apptCode + " (" + apptDate + ") is complete. "
+                    + "Please pay to finalize your booking.";
+
+            notificationService.createForCustomer(
+                    appointment.getCustomer(),
+                    appointment,
+                    title,
+                    message,
+                    "appointment_done"
+            );
+        }
     }
 
     private Appointment getAppointmentDetail(Integer staffId, Integer appointmentId) {
@@ -615,5 +694,9 @@ public class HealthCheckService implements IHealthCheckService {
 
     private String lower(String value) {
         return value == null ? "" : value.toLowerCase();
+    }
+
+    private boolean isBlank(String s) {
+        return s == null || s.trim().isEmpty();
     }
 }

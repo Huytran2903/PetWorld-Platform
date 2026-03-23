@@ -378,9 +378,13 @@
 
 
 
-                            <span class="badge" th:classappend="${'status-' + appointment.status.toLowerCase()}"
-                                th:text="${#strings.capitalize(appointment.status)}">Pending</span>
+                            <span class="badge"
+                                th:classappend="${appointment.status != null ? 'status-' + appointment.status.toLowerCase() : ''}"
+                                th:text="${appointment.status != null ? #strings.capitalize(appointment.status) : '—'}">Pending</span>
 
+                            <span th:if="${hasPaid}" class="badge bg-success ms-2">Paid</span>
+                            <span th:if="${!hasPaid and appointment.status != null and appointment.status.toLowerCase() == 'done'}"
+                                  class="badge bg-warning text-dark ms-2">Unpaid</span>
 
 
                         </p>
@@ -586,6 +590,12 @@
 
                     </article>
 
+                    <div th:if="${!#lists.isEmpty(serviceLines)}"
+                         class="service-total-bar d-flex justify-content-between align-items-center mt-3 pt-3"
+                         style="border-top: 1px solid var(--border);">
+                        <span class="fw-bold">Total</span>
+                        <strong th:text="${totalAmount != null ? #numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT') + ' VND' : '0 VND'}">0 VND</strong>
+                    </div>
 
                 </div>
 
@@ -828,7 +838,74 @@
 
 
 
-    </main>
+        <section class="card" th:if="${appointment != null}">
+            <header class="card-header">
+                <div>
+                    <h2 class="title">Payment</h2>
+                    <p class="subtitle">Pay for this appointment</p>
+                </div>
+                <div class="pill">PAYMENT</div>
+            </header>
+
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Total</span>
+                    <strong
+                        th:text="${totalAmount != null ? #numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT') : '0'} + ' VND'">
+                        0 VND
+                    </strong>
+                </div>
+
+                <div th:if="${hasPaid}" class="alert alert-success py-2 mb-0" role="alert">
+                    Payment successful.
+                </div>
+
+                <div th:if="${!hasPaid and appointment.status != null and appointment.status.toLowerCase() == 'done'}"
+                     class="mt-3">
+                    <button type="button"
+                            th:if="${codPending}"
+                            class="btn btn-warning"
+                            th:onclick="'openPaymentMethodModal(' + ${appointment.id} + ')'">
+                        Change payment method
+                    </button>
+                    <a th:if="${!codPending}"
+                       th:href="@{/customer/appointments/{id}/payment(id=${appointment.id})}"
+                       class="btn btn-primary">Pay</a>
+                </div>
+
+                <div th:if="${!hasPaid and (appointment.status == null or appointment.status.toLowerCase() != 'done')}"
+                     class="text-muted small mt-3">
+                    Payment will be available when appointment is completed.
+                </div>
+            </div>
+        </section>
+
+        <div id="paymentMethodModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4>Change payment method</h4>
+                    <span class="close" onclick="closePaymentMethodModal()">&times;</span>
+                </div>
+                <form id="paymentMethodForm" method="post" action="#">
+                    <div class="modal-body">
+                        <p class="text-muted small mb-3">Choose MoMo or cash on delivery. You will not open the separate payment page.</p>
+                        <div class="form-check mb-2 p-2 border rounded">
+                            <input class="form-check-input" type="radio" name="paymentMethod" id="detailPmMomo" value="MOMO" checked>
+                            <label class="form-check-label" for="detailPmMomo">MoMo Wallet</label>
+                        </div>
+                        <div class="form-check mb-0 p-2 border rounded">
+                            <input class="form-check-input" type="radio" name="paymentMethod" id="detailPmCod" value="COD">
+                            <label class="form-check-label" for="detailPmCod">Cash on delivery</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closePaymentMethodModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Continue</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
 
 
 
@@ -1048,7 +1125,32 @@
         }
     </style>
 
+    <script>
+        function openPaymentMethodModal(apptId) {
+            const modal = document.getElementById('paymentMethodModal');
+            const form = document.getElementById('paymentMethodForm');
+            if (form) {
+                form.action = '/customer/appointments/' + apptId + '/pay';
+            }
+            if (modal) {
+                modal.style.display = 'block';
+            }
+        }
+        function closePaymentMethodModal() {
+            const modal = document.getElementById('paymentMethodModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+        window.addEventListener('click', function (event) {
+            const paymentMethodModal = document.getElementById('paymentMethodModal');
+            if (event.target === paymentMethodModal) {
+                paymentMethodModal.style.display = 'none';
+            }
+        });
+    </script>
 
+    </main>
 
 </body>
 

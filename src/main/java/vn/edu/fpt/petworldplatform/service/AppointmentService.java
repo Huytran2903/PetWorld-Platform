@@ -41,6 +41,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import java.util.List;
 
@@ -57,6 +58,8 @@ public class AppointmentService implements IAppointmentService {
     private final AppointmentServiceLineRepository appointmentServiceLineRepository;
 
     private final StaffRepository staffRepository;
+
+    private final NotificationService notificationService;
 
     @Override
 
@@ -213,6 +216,8 @@ public class AppointmentService implements IAppointmentService {
 
         Appointment appointment = getAppointmentById(appointmentId);
 
+        String oldStatus = appointment.getStatus() != null ? appointment.getStatus().toLowerCase() : null;
+
         if (!("pending".equalsIgnoreCase(appointment.getStatus())
 
                 || "confirmed".equalsIgnoreCase(appointment.getStatus())
@@ -278,11 +283,30 @@ public class AppointmentService implements IAppointmentService {
 
         if (assignedCount == totalCount && totalCount > 0) {
 
+            boolean transitioningToConfirmed = oldStatus == null || !"confirmed".equalsIgnoreCase(oldStatus);
+
             appointment.setStatus("confirmed");
 
             appointment.setUpdatedAt(LocalDateTime.now());
 
             appointmentRepository.save(appointment);
+
+            if (transitioningToConfirmed) {
+                String title = "Appointment confirmed";
+                String apptCode = appointment.getAppointmentCode() != null ? appointment.getAppointmentCode() : "-";
+                String apptDate = appointment.getAppointmentDate() != null
+                        ? appointment.getAppointmentDate().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                        : "-";
+                String message = "Your appointment " + apptCode + " has been confirmed for " + apptDate + ".";
+
+                notificationService.createForCustomer(
+                        appointment.getCustomer(),
+                        appointment,
+                        title,
+                        message,
+                        "appointment_confirmed"
+                );
+            }
 
         } else if ("pending".equalsIgnoreCase(appointment.getStatus())) {
 

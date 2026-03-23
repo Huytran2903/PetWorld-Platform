@@ -14,6 +14,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @Builder
 public class AdminVaccinationRowDTO {
+    /** Khóa bản ghi PetVaccinations (bản mới nhất theo pet + vaccine) — dùng cho nút Sửa */
+    private Integer vaccinationId;
     private Integer petId;
     private String petName;
     private String ownerName;

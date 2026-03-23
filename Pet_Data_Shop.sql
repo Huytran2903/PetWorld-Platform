@@ -4,10 +4,15 @@
    - Staff: Table riêng, có Role (Admin/Staff)
    - Feedback: Có link tới Service cụ thể
    - FEATURE 10 (tối giản 2 bảng): SystemConfigs + AccessControl
-   - FIX: Services.ServiceType có thêm 'health_check' (seed chạy được)
+   - FIX: Services.ServiceType có thêm 'health_check' (seed chạy được); Services.IsOneTimeVaccine (vaccination)
    - FIX: Orders.Status VARCHAR(20) + CHECK
-   - FIX: SQL Server time columns dùng DATETIME2 (không dùng timestamp)
+   - FIX: SQL Server time columns dùng DATETIME2 (không dùng timestamp); PetVaccinations dùng DATE cho ngày tiêm/hẹn
    - FIX: Orders - Payments quan hệ 1-1 (mỗi Order tối đa 1 Payment) bằng UNIQUE filtered index
+   - Notifications (NVARCHAR Title/Type/Message); Appointments.Status gồm checked_in
+   - AppointmentSummaryPhotos; Feedbacks: ServiceName, ReplyMessage, RepliedAt (khớp entity)
+   - Pets.Species; AppointmentServices.ServiceNote; PetHealthPhotos: PhotoID + CreatedAt (khớp entity)
+   - verification_tokens: staff_id + customer_id nullable (token khách hoặc nhân viên)
+   - Các migration cũ (AssignStaff*, VaccineService*, Notifications_NVarchar) đã gộp vào script CREATE này
    ========================================================= */
 
 USE master;
@@ -47,7 +52,9 @@ CREATE TABLE dbo.Customers (
     IsActive BIT NOT NULL DEFAULT 1,
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2 NULL,
-	AuthProvider VARCHAR(20) DEFAULT 'LOCAL'
+	AuthProvider VARCHAR(20) DEFAULT 'LOCAL',
+    FailedAttempts INT NOT NULL DEFAULT 0,
+    LockedUntil DATETIME2 NULL
 );
 GO
 
@@ -67,21 +74,23 @@ CREATE TABLE dbo.Staff (
     IsActive BIT NOT NULL DEFAULT 1,
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2 NULL,
+    FailedAttempts INT NOT NULL DEFAULT 0,
+    LockedUntil DATETIME2 NULL,
     CONSTRAINT FK_Staff_Roles FOREIGN KEY (RoleID) REFERENCES dbo.Roles(RoleID)
 );
 GO
 
 /* =========================================================
-   FEATURE 10 – TỐI GIẢN 2 BẢNG (Admin)
+   FEATURE 10 – TỐI GIẢN 2 BẢNG (Admin) — tên bảng/cột khớp entity SystemConfigs
    ========================================================= */
-CREATE TABLE dbo.SystemConfigs (
-    ConfigKey   VARCHAR(80)  NOT NULL PRIMARY KEY,
-    ConfigValue NVARCHAR(MAX) NULL,
-    DataType    VARCHAR(20)  NOT NULL DEFAULT 'string'
-        CHECK (DataType IN ('string','int','decimal','bool','json')),
-    UpdatedByStaffID INT NULL,
-    UpdatedAt   DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    CONSTRAINT FK_SystemConfigs_Staff FOREIGN KEY (UpdatedByStaffID) REFERENCES dbo.Staff(StaffID)
+CREATE TABLE dbo.system_configs (
+    config_key VARCHAR(80) NOT NULL PRIMARY KEY,
+    config_value NVARCHAR(MAX) NULL,
+    data_type VARCHAR(20) NOT NULL DEFAULT 'string'
+        CHECK (data_type IN ('string','int','decimal','bool','json')),
+    updated_by_staff_id INT NULL,
+    updated_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_system_configs_Staff FOREIGN KEY (updated_by_staff_id) REFERENCES dbo.Staff(StaffID)
 );
 GO
 
@@ -100,8 +109,8 @@ GO
    ========================================================= */
 CREATE TABLE dbo.Categories (
     CategoryID INT IDENTITY(1,1) PRIMARY KEY,
-    Name NVARCHAR(80) NOT NULL UNIQUE,
-    Description NVARCHAR(500) NULL,
+    Name NVARCHAR(255) NOT NULL UNIQUE,
+    Description NVARCHAR(MAX) NULL,
     IsActive BIT NOT NULL DEFAULT 1,
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME()
 );
@@ -151,6 +160,7 @@ CREATE TABLE dbo.Pets (
 
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2 NULL,
+    Species NVARCHAR(50) NULL,
 
     CONSTRAINT FK_Pets_OwnerCustomer FOREIGN KEY (OwnerCustomerID) REFERENCES dbo.Customers(CustomerID),
 
@@ -185,6 +195,7 @@ CREATE TABLE dbo.Services (
     BasePrice DECIMAL(12,2) NOT NULL CHECK (BasePrice >= 0),
     DurationMinutes INT NOT NULL DEFAULT 30 CHECK (DurationMinutes > 0),
     IsActive BIT NOT NULL DEFAULT 1,
+    IsOneTimeVaccine BIT NOT NULL CONSTRAINT DF_Services_IsOneTimeVaccine DEFAULT 0,
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME()
 );
 GO
@@ -199,7 +210,7 @@ CREATE TABLE dbo.Appointments (
     EndTime DATETIME2 NULL,
     Note NVARCHAR(255) NULL,
     Status VARCHAR(20) NOT NULL DEFAULT 'pending'
-        CHECK (Status IN ('pending','confirmed','in_progress','done','canceled','no_show', 'check_in')),
+        CHECK (Status IN ('pending','confirmed','checked_in','in_progress','done','canceled','no_show')),
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2 NULL,
     RescheduledAt DATETIME2 NULL,
@@ -221,6 +232,7 @@ CREATE TABLE dbo.AppointmentServices (
     Quantity INT NOT NULL DEFAULT 1 CHECK (Quantity > 0),
     ServiceStatus VARCHAR(20) NOT NULL DEFAULT 'pending'
         CHECK (ServiceStatus IN ('pending','assigned','in_progress','done','canceled','no_show')),
+    ServiceNote NVARCHAR(500) NULL,
     LineTotal AS (Price * Quantity) PERSISTED,
     CONSTRAINT FK_AppSvc_App FOREIGN KEY (AppointmentID) REFERENCES dbo.Appointments(AppointmentID),
     CONSTRAINT FK_AppSvc_Service FOREIGN KEY (ServiceID) REFERENCES dbo.Services(ServiceID),
@@ -259,8 +271,8 @@ CREATE TABLE dbo.PetVaccinations (
     VaccinationID INT IDENTITY(1,1) PRIMARY KEY,
     PetID INT NOT NULL,
     VaccineName NVARCHAR(100) NOT NULL,
-    AdministeredDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    NextDueDate DATETIME2 NULL,
+    AdministeredDate DATE NOT NULL CONSTRAINT DF_PetVaccinations_AdministeredDate DEFAULT (CAST(SYSDATETIME() AS DATE)),
+    NextDueDate DATE NULL,
     AppointmentID INT NULL,
     PerformedByStaffID INT NULL,
     Note NVARCHAR(500) NULL,
@@ -298,10 +310,11 @@ CREATE TABLE dbo.PetHealthRecords (
 GO
 
 CREATE TABLE dbo.PetHealthPhotos (
-    HealthPhotoID INT IDENTITY(1,1) PRIMARY KEY,
+    PhotoID INT IDENTITY(1,1) PRIMARY KEY,
     HealthRecordID INT NOT NULL,
     ImageUrl VARCHAR(500) NOT NULL,
     CapturedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     CONSTRAINT FK_HealthPhoto_Record FOREIGN KEY (HealthRecordID) REFERENCES dbo.PetHealthRecords(HealthRecordID) ON DELETE CASCADE
 );
 GO
@@ -347,6 +360,15 @@ CREATE TABLE dbo.AppointmentSummaries (
     UpdatedAt DATETIME2 NULL,
     CONSTRAINT FK_Summary_Appointment FOREIGN KEY (AppointmentID) REFERENCES dbo.Appointments(AppointmentID) ON DELETE CASCADE,
     CONSTRAINT FK_Summary_Staff FOREIGN KEY (SummaryByStaffID) REFERENCES dbo.Staff(StaffID)
+);
+GO
+
+CREATE TABLE dbo.AppointmentSummaryPhotos (
+    AppointmentSummaryPhotoID INT IDENTITY(1,1) PRIMARY KEY,
+    SummaryID INT NOT NULL,
+    ImageUrl VARCHAR(500) NOT NULL,
+    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_AppointmentSummaryPhoto_Summary FOREIGN KEY (SummaryID) REFERENCES dbo.AppointmentSummaries(SummaryID) ON DELETE CASCADE
 );
 GO
 
@@ -483,6 +505,9 @@ CREATE TABLE dbo.Feedbacks (
     PhoneNumber VARCHAR(20) NULL,
 
     ImageUrls VARCHAR(MAX) NULL,
+    ServiceName NVARCHAR(200) NULL,
+    ReplyMessage NVARCHAR(MAX) NULL,
+    RepliedAt DATETIME2 NULL,
     Status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (Status IN ('pending','approved','rejected')),
 
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
@@ -524,19 +549,42 @@ CREATE TABLE dbo.Feedbacks (
     )
 );
 GO
+
+/* =========================================================
+   11b) NOTIFICATIONS (khách hàng — Unicode NVARCHAR)
+   ========================================================= */
+CREATE TABLE dbo.Notifications (
+    NotificationID INT IDENTITY(1,1) PRIMARY KEY,
+    CustomerID INT NOT NULL,
+    AppointmentID INT NULL,
+    Title NVARCHAR(200) NOT NULL,
+    Message NVARCHAR(MAX) NOT NULL,
+    Type NVARCHAR(50) NOT NULL,
+    IsRead BIT NOT NULL CONSTRAINT DF_Notifications_IsRead DEFAULT 0,
+    CreatedAt DATETIME2 NOT NULL CONSTRAINT DF_Notifications_CreatedAt DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_Notifications_Customer FOREIGN KEY (CustomerID) REFERENCES dbo.Customers(CustomerID),
+    CONSTRAINT FK_Notifications_Appointment FOREIGN KEY (AppointmentID) REFERENCES dbo.Appointments(AppointmentID)
+);
+GO
+
 /* =========================================================
    12) Verification-Tokens(for email)
    ========================================================= */
 CREATE TABLE dbo.verification_tokens (
     id BIGINT IDENTITY(1,1) PRIMARY KEY,
-    token VARCHAR(255) NOT NULL,
+    token VARCHAR(255) NOT NULL UNIQUE,
     expiry_date DATETIME2 NOT NULL,
-    customer_id INT NOT NULL UNIQUE, 
-    
-   
-    CONSTRAINT FK_VerificationToken_Customer 
-    FOREIGN KEY (customer_id) REFERENCES dbo.Customers(CustomerID) 
-    ON DELETE CASCADE 
+    customer_id INT NULL,
+    staff_id INT NULL,
+    CONSTRAINT FK_VerificationToken_Customer
+        FOREIGN KEY (customer_id) REFERENCES dbo.Customers(CustomerID) ON DELETE CASCADE,
+    CONSTRAINT FK_VerificationToken_Staff
+        FOREIGN KEY (staff_id) REFERENCES dbo.Staff(StaffID) ON DELETE CASCADE,
+    CONSTRAINT CK_VerificationToken_CustomerOrStaff
+        CHECK (
+            (customer_id IS NOT NULL AND staff_id IS NULL)
+            OR (customer_id IS NULL AND staff_id IS NOT NULL)
+        )
 );
 GO
 
@@ -590,6 +638,10 @@ CREATE INDEX IX_Feedbacks_Service ON dbo.Feedbacks(ServiceID);
 CREATE INDEX IX_Feedbacks_Staff ON dbo.Feedbacks(StaffID) WHERE StaffID IS NOT NULL;
 CREATE INDEX IX_Feedbacks_Status ON dbo.Feedbacks(Status, CreatedAt DESC);
 
+-- Notifications
+CREATE INDEX IX_Notifications_Customer_CreatedAt ON dbo.Notifications(CustomerID, CreatedAt DESC);
+CREATE INDEX IX_Notifications_Customer_IsRead ON dbo.Notifications(CustomerID, IsRead);
+
 -- Vaccinations / Health
 CREATE INDEX IX_PetVacc_Pet ON dbo.PetVaccinations(PetID, AdministeredDate DESC);
 CREATE INDEX IX_PetVacc_NextDue ON dbo.PetVaccinations(NextDueDate) WHERE NextDueDate IS NOT NULL;
@@ -601,12 +653,13 @@ CREATE INDEX IX_ServiceNotes_ServiceLine ON dbo.ServiceNotes(AppointmentServiceI
 CREATE INDEX IX_ServiceNotes_Staff ON dbo.ServiceNotes(StaffID);
 CREATE INDEX IX_ServiceNotePhotos_Note ON dbo.ServiceNotePhotos(ServiceNoteID);
 CREATE INDEX IX_Summaries_Appointment ON dbo.AppointmentSummaries(AppointmentID);
+CREATE INDEX IX_AppointmentSummaryPhotos_Summary ON dbo.AppointmentSummaryPhotos(SummaryID);
 
 -- Cart
 CREATE INDEX IX_CartItems_Cart ON dbo.CartItems(CartID);
 
 -- Feature 10 minimal
-CREATE INDEX IX_SystemConfigs_UpdatedAt ON dbo.SystemConfigs(UpdatedAt DESC);
+CREATE INDEX IX_system_configs_UpdatedAt ON dbo.system_configs(updated_at DESC);
 GO
 
 /* =========================================================
@@ -658,7 +711,7 @@ INSERT INTO dbo.Services(ServiceType, Name, Description, BasePrice, DurationMinu
 ('boarding', N'Weekly Pet Boarding', N'Weekly pet boarding service', 500000, 10080);
 
 -- Seed FEATURE 10 (tối giản)
-INSERT INTO dbo.SystemConfigs(ConfigKey, ConfigValue, DataType) VALUES
+INSERT INTO dbo.system_configs(config_key, config_value, data_type) VALUES
 ('SITE_NAME', N'PetShop', 'string'),
 ('MAINTENANCE_MODE', N'false', 'bool');
 
@@ -667,33 +720,13 @@ INSERT INTO dbo.AccessControl(RoleID, PermissionCode, IsAllowed) VALUES
 (@AdminRoleID, 'SYSTEM.ACL', 1),
 (@StaffRoleID, 'SYSTEM.CONFIG', 0),
 (@StaffRoleID, 'SYSTEM.ACL', 0);
+
+/* Seed tài khoản demo BCrypt (khớp Spring Security) — bỏ qua nếu đã tồn tại */
+DECLARE @BcryptDemo VARCHAR(255) = '$2a$10$mAmFNpItJZzLBtgxhoKEvOkJbc2WXWB2oh0sNjaBDZICaXJgzMI2O';
+IF @AdminRoleID IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.Staff WHERE Username = 'thai01')
+    INSERT INTO dbo.Staff (RoleID, Username, PasswordHash, Email, Phone, FullName, HireDate, Bio, IsActive)
+    VALUES (@AdminRoleID, 'thai01', @BcryptDemo, 'thai01@petworld.local', '0900000001', N'Thai Admin', CAST(GETDATE() AS DATE), N'Admin account seed', 1);
+IF @StaffRoleID IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.Staff WHERE Username = 'thai02')
+    INSERT INTO dbo.Staff (RoleID, Username, PasswordHash, Email, Phone, FullName, HireDate, Bio, IsActive)
+    VALUES (@StaffRoleID, 'thai02', @BcryptDemo, 'thai02@petworld.local', '0900000002', N'Thai Staff', CAST(GETDATE() AS DATE), N'Staff account seed', 1);
 GO
-
--- Drop old constraint
-ALTER TABLE dbo.Appointments
-DROP CONSTRAINT CK__Appointme__Statu__7D439ABD;
-
--- Recreate with checked_in added
-ALTER TABLE dbo.Appointments
-ADD CONSTRAINT CK_Appointments_Status
-CHECK (Status IN ('pending','confirmed','checked_in','in_progress','done','canceled','no_show'));
-
--- 1. Thêm cột cho bảng Customers
-ALTER TABLE dbo.Customers 
-ADD FailedAttempts INT NOT NULL DEFAULT 0;
-
-ALTER TABLE dbo.Customers 
-ADD LockedUntil DATETIME2 NULL;
-GO
-
--- 2. Thêm cột cho bảng Staff (Bảo vệ tài khoản nhân viên/admin)
-ALTER TABLE dbo.Staff 
-ADD FailedAttempts INT NOT NULL DEFAULT 0;
-
-ALTER TABLE dbo.Staff 
-ADD LockedUntil DATETIME2 NULL;
-GO
-
-ALTER TABLE system_configs WITH NOCHECK
-ADD CONSTRAINT FK_SystemConfigs_Staff
-FOREIGN KEY (updated_by_staff_id) REFERENCES Staff(StaffID);

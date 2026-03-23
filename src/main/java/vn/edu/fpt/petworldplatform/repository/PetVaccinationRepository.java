@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import vn.edu.fpt.petworldplatform.entity.PetVaccinations;
 import vn.edu.fpt.petworldplatform.entity.Staff;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,4 +51,11 @@ public interface PetVaccinationRepository extends JpaRepository<PetVaccinations,
             "left join fetch pv.performedByStaff s " +
             "order by pv.administeredDate desc, pv.createdAt desc")
     List<PetVaccinations> findAllWithPetOwnerStaffOrderByAdministeredDateDescCreatedAtDesc();
+
+    @Query("select pv from PetVaccinations pv " +
+            "join fetch pv.pet p " +
+            "join fetch p.owner o " +
+            "join fetch pv.appointment a " +
+            "where pv.nextDueDate = :dueDate")
+    List<PetVaccinations> findDueVaccinationsWithPetOwnerAndAppointment(@Param("dueDate") LocalDate dueDate);
 }

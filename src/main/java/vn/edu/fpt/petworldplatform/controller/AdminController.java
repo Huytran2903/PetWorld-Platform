@@ -45,6 +45,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.web.bind.annotation.PostMapping;
@@ -74,6 +75,11 @@ public class AdminController {
     private final ServiceItemService serviceItemService;
     private final PetVaccinationRepository petVaccinationRepository;
 
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('VIEW_REPORT')")
+    @GetMapping("/admin/dashboard")
+    public String adminDashboard() {
+        return "redirect:/admin/reports/revenue";
+    }
 
     //Manage Pet - OanhTP
     //List
@@ -610,6 +616,50 @@ public class AdminController {
         return "admin/vaccination-records";
     }
 
+    @GetMapping("/admin/vaccination-records/{id}/edit")
+    public String editVaccinationRecord(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
+        Optional<PetVaccinations> opt = petVaccinationRepository.findById(id);
+        if (opt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Không tìm thấy bản ghi tiêm chủng.");
+            return "redirect:/admin/vaccination-records";
+        }
+        PetVaccinations v = opt.get();
+        model.addAttribute("record", v);
+        return "admin/vaccination-edit";
+    }
+
+    @PostMapping("/admin/vaccination-records/{id}/edit")
+    public String saveVaccinationRecord(@PathVariable("id") Integer id,
+                                        @RequestParam("administeredDate") LocalDate administeredDate,
+                                        @RequestParam(value = "nextDueDate", required = false) String nextDueDateStr,
+                                        @RequestParam(value = "note", required = false) String note,
+                                        RedirectAttributes redirectAttributes) {
+        Optional<PetVaccinations> opt = petVaccinationRepository.findById(id);
+        if (opt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Không tìm thấy bản ghi tiêm chủng.");
+            return "redirect:/admin/vaccination-records";
+        }
+        PetVaccinations v = opt.get();
+        v.setAdministeredDate(administeredDate);
+        if (nextDueDateStr == null || nextDueDateStr.isBlank()) {
+            v.setNextDueDate(null);
+        } else {
+            try {
+                v.setNextDueDate(LocalDate.parse(nextDueDateStr.trim()));
+            } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("error", "Ngày tiêm lại không hợp lệ.");
+                return "redirect:/admin/vaccination-records/" + id + "/edit";
+            }
+        }
+        if (note != null) {
+            String t = note.trim();
+            v.setNote(t.isEmpty() ? null : t);
+        }
+        petVaccinationRepository.save(v);
+        redirectAttributes.addFlashAttribute("message", "Đã cập nhật bản ghi tiêm chủng.");
+        return "redirect:/admin/vaccination-records";
+    }
+
     private List<AdminVaccinationRowDTO> loadLatestVaccinationRows() {
         // Latest record per (petId + vaccineName) so the shown nextDueDate is always the newest one.
         List<PetVaccinations> all = petVaccinationRepository.findAllWithPetOwnerStaffOrderByAdministeredDateDescCreatedAtDesc();
@@ -624,6 +674,7 @@ public class AdminController {
             String ownerName = pv.getPet().getOwner() != null ? pv.getPet().getOwner().getFullName() : null;
             String performedBy = pv.getPerformedByStaff() != null ? pv.getPerformedByStaff().getFullName() : null;
             latestByKey.put(key, AdminVaccinationRowDTO.builder()
+                    .vaccinationId(pv.getVaccinationId())
                     .petId(pv.getPet().getPetID())
                     .petName(pv.getPet().getName())
                     .ownerName(ownerName)

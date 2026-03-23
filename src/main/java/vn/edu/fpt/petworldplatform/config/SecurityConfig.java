@@ -21,7 +21,7 @@ import vn.edu.fpt.petworldplatform.service.CustomUserDetailsService;
 @EnableWebSecurity
 @EnableAsync
 @RequiredArgsConstructor
-@EnableMethodSecurity
+//@EnableMethodSecurity
 public class SecurityConfig {
 
     private final GoogleLoginSuccessHandler googleLoginSuccessHandler;
@@ -54,6 +54,7 @@ public class SecurityConfig {
 
                         // B. Link Public
                         .requestMatchers("/", "/home", "/index").permitAll().requestMatchers("/login", "/register", "/do-register", "/verify").permitAll().requestMatchers("/do-login").permitAll()
+                        .requestMatchers("/cart/momo-notify").permitAll()
 
                         .requestMatchers("/uploads/**").permitAll()
 
@@ -62,6 +63,10 @@ public class SecurityConfig {
 
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/staff/**").hasRole("STAFF")
+                        // C. Chặn staff truy cập trang customer
+                        // Cho phép CUSTOMER (ROLE_CUSTOMER) hoặc OIDC_USER
+                        .requestMatchers("/customer/**", "/cart/**", "/appointment/**")
+                        .hasAnyAuthority("ROLE_CUSTOMER", "OIDC_USER")
 
                         .requestMatchers("/profile/**").authenticated()
 

@@ -1,11 +1,14 @@
 document.addEventListener("DOMContentLoaded", function() {
     const form = document.getElementById("bookForm");
-    const sumServiceType = document.getElementById("sumServiceType");
     const sumServices = document.getElementById("sumServices");
     const sumDuration = document.getElementById("sumDuration");
     const sumTotal = document.getElementById("sumTotal");
     const petSelect = document.getElementById("petId");
     const appointmentDateInput = document.getElementById("appointmentDate");
+
+    /** Latest eligibility locks by service name (lowercase) — used to block race if user clicks before UI updates */
+    let vaccineLocksByName = new Map();
+    let eligibilityRequestSeq = 0;
 
     // Format currency (VND, English locale for display)
     function formatVND(n) {
@@ -14,7 +17,27 @@ document.addEventListener("DOMContentLoaded", function() {
 
     function isVaccineCheckbox(inp) {
         const t = (inp.getAttribute("data-type") || "").trim().toLowerCase();
-        return t === "vaccine" || t === "vaccination";
+        return t === "vaccine" || t === "vaccination" || t.includes("vaccin");
+    }
+
+    /** Chỉ hiện khi API eligibility lỗi; không giữ ô trống khi không có lỗi. */
+    function setEligibilityBanner(message) {
+        const existing = document.getElementById("vaccine-eligibility-banner");
+        if (!message || !String(message).trim()) {
+            if (existing) existing.remove();
+            return;
+        }
+        let el = existing;
+        if (!el) {
+            el = document.createElement("div");
+            el.id = "vaccine-eligibility-banner";
+            el.className = "booking-flash booking-flash--warn";
+            el.setAttribute("role", "alert");
+            const grid = form.querySelector(".grid");
+            if (grid) grid.after(el);
+            else form.prepend(el);
+        }
+        el.textContent = message.trim();
     }
 
     function getEffectiveDateISO() {
@@ -25,21 +48,49 @@ document.addEventListener("DOMContentLoaded", function() {
         return datePart || null;
     }
 
+    function clearVaccineLockUi(inp) {
+        const row = inp.closest("tr");
+        inp.disabled = false;
+        inp.removeAttribute("title");
+        inp.removeAttribute("data-lock-message");
+        inp.removeAttribute("aria-disabled");
+        row?.classList.remove("svc-disabled");
+        row?.querySelector(".svc-vaccine-lock-hint")?.remove();
+    }
+
+    function lockMessageFor(svcName, lock) {
+        if (lock.reason === "missing_next_due") {
+            return `This pet has already received the "${svcName}" vaccine. The next due date is missing, so it cannot be booked again. Please contact staff.`;
+        }
+        const nextDue = lock.nextDueDate;
+        return `This pet has already received the "${svcName}" vaccine. Next due date: ${nextDue}.`;
+    }
+
     async function refreshVaccineEligibility() {
         if (!form || !petSelect) return;
         const petId = (petSelect.value || "").trim();
         const inputs = form.querySelectorAll("input[name='mainServices']");
+        const seq = ++eligibilityRequestSeq;
 
-        // reset: clear vaccine disable state
+        vaccineLocksByName = new Map();
+        setEligibilityBanner("");
+
+        // reset: clear vaccine disable state + inline hints
         inputs.forEach(inp => {
             if (!isVaccineCheckbox(inp)) return;
-            inp.disabled = false;
-            inp.removeAttribute("title");
-            inp.removeAttribute("data-lock-message");
-            inp.closest("tr")?.classList.remove("svc-disabled");
+            clearVaccineLockUi(inp);
         });
 
-        if (!petId) return;
+        if (!petId) {
+            calculateTotal();
+            return;
+        }
+
+        // While loading: block all vaccine checkboxes so user cannot tick before API returns
+        inputs.forEach(inp => {
+            if (!isVaccineCheckbox(inp)) return;
+            inp.disabled = true;
+        });
 
         const onDate = getEffectiveDateISO();
         const url = new URL("/api/vaccines/eligibility", window.location.origin);
@@ -47,43 +98,64 @@ document.addEventListener("DOMContentLoaded", function() {
         if (onDate) url.searchParams.set("onDate", onDate);
 
         try {
-            const res = await fetch(url.toString(), { headers: { "Accept": "application/json" } });
-            if (!res.ok) return;
-            const data = await res.json();
-            const locks = Array.isArray(data?.locks) ? data.locks : [];
+            const res = await fetch(url.toString(), {
+                credentials: "same-origin",
+                headers: { Accept: "application/json" },
+            });
+            if (seq !== eligibilityRequestSeq) return;
 
-            // Build set of locked vaccine names (case-insensitive)
+            const ct = (res.headers.get("content-type") || "").toLowerCase();
+            if (!res.ok || !ct.includes("application/json")) {
+                setEligibilityBanner(
+                    "Không tải được trạng thái vaccine (lỗi mạng hoặc phiên đăng nhập). Các mũi vaccine tạm thời bị khóa — vui lòng tải lại trang hoặc đăng nhập lại."
+                );
+                calculateTotal();
+                return;
+            }
+
+            const data = await res.json();
+            if (seq !== eligibilityRequestSeq) return;
+
+            const locks = Array.isArray(data?.locks) ? data.locks : [];
             const lockedByName = new Map();
             locks.forEach(l => {
                 const name = (l?.vaccineName || "").trim();
                 if (!name) return;
                 lockedByName.set(name.toLowerCase(), l);
             });
+            vaccineLocksByName = lockedByName;
 
             inputs.forEach(inp => {
                 if (!isVaccineCheckbox(inp)) return;
                 const svcName = (inp.getAttribute("data-name") || "").trim();
-                if (!svcName) return;
+                if (!svcName) {
+                    inp.disabled = false;
+                    return;
+                }
                 const lock = lockedByName.get(svcName.toLowerCase());
-                if (!lock) return;
+                if (!lock) {
+                    inp.disabled = false;
+                    return;
+                }
 
-                // If it's locked, disable and uncheck
                 inp.checked = false;
                 inp.disabled = true;
-                const nextDue = lock.nextDueDate;
-                const lockMessage =
-                    lock.reason === "missing_next_due"
-                        ? `This pet has already received the "${svcName}" vaccine. The next due date is missing, so it cannot be booked again. Please contact staff.`
-                        : `This pet has already received the "${svcName}" vaccine. Next due date: ${nextDue}.`;
-                // Tooltip (hover) + message (click)
+                const lockMessage = lockMessageFor(svcName, lock);
                 inp.setAttribute("title", lockMessage);
                 inp.setAttribute("data-lock-message", lockMessage);
-                inp.closest("tr")?.classList.add("svc-disabled");
+                inp.setAttribute("aria-disabled", "true");
+
+                const row = inp.closest("tr");
+                row?.classList.add("svc-disabled");
             });
 
             calculateTotal();
         } catch (e) {
-            // ignore
+            if (seq !== eligibilityRequestSeq) return;
+            setEligibilityBanner(
+                "Không tải được trạng thái vaccine. Các mũi vaccine tạm thời bị khóa — vui lòng tải lại trang."
+            );
+            calculateTotal();
         }
     }
 
@@ -106,14 +178,11 @@ document.addEventListener("DOMContentLoaded", function() {
         let total = 0;
         let totalDuration = 0;
         let names = [];
-        let serviceTypes = new Set();
 
         selectedInputs.forEach(inp => {
             const price = parseFloat(inp.getAttribute("data-price")) || 0;
             const duration = parseFloat(inp.getAttribute("data-duration")) || 0;
             const name = inp.getAttribute("data-name");
-            const svcType = inp.closest(".svc-item")?.querySelector(".svc-badge")?.textContent?.trim();
-            if (svcType) serviceTypes.add(svcType);
 
             // Nếu là boarding, giá nhân theo số lượng ngày/giờ
             // Nếu không (spa/vaccine), giá là cố định 1 lần
@@ -130,11 +199,6 @@ document.addEventListener("DOMContentLoaded", function() {
         });
 
         // Cập nhật UI
-        if (sumServiceType) {
-            const typesArr = Array.from(serviceTypes);
-            sumServiceType.textContent = typesArr.length > 0 ? typesArr.join(", ") : "—";
-        }
-
         sumServices.textContent = names.length > 0 ? names.join(", ") : "—";
         sumTotal.textContent = names.length > 0 ? formatVND(total) : "—";
 
@@ -153,6 +217,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Lắng nghe sự kiện thay đổi
     form.addEventListener("change", (e) => {
+        if (e.target.matches("input[name='mainServices']") && isVaccineCheckbox(e.target) && e.target.checked) {
+            const svcName = (e.target.getAttribute("data-name") || "").trim();
+            if (svcName && vaccineLocksByName.has(svcName.toLowerCase())) {
+                e.target.checked = false;
+                calculateTotal();
+                return;
+            }
+        }
         if (e.target.matches("input[name='mainServices'], #boardingQty")) {
             calculateTotal();
         }
@@ -162,35 +234,27 @@ document.addEventListener("DOMContentLoaded", function() {
     calculateTotal();
     refreshVaccineEligibility();
 
-    // Show message when user clicks a locked vaccine row/checkbox
-    form.addEventListener("click", (e) => {
-        const target = e.target;
-
-        // If clicking directly on a disabled checkbox won't fire (browser), we also handle row click.
-        const checkbox = target?.closest?.("input[name='mainServices']");
-        if (checkbox && checkbox.disabled && isVaccineCheckbox(checkbox)) {
-            const msg = checkbox.getAttribute("data-lock-message") || checkbox.getAttribute("title");
-            if (msg) {
-                e.preventDefault();
-                alert(msg);
-            }
-            return;
-        }
-
-        const row = target?.closest?.("tr.svc-row.svc-disabled");
-        if (row) {
-            const cb = row.querySelector("input[name='mainServices'][data-lock-message]");
-            const msg = cb?.getAttribute("data-lock-message") || cb?.getAttribute("title");
-            if (msg) {
-                e.preventDefault();
-                alert(msg);
-            }
-        }
+    // Đổi pet: bỏ chọn vaccine (tránh giữ tick của pet khác), rồi tải eligibility
+    petSelect?.addEventListener("change", () => {
+        form.querySelectorAll("input[name='mainServices']").forEach(inp => {
+            if (isVaccineCheckbox(inp)) inp.checked = false;
+        });
+        calculateTotal();
+        refreshVaccineEligibility();
     });
-
-    // Refresh eligibility when pet/date changes
-    petSelect?.addEventListener("change", refreshVaccineEligibility);
     appointmentDateInput?.addEventListener("change", refreshVaccineEligibility);
+
+    // Vaccine bị khóa: không hiện chữ trong bảng; chỉ báo khi user click vào hàng (checkbox disabled thường không nhận click).
+    form.addEventListener("click", (e) => {
+        const row = e.target.closest?.("tr.svc-row.svc-disabled");
+        if (!row || !form.contains(row)) return;
+        const cb = row.querySelector("input[name='mainServices']");
+        if (!cb || !isVaccineCheckbox(cb) || !cb.disabled) return;
+        const msg = cb.getAttribute("data-lock-message") || cb.getAttribute("title");
+        if (!msg) return;
+        e.preventDefault();
+        alert(msg);
+    });
 
     // Xử lý trước khi submit (nếu cần gộp note)
     form.addEventListener("submit", (e) => {
