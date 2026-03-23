@@ -98,6 +98,7 @@ public class OrderService {
                 Customer owner = customerRepo.findById(customerId).get();
                 pet.setOwner(owner);
                 pet.setIsAvailable(false);
+                pet.setPurchasedAt(LocalDateTime.now());
             }
 
             oi.setQuantity(ci.getQuantity());

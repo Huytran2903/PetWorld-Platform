@@ -99,8 +99,6 @@ public class Pets {
     @Column(name = "UpdatedAt")
     private LocalDateTime updatedAt;
 
-    @Column(name = "Species", length = 50)
-    private String species;
 
     @ManyToOne
     @JoinColumn(name = "OwnerCustomerID")

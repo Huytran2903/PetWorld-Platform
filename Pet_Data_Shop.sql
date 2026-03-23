@@ -160,7 +160,6 @@ CREATE TABLE dbo.Pets (
 
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2 NULL,
-    Species NVARCHAR(50) NULL,
 
     CONSTRAINT FK_Pets_OwnerCustomer FOREIGN KEY (OwnerCustomerID) REFERENCES dbo.Customers(CustomerID),
 

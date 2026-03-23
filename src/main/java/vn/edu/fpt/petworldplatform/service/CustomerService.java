@@ -135,21 +135,16 @@ public class CustomerService {
     }
 
     public Customer getByResetPasswordToken(String token) {
-        System.out.println("DEBUG: Đang tìm token: " + token);
 
         Optional<VerificationToken> tokenOpt = verificationTokenRepo.findByToken(token);
 
         if (tokenOpt.isEmpty()) {
-            System.out.println("DEBUG: -> Không tìm thấy Token trong bảng verification_tokens!");
             return null;
         }
 
         VerificationToken verificationToken = tokenOpt.get();
-        System.out.println("DEBUG: -> Tìm thấy Token. Hết hạn lúc: " + verificationToken.getExpiryDate());
-        System.out.println("DEBUG: -> Thời gian hiện tại: " + LocalDateTime.now());
 
         if (verificationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-            System.out.println("DEBUG: -> Token ĐÃ HẾT HẠN!");
             return null;
         }
 

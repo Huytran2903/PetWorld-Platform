@@ -140,14 +140,21 @@ public class AuthController {
         if (currentUser == null) return "redirect:/login";
 
         if (!newPassword.equals(confirmPassword)) {
-            model.addAttribute("error", "Mật khẩu mới và xác nhận mật khẩu không khớp!");
+            model.addAttribute("error", "New password and confirm password do not match!");
+            model.addAttribute("user", currentUser);
+            model.addAttribute("formMode", "CHANGE");
+            return "auth/password-form-shared";
+        }
+
+        if (newPassword.equals(oldPassword)) {
+            model.addAttribute("error", "New password cannot be the same as the current password!");
             model.addAttribute("user", currentUser);
             model.addAttribute("formMode", "CHANGE");
             return "auth/password-form-shared";
         }
 
         if (!customerService.verifyOldPassword(currentUser, oldPassword)) {
-            model.addAttribute("error", "Mật khẩu cũ không chính xác!");
+            model.addAttribute("error", "Incorrect current password!");
             model.addAttribute("user", currentUser);
             model.addAttribute("formMode", "CHANGE");
             return "auth/password-form-shared";
@@ -155,7 +162,7 @@ public class AuthController {
 
         customerService.updatePassword(currentUser, newPassword);
 
-        redirectAttributes.addFlashAttribute("message", "Đổi mật khẩu thành công!");
+        redirectAttributes.addFlashAttribute("message", "Password changed successfully!");
         return "redirect:/profile";
     }
 
