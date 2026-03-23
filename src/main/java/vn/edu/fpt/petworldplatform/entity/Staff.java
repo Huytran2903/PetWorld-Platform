@@ -83,6 +83,12 @@ public class Staff {
     @ToString.Exclude
     private List<Appointment> appointments;
 
+    @Column(name = "FailedAttempts")
+    private Integer failedAttempts = 0;
+
+    @Column(name = "LockedUntil")
+    private LocalDateTime lockedUntil;
+
     public long getPendingVaccinesCount() {
         if (this.vaccinations == null) return 0;
         LocalDate today = LocalDate.now();

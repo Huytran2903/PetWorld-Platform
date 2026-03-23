@@ -2,6 +2,7 @@ package vn.edu.fpt.petworldplatform.controller;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,9 +25,11 @@ import vn.edu.fpt.petworldplatform.entity.ServiceNotePhoto;
 import vn.edu.fpt.petworldplatform.entity.Staff;
 import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryPhotoRepository;
 import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryRepository;
+import vn.edu.fpt.petworldplatform.repository.PaymentRepository;
 import vn.edu.fpt.petworldplatform.repository.PetVaccinationRepository;
 import vn.edu.fpt.petworldplatform.repository.ServiceNotePhotoRepository;
 import vn.edu.fpt.petworldplatform.repository.ServiceNoteRepository;
+import vn.edu.fpt.petworldplatform.entity.Payment;
 import vn.edu.fpt.petworldplatform.service.IAssignedAppointmentService;
 import vn.edu.fpt.petworldplatform.service.StaffService;
 import vn.edu.fpt.petworldplatform.dto.VaccineRecordViewDTO;
@@ -51,7 +54,9 @@ public class StaffController {
     private final AppointmentSummaryRepository appointmentSummaryRepository;
     private final AppointmentSummaryPhotoRepository appointmentSummaryPhotoRepository;
     private final PetVaccinationRepository petVaccinationRepository;
+    private final PaymentRepository paymentRepository;
 
+    @PreAuthorize("hasAuthority('MANAGE_APPOINTMENT')")
     @GetMapping("/assigned_list")
     public String viewAssignedList(
             Principal principal,
@@ -77,6 +82,7 @@ public class StaffController {
         return "staff/assigned_list";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_APPOINTMENT')")
     @GetMapping("/appointment_detail")
     public String viewAppointmentDetail(@RequestParam Integer id,
                                         Principal principal,
@@ -203,9 +209,31 @@ public class StaffController {
         model.addAttribute("summaryPhotos", summaryPhotos);
         model.addAttribute("isManager", isManager);
 
+        // COD confirmation: show button for manager when appointment is done and COD hasn't been confirmed.
+        boolean codPaymentPending = false;
+        boolean appointmentPaymentPaid = false;
+        try {
+            Payment latestPayment = paymentRepository.findTopByAppointment_IdAndPaymentTypeOrderByCreatedAtDesc(
+                    id,
+                    "service"
+            );
+            appointmentPaymentPaid = latestPayment != null && latestPayment.getPaidAt() != null;
+            codPaymentPending = latestPayment != null
+                    && latestPayment.getMethod() != null
+                    && "cod".equalsIgnoreCase(latestPayment.getMethod())
+                    && latestPayment.getPaidAt() == null
+                    && appointment.getStatus() != null
+                    && "done".equalsIgnoreCase(appointment.getStatus());
+        } catch (Exception ignored) {
+            // In case payment records are missing or query fails, just don't show the button.
+        }
+        model.addAttribute("codPaymentPending", codPaymentPending);
+        model.addAttribute("appointmentPaymentPaid", appointmentPaymentPaid);
+
         return "staff/appointment_detail";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_APPOINTMENT')")
     @PostMapping("/appointment/checkin")
     public String checkIn(@RequestParam Integer id,
                           Principal principal,
@@ -226,6 +254,7 @@ public class StaffController {
         return "redirect:/staff/appointment_detail?id=" + id;
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_APPOINTMENT')")
     @PostMapping("/appointment/no-show")
     public String reportNoShow(@RequestParam Integer id,
                                Principal principal,
@@ -246,6 +275,7 @@ public class StaffController {
         return "redirect:/staff/appointment_detail?id=" + id;
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_APPOINTMENT')")
     @GetMapping("/booking")
     public String staffBooking() {
         return "redirect:/booking";

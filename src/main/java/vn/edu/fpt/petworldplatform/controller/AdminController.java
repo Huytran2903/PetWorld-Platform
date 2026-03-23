@@ -46,6 +46,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.web.bind.annotation.PostMapping;
@@ -75,7 +76,11 @@ public class AdminController {
     private final ServiceItemService serviceItemService;
     private final PetVaccinationRepository petVaccinationRepository;
 
-
+    @PreAuthorize("hasRole('ADMIN') or hasAuthority('VIEW_REPORT')")
+    @GetMapping("/admin/dashboard")
+    public String adminDashboard() {
+        return "redirect:/admin/reports/revenue";
+    }
 
     //Manage Pet - OanhTP
     //List
@@ -338,33 +343,42 @@ public class AdminController {
     public String getAllProducts(
             Model model,
             @RequestParam(value = "kw", required = false, defaultValue = "") String keyword,
-            @RequestParam(value = "page", defaultValue = "0") int page) { // Thêm tham số nhận số trang
+            @RequestParam(value = "categoryId", required = false) Integer categoryId,
+            @RequestParam(value = "page", defaultValue = "0") int page) {
 
-        // 1. Cấu hình phân trang: 8 sản phẩm mỗi trang (bạn có thể đổi thành 10 tùy ý)
-        // Sắp xếp theo ID giảm dần để sản phẩm mới thêm lên đầu
+        // 1. Cấu hình phân trang: 10 sản phẩm mỗi trang, sắp xếp theo ID tăng dần
         int pageSize = 10;
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by("productId").ascending());
 
         Page<Product> productPage;
 
-        // 2. Gọi hàm Service có chứa Pageable
-        if (!keyword.trim().isEmpty()) {
-            productPage = productService.searchProductsByName(keyword, pageable);
+        // 2. Logic Filter giống hệt trang Customer
+        boolean hasKeyword = (keyword != null && !keyword.trim().isEmpty());
+        boolean hasCategory = (categoryId != null && categoryId > 0);
+
+        if (hasKeyword && hasCategory) {
+            productPage = productService.searchProductsByNameAndCategory(keyword.trim(), categoryId, pageable);
+        } else if (hasKeyword) {
+            productPage = productService.searchProductsByName(keyword.trim(), pageable);
+        } else if (hasCategory) {
+            productPage = productService.getProductsByCategory(categoryId, pageable);
         } else {
             productPage = productService.getAllProducts(pageable);
         }
 
-
+        // 3. Đẩy dữ liệu ra giao diện
         model.addAttribute("products", productPage.getContent());
         model.addAttribute("totalPages", productPage.getTotalPages());
         model.addAttribute("currentPage", page);
         model.addAttribute("kw", keyword);
-
-
         model.addAttribute("totalElements", productPage.getTotalElements());
+
+        model.addAttribute("categories", categoryService.getAllCategories());
+        model.addAttribute("selectedCategoryId", categoryId);
 
         return "admin/manageProduct";
     }
+
     //Create
     @PreAuthorize("hasAuthority('MANAGE_PRODUCT')")
     @GetMapping("/admin/product/new")
@@ -606,21 +620,6 @@ public class AdminController {
         return "redirect:/admin/customer-manage";
     }
 
-    // --- Delete Customer ---
-    @PreAuthorize("hasAuthority('MANAGE_CUSTOMER')")
-    @GetMapping("/admin/customer/delete/{id}")
-    public String deleteCustomer(@PathVariable("id") int id, RedirectAttributes redirectAttributes) {
-        try {
-            cartService.deleteCartByIdCustomer(id);
-            customerService.deleteCustomer(id);
-            redirectAttributes.addFlashAttribute("message", "Customer deleted successfully!");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Error deleting customer: " + e.getMessage());
-        }
-
-        return "redirect:/admin/customer-manage";
-    }
-
 
     // Service Manager
     @PreAuthorize("hasAuthority('MANAGE_SERVICE')")
@@ -634,6 +633,50 @@ public class AdminController {
     public String vaccinationRecords(Model model) {
         model.addAttribute("vaccinationRows", loadLatestVaccinationRows());
         return "admin/vaccination-records";
+    }
+
+    @GetMapping("/admin/vaccination-records/{id}/edit")
+    public String editVaccinationRecord(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
+        Optional<PetVaccinations> opt = petVaccinationRepository.findById(id);
+        if (opt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Không tìm thấy bản ghi tiêm chủng.");
+            return "redirect:/admin/vaccination-records";
+        }
+        PetVaccinations v = opt.get();
+        model.addAttribute("record", v);
+        return "admin/vaccination-edit";
+    }
+
+    @PostMapping("/admin/vaccination-records/{id}/edit")
+    public String saveVaccinationRecord(@PathVariable("id") Integer id,
+                                        @RequestParam("administeredDate") LocalDate administeredDate,
+                                        @RequestParam(value = "nextDueDate", required = false) String nextDueDateStr,
+                                        @RequestParam(value = "note", required = false) String note,
+                                        RedirectAttributes redirectAttributes) {
+        Optional<PetVaccinations> opt = petVaccinationRepository.findById(id);
+        if (opt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "Không tìm thấy bản ghi tiêm chủng.");
+            return "redirect:/admin/vaccination-records";
+        }
+        PetVaccinations v = opt.get();
+        v.setAdministeredDate(administeredDate);
+        if (nextDueDateStr == null || nextDueDateStr.isBlank()) {
+            v.setNextDueDate(null);
+        } else {
+            try {
+                v.setNextDueDate(LocalDate.parse(nextDueDateStr.trim()));
+            } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("error", "Ngày tiêm lại không hợp lệ.");
+                return "redirect:/admin/vaccination-records/" + id + "/edit";
+            }
+        }
+        if (note != null) {
+            String t = note.trim();
+            v.setNote(t.isEmpty() ? null : t);
+        }
+        petVaccinationRepository.save(v);
+        redirectAttributes.addFlashAttribute("message", "Đã cập nhật bản ghi tiêm chủng.");
+        return "redirect:/admin/vaccination-records";
     }
 
     private List<AdminVaccinationRowDTO> loadLatestVaccinationRows() {
@@ -650,6 +693,7 @@ public class AdminController {
             String ownerName = pv.getPet().getOwner() != null ? pv.getPet().getOwner().getFullName() : null;
             String performedBy = pv.getPerformedByStaff() != null ? pv.getPerformedByStaff().getFullName() : null;
             latestByKey.put(key, AdminVaccinationRowDTO.builder()
+                    .vaccinationId(pv.getVaccinationId())
                     .petId(pv.getPet().getPetID())
                     .petName(pv.getPet().getName())
                     .ownerName(ownerName)
@@ -901,6 +945,7 @@ public class AdminController {
         return "customer/manage-order";
     }
 
+    @PreAuthorize("hasAuthority('MANAGE_ORDER')")
     @PostMapping("/admin/orders/update-status")
     public String updateStatus(@RequestParam("orderID") Integer orderID,
                                @RequestParam("status") String status,

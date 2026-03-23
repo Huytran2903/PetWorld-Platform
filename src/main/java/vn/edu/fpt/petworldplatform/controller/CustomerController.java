@@ -26,6 +26,7 @@ import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryPhotoRepository;
 import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryRepository;
+import vn.edu.fpt.petworldplatform.repository.PaymentRepository;
 import vn.edu.fpt.petworldplatform.repository.PetVaccinationRepository;
 import vn.edu.fpt.petworldplatform.entity.*;
 import vn.edu.fpt.petworldplatform.repository.PetHealthPhotoRepository;
@@ -50,6 +51,7 @@ import java.util.LinkedHashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.Set;
 import java.util.UUID;
@@ -71,6 +73,9 @@ public class CustomerController {
 
     @Autowired
     BookingService bookingService;
+
+    @Autowired
+    private PaymentRepository paymentRepository;
 
     @Autowired
     private PetHealthRecordRepository petHealthRecordRepository;
@@ -236,11 +241,15 @@ public class CustomerController {
         List<Integer> apptIds = appointments.stream().map(Appointment::getId).toList();
         if (apptIds.isEmpty()) {
             model.addAttribute("serviceLinesByAppointmentId", java.util.Map.of());
+            model.addAttribute("appointmentTotalAmountByAppointmentId", java.util.Map.of());
+            model.addAttribute("hasPaidByAppointmentId", java.util.Map.of());
+            model.addAttribute("codPendingByAppointmentId", java.util.Map.of());
             model.addAttribute("healthRecordByAppointmentId", java.util.Map.of());
             model.addAttribute("healthPhotosByAppointmentId", java.util.Map.of());
             model.addAttribute("healthRecordByServiceLineId", java.util.Map.of());
             model.addAttribute("healthPhotosByServiceLineId", java.util.Map.of());
             model.addAttribute("reviewedServiceLineIds", java.util.Set.of());
+            model.addAttribute("feedbackByLineId", java.util.Map.of());
             model.addAttribute("appointmentSummaryByAppointmentId", java.util.Map.of());
         } else {
             List<vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine> lines = bookingService.findServiceLinesByAppointmentIds(apptIds);
@@ -248,7 +257,43 @@ public class CustomerController {
                     lines.stream().collect(java.util.stream.Collectors.groupingBy(l -> l.getAppointment().getId()));
             model.addAttribute("serviceLinesByAppointmentId", linesByApptId);
 
+            java.util.Map<Integer, java.math.BigDecimal> appointmentTotalAmountByAppointmentId = new java.util.HashMap<>();
+            java.util.Map<Integer, Boolean> hasPaidByAppointmentId = new java.util.HashMap<>();
+            java.util.Map<Integer, Boolean> codPendingByAppointmentId = new java.util.HashMap<>();
+
+            // Compute totals + payment state for each appointment shown in the list.
+            for (Integer apptId : apptIds) {
+                List<vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine> linesForAppt = linesByApptId.getOrDefault(apptId, java.util.List.of());
+
+                java.math.BigDecimal total = linesForAppt.stream()
+                        .map(line -> {
+                            java.math.BigDecimal price = line.getPrice() != null ? line.getPrice() : java.math.BigDecimal.ZERO;
+                            Integer qty = line.getQuantity() != null ? line.getQuantity() : 1;
+                            return price.multiply(java.math.BigDecimal.valueOf(qty));
+                        })
+                        .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+                appointmentTotalAmountByAppointmentId.put(apptId, total);
+
+                vn.edu.fpt.petworldplatform.entity.Payment latestPayment = paymentRepository.findTopByAppointment_IdAndPaymentTypeOrderByCreatedAtDesc(
+                        apptId,
+                        "service"
+                );
+                boolean paid = latestPayment != null && latestPayment.getPaidAt() != null;
+                hasPaidByAppointmentId.put(apptId, paid);
+
+                boolean codPending = latestPayment != null
+                        && latestPayment.getPaidAt() == null
+                        && latestPayment.getStatus() != null && "pending".equalsIgnoreCase(latestPayment.getStatus())
+                        && latestPayment.getMethod() != null && "cod".equalsIgnoreCase(latestPayment.getMethod());
+                codPendingByAppointmentId.put(apptId, codPending);
+            }
+
+            model.addAttribute("appointmentTotalAmountByAppointmentId", appointmentTotalAmountByAppointmentId);
+            model.addAttribute("hasPaidByAppointmentId", hasPaidByAppointmentId);
+            model.addAttribute("codPendingByAppointmentId", codPendingByAppointmentId);
+
             Set<Integer> reviewedServiceLineIds = new HashSet<>();
+            java.util.Map<Integer, vn.edu.fpt.petworldplatform.entity.Feedback> feedbackByLineId = new java.util.HashMap<>();
             for (vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine line : lines) {
                 if (line.getId() == null || line.getService() == null || line.getService().getId() == null || line.getAppointment() == null) {
                     continue;
@@ -260,9 +305,15 @@ public class CustomerController {
                 );
                 if (reviewed) {
                     reviewedServiceLineIds.add(line.getId());
+                    feedbackService.getServiceReview(
+                            line.getAppointment().getId(),
+                            line.getService().getId(),
+                            customer.getCustomerId()
+                    ).ifPresent(fb -> feedbackByLineId.put(line.getId(), fb));
                 }
             }
             model.addAttribute("reviewedServiceLineIds", reviewedServiceLineIds);
+            model.addAttribute("feedbackByLineId", feedbackByLineId);
 
             java.util.Map<Integer, PetHealthRecord> recordByAppointmentId = new java.util.HashMap<>();
             java.util.Map<Integer, List<PetHealthPhoto>> photosByAppointmentId = new java.util.HashMap<>();
@@ -332,7 +383,31 @@ public class CustomerController {
         }
 
         model.addAttribute("appointment", appt);
-        model.addAttribute("serviceLines", bookingService.findServiceLinesByAppointmentId(id));
+        List<AppointmentServiceLine> serviceLines = bookingService.findServiceLinesByAppointmentId(id);
+        model.addAttribute("serviceLines", serviceLines);
+
+        java.math.BigDecimal totalAmount = serviceLines.stream()
+                .map(line -> {
+                    java.math.BigDecimal price = line.getPrice() != null ? line.getPrice() : java.math.BigDecimal.ZERO;
+                    Integer qty = line.getQuantity() != null ? line.getQuantity() : 1;
+                    return price.multiply(java.math.BigDecimal.valueOf(qty));
+                })
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
+        Payment latestPayment = paymentRepository.findTopByAppointment_IdAndPaymentTypeOrderByCreatedAtDesc(
+                appt.getId(),
+                "service"
+        );
+        boolean hasPaid = latestPayment != null && latestPayment.getPaidAt() != null;
+
+        boolean codPending = latestPayment != null
+                && latestPayment.getPaidAt() == null
+                && latestPayment.getStatus() != null && "pending".equalsIgnoreCase(latestPayment.getStatus())
+                && latestPayment.getMethod() != null && "cod".equalsIgnoreCase(latestPayment.getMethod());
+
+        model.addAttribute("totalAmount", totalAmount);
+        model.addAttribute("hasPaid", hasPaid);
+        model.addAttribute("codPending", codPending);
 
         AppointmentSummary summary = appointmentSummaryRepository.findByAppointment_Id(id).orElse(null);
         model.addAttribute("appointmentSummary", summary);
@@ -364,6 +439,50 @@ public class CustomerController {
         model.addAttribute("serviceStaffName", serviceStaffName);
 
         return "customer/appointment-detail";
+    }
+
+    @GetMapping("/customer/appointments/{id}/payment")
+    public String appointmentPaymentPage(@PathVariable Integer id,
+                                        HttpSession session,
+                                        Model model,
+                                        RedirectAttributes redirectAttributes) {
+        Customer customer = (Customer) session.getAttribute("loggedInAccount");
+        if (customer == null) {
+            return "redirect:/login";
+        }
+
+        Appointment appt = bookingService.findAppointmentByIdAndCustomerId(id, customer.getCustomerId())
+                .orElse(null);
+        if (appt == null) {
+            redirectAttributes.addFlashAttribute("error", "Appointment not found.");
+            return "redirect:/customer/appointments";
+        }
+
+        if (appt.getStatus() == null || !"done".equalsIgnoreCase(appt.getStatus())) {
+            redirectAttributes.addFlashAttribute("error", "Payment is only available for completed appointments.");
+            return "redirect:/customer/appointments/" + id;
+        }
+
+        Payment latestPayment = paymentRepository.findTopByAppointment_IdAndPaymentTypeOrderByCreatedAtDesc(
+                appt.getId(), "service");
+        boolean hasPaid = latestPayment != null && latestPayment.getPaidAt() != null;
+        if (hasPaid) {
+            redirectAttributes.addFlashAttribute("message", "This appointment has already been paid.");
+            return "redirect:/customer/appointments/" + id;
+        }
+
+        List<AppointmentServiceLine> serviceLines = bookingService.findServiceLinesByAppointmentId(id);
+        java.math.BigDecimal totalAmount = serviceLines.stream()
+                .map(line -> {
+                    java.math.BigDecimal price = line.getPrice() != null ? line.getPrice() : java.math.BigDecimal.ZERO;
+                    Integer qty = line.getQuantity() != null ? line.getQuantity() : 1;
+                    return price.multiply(java.math.BigDecimal.valueOf(qty));
+                })
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
+        model.addAttribute("appointment", appt);
+        model.addAttribute("totalAmount", totalAmount);
+        return "customer/appointment-payment";
     }
 
     @PostMapping("/customer/appointments/{id}/cancel")
@@ -421,6 +540,34 @@ public class CustomerController {
         try {
             bookingService.deleteAppointmentIfCanceled(id, customer.getCustomerId());
             redirectAttributes.addFlashAttribute("message", "Appointment deleted successfully.");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/customer/appointments";
+    }
+
+    @PostMapping("/customer/feedback/{id}/update")
+    public String updateFeedback(@PathVariable Integer id,
+                                 @RequestParam String comment,
+                                 @RequestParam Integer rating,
+                                 @RequestParam(required = false) String subject,
+                                 HttpSession session,
+                                 RedirectAttributes redirectAttributes) {
+        Customer customer = (Customer) session.getAttribute("loggedInAccount");
+        if (customer == null) {
+            return "redirect:/login";
+        }
+        try {
+            if (comment == null || comment.isBlank()) {
+                redirectAttributes.addFlashAttribute("error", "Comment is required.");
+                return "redirect:/customer/appointments";
+            }
+            if (rating == null || rating < 1 || rating > 5) {
+                redirectAttributes.addFlashAttribute("error", "Rating must be between 1 and 5.");
+                return "redirect:/customer/appointments";
+            }
+            feedbackService.updateCustomerServiceReview(id, customer.getCustomerId(), comment, rating, subject);
+            redirectAttributes.addFlashAttribute("message", "Review updated successfully.");
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }

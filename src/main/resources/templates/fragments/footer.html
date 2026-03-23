@@ -33,16 +33,15 @@
                     <li><a th:href="@{/}" class="footer-link">Home</a></li>
                     <li><a th:href="@{/pets}" class="footer-link">Pets</a></li>
                     <li><a th:href="@{/products}" class="footer-link">Products</a></li>
-                    <li><a th:href="@{/services}" class="footer-link">Services</a></li>
+                    <li><a th:href="@{/appointment/booking}" class="footer-link">Services</a></li>
                 </ul>
             </div>
 
             <div class="col-6 col-md-2">
                 <h5 class="fw-bold mb-4" style="color: #333;">Help</h5>
                 <ul class="list-unstyled d-grid gap-2">
-                    <li><a href="#" class="footer-link">About Us</a></li>
-                    <li><a href="#" class="footer-link">Contact</a></li>
-                    <li><a href="#" class="footer-link">FAQs</a></li>
+                    <li><a th:href="@{/about-us}" class="footer-link">About Us</a></li>
+                    <li><a href="#" class="footer-link" data-bs-toggle="modal" data-bs-target="#faqModal">FAQs</a></li>
                 </ul>
             </div>
 
@@ -71,17 +70,92 @@
         </div>
     </div>
 
+    <div class="modal fade" id="faqModal" tabindex="-1" aria-labelledby="faqModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header" style="background-color: #FFA54F; color: white;">
+                    <h5 class="modal-title fw-bold" id="faqModalLabel">
+                        <iconify-icon icon="mdi:frequently-asked-questions" class="me-2 align-middle"></iconify-icon>
+                        Frequently Asked Questions
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body p-4">
+                    <div class="accordion accordion-flush" id="faqAccordion">
+
+                        <div class="accordion-item border-bottom mb-2">
+                            <h2 class="accordion-header" id="faqHeading1">
+                                <button class="accordion-button collapsed fw-bold text-dark bg-transparent px-0"
+                                        type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse1"
+                                        aria-expanded="false" aria-controls="faqCollapse1"
+                                        th:text="${globalConfigs != null and globalConfigs['FAQ_Q1'] != null ? globalConfigs['FAQ_Q1'] : '1. How can I book an appointment for my pet?'}">
+                                    1. How can I book an appointment for my pet?
+                                </button>
+                            </h2>
+                            <div id="faqCollapse1" class="accordion-collapse collapse" aria-labelledby="faqHeading1"
+                                 data-bs-parent="#faqAccordion">
+                                <div class="accordion-body px-0 text-muted small"
+                                     th:utext="${globalConfigs != null and globalConfigs['FAQ_A1'] != null ? globalConfigs['FAQ_A1'] : 'You can easily book an appointment by navigating to the Services section on our website. Choose your desired service, pick an available date and time, and confirm your booking.'}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item border-bottom mb-2">
+                            <h2 class="accordion-header" id="faqHeading2">
+                                <button class="accordion-button collapsed fw-bold text-dark bg-transparent px-0"
+                                        type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse2"
+                                        aria-expanded="false" aria-controls="faqCollapse2"
+                                        th:text="${globalConfigs != null and globalConfigs['FAQ_Q2'] != null ? globalConfigs['FAQ_Q2'] : '2. Do you offer home delivery for pet food and products?'}">
+                                    2. Do you offer home delivery for pet food and products?
+                                </button>
+                            </h2>
+                            <div id="faqCollapse2" class="accordion-collapse collapse" aria-labelledby="faqHeading2"
+                                 data-bs-parent="#faqAccordion">
+                                <div class="accordion-body px-0 text-muted small"
+                                     th:utext="${globalConfigs != null and globalConfigs['FAQ_A2'] != null ? globalConfigs['FAQ_A2'] : 'Yes, we provide nationwide shipping. Free delivery is available for orders over a certain amount. You can track your order status in your profile dashboard.'}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item border-bottom mb-2">
+                            <h2 class="accordion-header" id="faqHeading3">
+                                <button class="accordion-button collapsed fw-bold text-dark bg-transparent px-0"
+                                        type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse3"
+                                        aria-expanded="false" aria-controls="faqCollapse3"
+                                        th:text="${globalConfigs != null and globalConfigs['FAQ_Q3'] != null ? globalConfigs['FAQ_Q3'] : '3. What is your return & refund policy?'}">
+                                    3. What is your return & refund policy?
+                                </button>
+                            </h2>
+                            <div id="faqCollapse3" class="accordion-collapse collapse" aria-labelledby="faqHeading3"
+                                 data-bs-parent="#faqAccordion">
+                                <div class="accordion-body px-0 text-muted small"
+                                     th:utext="${globalConfigs != null and globalConfigs['FAQ_A3'] != null ? globalConfigs['FAQ_A3'] : 'We accept returns within 7 days of purchase for unused products in their original packaging. Please bring the receipt to our store, or contact us via email to initiate a return.'}">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
     <style>
-        /* CSS để chữ không bị "khó nhìn" */
         .footer-link {
-            color: #666 !important; /* Màu xám đậm hơn mẫu cũ */
+            color: #666 !important;
             text-decoration: none;
             font-size: 0.95rem;
             transition: all 0.3s;
         }
 
         .footer-link:hover {
-            color: #FFA54F !important; /* Di chuột vào hiện màu cam */
+            color: #FFA54F !important;
             padding-left: 5px;
         }
 
@@ -93,6 +167,14 @@
         .footer-social-icon:hover {
             color: #FFA54F;
             transform: translateY(-3px);
+        }
+
+        .accordion-button:focus {
+            box-shadow: none;
+        }
+
+        .accordion-button:not(.collapsed) {
+            color: #FFA54F !important;
         }
     </style>
 </footer>

@@ -1,6 +1,7 @@
 package vn.edu.fpt.petworldplatform.controller;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +29,7 @@ public class ServiceStatsController {
      * - No params  → all-time stats from DB
      * - With fromDate/toDate → stats filtered within that date range
      */
+    @PreAuthorize("hasAuthority('VIEW_REPORT')")
     @GetMapping("/service-stats")
     public String getServiceStats(
             @RequestParam(required = false)

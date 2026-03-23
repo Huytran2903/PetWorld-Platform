@@ -1,5 +1,6 @@
 package vn.edu.fpt.petworldplatform.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +24,7 @@ public class ServiceExecutionHistoryController {
         this.service = service;
     }
 
+    @PreAuthorize("hasAuthority('VIEW_REPORT')")
     @GetMapping("/service-execution-history")
     public String getServiceHistory(
             @RequestParam(required = false) String status,

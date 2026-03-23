@@ -37,6 +37,7 @@ public class RoleService {
             "MANAGE_PET",
             "MANAGE_SERVICE",
             "MANAGE_APPOINTMENT",
+            "MANAGE_FEEDBACK",
 
             // 4. Nhóm Báo cáo & Cài đặt chung
             "VIEW_REPORT",

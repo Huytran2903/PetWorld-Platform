@@ -11,8 +11,7 @@
 
     <nav class="nav flex-column gap-2">
 
-        <a th:href="@{/}" class="nav-link-custom d-flex align-items-center text-warning" target="_blank"
-        >
+        <a th:href="@{/}" class="nav-link-custom d-flex align-items-center text-warning" target="_blank">
             <i class="fa-solid fa-house me-3 fs-5"></i>
             View Homepage
             <i class="fa-solid fa-arrow-up-right-from-square ms-auto" style="font-size: 0.8rem;"></i>
@@ -30,7 +29,6 @@
            th:classappend="${activePage == 'appointments' ? 'active-state' : ''}">
             <i class="bi bi-calendar-check-fill me-3 fs-5"></i> Appointment management
         </a>
-
 
         <a th:href="@{/admin/statistics/pets}" class="nav-link-custom d-flex align-items-center"
            th:classappend="${activePage == 'pet-report' ? 'active-state' : ''}">
@@ -54,6 +52,10 @@
             Products Management
         </a>
 
+        <a th:href="@{/admin/manage-order}" class="nav-link-custom d-flex align-items-center"
+           th:classappend="${activePage == 'orders' ? 'active-state' : ''}">
+            <i class="bi bi-box-seam me-3 fs-5"></i> Orders Management
+        </a>
         <a th:href="@{/admin/customer-manage}" class="nav-link-custom d-flex align-items-center"
            th:classappend="${activePage == 'customers' ? 'active-state' : ''}">
             <i class="bi bi-people-fill me-3 fs-5"></i> Customers

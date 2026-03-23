@@ -64,6 +64,13 @@
             border-radius: 8px;
             border: 1px solid var(--border);
         }
+
+        .payment-status-badge {
+            font-size: 1rem;
+            font-weight: 700;
+            padding: 6px 12px;
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 
@@ -118,6 +125,13 @@
                                     >
                                         Pending
                                     </span>
+                                </p>
+                                <p th:if="${appt.status != null and appt.status.toLowerCase() == 'done'}" style="margin-top: 4px;">
+                                    <strong>Payment Status:</strong>
+                                    <span th:if="${hasPaidByAppointmentId != null and hasPaidByAppointmentId.get(appt.id) == true}"
+                                          class="badge bg-success payment-status-badge ms-1">Paid</span>
+                                    <span th:if="${hasPaidByAppointmentId == null or hasPaidByAppointmentId.get(appt.id) != true}"
+                                          class="badge bg-warning text-dark payment-status-badge ms-1">Unpaid</span>
                                 </p>
                             </div>
 
@@ -228,12 +242,22 @@
 
                                                 <td class="text-center">
                                                     <th:block th:if="${appt.status != null and appt.status.toLowerCase() == 'done'}">
-                                                        <span
-                                                            th:if="${reviewedServiceLineIds != null and reviewedServiceLineIds.contains(line.id)}"
-                                                            class="badge status-done"
-                                                        >
-                                                            Reviewed
-                                                        </span>
+                                                        <th:block th:if="${reviewedServiceLineIds != null and reviewedServiceLineIds.contains(line.id)}">
+                                                            <button type="button"
+                                                                    class="btn btn-outline-primary btn-sm"
+                                                                    th:attr="data-line-id=${line.id},
+                                                                             data-feedback-id=${feedbackByLineId.get(line.id).id},
+                                                                             data-service-name=${line.service.name},
+                                                                             data-rating=${feedbackByLineId.get(line.id).rating != null ? feedbackByLineId.get(line.id).rating : 5}"
+                                                                    onclick="const m=document.getElementById('reviewModal'); if(m){m.style.setProperty('display','block','important');} openReviewModal(this);">
+                                                                <i class="fas fa-star"></i> View / Edit
+                                                            </button>
+
+                                                            <!-- Keep review content out of data-* attributes (safer for quotes/newlines) -->
+                                                            <span th:id="'feedbackComment-' + ${line.id}" th:text="${feedbackByLineId.get(line.id).comment}" style="display:none;"></span>
+                                                            <span th:id="'feedbackSubject-' + ${line.id}" th:text="${feedbackByLineId.get(line.id).subject}" style="display:none;"></span>
+                                                            <span th:id="'feedbackReply-' + ${line.id}" th:text="${feedbackByLineId.get(line.id).replyMessage}" style="display:none;"></span>
+                                                        </th:block>
 
                                                         <a
                                                             th:unless="${reviewedServiceLineIds != null and reviewedServiceLineIds.contains(line.id)}"
@@ -246,6 +270,15 @@
 
                                                     <span th:unless="${appt.status != null and appt.status.toLowerCase() == 'done'}" class="text-muted">-</span>
                                                 </td>
+                                            </tr>
+                                            <tr class="services-total-row"
+                                                th:with="rowTotal=${appointmentTotalAmountByAppointmentId != null ? appointmentTotalAmountByAppointmentId.get(appt.id) : null}">
+                                                <td colspan="5" class="text-end fw-bold">Total</td>
+                                                <td class="text-end fw-bold"
+                                                    th:text="${rowTotal != null ? #numbers.formatDecimal(rowTotal, 0, 'COMMA', 0, 'POINT') + ' VND' : '0 VND'}">
+                                                    0 VND
+                                                </td>
+                                                <td></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -319,6 +352,19 @@
                                         </form>
                                     </th:block>
 
+                                    <th:block th:if="${appt.status != null and appt.status.toLowerCase() == 'done'
+                                        and (hasPaidByAppointmentId == null or hasPaidByAppointmentId.get(appt.id) == null or !hasPaidByAppointmentId.get(appt.id))}">
+                                        <button type="button"
+                                                th:if="${codPendingByAppointmentId != null and codPendingByAppointmentId.get(appt.id) == true}"
+                                                class="btn btn-warning btn-sm"
+                                                th:onclick="'openPaymentMethodModal(' + ${appt.id} + ')'">
+                                            Change payment method
+                                        </button>
+                                        <a th:if="${codPendingByAppointmentId == null or codPendingByAppointmentId.get(appt.id) != true}"
+                                           th:href="@{/customer/appointments/{id}/payment(id=${appt.id})}"
+                                           class="btn btn-primary btn-sm">Pay</a>
+                                    </th:block>
+
                                 </div>
                             </div>
 
@@ -358,6 +404,32 @@
             </div>
         </div>
 
+        <div id="paymentMethodModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4>Change payment method</h4>
+                    <span class="close" onclick="closePaymentMethodModal()">&times;</span>
+                </div>
+                <form id="paymentMethodForm" method="post" action="#">
+                    <div class="modal-body">
+                        <p class="text-muted small mb-3">Choose MoMo or cash on delivery. You will not leave this page until you continue to MoMo.</p>
+                        <div class="form-check payment-option rounded-3 p-3 mb-2 border">
+                            <input class="form-check-input" type="radio" name="paymentMethod" id="pmMomo" value="MOMO" checked>
+                            <label class="form-check-label" for="pmMomo">MoMo Wallet</label>
+                        </div>
+                        <div class="form-check payment-option rounded-3 p-3 mb-0 border">
+                            <input class="form-check-input" type="radio" name="paymentMethod" id="pmCod" value="COD">
+                            <label class="form-check-label" for="pmCod">Cash on delivery</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closePaymentMethodModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Continue</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <div id="rescheduleModal" class="modal" style="display: none;">
             <div class="modal-content">
                 <div class="modal-header">
@@ -376,6 +448,47 @@
                             Close
                         </button>
                         <button type="submit" class="btn btn-primary">Confirm Reschedule</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Review View/Edit Modal -->
+        <div id="reviewModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4><i class="fas fa-star"></i> View / Edit Service Review</h4>
+                    <span class="close" onclick="closeReviewModal()">&times;</span>
+                </div>
+                <form id="reviewForm" method="post" action="#">
+                    <div class="modal-body">
+                        <p class="mb-2"><strong>Service:</strong> <span id="reviewServiceName"></span></p>
+                        <div class="form-group mb-2">
+                            <label for="reviewRating">Rating <span class="required">*</span></label>
+                            <select id="reviewRating" name="rating" required class="form-select" style="max-width:100px;">
+                                <option value="1">1 Star</option>
+                                <option value="2">2 Stars</option>
+                                <option value="3">3 Stars</option>
+                                <option value="4">4 Stars</option>
+                                <option value="5">5 Stars</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-2">
+                            <label for="reviewSubject">Subject (Optional)</label>
+                            <input type="text" id="reviewSubject" name="subject" class="form-control" maxlength="100" placeholder="e.g., Great grooming experience!" />
+                        </div>
+                        <div class="form-group mb-2">
+                            <label for="reviewComment">Comment <span class="required">*</span></label>
+                            <textarea id="reviewComment" name="comment" class="form-control" rows="4" required placeholder="Enter your review..."></textarea>
+                        </div>
+                        <div id="reviewAdminReplyBox" class="p-2 rounded" style="background:#f0f9ff; border-left:3px solid #0ea5e9; display:none;">
+                            <strong class="text-primary">Admin reply:</strong>
+                            <p id="reviewAdminReply" class="mb-0 mt-1" style="white-space:pre-wrap;"></p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeReviewModal()">Close</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save Changes</button>
                     </div>
                 </form>
             </div>
@@ -409,6 +522,24 @@
                 document.getElementById('rescheduleModal').style.display = 'none';
             }
 
+            function openPaymentMethodModal(apptId) {
+                const modal = document.getElementById('paymentMethodModal');
+                const form = document.getElementById('paymentMethodForm');
+                if (form) {
+                    form.action = '/customer/appointments/' + apptId + '/pay';
+                }
+                if (modal) {
+                    modal.style.display = 'block';
+                }
+            }
+
+            function closePaymentMethodModal() {
+                const modal = document.getElementById('paymentMethodModal');
+                if (modal) {
+                    modal.style.display = 'none';
+                }
+            }
+
             function openHealthSummaryModal(id) {
                 const modal = document.getElementById(id);
                 if (modal) {
@@ -423,9 +554,52 @@
                 }
             }
 
+            function openReviewModal(btn) {
+                const lineId = btn.getAttribute('data-line-id');
+                const feedbackId = btn.getAttribute('data-feedback-id');
+                const serviceName = btn.getAttribute('data-service-name') || '';
+                const rating = btn.getAttribute('data-rating') || '5';
+
+                const commentEl = document.getElementById('feedbackComment-' + lineId);
+                const subjectEl = document.getElementById('feedbackSubject-' + lineId);
+                const replyEl = document.getElementById('feedbackReply-' + lineId);
+
+                const comment = commentEl ? commentEl.textContent : '';
+                const subject = subjectEl ? subjectEl.textContent : '';
+                const reply = replyEl ? replyEl.textContent : '';
+
+                document.getElementById('reviewServiceName').textContent = serviceName;
+                document.getElementById('reviewRating').value = rating;
+                document.getElementById('reviewSubject').value = subject;
+                document.getElementById('reviewComment').value = comment;
+
+                const replyBox = document.getElementById('reviewAdminReplyBox');
+                if (reply && reply.trim()) {
+                    replyBox.style.display = 'block';
+                    document.getElementById('reviewAdminReply').textContent = reply;
+                } else {
+                    replyBox.style.display = 'none';
+                }
+
+                document.getElementById('reviewForm').action = '/customer/feedback/' + feedbackId + '/update';
+                const m = document.getElementById('reviewModal');
+                if (m) {
+                    m.style.setProperty('display', 'block', 'important');
+                }
+            }
+
+            function closeReviewModal() {
+                const m = document.getElementById('reviewModal');
+                if (m) {
+                    m.style.setProperty('display', 'none', 'important');
+                }
+            }
+
             window.onclick = function (event) {
                 const cancelModal = document.getElementById('cancelModal');
                 const rescheduleModal = document.getElementById('rescheduleModal');
+                const reviewModal = document.getElementById('reviewModal');
+                const paymentMethodModal = document.getElementById('paymentMethodModal');
 
                 if (event.target == cancelModal) {
                     cancelModal.style.display = 'none';
@@ -433,6 +607,14 @@
 
                 if (event.target == rescheduleModal) {
                     rescheduleModal.style.display = 'none';
+                }
+
+                if (event.target == reviewModal) {
+                    reviewModal.style.display = 'none';
+                }
+
+                if (event.target == paymentMethodModal) {
+                    paymentMethodModal.style.display = 'none';
                 }
 
                 if (

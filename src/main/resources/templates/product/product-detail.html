@@ -6,7 +6,7 @@
     <title>Product Detail</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" th:href="@{/css/product-detail.css}" />
+    <link rel="stylesheet" th:href="@{/css/product-detail.css}"/>
 </head>
 <body class="product-page-body">
 
@@ -37,7 +37,7 @@
                 </section>
 
                 <div class="thumbnail-preview my-4">
-                    <img class="img-thumb active" th:src="${proDetail.imageUrl}" alt="Thumbnail" />
+                    <img class="img-thumb active" th:src="${proDetail.imageUrl}" alt="Thumbnail"/>
                 </div>
 
                 <div class="price-details-stack">
@@ -51,7 +51,8 @@
                         <div class="icon-box"><i class="bi bi-tags-fill" style="color: #ff9f43;"></i></div>
                         <span class="label-text">Price:</span>
 
-                        <div th:if="${proDetail.discountPercent != null and proDetail.discountPercent > 0}" class="ms-2">
+                        <div th:if="${proDetail.discountPercent != null and proDetail.discountPercent > 0}"
+                             class="ms-2">
                             <span class="value-text price-color fw-bold"
                                   th:text="${#numbers.formatDecimal(proDetail.salePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
                             <del class="text-muted small ms-2"
@@ -77,18 +78,22 @@
                             <div class="d-flex align-items-center">
                                 <button type="button" class="btn-qty" onclick="changeQty(-1)">-</button>
                                 <input type="number" id="quantityInput" class="input-qty text-center mx-1"
-                                       value="1" min="1" th:max="${proDetail.stock}" readonly style="width: 50px; border: 1px solid #ddd; border-radius: 5px;" />
+                                       value="1" min="1" th:max="${proDetail.stock}" readonly
+                                       style="width: 50px; border: 1px solid #ddd; border-radius: 5px;"/>
                                 <button type="button" class="btn-qty" onclick="changeQty(1)">+</button>
                             </div>
                         </div>
 
-                        <button type="button" class="btn-add-to-cart btn btn-dark px-4 py-2" style="border-radius: 50px;"
-                                th:onclick="'addToCart(' + ${proDetail.productId} + ')'">
+                        <button type="button"
+                                class="btn-add-to-cart btn btn-dark px-4 py-2"
+                                style="border-radius: 50px;"
+                                th:onclick="|addToCartWithQty(${proDetail.productId})|">
                             <i class="bi bi-cart-plus me-2"></i> ADD TO CART
                         </button>
                     </div>
 
-                    <div id="stockWarning" class="text-danger small mt-2 fw-bold" style="display: none; animation: fadeIn 0.3s ease-in-out;">
+                    <div id="stockWarning" class="text-danger small mt-2 fw-bold"
+                         style="display: none; animation: fadeIn 0.3s ease-in-out;">
                         <i class="bi bi-exclamation-triangle-fill me-1"></i>
                         Sorry, only <span th:text="${proDetail.stock}"></span> items left in stock!
                     </div>
@@ -125,7 +130,7 @@
                 clearTimeout(warningTimeout);
 
                 // Tự động ẩn thông báo sau 3 giây (3000 ms)
-                warningTimeout = setTimeout(function() {
+                warningTimeout = setTimeout(function () {
                     warning.style.display = 'none';
                 }, 3000);
             }
@@ -139,12 +144,25 @@
         // Cập nhật lại giá trị vào ô hiển thị
         input.value = newVal;
     }
+    function addToCartWithQty(productId) {
+        // 1. Lấy giá trị hiện tại trong ô input
+        let qty = document.getElementById('quantityInput').value;
+
+        // 2. Chuyển hướng trang web đến Controller kèm theo tham số quantity
+        window.location.href = '/cart/add-product/' + productId + '?qty=' + qty;
+    }
 </script>
 
 <style>
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(-5px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 </style>
 

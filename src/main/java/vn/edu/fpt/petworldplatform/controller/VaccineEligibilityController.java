@@ -59,19 +59,20 @@ public class VaccineEligibilityController {
             }
 
             if (locked) {
-                locks.add(Map.of(
-                        "vaccineName", latest.getVaccineName(),
-                        "nextDueDate", nextDue, // may be null
-                        "reason", nextDue == null ? "missing_next_due" : "not_due_yet"
-                ));
+                // Map.of disallows null values; nextDueDate may be null (missing_next_due).
+                Map<String, Object> row = new LinkedHashMap<>();
+                row.put("vaccineName", latest.getVaccineName());
+                row.put("nextDueDate", nextDue);
+                row.put("reason", nextDue == null ? "missing_next_due" : "not_due_yet");
+                locks.add(row);
             }
         }
 
-        return ResponseEntity.ok(Map.of(
-                "petId", petId,
-                "onDate", effectiveDate,
-                "locks", locks
-        ));
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("petId", petId);
+        body.put("onDate", effectiveDate);
+        body.put("locks", locks);
+        return ResponseEntity.ok(body);
     }
 
     private LocalDate parseDateOrToday(String s) {

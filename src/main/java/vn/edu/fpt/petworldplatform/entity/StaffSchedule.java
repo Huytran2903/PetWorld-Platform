@@ -38,4 +38,7 @@ public class StaffSchedule {
 
     @Column(name = "Note", length = 255)
     private String note;
+
+    @Transient
+    private String displayStatus;
 }

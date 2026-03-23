@@ -5,10 +5,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import vn.edu.fpt.petworldplatform.entity.Customer;
+import vn.edu.fpt.petworldplatform.entity.Notification;
 import vn.edu.fpt.petworldplatform.entity.SystemConfigs;
 import vn.edu.fpt.petworldplatform.service.CartService;
 import vn.edu.fpt.petworldplatform.service.ConfigService;
 import vn.edu.fpt.petworldplatform.service.CustomerService;
+import vn.edu.fpt.petworldplatform.service.NotificationService;
 import vn.edu.fpt.petworldplatform.util.SecuritySupport;
 
 import java.util.HashMap;
@@ -27,10 +29,10 @@ public class GlobalConfigAdvice {
     @Autowired
     private SecuritySupport securitySupport;
 
-    @Autowired
-    private CustomerService customerService;
 
-    // Hàm này sẽ tự động chạy ở MỌI TRANG để đếm giỏ hàng
+    @Autowired
+    private NotificationService notificationService;
+
     @ModelAttribute("cartCount")
     public int getCartCountGlobal() {
         try {
@@ -40,7 +42,7 @@ public class GlobalConfigAdvice {
                 return cartService.getCountCartItems(customerId);
             }
         } catch (Exception e) {
-            System.out.println("Lỗi đếm giỏ hàng: " + e.getMessage());
+            System.out.println("Lỗi đếm giỏ hàng DEBUG: " + e.getMessage());
         }
 
         return 0;
@@ -60,6 +62,24 @@ public class GlobalConfigAdvice {
         }
 
         return configMap;
+    }
+
+    @ModelAttribute("unreadNotificationCount")
+    public long populateUnreadNotificationCount() {
+        Integer customerId = securitySupport.getCurrentAuthenticatedCustomerId();
+        if (customerId == null) {
+            return 0;
+        }
+        return notificationService.getUnreadCount(customerId);
+    }
+
+    @ModelAttribute("latestNotifications")
+    public List<Notification> populateLatestNotifications() {
+        Integer customerId = securitySupport.getCurrentAuthenticatedCustomerId();
+        if (customerId == null) {
+            return List.of();
+        }
+        return notificationService.getLatest(customerId);
     }
 
 

@@ -21,11 +21,9 @@ public class GlobalInterceptor implements HandlerInterceptor {
                 && !(auth.getPrincipal() instanceof String) // Không phải người dùng ẩn danh
                 && session.getAttribute("loggedInAccount") == null) {
 
-            // Lấy dữ liệu từ thẻ VIP của Spring Security
             CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
             Object account = userDetails.getAccount();
 
-            // "Bơm" ngược lại vào Session cho bạn
             session.setAttribute("loggedInAccount", account);
 
         }

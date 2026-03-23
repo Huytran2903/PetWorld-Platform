@@ -1,6 +1,10 @@
 package vn.edu.fpt.petworldplatform.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import vn.edu.fpt.petworldplatform.dto.GeneralFeedbackDTO;
 import vn.edu.fpt.petworldplatform.dto.ServiceReviewDTO;
@@ -8,6 +12,7 @@ import vn.edu.fpt.petworldplatform.entity.*;
 import vn.edu.fpt.petworldplatform.repository.AppointmentRepository;
 import vn.edu.fpt.petworldplatform.repository.AppointmentServiceLineRepository;
 import vn.edu.fpt.petworldplatform.repository.FeedbackRepository;
+import vn.edu.fpt.petworldplatform.repository.ServiceItemRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -19,8 +24,10 @@ public class FeedbackService {
     private final FeedbackRepository feedbackRepository;
     private final AppointmentRepository appointmentRepository;
     private final AppointmentServiceLineRepository appointmentServiceLineRepository;
+    private final ServiceItemRepository serviceItemRepository;
+    private final NotificationService notificationService;
 
-    public Feedback submitGeneralFeedback(GeneralFeedbackDTO feedbackDTO, boolean isLoggedIn) {
+    public Feedback submitGeneralFeedback(GeneralFeedbackDTO feedbackDTO, Customer loggedInCustomer) {
         Feedback feedback = Feedback.builder()
                 .type("general")
                 .subject(feedbackDTO.getSubject())
@@ -30,32 +37,20 @@ public class FeedbackService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        if (isLoggedIn) {
-            // User is logged in - try to get customer from session
-            try {
-                // For now, treat as guest user since we can't easily get customer from session
-                // But we need to ensure at least email or phone is provided for database constraint
-                if (feedbackDTO.getEmail() == null && feedbackDTO.getPhoneNumber() == null) {
-                    throw new RuntimeException("For logged-in users, please provide either email or phone number for feedback submission.");
-                }
-                feedback.setEmail(feedbackDTO.getEmail());
-                feedback.setPhoneNumber(feedbackDTO.getPhoneNumber());
-            } catch (Exception e) {
-                // If any error occurs, treat as guest user
-                if (feedbackDTO.getEmail() == null && feedbackDTO.getPhoneNumber() == null) {
-                    throw new RuntimeException("Please provide either email or phone number for feedback submission.");
-                }
-                feedback.setEmail(feedbackDTO.getEmail());
-                feedback.setPhoneNumber(feedbackDTO.getPhoneNumber());
-            }
-        } else {
-            // Guest user - must provide email or phone
-            if (feedbackDTO.getEmail() == null && feedbackDTO.getPhoneNumber() == null) {
-                throw new RuntimeException("Guest users must provide either email or phone number for feedback submission.");
-            }
-            feedback.setEmail(feedbackDTO.getEmail());
-            feedback.setPhoneNumber(feedbackDTO.getPhoneNumber());
+        if (loggedInCustomer == null) {
+            throw new RuntimeException("Please login to submit feedback.");
         }
+
+        feedback.setCustomer(loggedInCustomer);
+
+        String inputEmail = feedbackDTO.getEmail() != null ? feedbackDTO.getEmail().trim() : "";
+        String inputPhone = feedbackDTO.getPhoneNumber() != null ? feedbackDTO.getPhoneNumber().trim() : "";
+
+        String resolvedEmail = !inputEmail.isBlank() ? inputEmail : loggedInCustomer.getEmail();
+        String resolvedPhone = !inputPhone.isBlank() ? inputPhone : loggedInCustomer.getPhone();
+
+        feedback.setEmail(resolvedEmail);
+        feedback.setPhoneNumber(resolvedPhone);
 
         return feedbackRepository.save(feedback);
     }
@@ -94,6 +89,38 @@ public class FeedbackService {
     }
 
     /**
+     * Get the service review feedback for a given appointment + service + customer.
+     */
+    public java.util.Optional<Feedback> getServiceReview(Integer appointmentId, Integer serviceId, Integer customerId) {
+        return feedbackRepository.findTopByAppointmentIdAndServiceIdAndCustomer_CustomerIdOrderByCreatedAtDesc(
+                appointmentId, serviceId, customerId);
+    }
+
+    /**
+     * Update customer's own service review (comment, rating, subject only).
+     */
+    public void updateCustomerServiceReview(Integer feedbackId, Integer customerId, String comment, Integer rating, String subject) {
+        Feedback feedback = feedbackRepository.findById(feedbackId)
+                .orElseThrow(() -> new IllegalArgumentException("Feedback not found."));
+        if (feedback.getCustomer() == null || !feedback.getCustomer().getCustomerId().equals(customerId)) {
+            throw new IllegalArgumentException("You can only update your own feedback.");
+        }
+        if (!"service".equalsIgnoreCase(feedback.getType())) {
+            throw new IllegalArgumentException("This feedback is not a service review.");
+        }
+        if (comment != null) {
+            feedback.setComment(comment.trim());
+        }
+        if (rating != null && rating >= 1 && rating <= 5) {
+            feedback.setRating(rating);
+        }
+        if (subject != null) {
+            feedback.setSubject(subject.trim());
+        }
+        feedbackRepository.save(feedback);
+    }
+
+    /**
      * Submit a service review for a completed appointment.
      */
     public Feedback submitServiceReview(ServiceReviewDTO dto, Integer appointmentId, Customer customer) {
@@ -101,9 +128,11 @@ public class FeedbackService {
 
         // Verify the service belongs to this appointment
         List<AppointmentServiceLine> lines = appointmentServiceLineRepository.findByAppointment_Id(appointmentId);
-        boolean serviceInAppointment = lines.stream()
-                .anyMatch(line -> line.getService().getId().equals(dto.getServiceId()));
-        if (!serviceInAppointment) {
+        AppointmentServiceLine selectedLine = lines.stream()
+            .filter(line -> line.getService() != null && line.getService().getId().equals(dto.getServiceId()))
+            .findFirst()
+            .orElse(null);
+        if (selectedLine == null) {
             throw new IllegalArgumentException("Selected service is not part of this appointment.");
         }
 
@@ -117,6 +146,7 @@ public class FeedbackService {
                 .customer(customer)
                 .appointmentId(appointmentId)
                 .serviceId(dto.getServiceId())
+                .serviceName(selectedLine.getService().getName())
                 .rating(dto.getRating())
                 .subject(dto.getSubject())
                 .comment(dto.getComment())
@@ -147,6 +177,23 @@ public class FeedbackService {
         return feedbackRepository.findAllByOrderByCreatedAtDesc();
     }
 
+    public Page<Feedback> getFeedbacksByFilter(String status, String type, int page, int size) {
+        boolean hasStatus = status != null && !status.isBlank();
+        boolean hasType = type != null && !type.isBlank();
+
+        Pageable pageable = PageRequest.of(Math.max(page, 0), size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        if (hasStatus && hasType) {
+            return feedbackRepository.findByStatusAndType(status, type, pageable);
+        } else if (hasStatus) {
+            return feedbackRepository.findByStatus(status, pageable);
+        } else if (hasType) {
+            return feedbackRepository.findByType(type, pageable);
+        }
+
+        return feedbackRepository.findAll(pageable);
+    }
+
     public Feedback getFeedbackById(Integer id) {
         return feedbackRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Feedback not found."));
@@ -156,12 +203,14 @@ public class FeedbackService {
         Feedback feedback = getFeedbackById(id);
         feedback.setStatus("approved");
         feedbackRepository.save(feedback);
+        notifyFeedbackStatus(feedback, "approved");
     }
 
     public void rejectFeedback(Integer id) {
         Feedback feedback = getFeedbackById(id);
         feedback.setStatus("rejected");
         feedbackRepository.save(feedback);
+        notifyFeedbackStatus(feedback, "rejected");
     }
 
     public void replyToFeedback(Integer id, String replyMessage) {
@@ -169,5 +218,89 @@ public class FeedbackService {
         feedback.setReplyMessage(replyMessage);
         feedback.setRepliedAt(LocalDateTime.now());
         feedbackRepository.save(feedback);
+        notifyFeedbackReply(feedback);
+    }
+
+    private void notifyFeedbackStatus(Feedback feedback, String status) {
+        if (feedback.getCustomer() == null) {
+            return;
+        }
+
+        String feedbackLabel = resolveFeedbackLabel(feedback);
+        String serviceInfo = resolveServiceInfoLine(feedback);
+        String title;
+        String message;
+
+        if ("approved".equalsIgnoreCase(status)) {
+            title = "Feedback approved";
+            message = "Feedback: " + feedbackLabel
+                + serviceInfo
+                    + "\nStatus: Approved"
+                    + "\n\nThank you for sharing your experience with PetWorld.";
+        } else {
+            title = "Feedback rejected";
+            message = "Feedback: " + feedbackLabel
+                + serviceInfo
+                    + "\nStatus: Rejected"
+                    + "\n\nPlease contact support if you need more details.";
+        }
+
+        notificationService.createForCustomer(feedback.getCustomer(), null, title, message, "feedback_status");
+    }
+
+    private void notifyFeedbackReply(Feedback feedback) {
+        if (feedback.getCustomer() == null || feedback.getReplyMessage() == null || feedback.getReplyMessage().isBlank()) {
+            return;
+        }
+
+        String feedbackLabel = resolveFeedbackLabel(feedback);
+        String serviceInfo = resolveServiceInfoLine(feedback);
+        String title = "Admin replied to your feedback";
+        String message = "Feedback: " + feedbackLabel
+            + serviceInfo
+                + "\n\nAdmin reply:\n" + feedback.getReplyMessage().trim();
+
+        notificationService.createForCustomer(feedback.getCustomer(), null, title, message, "feedback_reply");
+    }
+
+    private String resolveFeedbackLabel(Feedback feedback) {
+        String serviceName = resolveServiceName(feedback);
+
+        if (feedback.getSubject() != null && !feedback.getSubject().isBlank()) {
+            String subject = feedback.getSubject().trim();
+            if (serviceName == null || !subject.equalsIgnoreCase(serviceName)) {
+                return subject;
+            }
+        }
+
+        if (feedback.getComment() != null && !feedback.getComment().isBlank()) {
+            String comment = feedback.getComment().trim();
+            return comment.length() > 60 ? comment.substring(0, 60) + "..." : comment;
+        }
+
+        return "Your feedback";
+    }
+
+    private String resolveServiceInfoLine(Feedback feedback) {
+        String serviceName = resolveServiceName(feedback);
+        if (serviceName != null && !serviceName.isBlank()) {
+            return "\nService: " + serviceName;
+        }
+
+        return "";
+    }
+
+    private String resolveServiceName(Feedback feedback) {
+        if (feedback.getServiceName() != null && !feedback.getServiceName().isBlank()) {
+            return feedback.getServiceName().trim();
+        }
+
+        if (feedback.getServiceId() != null) {
+            return serviceItemRepository.findById(feedback.getServiceId())
+                    .map(ServiceItem::getName)
+                    .orElse(null);
+        }
+
+        return null;
     }
 }

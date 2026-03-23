@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout_user :: layout(~{::section})}">
+<head>
+    <title>My Notifications</title>
+</head>
+<body>
+<section>
+    <style>
+        .noti-wrap {
+            max-width: 980px;
+            margin: 24px auto;
+            padding: 0 12px;
+        }
+
+        .noti-card {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 12px;
+            transition: box-shadow 0.2s ease;
+        }
+
+        .noti-card:hover {
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+        }
+
+        .noti-card.unread {
+            border-left: 5px solid #f59e0b;
+            background: #fffbeb;
+        }
+
+        .noti-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #1f2937;
+            margin: 0;
+        }
+
+        .noti-time {
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        .noti-type {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            background: #fff7ed;
+            color: #9a3412;
+        }
+
+        .noti-message {
+            color: #374151;
+            margin-top: 8px;
+            margin-bottom: 0;
+            line-height: 1.5;
+            white-space: pre-line;
+        }
+
+        .noti-actions {
+            margin-top: 10px;
+        }
+
+        .noti-empty {
+            background: #fff;
+            border: 1px dashed #d1d5db;
+            border-radius: 14px;
+            text-align: center;
+            padding: 28px;
+            color: #6b7280;
+        }
+
+        .pager {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .pager a {
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            color: #111827;
+            text-decoration: none;
+            background: #fff;
+        }
+
+        .pager a.active {
+            background: #f59e0b;
+            border-color: #f59e0b;
+            color: #fff;
+            font-weight: 700;
+        }
+    </style>
+
+    <div class="noti-wrap">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="mb-0" style="font-weight:800; color:#1f2937;">
+                <i class="fas fa-bell" style="color:#f59e0b;"></i>
+                My Notifications
+            </h2>
+        </div>
+
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+        <div th:if="${notificationPage.content.isEmpty()}" class="noti-empty">
+            You have no notifications yet.
+        </div>
+
+        <div th:each="n : ${notificationPage.content}"
+             class="noti-card"
+             th:classappend="${!n.isRead} ? ' unread' : ''">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3 class="noti-title" th:text="${n.title}">Notification title</h3>
+                <span class="noti-time" th:text="${#temporals.format(n.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 12:00</span>
+            </div>
+
+            <th:block th:switch="${n.type}">
+                <span th:case="'feedback_reply'" class="noti-type">Admin reply</span>
+                <span th:case="'feedback_status'" class="noti-type">Feedback status</span>
+                <span th:case="'appointment_done'" class="noti-type">Service completed</span>
+                <span th:case="'appointment_confirmed'" class="noti-type">Appointment confirmed</span>
+                <span th:case="'payment_success'" class="noti-type">Payment</span>
+                <span th:case="'vaccine_due'" class="noti-type">Vaccination</span>
+                <span th:case="*" class="noti-type">Notification</span>
+            </th:block>
+
+            <p class="noti-message"
+               th:text="${#strings.length(n.message) > 130 ? #strings.substring(n.message, 0, 130) + '...' : n.message}">
+                Notification message
+            </p>
+
+            <div class="noti-actions">
+                <a class="btn btn-sm btn-outline-dark" th:href="@{'/customer/notifications/' + ${n.id}}">View detail</a>
+                <a th:if="${n.type == 'appointment_done' && n.appointmentId != null}"
+                   class="btn btn-sm btn-primary"
+                   th:href="@{'/customer/appointments/' + ${n.appointmentId} + '/payment'}">
+                    Pay now
+                </a>
+            </div>
+        </div>
+
+        <div class="pager" th:if="${notificationPage.totalPages > 1}">
+            <a th:if="${notificationPage.hasPrevious()}"
+               th:href="@{/customer/notifications(page=${notificationPage.number - 1})}">
+                Prev
+            </a>
+
+            <a th:each="i : ${#numbers.sequence(0, notificationPage.totalPages - 1)}"
+               th:href="@{/customer/notifications(page=${i})}"
+               th:text="${i + 1}"
+               th:classappend="${i == notificationPage.number} ? ' active' : ''">
+                1
+            </a>
+
+            <a th:if="${notificationPage.hasNext()}"
+               th:href="@{/customer/notifications(page=${notificationPage.number + 1})}">
+                Next
+            </a>
+        </div>
+    </div>
+</section>
+</body>
+</html>

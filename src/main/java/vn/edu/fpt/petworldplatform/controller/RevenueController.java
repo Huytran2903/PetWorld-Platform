@@ -1,6 +1,7 @@
 package vn.edu.fpt.petworldplatform.controller;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,6 +24,7 @@ public class RevenueController {
         this.service = service;
     }
 
+    @PreAuthorize("hasAuthority('VIEW_REPORT')")
     @GetMapping("/revenue")
     public String revenue(
             @RequestParam(required = false)

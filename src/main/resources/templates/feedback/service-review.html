@@ -249,7 +249,17 @@
         const imageFiles = document.getElementById('imageFiles');
         const imagePreview = document.getElementById('imagePreview');
 
-        uploadArea.addEventListener('click', () => imageFiles.click());
+        uploadArea.addEventListener('click', (e) => {
+            // Avoid triggering the picker twice when clicking directly on the file input.
+            if (e.target === imageFiles) {
+                return;
+            }
+            imageFiles.click();
+        });
+
+        imageFiles.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
 
         uploadArea.addEventListener('dragover', e => {
             e.preventDefault();

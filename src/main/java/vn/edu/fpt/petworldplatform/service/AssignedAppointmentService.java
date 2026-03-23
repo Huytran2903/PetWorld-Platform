@@ -17,6 +17,7 @@ import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Service
@@ -55,13 +56,38 @@ public class AssignedAppointmentService implements IAssignedAppointmentService {
         Map<Integer, Appointment> appointmentMap = new LinkedHashMap<>();
         for (AppointmentServiceLine line : lines) {
             Appointment appointment = line.getAppointment();
+            if (appointment == null || appointment.getId() == null) {
+                continue;
+            }
             normalizeStatusIfMissingSummary(appointment);
+            if (isExcludedFromStaffWorklist(appointment.getStatus())) {
+                continue;
+            }
             appointmentMap.putIfAbsent(appointment.getId(), appointment);
         }
 
         return appointmentMap.values().stream()
-                .sorted(Comparator.comparing(Appointment::getAppointmentDate))
+                .sorted(Comparator
+                        .comparing((Appointment a) -> isDoneStatus(a.getStatus()))
+                        .thenComparing(Appointment::getAppointmentDate, Comparator.nullsLast(Comparator.naturalOrder())))
                 .toList();
+    }
+
+    /** true nếu đã hoàn thành — xếp xuống cuối danh sách. */
+    private static boolean isDoneStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return false;
+        }
+        return "done".equals(status.trim().toLowerCase(Locale.ROOT));
+    }
+
+    /** Không hiển thị trên lịch làm việc / danh sách gán của staff. */
+    private static boolean isExcludedFromStaffWorklist(String status) {
+        if (status == null || status.isBlank()) {
+            return false;
+        }
+        String s = status.trim().toLowerCase(Locale.ROOT);
+        return "canceled".equals(s) || "cancelled".equals(s) || "rejected".equals(s);
     }
 
     @Override

@@ -30,18 +30,6 @@
         <nav class="sidebar-nav">
             <ul>
                 <li>
-                    <a th:href="@{/staff/dashboard}"
-                       th:classappend="${activePage == 'dashboard'} ? 'active' : ''">
-                        <i class="fas fa-home"></i> Dashboard
-                    </a>
-                </li>
-                <li>
-                    <a th:href="@{/staff/services}"
-                       th:classappend="${activePage == 'services'} ? 'active' : ''">
-                        <i class="fas fa-concierge-bell"></i> Services
-                    </a>
-                </li>
-                <li>
                     <a th:href="@{/staff/service-execution-history}"
                        th:classappend="${activePage == 'service-history'} ? 'active' : ''">
                         <i class="fas fa-history"></i> Execution History
@@ -54,21 +42,9 @@
                     </a>
                 </li>
                 <li>
-                    <a th:href="@{/staff/customers}"
-                       th:classappend="${activePage == 'customers'} ? 'active' : ''">
-                        <i class="fas fa-users"></i> Customers
-                    </a>
-                </li>
-                <li>
                     <a th:href="@{/staff/assigned_list(staffId=${session.currentStaffId})}"
                        th:classappend="${activePage == 'appointments'} ? 'active' : ''">
                         <i class="fas fa-calendar-alt"></i> Appointments
-                    </a>
-                </li>
-                <li>
-                    <a th:href="@{/staff/bookings}"
-                       th:classappend="${activePage == 'bookings'} ? 'active' : ''">
-                        <i class="fas fa-book"></i> Bookings
                     </a>
                 </li>
                 <li>
@@ -81,12 +57,6 @@
                     <a th:href="@{/staff/profile}"
                        th:classappend="${activePage == 'profile'} ? 'active' : ''">
                         <i class="fas fa-user"></i> Profile
-                    </a>
-                </li>
-                <li>
-                    <a th:href="@{/staff/settings}"
-                       th:classappend="${activePage == 'settings'} ? 'active' : ''">
-                        <i class="fas fa-cog"></i> Settings
                     </a>
                 </li>
                 <li>

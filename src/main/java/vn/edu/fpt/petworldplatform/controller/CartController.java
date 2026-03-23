@@ -1,28 +1,29 @@
 package vn.edu.fpt.petworldplatform.controller;
 
-import jakarta.persistence.Column;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import vn.edu.fpt.petworldplatform.config.GlobalConfigAdvice;
 import vn.edu.fpt.petworldplatform.entity.*;
 import vn.edu.fpt.petworldplatform.repository.OrderRepo;
+import vn.edu.fpt.petworldplatform.repository.PaymentRepository;
 import vn.edu.fpt.petworldplatform.repository.PetRepo;
 import vn.edu.fpt.petworldplatform.repository.ProductRepo;
 import vn.edu.fpt.petworldplatform.service.CartService;
 import vn.edu.fpt.petworldplatform.service.CustomerService;
 import vn.edu.fpt.petworldplatform.service.MomoService;
+import vn.edu.fpt.petworldplatform.service.NotificationService;
 import vn.edu.fpt.petworldplatform.service.OrderService;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 @Controller
 public class CartController {
@@ -41,10 +42,16 @@ public class CartController {
     private OrderService orderService;
 
     @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
     private ProductRepo productRepo;
 
     @Autowired
     private OrderRepo orderRepo;
+
+    @Autowired
+    private PaymentRepository paymentRepository;
 
     @Autowired
     private PetRepo petRepo;
@@ -265,45 +272,167 @@ public class CartController {
 
         // 1. Nếu giao dịch thành công (MoMo trả về resultCode = "0")
         if ("0".equals(resultCode)) {
-
             try {
-                // Bước 1: Tìm đơn hàng trong Database bằng mã orderCode
+                // Try find as Order payment first
                 Order order = orderService.findByOrderCode(orderId);
-
                 if (order != null) {
-                    // Bước 2: Cập nhật trạng thái thành ĐÃ THANH TOÁN
                     order.setStatus("paid");
                     orderService.updateOrder(order);
                     redirectAttributes.addFlashAttribute("order", order);
+
+                    // Xóa cart khi thanh toán order
+                    Integer customerId = getCustomerIdFromAuth(authentication);
+                    if (customerId != null) {
+                        cartService.clearCart(customerId);
+                    }
+
+                    redirectAttributes.addFlashAttribute("successMessage", "Đã thanh toán thành công đơn hàng " + orderId);
+                    return "redirect:/cart/checkout-order";
                 }
 
-                // Bước 3: Xóa sạch giỏ hàng của người dùng hiện tại
-                Integer customerId = getCustomerIdFromAuth(authentication);
-                if (customerId != null) {
-                    cartService.clearCart(customerId);
+                // Appointment payment: orderId = "APTP{paymentId}T{timestamp}" hoặc số (legacy)
+                Integer paymentId = parseAppointmentPaymentId(orderId);
+                if (paymentId == null) {
+                    redirectAttributes.addFlashAttribute("error", "Không tìm thấy payment phù hợp.");
+                    return "redirect:/customer/appointments";
+                }
+                Payment payment = paymentRepository.findById(paymentId).orElse(null);
+                if (payment != null && payment.getAppointment() != null) {
+                    Integer customerId = getCustomerIdFromAuth(authentication);
+                    if (customerId != null
+                            && payment.getAppointment().getCustomerId() != null
+                            && payment.getAppointment().getCustomerId().equals(customerId)) {
+                        boolean alreadyPaid = payment.getPaidAt() != null;
+                        if (!alreadyPaid) {
+                            payment.setPaidAt(java.time.LocalDateTime.now());
+                            paymentRepository.save(payment);
+
+                            Appointment appointment = payment.getAppointment();
+                            Integer apptCustomerId = appointment.getCustomerId();
+                            Customer notifyCustomer = apptCustomerId != null
+                                    ? customerService.findById(apptCustomerId).orElse(null)
+                                    : null;
+
+                            String title = "Payment successful";
+                            String apptCode = appointment.getAppointmentCode() != null ? appointment.getAppointmentCode() : "-";
+                            String message = "You have successfully paid for appointment " + apptCode + ".";
+                            notificationService.createForCustomer(notifyCustomer, appointment, title, message, "payment_success");
+                        }
+
+                        Integer appointmentId = payment.getAppointment().getId();
+                        redirectAttributes.addFlashAttribute(
+                                "message",
+                                "Payment successful for appointment " + payment.getAppointment().getAppointmentCode()
+                        );
+                        return "redirect:/customer/appointments/" + appointmentId;
+                    }
                 }
 
-                // Bước 4: Báo thành công ra màn hình
-                redirectAttributes.addFlashAttribute("successMessage", "Đã thanh toán thành công đơn hàng " + orderId);
+                redirectAttributes.addFlashAttribute("error", "Payment not found or you do not have access.");
+                return "redirect:/customer/appointments";
 
             } catch (Exception e) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Thanh toán thành công nhưng có lỗi cập nhật hệ thống.");
+                redirectAttributes.addFlashAttribute("errorMessage", "Payment succeeded but the system failed to update. Please contact support.");
+                return "redirect:/cart/checkout-order";
+            }
+        }
+
+        // Failed payment
+        try {
+            Order order = orderService.findByOrderCode(orderId);
+            if (order != null) {
+                order.setStatus("cancled");
+                orderService.updateOrder(order);
+                redirectAttributes.addFlashAttribute("errorMessage", "Payment was not completed. Please try again.");
+                return "redirect:/cart/view";
             }
 
-            return "redirect:/cart/checkout-order";
-
-        } else {
-            try {
-                Order order = orderService.findByOrderCode(orderId);
-                if (order != null) {
-                    order.setStatus("cancled");
-                    orderService.updateOrder(order);
+            Integer paymentId = parseAppointmentPaymentId(orderId);
+            if (paymentId != null) {
+                Payment payment = paymentRepository.findById(paymentId).orElse(null);
+                if (payment != null && payment.getAppointment() != null) {
+                    Integer appointmentId = payment.getAppointment().getId();
+                    redirectAttributes.addFlashAttribute("error", "Payment was not completed. Please try again.");
+                    return "redirect:/customer/appointments/" + appointmentId;
                 }
-            } catch (Exception e) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Payment not completed. Please try again!");
             }
+        } catch (Exception e) {
+            // ignore and redirect with generic error
+        }
 
-            return "redirect:/cart/view";
+        redirectAttributes.addFlashAttribute("errorMessage", "Payment was not completed. Please try again.");
+        return "redirect:/cart/view";
+    }
+
+    /**
+     * MOMO IPN (Instant Payment Notification) - callback từ MOMO server khi thanh toán hoàn tất.
+     * Cập nhật trạng thái Paid ngay cả khi user đóng trình duyệt trước redirect.
+     * Phải trả về HTTP 204 trong vòng 15 giây.
+     */
+    @PostMapping("/cart/momo-notify")
+    @ResponseBody
+    public ResponseEntity<Void> momoNotify(@RequestBody Map<String, Object> body) {
+        if (!momoService.verifyIpnSignature(body)) {
+            return ResponseEntity.status(400).build();
+        }
+        Object rc = body.get("resultCode");
+        int resultCode = rc instanceof Number ? ((Number) rc).intValue() : -1;
+        if (resultCode != 0 && resultCode != 9000) {
+            return ResponseEntity.noContent().build(); // 204 - vẫn trả 204 cho MOMO
+        }
+        String orderId = body.get("orderId") != null ? body.get("orderId").toString() : null;
+        if (orderId == null) return ResponseEntity.noContent().build();
+
+        try {
+            Order order = orderService.findByOrderCode(orderId);
+            if (order != null) {
+                order.setStatus("paid");
+                orderService.updateOrder(order);
+                return ResponseEntity.noContent().build();
+            }
+            Integer paymentId = parseAppointmentPaymentId(orderId);
+            if (paymentId != null) {
+                Payment payment = paymentRepository.findById(paymentId).orElse(null);
+                if (payment != null && payment.getAppointment() != null && "service".equals(payment.getPaymentType())) {
+                    if (payment.getPaidAt() == null) {
+                        payment.setPaidAt(java.time.LocalDateTime.now());
+                        paymentRepository.save(payment);
+
+                        Appointment appointment = payment.getAppointment();
+                        Integer apptCustomerId = appointment.getCustomerId();
+                        Customer notifyCustomer = apptCustomerId != null
+                                ? customerService.findById(apptCustomerId).orElse(null)
+                                : null;
+
+                        String title = "Payment successful";
+                        String apptCode = appointment.getAppointmentCode() != null ? appointment.getAppointmentCode() : "-";
+                        String message = "You have successfully paid for appointment " + apptCode + ".";
+                        notificationService.createForCustomer(notifyCustomer, appointment, title, message, "payment_success");
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return ResponseEntity.noContent().build();
+    }
+
+    /** orderId: "APTP{paymentId}T{timestamp}" hoặc số thuần (legacy) */
+    private Integer parseAppointmentPaymentId(String orderId) {
+        if (orderId == null) return null;
+        if (orderId.startsWith("APTP")) {
+            int tIdx = orderId.indexOf("T", 4);
+            if (tIdx > 4) {
+                try {
+                    return Integer.parseInt(orderId.substring(4, tIdx));
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+            }
+        }
+        try {
+            return Integer.parseInt(orderId);
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 

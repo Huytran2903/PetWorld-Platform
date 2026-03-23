@@ -3,7 +3,8 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
 
-<header th:fragment="header(activePage)" class="bg-white">
+<header th:fragment="header(activePage)" class="bg-white sticky-top"
+        style="z-index: 1030; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
 
     <div class="container-fluid" style="background-color: #FFA54F;">
         <div class="container py-2">
@@ -55,6 +56,14 @@
     <div class="container">
         <nav class="navbar navbar-expand-lg py-2">
             <div class="d-flex d-lg-none align-items-center">
+                <a th:href="@{/customer/notifications}" class="mx-2 text-dark position-relative"
+                   sec:authorize="hasRole('CUSTOMER') or hasAuthority('OIDC_USER')">
+                    <iconify-icon icon="mdi:bell-outline" class="fs-4"></iconify-icon>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle"
+                          style="background-color: #ef4444;"
+                          th:if="${unreadNotificationCount > 0}"
+                          th:text="${unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}">0</span>
+                </a>
                 <a th:href="@{/cart/view}" class="mx-2 text-dark position-relative"
                    sec:authorize="hasRole('CUSTOMER') or hasAuthority('OIDC_USER') or isAnonymous()">
                     <iconify-icon icon="mdi:cart" class="fs-4"></iconify-icon>
@@ -92,8 +101,8 @@
                             <a th:href="@{/customer/pet/my-pets}" class="nav-link">My Pets</a>
                         </li>
 
-                        <li class="nav-item">
-                            <a th:href="@{/feedback}" class="nav-link">Feedback</a>
+                        <li class="nav-item" sec:authorize="isAuthenticated()">
+                            <a th:href="@{/feedback}" class="nav-link">Feedback &amp; Suggestions</a>
                         </li>
 
                         <li class="nav-item" sec:authorize="hasRole('ADMIN')">
@@ -101,15 +110,19 @@
                                style="color: #dc3545 !important;">Admin Panel</a>
                         </li>
 
-                        <li class="nav-item"
-                            sec:authorize="isAuthenticated() and !hasRole('ADMIN') and !hasRole('CUSTOMER') and !hasAuthority('OIDC_USER')">
-                            <a th:href="@{/staff/assigned_list}" class="nav-link fw-bold"
-                               style="color: #0d6efd !important;">Staff Panel</a>
-                        </li>
+                        <!-- Staff Panel is shown on staff layout/sidebar only. -->
                     </ul>
 
                     <div class="d-none d-lg-flex"
                          sec:authorize="hasRole('CUSTOMER') or hasAuthority('OIDC_USER') or isAnonymous()">
+                        <a th:href="@{/customer/notifications}" class="text-dark position-relative me-3"
+                           sec:authorize="hasRole('CUSTOMER') or hasAuthority('OIDC_USER')">
+                            <iconify-icon icon="mdi:bell-outline" class="fs-4"></iconify-icon>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle"
+                                  style="background-color: #ef4444;"
+                                  th:if="${unreadNotificationCount > 0}"
+                                  th:text="${unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}">0</span>
+                        </a>
                         <a th:href="@{/cart/view}" class="text-dark position-relative">
                             <iconify-icon icon="mdi:cart" class="fs-4"></iconify-icon>
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-circle"

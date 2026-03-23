@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.Pets;
+import vn.edu.fpt.petworldplatform.entity.Staff;
 import vn.edu.fpt.petworldplatform.service.BookingService;
 
 import java.time.LocalDateTime;
@@ -28,8 +29,14 @@ public class BookingController {
     public String bookingPage(HttpSession session, Model model,
                               @RequestParam(required = false) String type,
                               RedirectAttributes redirectAttributes) {
-        Customer customer = (Customer) session.getAttribute("loggedInAccount");
-        if (customer == null) {
+        Object loggedIn = session.getAttribute("loggedInAccount");
+        Customer customer = null;
+        if (loggedIn instanceof Customer c) {
+            customer = c;
+        } else if (loggedIn instanceof Staff) {
+            // staff không được vào trang booking của customer
+            return "redirect:/staff/assigned_list";
+        } else {
             return "redirect:/login";
         }
 
@@ -58,8 +65,13 @@ public class BookingController {
                                 @RequestParam(required = false) List<Integer> mainServices,
                                 @RequestParam(required = false) String note,
                                 RedirectAttributes redirectAttributes) {
-        Customer customer = (Customer) session.getAttribute("loggedInAccount");
-        if (customer == null) {
+        Object loggedIn = session.getAttribute("loggedInAccount");
+        Customer customer = null;
+        if (loggedIn instanceof Customer c) {
+            customer = c;
+        } else if (loggedIn instanceof Staff) {
+            return "redirect:/staff/assigned_list";
+        } else {
             return "redirect:/login";
         }
 

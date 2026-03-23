@@ -165,7 +165,7 @@
                         <label for="typeFilter" class="form-label fw-bold small text-muted text-uppercase mb-1">Type</label>
                         <select id="typeFilter" name="type" class="form-select form-select-sm" style="min-width: 150px;">
                             <option value="">All Types</option>
-                            <option value="general" th:selected="${currentType == 'general'}">General</option>
+                            <option value="general" th:selected="${currentType == 'general'}">Feedback &amp; Suggestions</option>
                             <option value="service" th:selected="${currentType == 'service'}">Service</option>
                             <option value="product" th:selected="${currentType == 'product'}">Product</option>
                         </select>
@@ -174,6 +174,11 @@
                         <button type="submit" class="btn btn-sm btn-dark fw-bold">
                             <i class="bi bi-funnel me-1"></i> Filter
                         </button>
+                        <a th:href="@{/admin/feedback(type='general')}"
+                           class="btn btn-sm fw-bold"
+                           th:classappend="${currentType == 'general' and (currentStatus == null or currentStatus.isBlank())} ? ' btn-primary' : ' btn-outline-primary'">
+                            <i class="bi bi-lightbulb me-1"></i> Feedback &amp; Suggestions
+                        </a>
                         <a th:href="@{/admin/feedback}" class="btn btn-sm btn-outline-secondary fw-bold">
                             <i class="bi bi-x-lg me-1"></i> Clear
                         </a>
@@ -186,7 +191,7 @@
                 <h5 class="fw-bold mb-0" style="color: #FFA54F;">
                     <i class="bi bi-chat-left-text me-2"></i>All Feedback
                 </h5>
-                <span class="badge bg-secondary rounded-pill" th:text="${#lists.size(feedbacks)} + ' items'">0 items</span>
+                <span class="badge bg-secondary rounded-pill" th:text="${feedbackPage.totalElements} + ' items'">0 items</span>
             </div>
 
             <!-- Empty State -->
@@ -214,6 +219,14 @@
                             <span class="text-muted small" th:if="${fb.customer == null and fb.email != null}">
                                 <i class="bi bi-envelope me-1"></i>
                                 <span th:text="${fb.email}"></span>
+                            </span>
+                            <span class="text-muted small" th:if="${fb.customer != null and fb.customer.phone != null and !fb.customer.phone.isBlank()}">
+                                <i class="bi bi-telephone me-1"></i>
+                                <span th:text="${fb.customer.phone}"></span>
+                            </span>
+                            <span class="text-muted small" th:if="${(fb.customer == null or fb.customer.phone == null or fb.customer.phone.isBlank()) and fb.phoneNumber != null and !fb.phoneNumber.isBlank()}">
+                                <i class="bi bi-telephone me-1"></i>
+                                <span th:text="${fb.phoneNumber}"></span>
                             </span>
                         </div>
                         <span class="badge rounded-pill" th:classappend="'status-' + ${fb.status}"
@@ -295,6 +308,28 @@
                         </form>
                     </div>
                 </div>
+
+                <nav th:if="${totalPages > 1}" aria-label="Feedback pagination" class="mt-4">
+                    <ul class="pagination pagination-sm justify-content-center mb-0">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/admin/feedback(page=${currentPage - 1},status=${currentStatus},type=${currentType})}">Previous</a>
+                        </li>
+
+                        <li class="page-item"
+                            th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                            th:classappend="${i == currentPage} ? 'active'">
+                            <a class="page-link"
+                               th:text="${i + 1}"
+                               th:href="@{/admin/feedback(page=${i},status=${currentStatus},type=${currentType})}">1</a>
+                        </li>
+
+                        <li class="page-item" th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/admin/feedback(page=${currentPage + 1},status=${currentStatus},type=${currentType})}">Next</a>
+                        </li>
+                    </ul>
+                </nav>
             </div>
 
         </div>

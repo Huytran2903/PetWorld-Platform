@@ -14,18 +14,20 @@
 
 <body>
 <main layout:fragment="content" class="container">
-    <!-- Alerts -->
+    <!-- Thông báo flash: dòng chữ + viền trái, không dùng ô nền đỏ/xanh -->
     <div
             th:if="${message}"
-            class="alert alert-success"
-            role="alert"
+            class="booking-flash booking-flash--success"
+            role="status"
+            aria-live="polite"
             th:text="${message}"
     ></div>
 
     <div
             th:if="${error}"
-            class="alert alert-danger"
+            class="booking-flash booking-flash--error"
             role="alert"
+            aria-live="assertive"
             th:text="${error}"
     ></div>
 
@@ -115,7 +117,6 @@
                             <thead>
                                 <tr>
                                     <th class="col-check"></th>
-                                    <th class="col-type">TYPE</th>
                                     <th class="col-name">NAME</th>
                                     <th class="col-desc">DESCRIPTION</th>
                                     <th class="col-price">PRICE</th>
@@ -135,9 +136,6 @@
                                                 th:data-name="${svc.name}"
                                                 th:data-unit="${svc.serviceType == 'boarding' ? 'day' : 'time'}"
                                         />
-                                    </td>
-                                    <td class="col-type">
-                                        <span class="svc-type-label" th:text="${svc.serviceType}">TYPE</span>
                                     </td>
                                     <td class="col-name">
                                         <span class="fw-bold" th:text="${svc.name}">Service Name</span>
@@ -231,11 +229,6 @@
         </header>
 
         <div class="card-body">
-            <div class="summary-row">
-                <span>Service Type</span>
-                <strong id="sumServiceType" th:text="${currentType}">—</strong>
-            </div>
-
             <div class="summary-row">
                 <span>Selected Services</span>
                 <strong id="sumServices">—</strong>

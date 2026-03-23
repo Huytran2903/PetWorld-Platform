@@ -73,6 +73,31 @@ public class MomoService {
         return callMomoApi(momoConfig.getEndpoint(), message);
     }
 
+    /**
+     * Verify IPN (Instant Payment Notification) signature from MOMO callback.
+     * Builds raw string from all params except 'signature', sorted by key, then HMAC_SHA256.
+     */
+    public boolean verifyIpnSignature(Map<String, Object> params) {
+        try {
+            String receivedSignature = (String) params.get("signature");
+            if (receivedSignature == null) return false;
+
+            StringBuilder raw = new StringBuilder();
+            params.entrySet().stream()
+                    .filter(e -> !"signature".equals(e.getKey()))
+                    .sorted(Map.Entry.comparingByKey())
+                    .forEach(e -> {
+                        if (raw.length() > 0) raw.append("&");
+                        Object v = e.getValue();
+                        raw.append(e.getKey()).append("=").append(v != null ? v.toString() : "");
+                    });
+            String computed = hmacSha256(raw.toString(), momoConfig.getSecretKey());
+            return computed.equalsIgnoreCase(receivedSignature);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     private String hmacSha256(String data, String key) throws Exception {
         byte[] byteKey = key.getBytes(StandardCharsets.UTF_8);
         Mac sha256_HMAC = Mac.getInstance("HmacSHA256");

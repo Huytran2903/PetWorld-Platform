@@ -2,7 +2,6 @@ package vn.edu.fpt.petworldplatform.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.FutureOrPresent;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -27,7 +26,6 @@ public class PetVaccinations {
     private LocalDate administeredDate;
 
     @Column(name = "NextDueDate")
-    @FutureOrPresent(message = "Next due date cannot be in the past!")
     private LocalDate nextDueDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
