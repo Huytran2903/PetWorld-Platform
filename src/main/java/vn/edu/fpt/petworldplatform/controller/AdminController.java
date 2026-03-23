@@ -112,7 +112,7 @@ public class AdminController {
         }
         // 4. Trường hợp: KHÔNG có gì (Lấy mặc định)
         else {
-            petPage = petService.getAllPetWithPagination(pageable);
+            petPage = petService.getAllPet(pageable);
         }
 
         model.addAttribute("pets", petPage.getContent());           // Danh sách pet của trang hiện tại

@@ -39,10 +39,14 @@ public class PetService {
         return petRepo.findAll(pageable);
     }
 
-    // --- 1. Lấy danh sách ---
+    // --- 1. Lấy danh sách - Customer
     //OanhTP
     public Page<Pets> getAllPetWithPagination(Pageable pageable) {
         return petRepo.findByOwnerIsNullAndPriceIsNotNull(pageable);
+    }
+
+    public Page<Pets> getAllPet(Pageable pageable) {
+        return petRepo.findAll(pageable);
     }
 
     public List<Pets> getAllPets() {
@@ -98,7 +102,7 @@ public class PetService {
         }
 
         // Nếu có chọn Type cụ thể ("Dog", "Cat", "Bird"...) -> Lọc theo loại và đang bán
-        return petRepo.findAllByPetTypeIgnoreCaseAndOwnerIsNullAndPriceIsNotNull(type, pageable);
+        return petRepo.findAllByPetTypeIgnoreCase(type, pageable);
     }
 
     public void createPet(PetCreateDTO dto) throws IOException {
