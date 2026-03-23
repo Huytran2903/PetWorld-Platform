@@ -3,6 +3,7 @@ package vn.edu.fpt.petworldplatform.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -21,8 +22,9 @@ public class SystemConfigs {
     @Column(name = "data_type")
     private String dataType;
 
-    @Column(name = "updated_by_staff_id")
-    private Integer updatedByStaffId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "updated_by_staff_id")
+    private Staff updatedByStaff;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
@@ -31,8 +33,5 @@ public class SystemConfigs {
     @PreUpdate
     public void preSave() {
         this.updatedAt = LocalDateTime.now();
-        if (this.updatedByStaffId == null) {
-            this.updatedByStaffId = 1;
-        }
     }
 }

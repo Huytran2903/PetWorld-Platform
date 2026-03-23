@@ -123,9 +123,6 @@
                                         <div class="text-muted fw-medium" style="font-size: 0.85rem;">
                                             <span th:text="${#temporals.format(config.updatedAt, 'dd/MM/yyyy HH:mm')}"></span>
                                         </div>
-                                        <input type="hidden"
-                                               th:field="*{configs[__${itemStat.index}__].updatedByStaffId}"/>
-                                        <input type="hidden" th:field="*{configs[__${itemStat.index}__].updatedAt}"/>
                                     </td>
                                 </tr>
                                 </tbody>

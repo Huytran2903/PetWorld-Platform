@@ -693,3 +693,7 @@ ADD FailedAttempts INT NOT NULL DEFAULT 0;
 ALTER TABLE dbo.Staff 
 ADD LockedUntil DATETIME2 NULL;
 GO
+
+ALTER TABLE system_configs WITH NOCHECK
+ADD CONSTRAINT FK_SystemConfigs_Staff
+FOREIGN KEY (updated_by_staff_id) REFERENCES Staff(StaffID);
