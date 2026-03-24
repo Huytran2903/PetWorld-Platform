@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hồ sơ nhân viên - PetShop</title>
+    <title>Staff Profile - PetShop</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/sidebar-staff.css}">
     <style>
-        /* Thêm smooth scroll cho nút bấm trượt nhanh */
+        /* Enable smooth scroll for quick-jump button */
         html {
             scroll-behavior: smooth;
         }
@@ -457,26 +457,26 @@
 
     <div class="page-header">
         <a th:href="@{/staff/assigned_list}" class="back-link">
-            <i class="fas fa-arrow-left"></i> Quay lại danh sách lịch hẹn
+            <i class="fas fa-arrow-left"></i> Back to appointment list
         </a>
-        <h1><i class="fas fa-user-circle" style="color: var(--primary-color); margin-right: 10px;"></i>Hồ sơ của tôi
+        <h1><i class="fas fa-user-circle" style="color: var(--primary-color); margin-right: 10px;"></i>My Profile
         </h1>
-        <p>Xem và cập nhật thông tin hồ sơ nhân viên</p>
+        <p>View and update your staff profile information</p>
     </div>
 
     <div th:if="${successMessage}" class="alert alert-success">
         <i class="fas fa-check-circle"></i>
-        <span th:text="${successMessage}">Thành công!</span>
+        <span th:text="${successMessage}">Success!</span>
     </div>
 
     <div th:if="${errorMessage}" class="alert alert-error">
         <i class="fas fa-exclamation-circle"></i>
-        <span th:text="${errorMessage}">Lỗi</span>
+        <span th:text="${errorMessage}">Error</span>
     </div>
 
     <div th:if="${passwordErrors}" class="alert alert-error">
         <i class="fas fa-exclamation-circle"></i>
-        <span>Đổi mật khẩu thất bại. Vui lòng kiểm tra lại.</span>
+        <span>Password change failed. Please check your input and try again.</span>
     </div>
 
     <div class="profile-grid">
@@ -487,7 +487,7 @@
                     <i class="fas fa-user"></i>
                 </div>
 
-                <h2 th:text="${staff.fullName != null ? staff.fullName : staff.username}">Tên nhân viên</h2>
+                <h2 th:text="${staff.fullName != null ? staff.fullName : staff.username}">Staff Name</h2>
 
                 <div>
                     <span class="role-badge admin" th:if="${staff.role.roleName == 'admin'}">
@@ -501,7 +501,7 @@
                 <div style="margin-bottom: 22px;">
                     <a href="#password-section" class="btn btn-danger"
                        style="padding: 8px 20px; font-size: 13px; border-radius: 50px; box-shadow: 0 4px 10px rgba(239,68,68,0.3);">
-                        <i class="fas fa-lock"></i> Đổi mật khẩu
+                        <i class="fas fa-lock"></i> Change Password
                     </a>
                 </div>
 
@@ -518,19 +518,19 @@
                     <span class="value" th:text="${staff.phone != null ? staff.phone : '—'}">—</span>
                 </div>
                 <div class="info-row">
-                    <span class="label"><i class="fas fa-briefcase"></i> Ngày bắt đầu</span>
+                    <span class="label"><i class="fas fa-briefcase"></i> Start Date</span>
                     <span class="value"
                           th:text="${staff.hireDate != null ? #temporals.format(staff.hireDate, 'dd/MM/yyyy') : '—'}">—</span>
                 </div>
                 <div class="info-row">
-                    <span class="label"><i class="fas fa-calendar-check"></i> Tạo lúc</span>
+                    <span class="label"><i class="fas fa-calendar-check"></i> Created At</span>
                     <span class="value"
                           th:text="${staff.createdAt != null ? #temporals.format(staff.createdAt, 'dd/MM/yyyy HH:mm') : '—'}">—</span>
                 </div>
                 <div class="info-row">
-                    <span class="label"><i class="fas fa-sync-alt"></i> Cập nhật</span>
+                    <span class="label"><i class="fas fa-sync-alt"></i> Updated At</span>
                     <span class="value"
-                          th:text="${staff.updatedAt != null ? #temporals.format(staff.updatedAt, 'dd/MM/yyyy HH:mm') : 'Chưa cập nhật'}">—</span>
+                          th:text="${staff.updatedAt != null ? #temporals.format(staff.updatedAt, 'dd/MM/yyyy HH:mm') : 'Not updated yet'}">—</span>
                 </div>
             </div>
         </div>
@@ -540,7 +540,7 @@
             <div class="card">
                 <div class="card-header">
                     <i class="fas fa-edit"></i>
-                    <h3>Chỉnh sửa hồ sơ</h3>
+                    <h3>Edit Profile</h3>
                 </div>
                 <div class="card-body">
                     <form th:action="@{/staff/profile}" method="post">
@@ -565,7 +565,7 @@
 
                             <div class="form-group">
                                 <label>
-                                    <i class="fas fa-phone"></i> Số điện thoại
+                                    <i class="fas fa-phone"></i> Phone Number
                                 </label>
                                 <input type="text"
                                        name="phone"
@@ -575,17 +575,17 @@
 
                             <div class="form-group">
                                 <label>
-                                    <i class="fas fa-user"></i> Tên đầy đủ
+                                    <i class="fas fa-user"></i> Full Name
                                 </label>
                                 <input type="text"
                                        name="fullName"
                                        th:value="${staff.fullName}"
-                                       placeholder="Nguyễn Văn A">
+                                       placeholder="Nguyen Van A">
                             </div>
 
                             <div class="form-group">
                                 <label>
-                                    <i class="fas fa-briefcase"></i> Ngày bắt đầu làm việc
+                                    <i class="fas fa-briefcase"></i> Employment Start Date
                                 </label>
                                 <input type="date"
                                        name="hireDate"
@@ -594,17 +594,17 @@
 
                             <div class="form-group full">
                                 <label>
-                                    <i class="fas fa-file-alt"></i> Giới thiệu (Bio)
+                                    <i class="fas fa-file-alt"></i> Introduction (Bio)
                                 </label>
                                 <textarea name="bio"
-                                          placeholder="Nhập mô tả ngắn về bạn..."
+                                          placeholder="Enter a short description about yourself..."
                                           th:text="${staff.bio != null ? staff.bio : ''}"></textarea>
                             </div>
 
                         </div>
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Lưu hồ sơ
+                                <i class="fas fa-save"></i> Save Profile
                             </button>
                         </div>
                     </form>
@@ -613,7 +613,7 @@
             <div class="card" id="password-section">
                 <div class="card-header">
                     <i class="fas fa-lock"></i>
-                    <h3>Đổi mật khẩu</h3>
+                    <h3>Change Password</h3>
                 </div>
                 <div class="card-body">
                     <form th:action="@{/staff/profile/change-password}" method="post">
@@ -621,39 +621,39 @@
 
                             <div class="form-group full">
                                 <label>
-                                    <i class="fas fa-key"></i> Mật khẩu hiện tại <span class="required">*</span>
+                                    <i class="fas fa-key"></i> Current Password <span class="required">*</span>
                                 </label>
                                 <input type="password"
                                        name="currentPassword"
                                        th:classappend="${passwordErrors != null} ? 'is-invalid' : ''"
-                                       placeholder="Nhập mật khẩu hiện tại">
+                                       placeholder="Enter current password">
                             </div>
 
                             <div class="form-group">
                                 <label>
-                                    <i class="fas fa-lock"></i> Mật khẩu mới <span class="required">*</span>
+                                    <i class="fas fa-lock"></i> New Password <span class="required">*</span>
                                 </label>
                                 <input type="password"
                                        name="newPassword"
                                        th:classappend="${passwordErrors != null} ? 'is-invalid' : ''"
-                                       placeholder="Nhập mật khẩu mới">
-                                <span class="hint">Ít nhất 6 ký tự</span>
+                                       placeholder="Enter new password">
+                                <span class="hint">At least 6 characters</span>
                             </div>
 
                             <div class="form-group">
                                 <label>
-                                    <i class="fas fa-lock"></i> Xác nhận mật khẩu <span class="required">*</span>
+                                    <i class="fas fa-lock"></i> Confirm Password <span class="required">*</span>
                                 </label>
                                 <input type="password"
                                        name="confirmPassword"
                                        th:classappend="${passwordErrors != null} ? 'is-invalid' : ''"
-                                       placeholder="Nhập lại mật khẩu mới">
+                                       placeholder="Re-enter new password">
                             </div>
 
                         </div>
                         <div class="form-actions">
                             <button type="submit" class="btn btn-danger">
-                                <i class="fas fa-key"></i> Đổi mật khẩu
+                                <i class="fas fa-key"></i> Change Password
                             </button>
                         </div>
                     </form>
