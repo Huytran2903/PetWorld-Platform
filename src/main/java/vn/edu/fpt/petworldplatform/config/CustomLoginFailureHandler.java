@@ -25,8 +25,22 @@ public class CustomLoginFailureHandler extends SimpleUrlAuthenticationFailureHan
     @Autowired
     private StaffRepository staffRepo;
 
-    private static final int MAX_FAILED_ATTEMPTS = 4;
-    private static final int LOCK_TIME_DURATION_MINUTES = 2;
+    private long calculateLockTimeInMinutes(int failedAttempts) {
+        if (failedAttempts < 4) return 0;
+
+        switch (failedAttempts) {
+            case 4:
+                return 2;
+            case 5:
+                return 5;
+            case 6:
+                return 15;
+            case 7:
+                return 30;
+            default:
+                return 60;
+        }
+    }
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
@@ -34,7 +48,7 @@ public class CustomLoginFailureHandler extends SimpleUrlAuthenticationFailureHan
 
         String username = request.getParameter("username");
 
-        // Nếu lỗi là do bị khóa thì đẩy ra lỗi khóa luôn
+        // Nếu lỗi là do tài khoản đang trong thời gian bị khóa
         if (exception instanceof LockedException) {
             super.setDefaultFailureUrl("/login?error=locked");
             super.onAuthenticationFailure(request, response, exception);
@@ -51,19 +65,21 @@ public class CustomLoginFailureHandler extends SimpleUrlAuthenticationFailureHan
             }
         }
 
-        // Đẩy về trang login báo sai mật khẩu
         super.setDefaultFailureUrl("/login?error=bad_credentials");
         super.onAuthenticationFailure(request, response, exception);
     }
 
     private void processCustomerFailure(Customer customer) {
         int attempts = customer.getFailedAttempts() == null ? 0 : customer.getFailedAttempts();
-        attempts++;
+        attempts++; // Tăng số lần sai lên 1
         customer.setFailedAttempts(attempts);
 
-        if (attempts >= MAX_FAILED_ATTEMPTS) {
-            customer.setLockedUntil(LocalDateTime.now().plusMinutes(LOCK_TIME_DURATION_MINUTES));
+        long lockMinutes = calculateLockTimeInMinutes(attempts);
+
+        if (lockMinutes > 0) {
+            customer.setLockedUntil(LocalDateTime.now().plusMinutes(lockMinutes));
         }
+
         customerRepo.save(customer);
     }
 
@@ -72,9 +88,12 @@ public class CustomLoginFailureHandler extends SimpleUrlAuthenticationFailureHan
         attempts++;
         staff.setFailedAttempts(attempts);
 
-        if (attempts >= MAX_FAILED_ATTEMPTS) {
-            staff.setLockedUntil(LocalDateTime.now().plusMinutes(LOCK_TIME_DURATION_MINUTES));
+        long lockMinutes = calculateLockTimeInMinutes(attempts);
+
+        if (lockMinutes > 0) {
+            staff.setLockedUntil(LocalDateTime.now().plusMinutes(lockMinutes));
         }
+
         staffRepo.save(staff);
     }
 }

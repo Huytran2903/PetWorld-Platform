@@ -177,12 +177,6 @@ public class CustomerService {
         return customerRepo.findAll();
     }
 
-    public void deleteCustomer(int id) {
-        if (!customerRepo.existsById(id)) {
-            throw new RuntimeException("Customer not found with id: " + id);
-        }
-        customerRepo.deleteById(id);
-    }
 
     public void updateCustomerStatus(int id, boolean newStatus) {
         Customer customer = customerRepo.findById(id).orElseThrow(() -> new RuntimeException("Customer not found with id: " + id));

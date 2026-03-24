@@ -35,7 +35,7 @@
                 <div th:if="${#strings.equals(param.error, 'locked')}" class="alert alert-danger py-2 fw-bold"
                      role="alert" style="font-size: 0.9rem; border-left: 4px solid #dc3545;">
                     <i class="bi bi-lock-fill me-2" style="font-size: 1.1rem;"></i>
-                    <span>Your account is temporarily locked due to multiple failed attempts. Please try again after 2 minutes!</span>
+                    <span>Your account is temporarily locked due to multiple failed login attempts. Please wait a moment and try again!</span>
                 </div>
 
                 <div th:if="${param.error != null and !#strings.equals(param.error, 'bad_credentials') and !#strings.equals(param.error, 'locked')}"
