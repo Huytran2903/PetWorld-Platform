@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.Order;
 
 import java.time.LocalDateTime;
@@ -26,4 +27,6 @@ public interface OrderRepo extends JpaRepository<Order, Integer> {
     Page<Order> findByCreatedAtBetween (LocalDateTime start, LocalDateTime end, Pageable pageable);
 
     Page<Order> findByStatus(String status, Pageable pageable);
+
+    Page<Order> findAllByCustomer(Pageable pageable, Customer customer);
 }

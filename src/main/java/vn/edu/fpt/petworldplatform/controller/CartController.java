@@ -455,8 +455,10 @@ public class CartController {
 
 
     @GetMapping("/cart/order-history")
-    public String orderHistory(Model model, @PageableDefault(size = 10, page = 0) Pageable pageable) {
-        Page<Order> orderHistory = orderService.getAllOrder(pageable);
+    public String orderHistory(Model model, @PageableDefault(size = 10, page = 0) Pageable pageable, Authentication authentication) {
+        Integer customerId = getCustomerIdFromAuth(authentication);
+
+        Page<Order> orderHistory = orderService.getAllOrderById(pageable, customerService.getCustomerById(customerId));
         model.addAttribute("orderHistory",orderHistory);
         return "customer/order-history";
     }

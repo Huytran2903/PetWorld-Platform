@@ -1,5 +1,6 @@
 package vn.edu.fpt.petworldplatform.service;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -230,5 +231,9 @@ public class CustomerService {
             return customerRepo.searchCustomers(keyword.trim(), pageable);
         }
         return customerRepo.findAll(pageable);
+    }
+
+    public Customer getCustomerById(Integer id){
+        return customerRepo.findById(id).get();
     }
 }

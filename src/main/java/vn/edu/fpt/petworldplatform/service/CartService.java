@@ -120,8 +120,7 @@ public class CartService {
         if ("increase".equals(action)) {
             // Kiểm tra nếu là Sản phẩm (Product) mới cho phép tăng
             if (item.getProduct() != null) {
-                int currentStock = item.getProduct().getStock(); // Giả sử tên trường trong Product là quantity
-
+                int currentStock = item.getProduct().getStock();
                 if (item.getQuantity() < currentStock) {
                     item.setQuantity(item.getQuantity() + 1);
                 } else {

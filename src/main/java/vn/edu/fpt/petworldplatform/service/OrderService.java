@@ -150,9 +150,16 @@ public class OrderService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    //Admin
     public Page<Order> getAllOrder(Pageable pageable){
        return orderRepo.findAll(pageable);
     }
+
+    //Customer
+    public Page<Order> getAllOrderById(Pageable pageable, Customer customer){
+        return orderRepo.findAllByCustomer(pageable, customer);
+    }
+
 
     //List Order
     public Page<Order> getAllOrderFilter(LocalDate startDate, LocalDate endDate, String status, Pageable pageable) {
