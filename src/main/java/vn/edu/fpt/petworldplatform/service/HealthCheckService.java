@@ -324,10 +324,14 @@ public class HealthCheckService implements IHealthCheckService {
                     }
                 });
 
-        // Vaccine có next due date (không phải one-time) thì bắt buộc phải chọn ngày
+        // Vaccines with recurring schedule must have a Next Due Date.
         boolean oneTimeVaccine = Boolean.TRUE.equals(serviceLine.getService().getIsOneTimeVaccine());
         if (!oneTimeVaccine && (request == null || request.getNextDueDate() == null)) {
-            throw new IllegalArgumentException("Vaccine có lịch tiêm nhắc lại, bắt buộc phải chọn Next Due Date.");
+            throw new IllegalArgumentException("Next Due Date is required for recurring vaccines.");
+        }
+
+        if (!oneTimeVaccine && request.getNextDueDate() != null && !request.getNextDueDate().isAfter(today)) {
+            throw new IllegalArgumentException("Next Due Date must be after the administered date.");
         }
 
         PetVaccinations v = new PetVaccinations();
@@ -351,7 +355,7 @@ public class HealthCheckService implements IHealthCheckService {
         PetHealthRecord record = petHealthRecordRepository.findById(recordId)
                 .orElseThrow(() -> new IllegalStateException("Health record not found."));
 
-        if (record.getPerformedByStaffId() == null || !record.getPerformedByStaffId().equals(staffId.longValue())) {
+        if (record.getPerformedByStaffId() == null || !record.getPerformedByStaffId().equals(staffId)) {
             throw new IllegalStateException("You can only update your own health record.");
         }
 

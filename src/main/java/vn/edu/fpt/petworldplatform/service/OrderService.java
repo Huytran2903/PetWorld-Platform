@@ -85,14 +85,6 @@ public class OrderService {
                 oi.setProductID(ci.getProduct().getProductId());
                 oi.setItemName(ci.getProduct().getName());
                 oi.setUnitPrice(ci.getProduct().getSalePrice());
-
-                // Cập nhật tồn kho
-                Product p = ci.getProduct();
-                if (p.getStock() < ci.getQuantity()) {
-                    throw new RuntimeException("Sản phẩm " + p.getName() + " không đủ hàng!");
-                }
-                p.setStock(p.getStock() - ci.getQuantity());
-                productRepo.save(p);
             } else if (ci.getPet() != null) {
                 oi.setPetID(ci.getPet().getPetID());
                 oi.setItemName(ci.getPet().getName());
@@ -102,6 +94,7 @@ public class OrderService {
                 Customer owner = customerRepo.findById(customerId).get();
                 pet.setOwner(owner);
                 pet.setIsAvailable(false);
+                pet.setPurchasedAt(LocalDateTime.now());
             }
 
             oi.setQuantity(ci.getQuantity());
@@ -227,11 +220,43 @@ public class OrderService {
             throw new RuntimeException("Đơn đã thanh toán MoMo, không được phép Hủy. Hãy dùng Refund (Hoàn tiền)!");
         }
 
+        // Chỉ trừ tồn kho khi trạng thái chuyển sang done
+        if (!"done".equals(currentStatus) && "done".equals(targetStatus)) {
+            deductProductStockForDoneOrder(order);
+        }
+
         // Bước 5: Nếu vượt qua hết các "cửa ải" trên thì mới cho phép đổi
         order.setStatus(targetStatus);
 
         // Bước 6: Lưu xuống DB
         orderRepo.saveAndFlush(order);
+    }
+
+    private void deductProductStockForDoneOrder(Order order) {
+        if (order.getOrderItems() == null || order.getOrderItems().isEmpty()) {
+            return;
+        }
+
+        for (OrderItems item : order.getOrderItems()) {
+            if (item.getProductID() == null) {
+                continue;
+            }
+
+            Product product = productRepo.findById(item.getProductID())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm ID: " + item.getProductID()));
+
+            int quantityToDeduct = item.getQuantity() != null ? item.getQuantity() : 0;
+            if (quantityToDeduct <= 0) {
+                continue;
+            }
+
+            if (product.getStock() < quantityToDeduct) {
+                throw new RuntimeException("Sản phẩm " + product.getName() + " không đủ tồn kho để hoàn tất đơn hàng.");
+            }
+
+            product.setStock(product.getStock() - quantityToDeduct);
+            productRepo.save(product);
+        }
     }
 
     @Transactional

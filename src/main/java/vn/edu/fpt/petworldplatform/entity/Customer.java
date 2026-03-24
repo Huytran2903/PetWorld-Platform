@@ -16,11 +16,12 @@ import java.util.List;
 
 @Entity
 @Table(name = "Customers")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Customer implements UserDetails     {
+public class Customer implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -80,12 +81,7 @@ public class Customer implements UserDetails     {
 
     @Override
     public @Nullable String getPassword() {
-        return "";
-    }
-
-
-    public Integer getCustomerId() {
-        return customerId;
+        return this.passwordHash;
     }
 
 

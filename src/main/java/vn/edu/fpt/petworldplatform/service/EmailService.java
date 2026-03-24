@@ -36,14 +36,13 @@ public class EmailService {
             helper.setFrom("petworldfpt@gmail.com", "Pet World Support");
             helper.setTo(to);
             helper.setSubject(subject);
-            helper.setText(htmlContent, true); // true = cho phép HTML
+            helper.setText(htmlContent, true);
 
             mailSender.send(message);
             System.out.println("Mail sent successfully to " + to);
 
         } catch (MessagingException | UnsupportedEncodingException e) {
             System.err.println("Failed to send email: " + e.getMessage());
-            // Có thể log lỗi vào database nếu cần
         }
     }
 

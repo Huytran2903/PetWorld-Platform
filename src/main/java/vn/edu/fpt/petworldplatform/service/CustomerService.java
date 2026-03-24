@@ -46,28 +46,22 @@ public class CustomerService {
 
         String otp = generateOtp();
 
-        VerificationToken tokenEntity = new VerificationToken();
-        tokenEntity.setToken(otp);
-        tokenEntity.setCustomer(savedCustomer);
-        tokenEntity.setExpiryDate(LocalDateTime.now().plusMinutes(5));
+        VerificationToken tokenEntity = new VerificationToken(otp, savedCustomer);
 
         verificationTokenRepo.save(tokenEntity);
 
         emailService.sendVerificationEmail(savedCustomer, otp);
     }
 
+    @Transactional
     public boolean verifyOtp(String email, String otp) {
         VerificationToken tokenEntity = verificationTokenRepo.findByToken(otp).orElse(null);
-        if (tokenEntity != null
-                && tokenEntity.getCustomer().getEmail().equals(email)
-                && tokenEntity.getExpiryDate().isAfter(LocalDateTime.now())) {
+        if (tokenEntity != null && tokenEntity.getCustomer().getEmail().equals(email) && tokenEntity.getExpiryDate().isAfter(LocalDateTime.now())) {
 
-            // Kích hoạt tài khoản
             Customer customer = tokenEntity.getCustomer();
             customer.setIsActive(true);
             customerRepo.save(customer);
 
-            // Xóa token sau khi dùng xong (tuỳ chọn)
             verificationTokenRepo.delete(tokenEntity);
             return true;
         }
@@ -99,9 +93,37 @@ public class CustomerService {
         return "success";
     }
 
+
+    @Transactional
+    public void resendOtp(String email, String actionType) throws Exception {
+        Customer customer = customerRepo.findByEmail(email).orElseThrow(() -> new Exception("Account has not exist!"));
+
+        if ("FORGOT_PASSWORD".equals(actionType) && customer.getAuthProvider() == AuthProvider.GOOGLE) {
+            throw new Exception("Email này được liên kết với Google. Vui lòng đăng nhập bằng nút Google!");
+        }
+
+        VerificationToken oldToken = verificationTokenRepo.findByCustomer(customer);
+        if (oldToken != null) {
+            verificationTokenRepo.delete(oldToken);
+        }
+
+        String newOtp = generateOtp();
+        VerificationToken newToken = new VerificationToken(newOtp, customer);
+        verificationTokenRepo.save(newToken);
+
+        if ("REGISTER".equals(actionType)) {
+            emailService.sendVerificationEmail(customer, newOtp);
+
+        } else if ("FORGOT_PASSWORD".equals(actionType)) {
+            String subject = "Mã xác thực (OTP) đặt lại mật khẩu - Pet World";
+            String htmlContent = "<div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; max-width: 600px; margin: 0 auto; border-radius: 8px;'>" + "<div style='text-align: center; margin-bottom: 20px;'>" + "  <h2 style='color: #dc3545; margin: 0;'>Đặt Lại Mật Khẩu</h2>" + "</div>" + "<p>Xin chào <strong>" + customer.getFullName() + "</strong>,</p>" + "<p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản tại <strong>Pet World</strong>. Đây là mã xác thực (OTP) của bạn:</p>" + "<div style='text-align: center; margin: 30px 0;'>" + "  <span style='font-size: 28px; font-weight: bold; background-color: #f8f9fa; padding: 12px 24px; border-radius: 6px; color: #dc3545; letter-spacing: 5px; border: 1px dashed #dc3545;'>" + newOtp + "</span>" + "</div>" + "<p style='color: #555;'>Mã OTP này có hiệu lực trong vòng <strong>" + "1 phút</strong>. Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>" + "</div>";
+
+            emailService.sendEmail(customer.getEmail(), subject, htmlContent);
+        }
+    }
+
     public void sendResetPasswordEmail(String email) throws Exception {
-        Customer customer = customerRepo.findByEmail(email)
-                .orElseThrow(() -> new Exception("Email has not exist!"));
+        Customer customer = customerRepo.findByEmail(email).orElseThrow(() -> new Exception("Email has not exist!"));
 
         if (customer.getAuthProvider() == AuthProvider.GOOGLE) {
             throw new Exception("Email này được liên kết với Google. Vui lòng đăng nhập bằng nút Google!");
@@ -118,39 +140,22 @@ public class CustomerService {
         verificationTokenRepo.save(newToken);
 
         String subject = "Mã xác thực (OTP) đặt lại mật khẩu - Pet World";
-        String htmlContent = "<div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; max-width: 600px; margin: 0 auto; border-radius: 8px;'>"
-                + "<div style='text-align: center; margin-bottom: 20px;'>"
-                + "  <h2 style='color: #dc3545; margin: 0;'>Đặt Lại Mật Khẩu</h2>"
-                + "</div>"
-                + "<p>Xin chào <strong>" + customer.getFullName() + "</strong>,</p>"
-                + "<p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản tại <strong>Pet World</strong>. Đây là mã xác thực (OTP) của bạn:</p>"
-                + "<div style='text-align: center; margin: 30px 0;'>"
-                + "  <span style='font-size: 28px; font-weight: bold; background-color: #f8f9fa; padding: 12px 24px; border-radius: 6px; color: #dc3545; letter-spacing: 5px; border: 1px dashed #dc3545;'>" + otp + "</span>"
-                + "</div>"
-                + "<p style='color: #555;'>Mã OTP này có hiệu lực trong vòng <strong>"
-                + newToken.getExpiryDate()
-                + " phút</strong>. Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>"
-                + "</div>";
+        String htmlContent = "<div style='font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; max-width: 600px; margin: 0 auto; border-radius: 8px;'>" + "<div style='text-align: center; margin-bottom: 20px;'>" + "  <h2 style='color: #dc3545; margin: 0;'>Đặt Lại Mật Khẩu</h2>" + "</div>" + "<p>Xin chào <strong>" + customer.getFullName() + "</strong>,</p>" + "<p>Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản tại <strong>Pet World</strong>. Đây là mã xác thực (OTP) của bạn:</p>" + "<div style='text-align: center; margin: 30px 0;'>" + "  <span style='font-size: 28px; font-weight: bold; background-color: #f8f9fa; padding: 12px 24px; border-radius: 6px; color: #dc3545; letter-spacing: 5px; border: 1px dashed #dc3545;'>" + otp + "</span>" + "</div>" + "<p style='color: #555;'>Mã OTP này có hiệu lực trong vòng <strong>" + newToken.getExpiryDate() + " phút</strong>. Vui lòng không chia sẻ mã này cho bất kỳ ai.</p>" + "</div>";
 
         emailService.sendEmail(customer.getEmail(), subject, htmlContent);
     }
 
     public Customer getByResetPasswordToken(String token) {
-        System.out.println("DEBUG: Đang tìm token: " + token);
 
         Optional<VerificationToken> tokenOpt = verificationTokenRepo.findByToken(token);
 
         if (tokenOpt.isEmpty()) {
-            System.out.println("DEBUG: -> Không tìm thấy Token trong bảng verification_tokens!");
             return null;
         }
 
         VerificationToken verificationToken = tokenOpt.get();
-        System.out.println("DEBUG: -> Tìm thấy Token. Hết hạn lúc: " + verificationToken.getExpiryDate());
-        System.out.println("DEBUG: -> Thời gian hiện tại: " + LocalDateTime.now());
 
         if (verificationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-            System.out.println("DEBUG: -> Token ĐÃ HẾT HẠN!");
             return null;
         }
 
@@ -173,16 +178,9 @@ public class CustomerService {
         return customerRepo.findAll();
     }
 
-    public void deleteCustomer(int id) {
-        if (!customerRepo.existsById(id)) {
-            throw new RuntimeException("Customer not found with id: " + id);
-        }
-        customerRepo.deleteById(id);
-    }
 
     public void updateCustomerStatus(int id, boolean newStatus) {
-        Customer customer = customerRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Customer not found with id: " + id));
+        Customer customer = customerRepo.findById(id).orElseThrow(() -> new RuntimeException("Customer not found with id: " + id));
 
         customer.setIsActive(newStatus);
 
@@ -212,15 +210,12 @@ public class CustomerService {
     //OanhTP - findIdByUsername
     public Integer findIdByUsername(String username) {
         // Tìm khách hàng theo username
-        return customerRepo.findByUsername(username)
-                .map(customer -> customer.getCustomerId()) // Lấy ID từ đối tượng Customer
+        return customerRepo.findByUsername(username).map(customer -> customer.getCustomerId()) // Lấy ID từ đối tượng Customer
                 .orElseThrow(() -> new RuntimeException("Customer not found with username: " + username));
     }
 
     public Integer findIdByEmail(String email) {
-        return customerRepo.findByEmail(email)
-                .map(Customer::getCustomerId)
-                .orElse(null);
+        return customerRepo.findByEmail(email).map(Customer::getCustomerId).orElse(null);
     }
 
     public Page<Customer> getCustomersWithPaginationAndSearch(String keyword, int page, int size) {

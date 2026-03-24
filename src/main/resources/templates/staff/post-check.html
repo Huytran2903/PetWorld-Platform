@@ -63,9 +63,10 @@
                                 </div>
                                 <div th:if="${context.oneTimeVaccine != true}">
                                     <label for="nextDueDate">Next Due Date <span class="text-danger">*</span></label>
-                                    <input id="nextDueDate" type="date" th:field="*{nextDueDate}" required />
+                                    <input id="nextDueDate" type="date" th:field="*{nextDueDate}" required
+                                           th:attr="min=${#temporals.format(#temporals.createNow().plusDays(1), 'yyyy-MM-dd')}" />
                                     <small style="display:block; color:#6b7686; font-weight:600; margin-top:4px;">
-                                        Bắt buộc chọn ngày nhắc tiêm nhắc lại cho vaccine này.
+                                        Must be after today (cannot be the same day as administered date).
                                     </small>
                                 </div>
                                 <div th:if="${context.oneTimeVaccine == true}" style="align-self:flex-end;">

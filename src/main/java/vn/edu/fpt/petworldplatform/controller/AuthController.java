@@ -108,6 +108,38 @@ public class AuthController {
         }
     }
 
+
+    @PostMapping("/resend-otp")
+    public String resendRegisterOtp(@RequestParam("email") String email, RedirectAttributes redirectAttributes) {
+        try {
+            customerService.resendOtp(email, "REGISTER");
+            redirectAttributes.addFlashAttribute("message", "A new OTP has been sent to your email!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorOtp", e.getMessage());
+        }
+
+        redirectAttributes.addFlashAttribute("showOtpModal", true);
+        redirectAttributes.addFlashAttribute("emailRegister", email);
+
+        return "redirect:/register";
+    }
+
+
+    @PostMapping("/resend-forgot-password-otp")
+    public String resendForgotOtp(@RequestParam("email") String email, RedirectAttributes redirectAttributes) {
+        try {
+            customerService.resendOtp(email, "FORGOT_PASSWORD");
+            redirectAttributes.addFlashAttribute("message", "A new password reset OTP has been sent!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorOtp", e.getMessage());
+        }
+
+        redirectAttributes.addFlashAttribute("shouldOpenOtp", true);
+        redirectAttributes.addFlashAttribute("emailForgot", email);
+
+        return "redirect:/login";
+    }
+
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
@@ -140,14 +172,21 @@ public class AuthController {
         if (currentUser == null) return "redirect:/login";
 
         if (!newPassword.equals(confirmPassword)) {
-            model.addAttribute("error", "Mật khẩu mới và xác nhận mật khẩu không khớp!");
+            model.addAttribute("error", "New password and confirm password do not match!");
+            model.addAttribute("user", currentUser);
+            model.addAttribute("formMode", "CHANGE");
+            return "auth/password-form-shared";
+        }
+
+        if (newPassword.equals(oldPassword)) {
+            model.addAttribute("error", "New password cannot be the same as the current password!");
             model.addAttribute("user", currentUser);
             model.addAttribute("formMode", "CHANGE");
             return "auth/password-form-shared";
         }
 
         if (!customerService.verifyOldPassword(currentUser, oldPassword)) {
-            model.addAttribute("error", "Mật khẩu cũ không chính xác!");
+            model.addAttribute("error", "Incorrect current password!");
             model.addAttribute("user", currentUser);
             model.addAttribute("formMode", "CHANGE");
             return "auth/password-form-shared";
@@ -155,7 +194,7 @@ public class AuthController {
 
         customerService.updatePassword(currentUser, newPassword);
 
-        redirectAttributes.addFlashAttribute("message", "Đổi mật khẩu thành công!");
+        redirectAttributes.addFlashAttribute("message", "Password changed successfully!");
         return "redirect:/profile";
     }
 
@@ -166,10 +205,11 @@ public class AuthController {
         try {
             customerService.sendResetPasswordEmail(email);
 
-            session.setAttribute("resetEmail", email);
 
             redirectAttributes.addFlashAttribute("message", "OTP has been sent to " + email);
             redirectAttributes.addFlashAttribute("openOtpModal", true);
+
+            redirectAttributes.addFlashAttribute("emailForgot", email);
 
             return "redirect:/login";
         } catch (Exception e) {

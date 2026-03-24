@@ -644,6 +644,9 @@ public class AdminController {
         }
         PetVaccinations v = opt.get();
         model.addAttribute("record", v);
+        model.addAttribute("minNextDueDate", v.getAdministeredDate() != null
+                ? v.getAdministeredDate().plusDays(1)
+                : LocalDate.now().plusDays(1));
         return "admin/vaccination-edit";
     }
 
@@ -664,9 +667,14 @@ public class AdminController {
             v.setNextDueDate(null);
         } else {
             try {
-                v.setNextDueDate(LocalDate.parse(nextDueDateStr.trim()));
+                LocalDate nextDueDate = LocalDate.parse(nextDueDateStr.trim());
+                if (!nextDueDate.isAfter(administeredDate)) {
+                    redirectAttributes.addFlashAttribute("error", "Next due date must be after administered date.");
+                    return "redirect:/admin/vaccination-records/" + id + "/edit";
+                }
+                v.setNextDueDate(nextDueDate);
             } catch (Exception e) {
-                redirectAttributes.addFlashAttribute("error", "Ngày tiêm lại không hợp lệ.");
+                redirectAttributes.addFlashAttribute("error", "Invalid next due date.");
                 return "redirect:/admin/vaccination-records/" + id + "/edit";
             }
         }

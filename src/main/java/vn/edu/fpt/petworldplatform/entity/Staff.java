@@ -83,6 +83,9 @@ public class Staff {
     @ToString.Exclude
     private List<Appointment> appointments;
 
+    @OneToMany(mappedBy = "updatedByStaff", fetch = FetchType.LAZY)
+    private List<SystemConfigs> updatedConfigs;
+
     @Column(name = "FailedAttempts")
     private Integer failedAttempts = 0;
 

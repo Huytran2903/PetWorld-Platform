@@ -53,7 +53,9 @@ public class SecurityConfig {
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/fonts/**", "/webjars/**").permitAll()
 
                         // B. Link Public
-                        .requestMatchers("/", "/home", "/index").permitAll().requestMatchers("/login", "/register", "/do-register", "/verify").permitAll().requestMatchers("/do-login").permitAll()
+                        .requestMatchers("/", "/home", "/index").permitAll()
+                        .requestMatchers("/login", "/register", "/do-register", "/do-verify-otp", "/resend-otp",
+                                "/resend-forgot-password-otp", "/do-login").permitAll()
                         .requestMatchers("/cart/momo-notify").permitAll()
 
                         .requestMatchers("/uploads/**").permitAll()

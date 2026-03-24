@@ -38,13 +38,6 @@ public class StaffService {
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    //Register - HuyTPN
-    public Staff register(Staff staff) {
-        staff.setPasswordHash(passwordEncoder.encode(staff.getPasswordHash()));
-        staff.setIsActive(true);
-        return staffRepo.save(staff);
-    }
-
 
     public Optional<Staff> findByUsername(String username) {
         return staffRepo.findByUsername(username);
@@ -163,35 +156,30 @@ public class StaffService {
     @Transactional
     public void deleteAndTransferWork(Integer oldStaffId, Integer newStaffId) {
 
-        // 1. Kiểm tra nhân viên cũ có tồn tại không
         Staff oldStaff = staffRepo.findById(oldStaffId)
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhân viên cần xóa!"));
 
-        // ==========================================
-        // CHỐT CHẶN BẢO VỆ NGHIỆP VỤ: KIỂM TRA IN-PROGRESS
-        // ==========================================
+        if ("admin".equalsIgnoreCase(oldStaff.getRole().getRoleName())) {
+            throw new RuntimeException("Không thể xóa tài khoản Admin của hệ thống!");
+        }
         long inProgressCount = appointmentServiceRepo.countInProgressServices(oldStaffId);
 
         if (inProgressCount > 0) {
             throw new IllegalStateException("Hủy thao tác! Nhân viên này đang có " + inProgressCount + " dịch vụ đang thực hiện (In-Progress). Vui lòng hoàn thành hoặc gán lại dịch vụ trước khi xóa.");
         }
 
-        // 2. Kiểm tra nhân viên mới (nếu có chọn bàn giao)
         if (newStaffId != null) {
             if (!staffRepo.existsById(newStaffId)) {
                 throw new IllegalArgumentException("Không tìm thấy nhân viên nhận bàn giao!");
             }
         }
 
-        // ==========================================
-        // BƯỚC 1: XỬ LÝ VIỆC TƯƠNG LAI / CHƯA HOÀN THÀNH
-        // ==========================================
+
         if (newStaffId != null) {
             // Có người nhận -> Bàn giao việc dở dang
             petVaccinationRepo.transferFutureVaccinations(oldStaffId, newStaffId);
             appointmentServiceRepo.transferPendingServices(oldStaffId, newStaffId);
 
-            // [THÊM MỚI]: Chuyển giao bảng Appointments (Lịch hẹn chính)
             appointmentRepo.transferPendingAppointments(oldStaffId, newStaffId);
         } else {
             // Không ai nhận -> Trả dịch vụ về trạng thái vô chủ
@@ -200,22 +188,17 @@ public class StaffService {
             appointmentRepo.unassignPendingAppointments(oldStaffId);
         }
 
-        // ==========================================
-        // BƯỚC 2: CHỐT CHẶN KHÓA NGOẠI (QUÉT SẠCH DẤU VẾT QUÁ KHỨ)
-        // ==========================================
+
         petVaccinationRepo.clearAllVaccinationReferences(oldStaffId);
         appointmentServiceRepo.clearAllStaffReferences(oldStaffId);
         petHealthRecordRepo.unassignAllHealthRecords(oldStaffId);
 
-        // [THÊM MỚI]: Set NULL cho StaffID ở tất cả các Lịch hẹn trong quá khứ
+        //Set NULL cho StaffID ở tất cả các Lịch hẹn trong quá khứ
         appointmentRepo.clearAllStaffReferences(oldStaffId);
 
-        // Đẩy tất cả các lệnh UPDATE xuống Database trước khi chạy lệnh DELETE
+        // Đẩy tất cả các lệnh UPDATE xuống Database
         staffRepo.flush();
 
-        // ==========================================
-        // BƯỚC 3: XÓA DỮ LIỆU PHỤ THUỘC & XÓA STAFF
-        // ==========================================
         staffScheduleRepo.deleteByStaff(oldStaff);
         feedbackRepo.deleteByStaff(oldStaff);
 

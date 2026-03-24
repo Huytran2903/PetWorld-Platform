@@ -70,6 +70,7 @@
                                         <input type="email" th:field="*{email}"
                                                class="form-control"
                                                th:classappend="${#fields.hasErrors('email')} ? 'is-invalid' : ''"
+                                               th:readonly="${formMode == 'edit'}"
                                                required>
 
                                         <div class="invalid-feedback fw-medium" th:if="${#fields.hasErrors('email')}"

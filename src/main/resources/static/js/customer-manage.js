@@ -1,9 +1,12 @@
 document.addEventListener('DOMContentLoaded', function () {
+
+    // 1. Xử lý Delete Modal
     const deleteModal = document.getElementById('deleteModal');
     if (deleteModal) {
         deleteModal.addEventListener('show.bs.modal', function (event) {
             const button = event.relatedTarget;
             const href = button.getAttribute('data-href');
+
             const confirmBtn = deleteModal.querySelector('#btnConfirmDelete');
             confirmBtn.setAttribute('href', href);
         });
@@ -23,22 +26,7 @@ document.addEventListener('DOMContentLoaded', function () {
             actionText.textContent = statusType;
         });
     }
-});
 
-    // 2. Xử lý Status Modal (Giữ nguyên logic của bạn)
-    const statusModal = document.getElementById('statusModal');
-    if (statusModal) {
-        statusModal.addEventListener('show.bs.modal', function (event) {
-            const button = event.relatedTarget;
-            const href = button.getAttribute('data-href');
-            const type = button.getAttribute('data-status-type');
-
-            this.querySelector('#statusActionText').textContent = type;
-            this.querySelector('#btnConfirmStatus').setAttribute('href', href);
-        });
-    }
-
-    // 3. Xử lý Search nhanh (Bonus)
     const searchInput = document.querySelector('.search-box-custom input');
     if (searchInput) {
         searchInput.addEventListener('keyup', function () {
@@ -49,4 +37,5 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
+
 });

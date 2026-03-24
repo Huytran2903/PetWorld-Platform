@@ -10,7 +10,7 @@
    - FIX: Orders - Payments quan hệ 1-1 (mỗi Order tối đa 1 Payment) bằng UNIQUE filtered index
    - Notifications (NVARCHAR Title/Type/Message); Appointments.Status gồm checked_in
    - AppointmentSummaryPhotos; Feedbacks: ServiceName, ReplyMessage, RepliedAt (khớp entity)
-   - Pets.Species; AppointmentServices.ServiceNote; PetHealthPhotos: PhotoID + CreatedAt (khớp entity)
+   - AppointmentServices.ServiceNote; PetHealthPhotos: PhotoID + CreatedAt (khớp entity)
    - verification_tokens: staff_id + customer_id nullable (token khách hoặc nhân viên)
    - Các migration cũ (AssignStaff*, VaccineService*, Notifications_NVarchar) đã gộp vào script CREATE này
    ========================================================= */
@@ -160,7 +160,6 @@ CREATE TABLE dbo.Pets (
 
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2 NULL,
-    Species NVARCHAR(50) NULL,
 
     CONSTRAINT FK_Pets_OwnerCustomer FOREIGN KEY (OwnerCustomerID) REFERENCES dbo.Customers(CustomerID),
 
@@ -679,6 +678,15 @@ VALUES
 (@StaffRoleID, 'staff01', 'e10adc3949ba59abbe56e057f20f883e', 'staff01@petshop.com', '0912345678', N'Nguyen Van A', '2024-01-15', N'Pet care specialist, three years of experience'),
 (@StaffRoleID, 'staff02', 'e10adc3949ba59abbe56e057f20f883e', 'staff02@petshop.com', '0923456789', N'Tran Thi B', '2024-02-01', N'Veterinarian, internal medicine specialist'),
 (@StaffRoleID, 'staff03', 'e10adc3949ba59abbe56e057f20f883e', 'staff03@petshop.com', '0934567890', N'Le Van C', '2024-03-10', N'Spa and grooming specialist');
+
+-- Seed thêm theo yêu cầu
+IF @AdminRoleID IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.Staff WHERE Username = 'thanhadmin')
+    INSERT INTO dbo.Staff (RoleID, Username, PasswordHash, Email, Phone, FullName, HireDate, Bio, IsActive)
+    VALUES (@AdminRoleID, 'thanhadmin', 'ab360fe720a97d07db534fecacefdfa9', 'thanhadmin@petshop.com', '0909990001', N'Thanh Admin', CAST(GETDATE() AS DATE), N'Admin account seed', 1);
+
+IF @StaffRoleID IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.Staff WHERE Username = 'thanhstaff')
+    INSERT INTO dbo.Staff (RoleID, Username, PasswordHash, Email, Phone, FullName, HireDate, Bio, IsActive)
+    VALUES (@StaffRoleID, 'thanhstaff', '814dd16d54e715bef23709ed6926dde9', 'thanhstaff@petshop.com', '0909990002', N'Thanh Staff', CAST(GETDATE() AS DATE), N'Staff account seed', 1);
 
 -- Seed Customers
 
