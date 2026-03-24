@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", function() {
+    const LEAD_HOURS = 2;
+    const MAX_ADVANCE_DAYS = 30;
     const form = document.getElementById("bookForm");
     const sumServices = document.getElementById("sumServices");
     const sumDuration = document.getElementById("sumDuration");
@@ -46,6 +48,20 @@ document.addEventListener("DOMContentLoaded", function() {
         // datetime-local returns "YYYY-MM-DDTHH:mm"
         const datePart = v.split("T")[0];
         return datePart || null;
+    }
+
+    function toDateTimeLocalValue(date) {
+        const adjusted = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+        return adjusted.toISOString().slice(0, 16);
+    }
+
+    function setBookingDateBounds() {
+        if (!appointmentDateInput) return;
+        const now = new Date();
+        const minDate = new Date(now.getTime() + LEAD_HOURS * 60 * 60 * 1000);
+        const maxDate = new Date(now.getTime() + MAX_ADVANCE_DAYS * 24 * 60 * 60 * 1000);
+        appointmentDateInput.min = toDateTimeLocalValue(minDate);
+        appointmentDateInput.max = toDateTimeLocalValue(maxDate);
     }
 
     function clearVaccineLockUi(inp) {
@@ -231,6 +247,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     // Tính toán lần đầu khi trang load
+    setBookingDateBounds();
     calculateTotal();
     refreshVaccineEligibility();
 
@@ -258,6 +275,23 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Xử lý trước khi submit (nếu cần gộp note)
     form.addEventListener("submit", (e) => {
+        if (appointmentDateInput && appointmentDateInput.value) {
+            const selected = new Date(appointmentDateInput.value);
+            const now = new Date();
+            const minDate = new Date(now.getTime() + LEAD_HOURS * 60 * 60 * 1000);
+            const maxDate = new Date(now.getTime() + MAX_ADVANCE_DAYS * 24 * 60 * 60 * 1000);
+            if (selected < minDate) {
+                e.preventDefault();
+                alert("Booking must be at least 2 hours in advance.");
+                return;
+            }
+            if (selected > maxDate) {
+                e.preventDefault();
+                alert("Booking can only be made up to 30 days in advance.");
+                return;
+            }
+        }
+
         const boardingHint = document.getElementById("boardingHint");
         const note = document.getElementById("note");
 

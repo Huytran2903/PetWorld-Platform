@@ -19,6 +19,7 @@
     --shadow: 0 14px 28px rgba(16, 32, 51, 0.08);
     --shadow-orange: 0 8px 20px rgba(255, 165, 79, 0.2);
     --radius: 16px;
+    --header-offset: 124px;
 }
 
 /* =========================================
@@ -110,10 +111,10 @@ section.card {
 .booking-summary {
     position: fixed;
     z-index: 1000;
-    top: 20px;
+    top: var(--header-offset);
     right: calc((100vw - 1200px) / 2);
     width: 380px;
-    max-height: calc(100vh - 40px);
+    max-height: calc(100vh - var(--header-offset) - 20px);
     overflow: auto;
 }
 

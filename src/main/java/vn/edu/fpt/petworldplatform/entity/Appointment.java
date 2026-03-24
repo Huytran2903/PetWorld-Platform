@@ -69,6 +69,13 @@ public class Appointment {
     @Column(name = "RescheduledAt")
     private LocalDateTime rescheduledAt;
 
+    @Column(name = "LastRescheduledAt")
+    private LocalDateTime lastRescheduledAt;
+
+    @Column(name = "RescheduleCount")
+    @Builder.Default
+    private Integer rescheduleCount = 0;
+
     @Column(name = "PreviousAppointmentDate")
     private LocalDateTime previousAppointmentDate;
 

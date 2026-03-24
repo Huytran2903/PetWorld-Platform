@@ -32,7 +32,10 @@ import java.util.UUID;
 public class BookingService {
 
     private static final int LEAD_TIME_HOURS = 2;
+    private static final int MAX_ADVANCE_BOOKING_DAYS = 30;
     private static final int CANCEL_RESCHEDULE_MIN_HOURS = 1;
+    private static final int MAX_RESCHEDULE_TIMES = 2;
+    private static final int RESCHEDULE_COOLDOWN_MINUTES = 30;
     private static final LocalTime OPEN_TIME = LocalTime.of(8, 0);
     private static final LocalTime CLOSE_TIME = LocalTime.of(20, 0);
 
@@ -70,6 +73,9 @@ public class BookingService {
         LocalDateTime now = LocalDateTime.now();
         if (dateTime.isBefore(now.plusHours(LEAD_TIME_HOURS))) {
             return Optional.of("Booking must be at least 2 hours in advance.");
+        }
+        if (dateTime.isAfter(now.plusDays(MAX_ADVANCE_BOOKING_DAYS))) {
+            return Optional.of("Booking can only be made up to 30 days in advance.");
         }
         LocalTime time = dateTime.toLocalTime();
         if (time.isBefore(OPEN_TIME) || !time.isBefore(CLOSE_TIME)) {
@@ -265,6 +271,29 @@ public class BookingService {
         return Optional.empty();
     }
 
+    public Optional<String> canReschedule(Integer appointmentId, Integer customerId) {
+        Optional<String> baseValidationError = canCancelOrReschedule(appointmentId, customerId);
+        if (baseValidationError.isPresent()) {
+            return baseValidationError;
+        }
+
+        Appointment a = findAppointmentByIdAndCustomerId(appointmentId, customerId)
+                .orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
+
+        int currentRescheduleCount = a.getRescheduleCount() != null ? a.getRescheduleCount() : 0;
+        if (currentRescheduleCount >= MAX_RESCHEDULE_TIMES) {
+            return Optional.of("You have reached the maximum number of reschedules (2 times).");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        if (a.getLastRescheduledAt() != null
+                && a.getLastRescheduledAt().plusMinutes(RESCHEDULE_COOLDOWN_MINUTES).isAfter(now)) {
+            return Optional.of("You can only reschedule once every 30 minutes.");
+        }
+
+        return Optional.empty();
+    }
+
     @Transactional
     public void cancelAppointment(Integer appointmentId, Integer customerId, String reason) {
         Optional<String> err = canCancelOrReschedule(appointmentId, customerId);
@@ -285,7 +314,7 @@ public class BookingService {
 
     @Transactional
     public void rescheduleAppointment(Integer appointmentId, Integer customerId, LocalDateTime newStart) {
-        Optional<String> err = canCancelOrReschedule(appointmentId, customerId);
+        Optional<String> err = canReschedule(appointmentId, customerId);
         if (err.isPresent()) {
             // Ensure we use the exact BR-18 message from user requirement
             if (err.get().contains("within 1 hour")) {
@@ -326,6 +355,8 @@ public class BookingService {
         a.setAppointmentDate(newStart);
         a.setEndTime(newEnd);
         a.setRescheduledAt(LocalDateTime.now());
+        a.setLastRescheduledAt(LocalDateTime.now());
+        a.setRescheduleCount((a.getRescheduleCount() != null ? a.getRescheduleCount() : 0) + 1);
         a.setUpdatedAt(LocalDateTime.now());
         appointmentRepository.save(a);
     }

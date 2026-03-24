@@ -213,6 +213,8 @@ CREATE TABLE dbo.Appointments (
     CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
     UpdatedAt DATETIME2 NULL,
     RescheduledAt DATETIME2 NULL,
+    LastRescheduledAt DATETIME2 NULL,
+    RescheduleCount INT NOT NULL DEFAULT 0,
     PreviousAppointmentDate DATETIME2 NULL,
     CanceledAt DATETIME2 NULL,
     CancellationReason NVARCHAR(255) NULL,
