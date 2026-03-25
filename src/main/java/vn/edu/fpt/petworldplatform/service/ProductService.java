@@ -33,8 +33,8 @@ public class ProductService {
     }
 
     //search
-    public Page<Product> searchProductsByName(String keywork, Pageable pageable) {
-        return productRepo.searchAllByNameContainingIgnoreCase(keywork, pageable);
+    public Page<Product> searchProductsByName(String keyword, Pageable pageable) {
+        return productRepo.searchAllByNameContainingIgnoreCase(keyword, pageable);
     }
 
     public List<Product> getRandomProducts(int limit) {

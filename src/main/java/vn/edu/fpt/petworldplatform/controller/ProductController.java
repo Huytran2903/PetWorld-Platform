@@ -35,7 +35,7 @@ public class ProductController {
 
     //Product List
     @GetMapping("/products")
-    public String getAllProducts(
+    public String showAllProducts(
             Model model,
             @RequestParam(name = "kw", required = false, defaultValue = "") String keyword,
             @RequestParam(name = "page", defaultValue = "0") int page,
