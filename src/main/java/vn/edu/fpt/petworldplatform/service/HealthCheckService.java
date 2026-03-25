@@ -9,7 +9,6 @@ import vn.edu.fpt.petworldplatform.dto.HealthCheckContextDTO;
 import vn.edu.fpt.petworldplatform.dto.SaveHealthReportDraftRequest;
 import vn.edu.fpt.petworldplatform.dto.ServiceNoteRequest;
 import vn.edu.fpt.petworldplatform.dto.SubmitHealthReportRequest;
-import vn.edu.fpt.petworldplatform.dto.UpdateHealthReportRequest;
 import vn.edu.fpt.petworldplatform.entity.*;
 import vn.edu.fpt.petworldplatform.repository.*;
 
@@ -20,7 +19,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -34,13 +32,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class HealthCheckService implements IHealthCheckService {
 
-    private static final long REPORT_UPDATE_WINDOW_HOURS = 24;
-
     private final AppointmentRepository appointmentRepository;
     private final AppointmentServiceLineRepository appointmentServiceLineRepository;
     private final StaffRepository staffRepository;
-    private final PetHealthRecordRepository petHealthRecordRepository;
-    private final PetHealthPhotoRepository petHealthPhotoRepository;
     private final ServiceNoteRepository serviceNoteRepository;
     private final ServiceNotePhotoRepository serviceNotePhotoRepository;
     private final AppointmentSummaryRepository appointmentSummaryRepository;
@@ -349,40 +343,6 @@ public class HealthCheckService implements IHealthCheckService {
 
     @Override
     @Transactional
-    public void updateWithin24h(Integer staffId, Integer recordId, UpdateHealthReportRequest request) {
-        validateStaffActive(staffId);
-
-        PetHealthRecord record = petHealthRecordRepository.findById(recordId)
-                .orElseThrow(() -> new IllegalStateException("Health record not found."));
-
-        if (record.getPerformedByStaffId() == null || !record.getPerformedByStaffId().equals(staffId)) {
-            throw new IllegalStateException("You can only update your own health record.");
-        }
-
-        validateUpdateWindow(record.getCheckDate());
-        validateNumericFields(request.getWeightKg(), request.getTemperature());
-
-        List<String> storedPhotoUrls = storePhotos(request.getPhotos(), false);
-
-        record.setWeightKg(toBigDecimal(request.getWeightKg()));
-        record.setTemperature(toBigDecimal(request.getTemperature()));
-        record.setConditionBefore(request.getConditionBefore());
-        record.setConditionAfter(request.getConditionAfter());
-        record.setFindings(request.getFindings());
-        record.setRecommendations(request.getRecommendations());
-        record.setNote(request.getConditionNotes());
-        record.setWarningFlag(Boolean.TRUE.equals(request.getWarningFlag()));
-        record.setUpdatedAt(LocalDateTime.now());
-
-        PetHealthRecord saved = petHealthRecordRepository.save(record);
-
-        if (!storedPhotoUrls.isEmpty()) {
-            replacePhotos(saved, storedPhotoUrls);
-        }
-    }
-
-    @Override
-    @Transactional
     public void submitAppointmentSummary(Integer staffId, Integer appointmentId, AppointmentSummaryRequest request) {
         validateStaffActive(staffId);
 
@@ -577,17 +537,6 @@ public class HealthCheckService implements IHealthCheckService {
         }
     }
 
-    private void validateUpdateWindow(LocalDateTime checkDate) {
-        if (checkDate == null) {
-            throw new IllegalStateException("Update period expired");
-        }
-
-        long hours = Duration.between(checkDate, LocalDateTime.now()).toHours();
-        if (hours > REPORT_UPDATE_WINDOW_HOURS) {
-            throw new IllegalStateException("Update period expired");
-        }
-    }
-
     private List<String> storePhotos(List<MultipartFile> photos, boolean required) {
         List<String> urls = new ArrayList<>();
 
@@ -638,22 +587,6 @@ public class HealthCheckService implements IHealthCheckService {
         }
 
         return urls;
-    }
-
-    private void replacePhotos(PetHealthRecord record, List<String> photoUrls) {
-        if (photoUrls == null || photoUrls.isEmpty()) {
-            return;
-        }
-
-        List<PetHealthPhoto> items = photoUrls.stream()
-                .map(url -> PetHealthPhoto.builder()
-                        .record(record)
-                        .imageUrl(url)
-                        .capturedAt(LocalDateTime.now())
-                        .build())
-                .toList();
-
-        petHealthPhotoRepository.saveAll(items);
     }
 
     private void replaceServiceNotePhotos(ServiceNote note, List<String> photoUrls) {

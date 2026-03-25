@@ -24,7 +24,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AssignedAppointmentService implements IAssignedAppointmentService {
 
-    private static final long CHECK_IN_EARLY_MINUTES = 300000000;
+    private static final long CHECK_IN_EARLY_MINUTES = 30;
     private static final long CHECK_IN_LATE_GRACE_MINUTES = 30;
 
     private static final String STATUS_CONFIRMED = "confirmed";

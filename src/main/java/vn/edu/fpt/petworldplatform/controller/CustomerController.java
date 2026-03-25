@@ -30,17 +30,9 @@ import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryRepository;
 import vn.edu.fpt.petworldplatform.repository.PaymentRepository;
 import vn.edu.fpt.petworldplatform.repository.PetVaccinationRepository;
 import vn.edu.fpt.petworldplatform.entity.*;
-import vn.edu.fpt.petworldplatform.repository.PetHealthPhotoRepository;
-import vn.edu.fpt.petworldplatform.repository.PetHealthRecordRepository;
-import vn.edu.fpt.petworldplatform.entity.*;
 import vn.edu.fpt.petworldplatform.repository.PetRepo;
 import vn.edu.fpt.petworldplatform.service.*;
 import vn.edu.fpt.petworldplatform.util.SecuritySupport;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -55,7 +47,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.Set;
-import java.util.UUID;
 
 
 @Controller
@@ -77,12 +68,6 @@ public class CustomerController {
 
     @Autowired
     private PaymentRepository paymentRepository;
-
-    @Autowired
-    private PetHealthRecordRepository petHealthRecordRepository;
-
-    @Autowired
-    private PetHealthPhotoRepository petHealthPhotoRepository;
 
     @GetMapping("/profile")
     public String profileShow(Model model) {
@@ -222,13 +207,29 @@ public class CustomerController {
     private PetVaccinationRepository petVaccinationRepository;
 
     @GetMapping("/customer/appointments")
-    public String appointmentHistory(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+    public String appointmentHistory(HttpSession session,
+                                       Model model,
+                                       RedirectAttributes redirectAttributes,
+                                       @RequestParam(defaultValue = "0") int page,
+                                       @RequestParam(defaultValue = "5") int size) {
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
         if (customer == null) {
             return "redirect:/login";
         }
-        List<Appointment> appointments = bookingService.findAppointmentsByCustomerId(customer.getCustomerId());
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.max(size, 1);
+
+        var appointmentPage = bookingService.findAppointmentsPageByCustomerId(
+                customer.getCustomerId(),
+                PageRequest.of(safePage, safeSize)
+        );
+        List<Appointment> appointments = appointmentPage.getContent();
         model.addAttribute("appointments", appointments);
+        model.addAttribute("currentPage", safePage);
+        model.addAttribute("pageSize", safeSize);
+        model.addAttribute("totalPages", appointmentPage.getTotalPages());
+        model.addAttribute("hasPrevious", appointmentPage.hasPrevious());
+        model.addAttribute("hasNext", appointmentPage.hasNext());
 
         // Inline service details: batch load all service lines for these appointments
         List<Integer> apptIds = appointments.stream().map(Appointment::getId).toList();
@@ -308,10 +309,6 @@ public class CustomerController {
             model.addAttribute("reviewedServiceLineIds", reviewedServiceLineIds);
             model.addAttribute("feedbackByLineId", feedbackByLineId);
 
-            java.util.Map<Integer, PetHealthRecord> recordByAppointmentId = new java.util.HashMap<>();
-            java.util.Map<Integer, List<PetHealthPhoto>> photosByAppointmentId = new java.util.HashMap<>();
-            java.util.Map<Integer, PetHealthRecord> healthRecordByServiceLineId = new java.util.HashMap<>();
-            java.util.Map<Integer, List<PetHealthPhoto>> healthPhotosByServiceLineId = new java.util.HashMap<>();
             java.util.Map<Integer, AppointmentSummary> summaryByAppointmentId = new java.util.HashMap<>();
             java.util.Map<Integer, String> serviceStaffByAppointmentId = new java.util.HashMap<>();
 

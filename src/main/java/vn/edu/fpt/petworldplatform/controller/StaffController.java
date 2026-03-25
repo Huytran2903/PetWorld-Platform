@@ -63,6 +63,8 @@ public class StaffController {
             HttpSession session,
             @RequestParam(required = false) String date,
             @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
             Model model) {
 
         Staff staff = resolveCurrentStaff(principal, session);
@@ -72,8 +74,32 @@ public class StaffController {
 
         session.setAttribute("currentStaffId", staff.getStaffId());
 
-        model.addAttribute("appointments",
-                assignedAppointmentService.getAssignedAppointments(staff.getStaffId(), date, status));
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.max(size, 1);
+
+        List<Appointment> allAppointments = assignedAppointmentService.getAssignedAppointments(staff.getStaffId(), date, status);
+        int total = allAppointments.size();
+        int totalPages = (int) Math.ceil((double) total / (double) safeSize);
+        if (totalPages <= 0) totalPages = 1;
+
+        if (safePage > totalPages - 1) safePage = Math.max(totalPages - 1, 0);
+
+        int fromIndex = safePage * safeSize;
+        int toIndex = Math.min(fromIndex + safeSize, total);
+
+        List<Appointment> pageAppointments;
+        if (fromIndex >= total) {
+            pageAppointments = List.of();
+        } else {
+            pageAppointments = allAppointments.subList(fromIndex, toIndex);
+        }
+
+        model.addAttribute("appointments", pageAppointments);
+        model.addAttribute("currentPage", safePage);
+        model.addAttribute("pageSize", safeSize);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("hasPrevious", safePage > 0);
+        model.addAttribute("hasNext", safePage < totalPages - 1);
         model.addAttribute("date", date);
         model.addAttribute("status", status);
         model.addAttribute("staffName", staff.getFullName());

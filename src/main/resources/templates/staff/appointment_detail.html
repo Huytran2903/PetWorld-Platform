@@ -134,7 +134,7 @@
                                 </span>
                                 <span th:if="${appointmentPaymentPaid}" class="badge bg-success ms-2">Đã thanh toán</span>
                                 <span th:if="${!appointmentPaymentPaid and appointment.status != null and appointment.status.toLowerCase() == 'done'}"
-                                      class="badge bg-warning text-dark ms-2">Chưa thanh toán</span>
+                                      class="badge bg-warning text-dark ms-2">Not paid</span>
                             </div>
                         </div>
 

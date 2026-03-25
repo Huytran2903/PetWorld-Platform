@@ -2,6 +2,8 @@ package vn.edu.fpt.petworldplatform.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,6 +18,12 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
     List<Appointment> findByCustomerIdOrderByAppointmentDateDesc(Integer customerId);
 
     List<Appointment> findByCustomerIdAndStatusInOrderByAppointmentDateDesc(Integer customerId, List<String> statuses);
+
+    // Pending first, then all others ordered by appointment date (newest first).
+    @Query("SELECT a FROM Appointment a " +
+            "WHERE a.customerId = :customerId " +
+            "ORDER BY CASE WHEN lower(a.status) = 'pending' THEN 0 ELSE 1 END, a.appointmentDate DESC")
+    Page<Appointment> findCustomerAppointmentsPendingFirst(@Param("customerId") Integer customerId, Pageable pageable);
 
     long countByAppointmentDateAndStatusNot(LocalDateTime appointmentDate, String excludedStatus);
 

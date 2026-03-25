@@ -68,6 +68,29 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Pagination -->
+                    <div th:if="${totalPages != null and totalPages > 1}" class="staff-pagination">
+                        <a th:if="${hasPrevious}"
+                           class="btn btn-ghost"
+                           th:href="@{/staff/assigned_list(date=${date},status=${status},page=${currentPage - 1},size=${pageSize})}">
+                            Previous
+                        </a>
+                        <span th:unless="${hasPrevious}" class="btn btn-ghost disabled-like" aria-disabled="true">
+                            Previous
+                        </span>
+
+                        <span class="page-indicator" th:text="'Page ' + (${currentPage + 1}) + ' of ' + ${totalPages}"></span>
+
+                        <a th:if="${hasNext}"
+                           class="btn btn-ghost"
+                           th:href="@{/staff/assigned_list(date=${date},status=${status},page=${currentPage + 1},size=${pageSize})}">
+                            Next
+                        </a>
+                        <span th:unless="${hasNext}" class="btn btn-ghost disabled-like" aria-disabled="true">
+                            Next
+                        </span>
+                    </div>
                 </div>
             </section>
 

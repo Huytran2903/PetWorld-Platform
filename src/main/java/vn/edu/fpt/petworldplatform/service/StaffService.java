@@ -25,8 +25,6 @@ public class StaffService {
 
     private final StaffRepository staffRepo;
     private final PetVaccinationRepository petVaccinationRepo;
-    private final PetHealthRecordRepository petHealthRecordRepo;
-    private final StaffScheduleRepository staffScheduleRepo;
     private final FeedbackRepository feedbackRepo;
     private final AppointmentServiceLineRepository appointmentServiceRepo;
     private final AppointmentRepository appointmentRepo;
@@ -212,13 +210,11 @@ public class StaffService {
 
         petVaccinationRepo.clearAllVaccinationReferences(oldStaffId);
         appointmentServiceRepo.clearAllStaffReferences(oldStaffId);
-        petHealthRecordRepo.unassignAllHealthRecords(oldStaffId);
 
         appointmentRepo.clearAllStaffReferences(oldStaffId);
 
         staffRepo.flush();
 
-        staffScheduleRepo.deleteByStaff(oldStaff);
         feedbackRepo.deleteByStaff(oldStaff);
 
         staffRepo.delete(oldStaff);

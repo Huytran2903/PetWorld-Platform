@@ -347,16 +347,6 @@
                                         </button>
                                     </th:block>
 
-                                    <th:block th:if="${appt.status == 'canceled'}">
-                                        <form
-                                            th:action="@{'/customer/appointments/' + ${appt.id} + '/delete'}"
-                                            method="post"
-                                            style="display: inline;"
-                                        >
-                                            <button class="btn btn-danger btn-sm" type="submit">Delete</button>
-                                        </form>
-                                    </th:block>
-
                                     <th:block th:if="${appt.status != null and appt.status.toLowerCase() == 'done'
                                         and (hasPaidByAppointmentId == null or hasPaidByAppointmentId.get(appt.id) == null or !hasPaidByAppointmentId.get(appt.id))}">
                                         <button type="button"
@@ -383,6 +373,31 @@
                         </div>
                     </article>
                 </div>
+            </div>
+
+            <!-- Pagination -->
+            <div th:if="${totalPages != null and totalPages > 1}" class="d-flex justify-content-center mt-3">
+                <nav aria-label="Appointments pagination">
+                    <ul class="pagination mb-0">
+                        <li class="page-item" th:classappend="${hasPrevious} ? '' : 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/customer/appointments?page=${currentPage - 1}&size=${pageSize}}"
+                               aria-label="Previous">
+                                Previous
+                            </a>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link" th:text="'Page ' + (${currentPage + 1}) + ' of ' + ${totalPages}"></span>
+                        </li>
+                        <li class="page-item" th:classappend="${hasNext} ? '' : 'disabled'">
+                            <a class="page-link"
+                               th:href="@{/customer/appointments?page=${currentPage + 1}&size=${pageSize}}"
+                               aria-label="Next">
+                                Next
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
             </div>
         </section>
 

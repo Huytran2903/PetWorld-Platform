@@ -173,6 +173,27 @@ body {
     font-style: italic;
 }
 
+/* Pagination */
+.staff-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.staff-pagination .page-indicator {
+    font-weight: 700;
+    color: var(--navy2);
+    min-width: 120px;
+    text-align: center;
+}
+
+.staff-pagination .disabled-like {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
 /* =========================================
    5. FILTERS & FORMS
    ========================================= */

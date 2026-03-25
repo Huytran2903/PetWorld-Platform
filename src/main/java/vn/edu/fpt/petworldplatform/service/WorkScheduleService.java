@@ -2,12 +2,11 @@ package vn.edu.fpt.petworldplatform.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import vn.edu.fpt.petworldplatform.dto.WorkShiftDTO;
 import vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine;
 import vn.edu.fpt.petworldplatform.entity.Staff;
-import vn.edu.fpt.petworldplatform.entity.StaffSchedule;
 import vn.edu.fpt.petworldplatform.repository.AppointmentServiceLineRepository;
 import vn.edu.fpt.petworldplatform.repository.StaffRepository;
-import vn.edu.fpt.petworldplatform.repository.StaffScheduleRepository;
 
 import java.time.LocalDateTime;
 import java.time.LocalDate;
@@ -21,12 +20,11 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class WorkScheduleService implements IWorkScheduleService {
 
-    private final StaffScheduleRepository staffScheduleRepository;
     private final StaffRepository staffRepository;
     private final AppointmentServiceLineRepository appointmentServiceLineRepository;
 
     @Override
-    public List<StaffSchedule> getStaffSchedule(Integer staffId, LocalDate startDate, LocalDate endDate) {
+    public List<WorkShiftDTO> getStaffSchedule(Integer staffId, LocalDate startDate, LocalDate endDate) {
         if (!isStaffActive(staffId)) {
             throw new IllegalStateException("Account is not active");
         }
@@ -41,19 +39,12 @@ public class WorkScheduleService implements IWorkScheduleService {
             endDate = tmp;
         }
 
-        List<StaffSchedule> schedules = staffScheduleRepository.findScheduleByStaffAndDateRange(staffId, startDate, endDate);
-        if (!schedules.isEmpty()) {
-            return schedules;
-        }
-
-        // Fallback: if shift table is empty, show schedule derived from assigned appointments
-        // so staff still sees workable time blocks.
         LocalDateTime from = startDate.atStartOfDay();
         LocalDateTime to = endDate.atTime(LocalTime.MAX);
         List<AppointmentServiceLine> assignedLines = appointmentServiceLineRepository
                 .findAssignedLinesByStaffAndFilter(staffId, from, to, null);
 
-        Map<Integer, StaffSchedule> appointmentBased = new LinkedHashMap<>();
+        Map<Integer, WorkShiftDTO> appointmentBased = new LinkedHashMap<>();
         for (AppointmentServiceLine line : assignedLines) {
             if (line.getAppointment() == null || line.getAppointment().getId() == null) {
                 continue;
@@ -79,13 +70,13 @@ public class WorkScheduleService implements IWorkScheduleService {
                     ? line.getService().getName()
                     : "Assigned service";
 
-            StaffSchedule virtualItem = StaffSchedule.builder()
+            WorkShiftDTO virtualItem = WorkShiftDTO.builder()
                     .workDate(apptStart.toLocalDate())
                     .startTime(apptStart.toLocalTime())
                     .endTime(apptEnd.toLocalTime())
                     .note("From appointment " + apptCode + " - " + serviceName)
+                    .displayStatus(line.getAppointment().getStatus())
                     .build();
-            virtualItem.setDisplayStatus(line.getAppointment().getStatus());
             appointmentBased.put(appointmentId, virtualItem);
         }
 

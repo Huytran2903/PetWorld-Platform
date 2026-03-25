@@ -3,6 +3,8 @@ package vn.edu.fpt.petworldplatform.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import vn.edu.fpt.petworldplatform.entity.Appointment;
 import vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine;
 import vn.edu.fpt.petworldplatform.entity.Customer;
@@ -232,6 +234,14 @@ public class BookingService {
                 .comparing((Appointment a) -> !isPendingAppointmentStatus(a.getStatus()))
                 .thenComparing(Appointment::getAppointmentDate, Comparator.nullsLast(Comparator.reverseOrder())));
         return list;
+    }
+
+    /**
+     * Customer appointment list with pagination:
+     * pending first, then all others ordered by appointment date (newest first).
+     */
+    public Page<Appointment> findAppointmentsPageByCustomerId(Integer customerId, Pageable pageable) {
+        return appointmentRepository.findCustomerAppointmentsPendingFirst(customerId, pageable);
     }
 
     private static boolean isPendingAppointmentStatus(String status) {

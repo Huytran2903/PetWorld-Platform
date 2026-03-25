@@ -10,7 +10,7 @@
    - FIX: Orders - Payments quan hệ 1-1 (mỗi Order tối đa 1 Payment) bằng UNIQUE filtered index
    - Notifications (NVARCHAR Title/Type/Message); Appointments.Status gồm checked_in
    - AppointmentSummaryPhotos; Feedbacks: ServiceName, ReplyMessage, RepliedAt (khớp entity)
-   - AppointmentServices.ServiceNote; PetHealthPhotos: PhotoID + CreatedAt (khớp entity)
+   - AppointmentServices.ServiceNote
    - verification_tokens: staff_id + customer_id nullable (token khách hoặc nhân viên)
    - Các migration cũ (AssignStaff*, VaccineService*, Notifications_NVarchar) đã gộp vào script CREATE này
    ========================================================= */
@@ -242,29 +242,6 @@ CREATE TABLE dbo.AppointmentServices (
 );
 GO
 
-CREATE TABLE dbo.StaffSchedules (
-    ScheduleID INT IDENTITY(1,1) PRIMARY KEY,
-    StaffID INT NOT NULL,
-    WorkDate DATE NOT NULL,
-    StartTime TIME(0) NOT NULL,
-    EndTime TIME(0) NOT NULL,
-    Note NVARCHAR(255) NULL,
-    CONSTRAINT FK_Schedules_Staff FOREIGN KEY (StaffID) REFERENCES dbo.Staff(StaffID),
-    CONSTRAINT CK_Schedule_Time CHECK (EndTime > StartTime),
-    CONSTRAINT UQ_Staff_Schedule UNIQUE (StaffID, WorkDate, StartTime, EndTime)
-);
-GO
-
-CREATE TABLE dbo.AppointmentAssignments (
-    AppointmentID INT NOT NULL,
-    StaffID INT NOT NULL,
-    AssignedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    PRIMARY KEY (AppointmentID, StaffID),
-    CONSTRAINT FK_Assign_App FOREIGN KEY (AppointmentID) REFERENCES dbo.Appointments(AppointmentID),
-    CONSTRAINT FK_Assign_Staff FOREIGN KEY (StaffID) REFERENCES dbo.Staff(StaffID)
-);
-GO
-
 /* =========================================================
    7) VACCINATION & HEALTH RECORDS
    ========================================================= */
@@ -281,42 +258,6 @@ CREATE TABLE dbo.PetVaccinations (
     CONSTRAINT FK_PetVacc_Pet FOREIGN KEY (PetID) REFERENCES dbo.Pets(PetID),
     CONSTRAINT FK_PetVacc_App FOREIGN KEY (AppointmentID) REFERENCES dbo.Appointments(AppointmentID) ON DELETE SET NULL,
     CONSTRAINT FK_PetVacc_Staff FOREIGN KEY (PerformedByStaffID) REFERENCES dbo.Staff(StaffID)
-);
-GO
-
-CREATE TABLE dbo.PetHealthRecords (
-    HealthRecordID INT IDENTITY(1,1) PRIMARY KEY,
-    PetID INT NOT NULL,
-    CheckDate DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    WeightKg DECIMAL(5,2) NULL,
-    Temperature DECIMAL(4,2) NULL,
-    ConditionBefore NVARCHAR(500) NULL,
-    ConditionAfter NVARCHAR(500) NULL,
-    Findings NVARCHAR(MAX) NULL,
-    Recommendations NVARCHAR(MAX) NULL,
-    AppointmentID INT NULL,
-    AppointmentServiceID INT NULL,
-    PerformedByStaffID INT NULL,
-    Note NVARCHAR(500) NULL,
-    WarningFlag BIT NOT NULL DEFAULT 0,
-    IsDraft BIT NOT NULL DEFAULT 0,
-    IsDeleted BIT NOT NULL DEFAULT 0,
-    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    UpdatedAt DATETIME2 NULL,
-    CONSTRAINT FK_Health_Pet FOREIGN KEY (PetID) REFERENCES dbo.Pets(PetID),
-    CONSTRAINT FK_Health_App FOREIGN KEY (AppointmentID) REFERENCES dbo.Appointments(AppointmentID) ON DELETE SET NULL,
-    CONSTRAINT FK_Health_AppSvc FOREIGN KEY (AppointmentServiceID) REFERENCES dbo.AppointmentServices(AppointmentServiceID) ON DELETE SET NULL,
-    CONSTRAINT FK_Health_Staff FOREIGN KEY (PerformedByStaffID) REFERENCES dbo.Staff(StaffID)
-);
-GO
-
-CREATE TABLE dbo.PetHealthPhotos (
-    PhotoID INT IDENTITY(1,1) PRIMARY KEY,
-    HealthRecordID INT NOT NULL,
-    ImageUrl VARCHAR(500) NOT NULL,
-    CapturedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    CONSTRAINT FK_HealthPhoto_Record FOREIGN KEY (HealthRecordID) REFERENCES dbo.PetHealthRecords(HealthRecordID) ON DELETE CASCADE
 );
 GO
 
@@ -620,10 +561,7 @@ CREATE INDEX IX_AppSvc_Service ON dbo.AppointmentServices(ServiceID);
 CREATE INDEX IX_AppSvc_AssignedStaff ON dbo.AppointmentServices(AssignedStaffID) WHERE AssignedStaffID IS NOT NULL;
 CREATE INDEX IX_AppSvc_Status ON dbo.AppointmentServices(ServiceStatus);
 
--- Staff schedules / assignments
-CREATE INDEX IX_Schedule_Staff ON dbo.StaffSchedules(StaffID, WorkDate);
-CREATE INDEX IX_Assign_Appointment ON dbo.AppointmentAssignments(AppointmentID);
-CREATE INDEX IX_Assign_Staff ON dbo.AppointmentAssignments(StaffID);
+-- Staff schedules / assignments (removed; schedule is derived from AppointmentServices.AssignedStaffID)
 
 -- Payments
 CREATE INDEX IX_Payments_TypeStatusPaidAt ON dbo.Payments(PaymentType, Status, PaidAt);
@@ -646,9 +584,6 @@ CREATE INDEX IX_Notifications_Customer_IsRead ON dbo.Notifications(CustomerID, I
 -- Vaccinations / Health
 CREATE INDEX IX_PetVacc_Pet ON dbo.PetVaccinations(PetID, AdministeredDate DESC);
 CREATE INDEX IX_PetVacc_NextDue ON dbo.PetVaccinations(NextDueDate) WHERE NextDueDate IS NOT NULL;
-CREATE INDEX IX_Health_Pet ON dbo.PetHealthRecords(PetID, CheckDate DESC);
-CREATE INDEX IX_Health_Appointment ON dbo.PetHealthRecords(AppointmentID) WHERE AppointmentID IS NOT NULL;
-CREATE INDEX IX_Health_ServiceLine ON dbo.PetHealthRecords(AppointmentServiceID) WHERE AppointmentServiceID IS NOT NULL;
 CREATE INDEX IX_ServiceNotes_Appointment ON dbo.ServiceNotes(AppointmentID);
 CREATE INDEX IX_ServiceNotes_ServiceLine ON dbo.ServiceNotes(AppointmentServiceID);
 CREATE INDEX IX_ServiceNotes_Staff ON dbo.ServiceNotes(StaffID);
