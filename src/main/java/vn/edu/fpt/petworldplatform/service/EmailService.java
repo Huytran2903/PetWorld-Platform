@@ -9,9 +9,13 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import vn.edu.fpt.petworldplatform.entity.Appointment;
+import vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine;
 import vn.edu.fpt.petworldplatform.entity.Customer;
+import vn.edu.fpt.petworldplatform.entity.Staff;
 
 import java.io.UnsupportedEncodingException;
+import java.time.format.DateTimeFormatter;
 import java.util.Random;
 
 @Service
@@ -19,6 +23,7 @@ import java.util.Random;
 public class EmailService {
 
     private final JavaMailSender mailSender;
+    private static final DateTimeFormatter APPOINTMENT_DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private String baseUrl = "http://localhost:8080";
 
@@ -64,6 +69,42 @@ public class EmailService {
         message.setText(content);
 
         mailSender.send(message);
+    }
+
+    @Async
+    public void sendServiceAssignmentEmail(Staff staff, Appointment appointment, AppointmentServiceLine line) {
+        if (staff == null || staff.getEmail() == null || staff.getEmail().isBlank() || appointment == null || line == null) {
+            return;
+        }
+
+        String fullName = (staff.getFullName() != null && !staff.getFullName().isBlank())
+                ? staff.getFullName()
+                : staff.getUsername();
+        String appointmentCode = appointment.getAppointmentCode() != null ? appointment.getAppointmentCode() : "-";
+        String serviceName = (line.getService() != null && line.getService().getName() != null)
+                ? line.getService().getName()
+                : "-";
+        String appointmentTime = appointment.getAppointmentDate() != null
+                ? appointment.getAppointmentDate().format(APPOINTMENT_DATE_FORMAT)
+                : "-";
+
+        String subject = "New Service Assignment";
+        String htmlContent = """
+                <p>Hello %s,</p>
+                <p>You have been assigned to a service in the PetWorld system.</p>
+                <p>
+                    <strong>Appointment Code:</strong> %s<br>
+                    <strong>Service:</strong> %s<br>
+                    <strong>Appointment Time:</strong> %s
+                </p>
+                <p>Please log in to the staff portal to review details and proceed on time.</p>
+                <p>
+                    Best regards,<br>
+                    PetWorld Team
+                </p>
+                """.formatted(fullName, appointmentCode, serviceName, appointmentTime);
+
+        sendEmail(staff.getEmail(), subject, htmlContent);
     }
 
 

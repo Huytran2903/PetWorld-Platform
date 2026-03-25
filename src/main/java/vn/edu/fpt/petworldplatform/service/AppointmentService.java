@@ -64,6 +64,8 @@ public class AppointmentService implements IAppointmentService {
 
     private final NotificationService notificationService;
 
+    private final EmailService emailService;
+
     @Override
 
     public List<Appointment> getAllAppointments() {
@@ -275,6 +277,8 @@ public class AppointmentService implements IAppointmentService {
             line.setServiceStatus("assigned");
         }
         appointmentServiceLineRepository.save(line);
+
+        emailService.sendServiceAssignmentEmail(staff, appointment, line);
 
         if (appointment.getStaffId() == null) {
             appointment.setStaff(staff);

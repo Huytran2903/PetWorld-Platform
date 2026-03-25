@@ -1,19 +1,22 @@
 <!DOCTYPE html>
-<html
-        lang="en"
-        xmlns:th="http://www.thymeleaf.org"
-        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-        layout:decorate="~{fragments/layout_user}"
->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title th:text="${pageTitle} ?: 'Book Service Appointment'">
         Book Service Appointment
     </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" th:href="@{/css/booking.css}" />
 </head>
 
 <body>
-<main layout:fragment="content" class="container">
+<div th:replace="~{fragments/header-customer :: header(activePage='booking')}"></div>
+<main class="container">
     <!-- Thông báo flash: dòng chữ + viền trái, không dùng ô nền đỏ/xanh -->
     <div
             th:if="${message}"
@@ -102,6 +105,7 @@
                                 name="appointmentDate"
                                 required
                         />
+                        <div class="hint" style="color: #dc3545;">Note: Booking must be at least 2 hours ahead and within 30 days from now.</div>
                     </div>
                 </div>
 
@@ -246,7 +250,23 @@
         </div>
     </aside>
 
+    <script>
+        (function () {
+            function updateBookingHeaderOffset() {
+                var header = document.querySelector("header.sticky-top");
+                var headerHeight = header ? Math.ceil(header.getBoundingClientRect().height) : 124;
+                // Add a small gap so the fixed summary never touches the sticky header.
+                document.documentElement.style.setProperty("--header-offset", (headerHeight + 16) + "px");
+            }
+
+            window.addEventListener("load", updateBookingHeaderOffset);
+            window.addEventListener("resize", updateBookingHeaderOffset);
+            updateBookingHeaderOffset();
+        })();
+    </script>
     <script th:src="@{/js/booking.js}"></script>
 </main>
+<div th:replace="~{fragments/footer :: footer}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
