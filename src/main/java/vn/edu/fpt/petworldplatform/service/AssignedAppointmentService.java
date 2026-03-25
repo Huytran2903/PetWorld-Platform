@@ -74,7 +74,9 @@ public class AssignedAppointmentService implements IAssignedAppointmentService {
                 .toList();
     }
 
-    /** true nếu đã hoàn thành — xếp xuống cuối danh sách. */
+    /**
+     * true nếu đã hoàn thành — xếp xuống cuối danh sách.
+     */
     private static boolean isDoneStatus(String status) {
         if (status == null || status.isBlank()) {
             return false;
@@ -82,7 +84,9 @@ public class AssignedAppointmentService implements IAssignedAppointmentService {
         return "done".equals(status.trim().toLowerCase(Locale.ROOT));
     }
 
-    /** Không hiển thị trên lịch làm việc / danh sách gán của staff. */
+    /**
+     * Không hiển thị trên lịch làm việc / danh sách gán của staff.
+     */
     private static boolean isExcludedFromStaffWorklist(String status) {
         if (status == null || status.isBlank()) {
             return false;

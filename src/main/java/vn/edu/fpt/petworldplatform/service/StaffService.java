@@ -165,7 +165,7 @@ public class StaffService {
         long inProgressCount = appointmentServiceRepo.countInProgressServices(oldStaffId);
 
         if (inProgressCount > 0) {
-            throw new IllegalStateException("Hủy thao tác! Nhân viên này đang có " + inProgressCount + " dịch vụ đang thực hiện (In-Progress). Vui lòng hoàn thành hoặc gán lại dịch vụ trước khi xóa.");
+            throw new IllegalStateException("Hủy thao tác! Nhân viên này đang có " + inProgressCount + " dịch vụ đang thực hiện. Vui lòng hoàn thành hoặc gán lại dịch vụ trước khi xóa.");
         }
 
         if (newStaffId != null) {
@@ -176,13 +176,11 @@ public class StaffService {
 
 
         if (newStaffId != null) {
-            // Có người nhận -> Bàn giao việc dở dang
             petVaccinationRepo.transferFutureVaccinations(oldStaffId, newStaffId);
             appointmentServiceRepo.transferPendingServices(oldStaffId, newStaffId);
 
             appointmentRepo.transferPendingAppointments(oldStaffId, newStaffId);
         } else {
-            // Không ai nhận -> Trả dịch vụ về trạng thái vô chủ
             appointmentServiceRepo.unassignPendingServices(oldStaffId);
 
             appointmentRepo.unassignPendingAppointments(oldStaffId);
@@ -193,10 +191,8 @@ public class StaffService {
         appointmentServiceRepo.clearAllStaffReferences(oldStaffId);
         petHealthRecordRepo.unassignAllHealthRecords(oldStaffId);
 
-        //Set NULL cho StaffID ở tất cả các Lịch hẹn trong quá khứ
         appointmentRepo.clearAllStaffReferences(oldStaffId);
 
-        // Đẩy tất cả các lệnh UPDATE xuống Database
         staffRepo.flush();
 
         staffScheduleRepo.deleteByStaff(oldStaff);

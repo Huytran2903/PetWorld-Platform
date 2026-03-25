@@ -100,7 +100,6 @@ public class Staff {
                 .count();
     }
 
-    // 1. Đếm việc CẦN BÀN GIAO (pending, assigned)
     public long getPendingAppointmentsCount() {
         if (this.appointmentServiceLines == null || this.appointmentServiceLines.isEmpty()) return 0;
         return this.appointmentServiceLines.stream()
@@ -111,7 +110,6 @@ public class Staff {
                 .count();
     }
 
-    // 2. Đếm việc ĐANG LÀM DỞ (in_progress) - Dùng để chặn xóa
     public long getInProgressAppointmentsCount() {
         if (this.appointmentServiceLines == null || this.appointmentServiceLines.isEmpty()) return 0;
         return this.appointmentServiceLines.stream()
@@ -120,6 +118,15 @@ public class Staff {
     }
 
     public long getPendingHealthRecordsCount() {
-        return 0;
+        if (this.healthRecords == null || this.healthRecords.isEmpty()) {
+            return 0;
+        }
+
+        return this.healthRecords.stream()
+                .filter(record ->
+                        Boolean.TRUE.equals(record.getIsDraft()) &&
+                                Boolean.FALSE.equals(record.getIsDeleted())
+                )
+                .count();
     }
 }
