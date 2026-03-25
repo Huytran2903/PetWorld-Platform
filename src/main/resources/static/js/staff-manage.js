@@ -1,20 +1,4 @@
-
-function saveStaff() {
-    const modalEl = document.getElementById('addStaffModal');
-    if (modalEl) {
-        let modal = bootstrap.Modal.getInstance(modalEl);
-        if (!modal) {
-            modal = new bootstrap.Modal(modalEl);
-        }
-        alert("Đã thêm nhân viên mới thành công!");
-        modal.hide();
-        document.getElementById('addStaffForm').reset();
-    }
-}
-
-
 document.addEventListener("DOMContentLoaded", function () {
-
 
     const transferDeleteModal = document.getElementById('transferDeleteModal');
 
@@ -26,17 +10,15 @@ document.addEventListener("DOMContentLoaded", function () {
             const staffId = button.getAttribute('data-id');
             const staffName = button.getAttribute('data-name');
             const vaccines = parseInt(button.getAttribute('data-vaccines') || 0);
-            const health = parseInt(button.getAttribute('data-health') || 0);
             const appointments = parseInt(button.getAttribute('data-appointments') || 0);
 
             document.getElementById('deleteStaffId').value = staffId;
             document.getElementById('deleteStaffName').textContent = staffName;
 
             document.getElementById('vaccineCount').textContent = vaccines;
-            document.getElementById('healthCount').textContent = health;
             document.getElementById('appointmentCount').textContent = appointments;
 
-            const totalTasks = vaccines + health + appointments;
+            const totalTasks = vaccines + appointments;
 
             const pendingWarning = document.getElementById('pendingWorkWarning');
             const noWorkMessage = document.getElementById('noWorkMessage');
@@ -48,9 +30,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 Array.from(transferSelect.options).forEach(option => {
                     if (option.value === staffId) {
-                        option.style.display = 'none';
+                        option.hidden = true;
+                        option.disabled = true;
                     } else {
-                        option.style.display = 'block';
+                        option.hidden = false;
+                        option.disabled = false;
                     }
                 });
                 transferSelect.value = "";
@@ -63,9 +47,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-
     const deleteStaffModal = document.getElementById('deleteStaffModal');
-
     if (deleteStaffModal) {
         deleteStaffModal.addEventListener('show.bs.modal', function (event) {
             const button = event.relatedTarget;
@@ -78,3 +60,16 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+
+function saveStaff() {
+    const modalEl = document.getElementById('addStaffModal');
+    if (modalEl) {
+        let modal = bootstrap.Modal.getInstance(modalEl);
+        if (!modal) {
+            modal = new bootstrap.Modal(modalEl);
+        }
+        alert("Add new Staff successfully");
+        modal.hide();
+        document.getElementById('addStaffForm').reset();
+    }
+}

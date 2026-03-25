@@ -58,4 +58,7 @@ public interface PetVaccinationRepository extends JpaRepository<PetVaccinations,
             "join fetch pv.appointment a " +
             "where pv.nextDueDate = :dueDate")
     List<PetVaccinations> findDueVaccinationsWithPetOwnerAndAppointment(@Param("dueDate") LocalDate dueDate);
+
+    @Query("SELECT COUNT(v) FROM PetVaccinations v WHERE v.performedByStaff.staffId = :staffId AND v.nextDueDate >= CURRENT_DATE")
+    long countPendingVaccines(@Param("staffId") Integer staffId);
 }

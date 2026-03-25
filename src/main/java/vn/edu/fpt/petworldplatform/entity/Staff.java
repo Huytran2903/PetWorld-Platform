@@ -91,42 +91,4 @@ public class Staff {
 
     @Column(name = "LockedUntil")
     private LocalDateTime lockedUntil;
-
-    public long getPendingVaccinesCount() {
-        if (this.vaccinations == null) return 0;
-        LocalDate today = LocalDate.now();
-        return this.vaccinations.stream()
-                .filter(v -> v.getNextDueDate() != null && !v.getNextDueDate().isBefore(today))
-                .count();
-    }
-
-    public long getPendingAppointmentsCount() {
-        if (this.appointmentServiceLines == null || this.appointmentServiceLines.isEmpty()) return 0;
-        return this.appointmentServiceLines.stream()
-                .filter(service -> {
-                    String status = service.getServiceStatus();
-                    return status != null && (status.equalsIgnoreCase("assigned") || status.equalsIgnoreCase("pending"));
-                })
-                .count();
-    }
-
-    public long getInProgressAppointmentsCount() {
-        if (this.appointmentServiceLines == null || this.appointmentServiceLines.isEmpty()) return 0;
-        return this.appointmentServiceLines.stream()
-                .filter(service -> "in_progress".equalsIgnoreCase(service.getServiceStatus()))
-                .count();
-    }
-
-    public long getPendingHealthRecordsCount() {
-        if (this.healthRecords == null || this.healthRecords.isEmpty()) {
-            return 0;
-        }
-
-        return this.healthRecords.stream()
-                .filter(record ->
-                        Boolean.TRUE.equals(record.getIsDraft()) &&
-                                Boolean.FALSE.equals(record.getIsDeleted())
-                )
-                .count();
-    }
 }

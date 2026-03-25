@@ -126,9 +126,9 @@
 
                             <td>
                                 <span class="badge rounded-pill px-3 py-1 border text-capitalize"
-                                      th:classappend="${#strings.equalsIgnoreCase(staff.role.roleName, 'admin') ? 'bg-danger-subtle text-danger border-danger' :
-                                                     (#strings.equalsIgnoreCase(staff.role.roleName, 'manager') ? 'bg-info-subtle text-info border-info' : 'bg-warning-subtle text-warning-emphasis border-warning')}"
-                                      th:text="${staff.role.roleName}">Admin</span>
+                                      th:classappend="${#strings.equalsIgnoreCase(staff.roleName, 'admin') ? 'bg-danger-subtle text-danger border-danger' :
+                                                     (#strings.equalsIgnoreCase(staff.roleName, 'manager') ? 'bg-info-subtle text-info border-info' : 'bg-warning-subtle text-warning-emphasis border-warning')}"
+                                      th:text="${staff.roleName}">Admin</span>
                             </td>
 
                             <td>
@@ -144,7 +144,7 @@
                                         <i class="bi bi-pencil-square me-1"></i> Edit
                                     </a>
 
-                                    <button th:if="${!#strings.equalsIgnoreCase(staff.role.roleName, 'admin')}"
+                                    <button th:if="${!#strings.equalsIgnoreCase(staff.roleName, 'admin')}"
                                             type="button"
                                             class="btn btn-sm rounded-circle btn-outline-danger border d-flex align-items-center justify-content-center shadow-sm delete-staff-btn"
                                             style="width: 32px; height: 32px;"
@@ -153,12 +153,11 @@
                                             th:data-id="${staff.staffId}"
                                             th:data-name="${staff.fullName}"
                                             th:data-vaccines="${staff.pendingVaccinesCount}"
-                                            th:data-health="${staff.pendingHealthRecordsCount}"
                                             th:data-appointments="${staff.pendingAppointmentsCount}">
                                         <i class="bi bi-trash-fill"></i>
                                     </button>
 
-                                    <button th:if="${#strings.equalsIgnoreCase(staff.role.roleName, 'admin')}"
+                                    <button th:if="${#strings.equalsIgnoreCase(staff.roleName, 'admin')}"
                                             type="button"
                                             class="btn btn-sm rounded-circle btn-secondary border-0 d-flex align-items-center justify-content-center shadow-sm"
                                             style="width: 32px; height: 32px;"
@@ -245,7 +244,6 @@
 
                         <ul class="mb-3 small text-dark">
                             <li><span id="vaccineCount" class="fw-bold text-danger">0</span> Vaccination Records</li>
-                            <li><span id="healthCount" class="fw-bold text-danger">0</span> Health Records</li>
                             <li><span id="appointmentCount" class="fw-bold text-danger">0</span> Assigned Services</li>
                         </ul>
 

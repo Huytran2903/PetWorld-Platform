@@ -21,11 +21,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ContentDisposition;
-import vn.edu.fpt.petworldplatform.dto.AdminVaccinationRowDTO;
-import vn.edu.fpt.petworldplatform.dto.PetFormDTO;
-import vn.edu.fpt.petworldplatform.dto.PetStatisticsDTO;
+import vn.edu.fpt.petworldplatform.dto.*;
 import vn.edu.fpt.petworldplatform.entity.*;
-import vn.edu.fpt.petworldplatform.dto.StaffFormDTO;
 import vn.edu.fpt.petworldplatform.entity.Categories;
 import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.entity.ServiceItem;
@@ -483,15 +480,15 @@ public class AdminController {
     public String showStaffList(
             @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword,
             @RequestParam(name = "page", required = false, defaultValue = "1") int page,
-            @RequestParam(name = "size", required = false, defaultValue = "5") int size, // 5 người/trang
+            @RequestParam(name = "size", required = false, defaultValue = "5") int size,
             Model model) {
 
-        Page<Staff> staffPage = staffService.getStaffsWithPaginationAndSearch(keyword, page, size);
+        Page<StaffDisplayDTO> staffPage = staffService.getStaffsWithPaginationAndSearch(keyword, page, size);
 
-        model.addAttribute("staffs", staffPage.getContent()); // Danh sách hiển thị trên bảng
-        model.addAttribute("currentPage", page);              // Trang hiện tại
-        model.addAttribute("totalPages", staffPage.getTotalPages()); // Tổng số trang
-        model.addAttribute("totalItems", staffPage.getTotalElements()); // Tổng số nhân viên
+        model.addAttribute("staffs", staffPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", staffPage.getTotalPages());
+        model.addAttribute("totalItems", staffPage.getTotalElements());
 
         model.addAttribute("keyword", keyword);
 

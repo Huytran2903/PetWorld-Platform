@@ -23,5 +23,7 @@ public interface PetHealthRecordRepository extends JpaRepository<PetHealthRecord
     @Query(value = "UPDATE PetHealthRecords SET PerformedByStaffID = NULL WHERE PerformedByStaffID = :oldStaffId", nativeQuery = true)
     void unassignAllHealthRecords(@Param("oldStaffId") Integer oldStaffId);
 
+    @Query("SELECT COUNT(h) FROM PetHealthRecord h WHERE h.performedByStaff.staffId = :staffId AND h.isDraft = true AND h.isDeleted = false")
+    long countPendingHealthRecords(@Param("staffId") Integer staffId);
 
 }

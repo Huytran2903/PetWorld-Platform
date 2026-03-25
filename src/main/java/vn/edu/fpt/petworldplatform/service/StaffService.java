@@ -9,6 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.edu.fpt.petworldplatform.dto.StaffDisplayDTO;
 import vn.edu.fpt.petworldplatform.dto.StaffFormDTO;
 import vn.edu.fpt.petworldplatform.entity.*;
 import vn.edu.fpt.petworldplatform.repository.*;
@@ -70,13 +71,35 @@ public class StaffService {
         return staffRepo.findAll();
     }
 
-    public Page<Staff> getStaffsWithPaginationAndSearch(String keyword, int page, int size) {
+    public Page<StaffDisplayDTO> getStaffsWithPaginationAndSearch(String keyword, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("staffId").descending());
 
+        Page<Staff> staffPage;
         if (keyword != null && !keyword.trim().isEmpty()) {
-            return staffRepo.searchStaffs(keyword.trim(), pageable);
+            staffPage = staffRepo.searchStaffs(keyword.trim(), pageable);
+        } else {
+            staffPage = staffRepo.findAll(pageable);
         }
-        return staffRepo.findAll(pageable);
+
+        return staffPage.map(staff -> {
+            Integer id = staff.getStaffId();
+
+            String roleName = (staff.getRole() != null) ? staff.getRole().getRoleName() : "No Role";
+
+            return StaffDisplayDTO.builder()
+                    .staffId(id)
+                    .username(staff.getUsername())
+                    .fullName(staff.getFullName())
+                    .email(staff.getEmail())
+                    .phone(staff.getPhone())
+                    .roleName(roleName)
+                    .isActive(staff.getIsActive())
+
+                    .pendingVaccinesCount(petVaccinationRepo.countPendingVaccines(id))
+                    .pendingAppointmentsCount(appointmentServiceRepo.countPendingServices(id))
+                    .inProgressAppointmentsCount(appointmentServiceRepo.countInProgressServices(id))
+                    .build();
+        });
     }
 
     @Transactional
