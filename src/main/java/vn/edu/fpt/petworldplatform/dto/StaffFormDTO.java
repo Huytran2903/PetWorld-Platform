@@ -10,6 +10,8 @@ public class StaffFormDTO {
     private Integer staffId;
 
     @NotBlank(message = "Full name is required")
+    @Size(min = 2, max = 50, message = "Full name must be between 2 and 50 characters")
+    @Pattern(regexp = "^[a-zA-ZÀ-ỹ\\s]+$", message = "Full name must contain letters and spaces only, no numbers")
     private String fullName;
 
     @NotBlank(message = "Username is required")

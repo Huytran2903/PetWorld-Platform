@@ -1,5 +1,6 @@
 package vn.edu.fpt.petworldplatform.dto;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -15,9 +16,10 @@ public class ProfileFormDTO {
     private String username;
 
     @NotBlank(message = "Email is require")
+    @Email(message = "Invalid email format")
     private String email;
 
     @NotBlank(message = "Phone number is require")
-    @Pattern(regexp = "^[0-9]{10,12}$", message = "Phone number must be 10-12 digits")
+    @Pattern(regexp = "^(\\+84|0)\\d{9,10}$", message = "Invalid phone number format")
     private String phoneNumber;
 }

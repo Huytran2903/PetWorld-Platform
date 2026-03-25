@@ -3,6 +3,7 @@ package vn.edu.fpt.petworldplatform.controller;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -85,38 +86,23 @@ public class CustomerController {
 
     @GetMapping("/profile")
     public String profileShow(Model model) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        // 1. Kiểm tra chưa đăng nhập
-        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
-            return "redirect:/login";
-        }
-
-        // 2. Chặn Staff đi lạc vào trang Profile của khách (Đuổi về Dashboard)
-        if (auth.getPrincipal() instanceof CustomUserDetails) {
-            Object account = ((CustomUserDetails) auth.getPrincipal()).getAccount();
-            if (account instanceof Staff) {
-                Staff staff = (Staff) account;
-
-                String roleName = staff.getRole().getRoleName().toUpperCase();
-
-                if ("ADMIN".equals(roleName)) {
-                    return "redirect:/admin/reports/revenue";
-                } else {
-                    return "redirect:/staff/assigned_list";
-                }
+        Staff currentStaff = securitySupport.getCurrentAuthenticatedStaff();
+        if (currentStaff != null) {
+            String roleName = currentStaff.getRole().getRoleName().toUpperCase();
+            if ("ADMIN".equals(roleName)) {
+                return "redirect:/admin/reports/revenue";
+            } else {
+                return "redirect:/staff/assigned_list";
             }
         }
 
-        // 3. Lấy thông tin Customer
-        Customer authUser = securitySupport.getCurrentAuthenticatedCustomer();
+        Integer customerId = securitySupport.getCurrentAuthenticatedCustomerId();
 
-        if (authUser == null) {
+        if (customerId == null) {
             return "redirect:/login";
         }
 
-        // 4. Lấy data mới nhất từ Database để hiển thị
-        Customer currentFreshUser = customerService.findById(authUser.getCustomerId()).orElse(null);
+        Customer currentFreshUser = customerService.findById(customerId).orElse(null);
 
         if (currentFreshUser != null) {
             model.addAttribute("user", currentFreshUser);
@@ -132,10 +118,13 @@ public class CustomerController {
 
     @GetMapping("/profile/edit")
     public String profileSetting(Model model) {
-        Customer authUser = securitySupport.getCurrentAuthenticatedCustomer();
-        if (authUser == null) return "redirect:/login";
+        Integer customerId = securitySupport.getCurrentAuthenticatedCustomerId();
 
-        Customer currentFreshUser = customerService.findById(authUser.getCustomerId()).orElse(null);
+        if (customerId == null) {
+            return "redirect:/login";
+        }
+
+        Customer currentFreshUser = customerService.findById(customerId).orElse(null);
         if (currentFreshUser == null) return "redirect:/login?logout";
 
         ProfileFormDTO form = new ProfileFormDTO();
@@ -157,9 +146,18 @@ public class CustomerController {
                                 HttpSession session,
                                 Model model) {
 
-        Customer authUser = securitySupport.getCurrentAuthenticatedCustomer();
+        Staff currentStaff = securitySupport.getCurrentAuthenticatedStaff();
+        if (currentStaff != null) {
+            String roleName = currentStaff.getRole().getRoleName().toUpperCase();
+            if ("ADMIN".equals(roleName)) {
+                return "redirect:/admin/reports/revenue";
+            } else {
+                return "redirect:/staff/assigned_list";
+            }
+        }
 
-        if (authUser == null) {
+        Integer customerId = securitySupport.getCurrentAuthenticatedCustomerId();
+        if (customerId == null) {
             return "redirect:/login";
         }
 
@@ -168,8 +166,7 @@ public class CustomerController {
         }
 
         try {
-
-            Customer currentUser = customerService.findById(authUser.getCustomerId()).orElse(null);
+            Customer currentUser = customerService.findById(customerId).orElse(null);
 
             if (currentUser == null) {
                 return "redirect:/login?logout";
@@ -185,17 +182,13 @@ public class CustomerController {
 
             return "redirect:/profile?success";
 
+        } catch (DataIntegrityViolationException e) {
+            model.addAttribute("error", "Email or phone number has already exist!");
+            return "auth/editProfile";
+
         } catch (Exception e) {
             e.printStackTrace();
-
-            String message = e.getMessage();
-            if (message != null && (message.contains("Duplicate") || message.contains("UNIQUE"))) {
-                model.addAttribute("error", "Email or phone number has already exist!");
-            } else {
-                model.addAttribute("error", "System error: " + e.getMessage());
-            }
-
-            model.addAttribute("user", profileForm);
+            model.addAttribute("error", "System error: " + e.getMessage());
             return "auth/editProfile";
         }
     }
@@ -443,9 +436,9 @@ public class CustomerController {
 
     @GetMapping("/customer/appointments/{id}/payment")
     public String appointmentPaymentPage(@PathVariable Integer id,
-                                        HttpSession session,
-                                        Model model,
-                                        RedirectAttributes redirectAttributes) {
+                                         HttpSession session,
+                                         Model model,
+                                         RedirectAttributes redirectAttributes) {
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
         if (customer == null) {
             return "redirect:/login";
