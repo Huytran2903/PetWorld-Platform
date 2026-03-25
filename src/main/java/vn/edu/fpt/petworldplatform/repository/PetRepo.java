@@ -57,27 +57,27 @@ public interface PetRepo extends JpaRepository<Pets, Integer> {
     @Query("SELECT p.petType, COUNT(p) FROM Pets p WHERE p.createdAt BETWEEN :startDate AND :endDate GROUP BY p.petType")
     List<Object[]> countPetsBySpeciesAndDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
     
-    // Service vs Sale breakdown
-    @Query("SELECT COUNT(p) FROM Pets p WHERE p.createdAt BETWEEN :startDate AND :endDate AND (p.owner IS NOT NULL OR p.isAvailable = false )")
+    // Service vs Sale vs Sold (mutually exclusive)
+    @Query("SELECT COUNT(p) FROM Pets p WHERE p.createdAt BETWEEN :startDate AND :endDate AND (p.price IS NULL OR p.price = 0) AND p.purchasedAt IS NULL")
     long countServicePetsByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
     
-    @Query("SELECT COUNT(p) FROM Pets p WHERE p.createdAt BETWEEN :startDate AND :endDate AND p.price IS NOT NULL AND p.price > 0")
+    @Query("SELECT COUNT(p) FROM Pets p WHERE p.createdAt BETWEEN :startDate AND :endDate AND p.price IS NOT NULL AND p.price > 0 AND p.purchasedAt IS NULL")
     long countSalePetsByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
     
     @Query("SELECT COUNT(p) FROM Pets p WHERE p.createdAt BETWEEN :startDate AND :endDate AND p.purchasedAt IS NOT NULL")
     long countSoldPetsByDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
     
     // Species-specific breakdowns
-    @Query("SELECT 'SERVICE', COUNT(p) FROM Pets p WHERE p.petType = :species AND p.createdAt BETWEEN :startDate AND :endDate AND (p.price IS NULL OR p.price = 0)")
+    @Query("SELECT 'SERVICE', COUNT(p) FROM Pets p WHERE p.petType = :species AND p.createdAt BETWEEN :startDate AND :endDate AND (p.price IS NULL OR p.price = 0) AND p.purchasedAt IS NULL")
     List<Object[]> countServicePetsBySpeciesAndDateRange(@Param("species") String species, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
-    @Query("SELECT 'SERVICE', COUNT(p) FROM Pets p WHERE p.createdAt BETWEEN :startDate AND :endDate AND (p.price IS NULL OR p.price = 0) AND (p.petType IS NULL OR (LOWER(p.petType) <> 'dog' AND LOWER(p.petType) <> 'cat'))")
+    @Query("SELECT 'SERVICE', COUNT(p) FROM Pets p WHERE p.createdAt BETWEEN :startDate AND :endDate AND (p.price IS NULL OR p.price = 0) AND p.purchasedAt IS NULL AND (p.petType IS NULL OR (LOWER(p.petType) <> 'dog' AND LOWER(p.petType) <> 'cat'))")
     List<Object[]> countServicePetsByOtherSpeciesAndDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
-    @Query("SELECT 'SALE', COUNT(p) FROM Pets p WHERE p.petType = :species AND p.createdAt BETWEEN :startDate AND :endDate AND p.price IS NOT NULL AND p.price > 0")
+    @Query("SELECT 'SALE', COUNT(p) FROM Pets p WHERE p.petType = :species AND p.createdAt BETWEEN :startDate AND :endDate AND p.price IS NOT NULL AND p.price > 0 AND p.purchasedAt IS NULL")
     List<Object[]> countSalePetsBySpeciesAndDateRange(@Param("species") String species, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
-    @Query("SELECT 'SALE', COUNT(p) FROM Pets p WHERE p.createdAt BETWEEN :startDate AND :endDate AND p.price IS NOT NULL AND p.price > 0 AND (p.petType IS NULL OR (LOWER(p.petType) <> 'dog' AND LOWER(p.petType) <> 'cat'))")
+    @Query("SELECT 'SALE', COUNT(p) FROM Pets p WHERE p.createdAt BETWEEN :startDate AND :endDate AND p.price IS NOT NULL AND p.price > 0 AND p.purchasedAt IS NULL AND (p.petType IS NULL OR (LOWER(p.petType) <> 'dog' AND LOWER(p.petType) <> 'cat'))")
     List<Object[]> countSalePetsByOtherSpeciesAndDateRange(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
     @Query("SELECT 'SOLD', COUNT(p) FROM Pets p WHERE p.petType = :species AND p.createdAt BETWEEN :startDate AND :endDate AND p.purchasedAt IS NOT NULL")
