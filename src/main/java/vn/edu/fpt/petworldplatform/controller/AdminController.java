@@ -83,8 +83,8 @@ public class AdminController {
     //List
     @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("/admin/manage-pet")
-    public String getAllPets(Model model, @RequestParam(value = "kw", required = false, defaultValue = "")                              String keyword, @RequestParam(value = "page", defaultValue = "0") int page,
-                                   @RequestParam(name = "type", defaultValue = "", required = false) String type) {
+    public String getAllPets(Model model, @RequestParam(value = "kw", required = false, defaultValue = "") String keyword, @RequestParam(value = "page", defaultValue = "0") int page,
+                             @RequestParam(name = "type", defaultValue = "", required = false) String type) {
 
         int pageSize = 8;
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by("petID").ascending());
@@ -267,11 +267,11 @@ public class AdminController {
     @PreAuthorize("hasAuthority('MANAGE_CATEGORY')")
     @GetMapping("/admin/manage-categories")
     public String getAllCategories(Model model, @RequestParam(value = "kw", required = false, defaultValue = "") String keyword) {
-         if(!keyword.equals("")) {
+        if (!keyword.equals("")) {
             model.addAttribute("categories", categoryService.searchCateByName(keyword));
-         } else {
-             model.addAttribute("categories", categoryService.getAllCategories());
-         }
+        } else {
+            model.addAttribute("categories", categoryService.getAllCategories());
+        }
         return "admin/manageCategories";
     }
 
@@ -508,13 +508,21 @@ public class AdminController {
 
     @PreAuthorize("hasAuthority('MANAGE_STAFF')")
     @PostMapping("/admin/staff-manage/create")
-    public String createStaff(@ModelAttribute("newStaff") StaffFormDTO staffDTO,
+    public String createStaff(@Valid @ModelAttribute("newStaff") StaffFormDTO staffDTO,
                               BindingResult bindingResult,
                               Model model,
                               RedirectAttributes redirectAttributes) {
 
-        if (staffService.isEmailExists(staffDTO.getEmail())) {
-            bindingResult.rejectValue("email", "error.email", "This email is already in use!");
+        if (staffDTO.getUsername() != null && !staffDTO.getUsername().trim().isEmpty()) {
+            if (staffService.isUsernameExists(staffDTO.getUsername())) {
+                bindingResult.rejectValue("username", "error.username", "This username is already in use!");
+            }
+        }
+
+        if (staffDTO.getEmail() != null && !staffDTO.getEmail().trim().isEmpty()) {
+            if (staffService.isEmailExists(staffDTO.getEmail())) {
+                bindingResult.rejectValue("email", "error.email", "This email is already in use!");
+            }
         }
 
         if (staffDTO.getPhone() != null && !staffDTO.getPhone().trim().isEmpty()) {
@@ -552,7 +560,25 @@ public class AdminController {
 
     @PreAuthorize("hasAuthority('MANAGE_STAFF')")
     @PostMapping("/admin/staff-manage/update")
-    public String updateStaff(@Valid @ModelAttribute("newStaff") StaffFormDTO staffDTO, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
+    public String updateStaff(@Valid @ModelAttribute("newStaff") StaffFormDTO staffDTO,
+                              BindingResult bindingResult,
+                              Model model,
+                              RedirectAttributes redirectAttributes) {
+
+        Integer currentStaffId = staffDTO.getStaffId();
+
+        if (staffDTO.getUsername() != null && !staffDTO.getUsername().trim().isEmpty()) {
+            if (staffService.isUsernameExistsForOther(staffDTO.getUsername(), currentStaffId)) {
+                bindingResult.rejectValue("username", "error.username", "This username is already in use by another staff!");
+            }
+        }
+
+
+        if (staffDTO.getPhone() != null && !staffDTO.getPhone().trim().isEmpty()) {
+            if (staffService.isPhoneExistsForOther(staffDTO.getPhone(), currentStaffId)) {
+                bindingResult.rejectValue("phone", "error.phone", "This phone number is already in use by another staff!");
+            }
+        }
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("roles", roleService.getAllRoles());

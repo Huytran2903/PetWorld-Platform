@@ -59,6 +59,18 @@ public class StaffService {
         return staffRepo.existsByPhone(phone);
     }
 
+    public boolean isUsernameExists(String username) {
+        return staffRepo.existsByUsername(username);
+    }
+
+    public boolean isUsernameExistsForOther(String username, Integer currentStaffId) {
+        return staffRepo.existsByUsernameAndStaffIdNot(username, currentStaffId);
+    }
+
+    public boolean isPhoneExistsForOther(String phone, Integer currentStaffId) {
+        return staffRepo.existsByPhoneAndStaffIdNot(phone, currentStaffId);
+    }
+
     public Optional<Staff> findById(Long staffId) {
         if (staffId == null) {
             return Optional.empty();
@@ -164,7 +176,6 @@ public class StaffService {
 
         existingStaff.setFullName(dto.getFullName());
         existingStaff.setUsername(dto.getUsername());
-        existingStaff.setEmail(dto.getEmail());
         existingStaff.setPhone(dto.getPhone());
 
         Role role = (Role) roleRepo.findById(dto.getRoleId())

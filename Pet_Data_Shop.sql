@@ -265,7 +265,7 @@ CREATE TABLE dbo.ServiceNotes (
     ServiceNoteID INT IDENTITY(1,1) PRIMARY KEY,
     AppointmentID INT NOT NULL,
     AppointmentServiceID INT NOT NULL,
-    StaffID INT NOT NULL,
+    StaffID INT NULL,
     Note NVARCHAR(MAX) NULL,
     Status VARCHAR(20) NOT NULL DEFAULT 'done'
         CHECK (Status IN ('draft','done')),

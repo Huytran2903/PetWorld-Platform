@@ -57,9 +57,14 @@
                                     <label class="form-label">User Name</label>
                                     <div class="input-group">
                                         <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
-                                        <input type="text" class="form-control" th:field="*{username}"
-                                               placeholder="A@123"
-                                               th:readonly="${formMode == 'edit'}" required>
+
+                                        <input type="text" th:field="*{username}"
+                                               class="form-control"
+                                               th:classappend="${#fields.hasErrors('username')} ? 'is-invalid' : ''"
+                                               placeholder="A@123" required>
+
+                                        <div class="invalid-feedback fw-medium" th:if="${#fields.hasErrors('username')}"
+                                             th:errors="*{username}"></div>
                                     </div>
                                 </div>
 
