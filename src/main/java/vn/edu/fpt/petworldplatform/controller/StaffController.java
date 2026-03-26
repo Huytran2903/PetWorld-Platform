@@ -194,7 +194,8 @@ public class StaffController {
             if (!vaccineRecordRows.isEmpty()) {
                 for (AppointmentServiceLine line : myServiceLines) {
                     if (line == null || line.getId() == null || line.getService() == null) continue;
-                    String serviceType = line.getService().getServiceType();
+                    String serviceType = line.getService().getServiceType() != null
+                            ? line.getService().getServiceType().getName() : null;
                     if (serviceType == null) continue;
                     String st = serviceType.trim().toLowerCase(Locale.ROOT);
                     if (!"vaccine".equals(st) && !"vaccination".equals(st)) continue;

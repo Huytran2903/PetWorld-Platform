@@ -4,7 +4,8 @@
    - Staff: Table riêng, có Role (Admin/Staff)
    - Feedback: Có link tới Service cụ thể
    - FEATURE 10 (tối giản 2 bảng): SystemConfigs + AccessControl
-   - FIX: Services.ServiceType có thêm 'health_check' (seed chạy được); Services.IsOneTimeVaccine (vaccination)
+   - Services.ServiceTypeID → ServiceTypes.ServiceTypeID (FK); index IX_Services_ServiceType
+   - FIX: Service type names (seed) include 'health_check'; Services.IsOneTimeVaccine (vaccination)
    - FIX: Orders.Status VARCHAR(20) + CHECK
    - FIX: SQL Server time columns dùng DATETIME2 (không dùng timestamp); PetVaccinations dùng DATE cho ngày tiêm/hẹn
    - FIX: Orders - Payments quan hệ 1-1 (mỗi Order tối đa 1 Payment) bằng UNIQUE filtered index
@@ -15,15 +16,19 @@
    - Các migration cũ (AssignStaff*, VaccineService*, Notifications_NVarchar) đã gộp vào script CREATE này
    ========================================================= */
 
-USE master;
+USE
+master;
 GO
 IF DB_ID('petshop') IS NOT NULL
 BEGIN
-    ALTER DATABASE petshop SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE petshop;
+    ALTER
+DATABASE petshop SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+    DROP
+DATABASE petshop;
 END
 GO
-CREATE DATABASE petshop;
+CREATE
+DATABASE petshop;
 GO
 USE petshop;
 GO
@@ -31,8 +36,9 @@ GO
 /* =========================================================
    1) ROLES (CHỈ DÙNG CHO STAFF)
    ========================================================= */
-CREATE TABLE dbo.Roles (
-    RoleID INT IDENTITY(1,1) PRIMARY KEY,
+CREATE TABLE dbo.Roles
+(
+    RoleID   INT IDENTITY(1,1) PRIMARY KEY,
     RoleName VARCHAR(30) NOT NULL UNIQUE -- admin, staff
 );
 GO
@@ -42,135 +48,142 @@ GO
 /* =========================================================
    2) CUSTOMERS (TỰ ĐĂNG KÝ - KHÔNG ROLE)
    ========================================================= */
-CREATE TABLE dbo.Customers (
-    CustomerID INT IDENTITY(1,1) PRIMARY KEY,
-    Username VARCHAR(60) NOT NULL UNIQUE,
-    PasswordHash VARCHAR(255) NOT NULL,
-    Email VARCHAR(120) NULL UNIQUE,
-    Phone VARCHAR(20) NULL,
-    FullName NVARCHAR(120) NULL,
-    IsActive BIT NOT NULL DEFAULT 1,
-    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    UpdatedAt DATETIME2 NULL,
-	AuthProvider VARCHAR(20) DEFAULT 'LOCAL',
-    FailedAttempts INT NOT NULL DEFAULT 0,
-    LockedUntil DATETIME2 NULL
+CREATE TABLE dbo.Customers
+(
+    CustomerID     INT IDENTITY(1,1) PRIMARY KEY,
+    Username       VARCHAR(60)  NOT NULL UNIQUE,
+    PasswordHash   VARCHAR(255) NOT NULL,
+    Email          VARCHAR(120) NULL UNIQUE,
+    Phone          VARCHAR(20) NULL,
+    FullName       NVARCHAR(120) NULL,
+    IsActive       BIT          NOT NULL DEFAULT 1,
+    CreatedAt      DATETIME2    NOT NULL DEFAULT SYSDATETIME(),
+    UpdatedAt      DATETIME2 NULL,
+    AuthProvider   VARCHAR(20)           DEFAULT 'LOCAL',
+    FailedAttempts INT          NOT NULL DEFAULT 0,
+    LockedUntil    DATETIME2 NULL
 );
 GO
 
 /* =========================================================
    3) STAFF (ADMIN CẤP - CÓ ROLE)
    ========================================================= */
-CREATE TABLE dbo.Staff (
-    StaffID INT IDENTITY(1,1) PRIMARY KEY,
-    RoleID INT NOT NULL, -- admin / staff
-    Username VARCHAR(60) NOT NULL UNIQUE,
-    PasswordHash VARCHAR(255) NOT NULL,
-    Email VARCHAR(120) NULL UNIQUE,
-    Phone VARCHAR(20) NULL,
-    FullName NVARCHAR(120) NULL,
-    HireDate DATE NULL,
-    Bio NVARCHAR(300) NULL,
-    IsActive BIT NOT NULL DEFAULT 1,
-    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    UpdatedAt DATETIME2 NULL,
-    FailedAttempts INT NOT NULL DEFAULT 0,
-    LockedUntil DATETIME2 NULL,
-    CONSTRAINT FK_Staff_Roles FOREIGN KEY (RoleID) REFERENCES dbo.Roles(RoleID)
+CREATE TABLE dbo.Staff
+(
+    StaffID        INT IDENTITY(1,1) PRIMARY KEY,
+    RoleID         INT          NOT NULL, -- admin / staff
+    Username       VARCHAR(60)  NOT NULL UNIQUE,
+    PasswordHash   VARCHAR(255) NOT NULL,
+    Email          VARCHAR(120) NULL UNIQUE,
+    Phone          VARCHAR(20) NULL,
+    FullName       NVARCHAR(120) NULL,
+    HireDate       DATE NULL,
+    Bio            NVARCHAR(300) NULL,
+    IsActive       BIT          NOT NULL DEFAULT 1,
+    CreatedAt      DATETIME2    NOT NULL DEFAULT SYSDATETIME(),
+    UpdatedAt      DATETIME2 NULL,
+    FailedAttempts INT          NOT NULL DEFAULT 0,
+    LockedUntil    DATETIME2 NULL,
+    CONSTRAINT FK_Staff_Roles FOREIGN KEY (RoleID) REFERENCES dbo.Roles (RoleID)
 );
 GO
 
 /* =========================================================
    FEATURE 10 – TỐI GIẢN 2 BẢNG (Admin) — tên bảng/cột khớp entity SystemConfigs
    ========================================================= */
-CREATE TABLE dbo.system_configs (
-    config_key VARCHAR(80) NOT NULL PRIMARY KEY,
-    config_value NVARCHAR(MAX) NULL,
-    data_type VARCHAR(20) NOT NULL DEFAULT 'string'
-        CHECK (data_type IN ('string','int','decimal','bool','json')),
+CREATE TABLE dbo.system_configs
+(
+    config_key          VARCHAR(80) NOT NULL PRIMARY KEY,
+    config_value        NVARCHAR(MAX) NULL,
+    data_type           VARCHAR(20) NOT NULL DEFAULT 'string'
+        CHECK (data_type IN ('string', 'int', 'decimal', 'bool', 'json')),
     updated_by_staff_id INT NULL,
-    updated_at DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    CONSTRAINT FK_system_configs_Staff FOREIGN KEY (updated_by_staff_id) REFERENCES dbo.Staff(StaffID)
+    updated_at          DATETIME2   NOT NULL DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_system_configs_Staff FOREIGN KEY (updated_by_staff_id) REFERENCES dbo.Staff (StaffID)
 );
 GO
 
-CREATE TABLE dbo.AccessControl (
-    RoleID INT NOT NULL,
-    PermissionCode VARCHAR(120) NOT NULL,  -- vd: SYSTEM.CONFIG, SYSTEM.ACL
-    IsAllowed BIT NOT NULL DEFAULT 1,
-    GrantedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+CREATE TABLE dbo.AccessControl
+(
+    RoleID         INT          NOT NULL,
+    PermissionCode VARCHAR(120) NOT NULL, -- vd: SYSTEM.CONFIG, SYSTEM.ACL
+    IsAllowed      BIT          NOT NULL DEFAULT 1,
+    GrantedAt      DATETIME2    NOT NULL DEFAULT SYSDATETIME(),
     PRIMARY KEY (RoleID, PermissionCode),
-    CONSTRAINT FK_AccessControl_Role FOREIGN KEY (RoleID) REFERENCES dbo.Roles(RoleID)
+    CONSTRAINT FK_AccessControl_Role FOREIGN KEY (RoleID) REFERENCES dbo.Roles (RoleID)
 );
 GO
 
 /* =========================================================
    4) CATEGORIES / PRODUCTS
    ========================================================= */
-CREATE TABLE dbo.Categories (
-    CategoryID INT IDENTITY(1,1) PRIMARY KEY,
-    Name NVARCHAR(255) NOT NULL UNIQUE,
+CREATE TABLE dbo.Categories
+(
+    CategoryID  INT IDENTITY(1,1) PRIMARY KEY,
+    Name        NVARCHAR(255) NOT NULL UNIQUE,
     Description NVARCHAR(MAX) NULL,
-    IsActive BIT NOT NULL DEFAULT 1,
-    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME()
+    IsActive    BIT       NOT NULL DEFAULT 1,
+    CreatedAt   DATETIME2 NOT NULL DEFAULT SYSDATETIME()
 );
 GO
 
-CREATE TABLE dbo.Products (
-    ProductID INT IDENTITY(1,1) PRIMARY KEY,
-    CategoryID INT NULL,
-    Name NVARCHAR(150) NOT NULL,
-    SKU VARCHAR(50) NULL UNIQUE,
-    Price DECIMAL(12,2) NOT NULL CHECK (Price >= 0),
-    SalePrice DECIMAL(12,2) NULL CHECK (SalePrice IS NULL OR SalePrice >= 0),
-    DiscountPercent DECIMAL(5,2) NOT NULL DEFAULT 0 CHECK (DiscountPercent BETWEEN 0 AND 100),
-    Stock INT NOT NULL DEFAULT 0 CHECK (Stock >= 0),
-    ImageUrl VARCHAR(255) NULL,
-    Description NVARCHAR(MAX) NULL,
-    IsActive BIT NOT NULL DEFAULT 1,
-    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    UpdatedAt DATETIME2 NULL,
-    CONSTRAINT FK_Products_Categories FOREIGN KEY (CategoryID) REFERENCES dbo.Categories(CategoryID)
+CREATE TABLE dbo.Products
+(
+    ProductID       INT IDENTITY(1,1) PRIMARY KEY,
+    CategoryID      INT NULL,
+    Name            NVARCHAR(150) NOT NULL,
+    SKU             VARCHAR(50) NULL UNIQUE,
+    Price           DECIMAL(12, 2) NOT NULL CHECK (Price >= 0),
+    SalePrice       DECIMAL(12, 2) NULL CHECK (SalePrice IS NULL OR SalePrice >= 0),
+    DiscountPercent DECIMAL(5, 2)  NOT NULL DEFAULT 0 CHECK (DiscountPercent BETWEEN 0 AND 100),
+    Stock           INT            NOT NULL DEFAULT 0 CHECK (Stock >= 0),
+    ImageUrl        VARCHAR(255) NULL,
+    Description     NVARCHAR(MAX) NULL,
+    IsActive        BIT            NOT NULL DEFAULT 1,
+    CreatedAt       DATETIME2      NOT NULL DEFAULT SYSDATETIME(),
+    UpdatedAt       DATETIME2 NULL,
+    CONSTRAINT FK_Products_Categories FOREIGN KEY (CategoryID) REFERENCES dbo.Categories (CategoryID)
 );
 GO
 
 /* =========================================================
    5) PETS (GỘP PET BÁN + PET KHÁCH SỞ HỮU)
    ========================================================= */
-CREATE TABLE dbo.Pets (
-    PetID INT IDENTITY(1,1) PRIMARY KEY,
-    Name NVARCHAR(120) NOT NULL,
-    PetType VARCHAR(20) NOT NULL CHECK (PetType IN ('dog','cat','other')),
-    Breed NVARCHAR(80) NULL,
-    Gender VARCHAR(10) NULL CHECK (Gender IN ('Male','Female')),
-    AgeMonths INT NULL CHECK (AgeMonths >= 0),
-    WeightKg DECIMAL(5,2) NULL CHECK (WeightKg >= 0),
-    Color NVARCHAR(40) NULL,
-    Note NVARCHAR(500) NULL,
-    ImageUrl VARCHAR(255) NULL,
-    Description NVARCHAR(MAX) NULL,
+CREATE TABLE dbo.Pets
+(
+    PetID           INT IDENTITY(1,1) PRIMARY KEY,
+    Name            NVARCHAR(120) NOT NULL,
+    PetType         VARCHAR(20) NOT NULL CHECK (PetType IN ('dog', 'cat', 'other')),
+    Breed           NVARCHAR(80) NULL,
+    Gender          VARCHAR(10) NULL CHECK (Gender IN ('Male','Female')),
+    AgeMonths       INT NULL CHECK (AgeMonths >= 0),
+    WeightKg        DECIMAL(5, 2) NULL CHECK (WeightKg >= 0),
+    Color           NVARCHAR(40) NULL,
+    Note            NVARCHAR(500) NULL,
+    ImageUrl        VARCHAR(255) NULL,
+    Description     NVARCHAR(MAX) NULL,
 
-    Price DECIMAL(12,2) NULL CHECK (Price IS NULL OR Price >= 0),
-    SalePrice DECIMAL(12,2) NULL CHECK (SalePrice IS NULL OR SalePrice >= 0),
-    DiscountPercent DECIMAL(5,2) NULL DEFAULT 0 CHECK (DiscountPercent IS NULL OR DiscountPercent BETWEEN 0 AND 100),
+    Price           DECIMAL(12, 2) NULL CHECK (Price IS NULL OR Price >= 0),
+    SalePrice       DECIMAL(12, 2) NULL CHECK (SalePrice IS NULL OR SalePrice >= 0),
+    DiscountPercent DECIMAL(5, 2) NULL DEFAULT 0 CHECK (DiscountPercent IS NULL OR DiscountPercent BETWEEN 0 AND 100),
 
-    IsAvailable BIT NOT NULL DEFAULT 1,
+    IsAvailable     BIT         NOT NULL DEFAULT 1,
     OwnerCustomerID INT NULL,
-    PurchasedAt DATETIME2 NULL,
+    PurchasedAt     DATETIME2 NULL,
 
-    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    UpdatedAt DATETIME2 NULL,
+    CreatedAt       DATETIME2   NOT NULL DEFAULT SYSDATETIME(),
+    UpdatedAt       DATETIME2 NULL,
 
-    CONSTRAINT FK_Pets_OwnerCustomer FOREIGN KEY (OwnerCustomerID) REFERENCES dbo.Customers(CustomerID),
+    CONSTRAINT FK_Pets_OwnerCustomer FOREIGN KEY (OwnerCustomerID) REFERENCES dbo.Customers (CustomerID),
 
     CONSTRAINT CK_Pets_Owner_Available CHECK (
         (OwnerCustomerID IS NULL AND IsAvailable = 1) OR
         (OwnerCustomerID IS NOT NULL AND IsAvailable = 0)
-    ),
+        ),
     CONSTRAINT CK_Pets_Price_WhenSale CHECK (
         (OwnerCustomerID IS NULL AND Price IS NOT NULL) OR
         (OwnerCustomerID IS NOT NULL)
-    )
+        )
 );
 GO
 
@@ -178,66 +191,75 @@ GO
    6) SERVICES / APPOINTMENTS / ASSIGNMENT / SCHEDULE
    ========================================================= */
 /* Service Types: categorize services (Spa, Vaccination, Boarding, etc.) - Admin CRUD, soft delete */
-CREATE TABLE dbo.ServiceTypes (
+CREATE TABLE dbo.ServiceTypes
+(
     ServiceTypeID INT IDENTITY(1,1) PRIMARY KEY,
-    Name NVARCHAR(80) NOT NULL UNIQUE,
-    Description NVARCHAR(500) NULL,
-    IsActive BIT NOT NULL DEFAULT 1
+    Name          NVARCHAR(80) NOT NULL UNIQUE,
+    Description   NVARCHAR(500) NULL,
+    IsActive      BIT NOT NULL DEFAULT 1
 );
 GO
 
-CREATE TABLE dbo.Services (
-    ServiceID INT IDENTITY(1,1) PRIMARY KEY,
-    ServiceType VARCHAR(20) NOT NULL,
-    Name NVARCHAR(120) NOT NULL,
-    Description NVARCHAR(500) NULL,
-    BasePrice DECIMAL(12,2) NOT NULL CHECK (BasePrice >= 0),
-    DurationMinutes INT NOT NULL DEFAULT 30 CHECK (DurationMinutes > 0),
-    IsActive BIT NOT NULL DEFAULT 1,
-    IsOneTimeVaccine BIT NOT NULL CONSTRAINT DF_Services_IsOneTimeVaccine DEFAULT 0,
-    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME()
+/* Services (nhiều) thuộc một ServiceTypes (một): ServiceTypeID là khóa ngoại bắt buộc */
+CREATE TABLE dbo.Services
+(
+    ServiceID        INT IDENTITY(1,1) PRIMARY KEY,
+    ServiceTypeID    INT            NOT NULL,
+    Name             NVARCHAR(120) NOT NULL,
+    Description      NVARCHAR(500) NULL,
+    BasePrice        DECIMAL(12, 2) NOT NULL CHECK (BasePrice >= 0),
+    DurationMinutes  INT            NOT NULL DEFAULT 30 CHECK (DurationMinutes > 0),
+    IsActive         BIT            NOT NULL DEFAULT 1,
+    IsOneTimeVaccine BIT            NOT NULL CONSTRAINT DF_Services_IsOneTimeVaccine DEFAULT 0,
+    CreatedAt        DATETIME2      NOT NULL DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_Services_ServiceTypes FOREIGN KEY (ServiceTypeID)
+        REFERENCES dbo.ServiceTypes (ServiceTypeID)
+        ON DELETE NO ACTION
+        ON UPDATE NO ACTION
 );
 GO
 
-CREATE TABLE dbo.Appointments (
-    AppointmentID INT IDENTITY(1,1) PRIMARY KEY,
-    AppointmentCode VARCHAR(100) NOT NULL UNIQUE,
-    CustomerID INT NOT NULL,
-    PetID INT NOT NULL,
-    StaffID INT NULL,
-    AppointmentDate DATETIME2 NOT NULL,
-    EndTime DATETIME2 NULL,
-    Note NVARCHAR(255) NULL,
-    Status VARCHAR(20) NOT NULL DEFAULT 'pending'
-        CHECK (Status IN ('pending','confirmed','checked_in','in_progress','done','canceled','no_show')),
-    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    UpdatedAt DATETIME2 NULL,
-    RescheduledAt DATETIME2 NULL,
-    LastRescheduledAt DATETIME2 NULL,
-    RescheduleCount INT NOT NULL DEFAULT 0,
+CREATE TABLE dbo.Appointments
+(
+    AppointmentID           INT IDENTITY(1,1) PRIMARY KEY,
+    AppointmentCode         VARCHAR(100) NOT NULL UNIQUE,
+    CustomerID              INT          NOT NULL,
+    PetID                   INT          NOT NULL,
+    StaffID                 INT NULL,
+    AppointmentDate         DATETIME2    NOT NULL,
+    EndTime                 DATETIME2 NULL,
+    Note                    NVARCHAR(255) NULL,
+    Status                  VARCHAR(20)  NOT NULL DEFAULT 'pending'
+        CHECK (Status IN ('pending', 'confirmed', 'checked_in', 'in_progress', 'done', 'canceled', 'no_show')),
+    CreatedAt               DATETIME2    NOT NULL DEFAULT SYSDATETIME(),
+    UpdatedAt               DATETIME2 NULL,
+    RescheduledAt           DATETIME2 NULL,
+    LastRescheduledAt       DATETIME2 NULL,
+    RescheduleCount         INT          NOT NULL DEFAULT 0,
     PreviousAppointmentDate DATETIME2 NULL,
-    CanceledAt DATETIME2 NULL,
-    CancellationReason NVARCHAR(255) NULL,
-    CONSTRAINT FK_App_Customer FOREIGN KEY (CustomerID) REFERENCES dbo.Customers(CustomerID),
-    CONSTRAINT FK_App_Pet FOREIGN KEY (PetID) REFERENCES dbo.Pets(PetID),
-    CONSTRAINT FK_App_Staff FOREIGN KEY (StaffID) REFERENCES dbo.Staff(StaffID)
+    CanceledAt              DATETIME2 NULL,
+    CancellationReason      NVARCHAR(255) NULL,
+    CONSTRAINT FK_App_Customer FOREIGN KEY (CustomerID) REFERENCES dbo.Customers (CustomerID),
+    CONSTRAINT FK_App_Pet FOREIGN KEY (PetID) REFERENCES dbo.Pets (PetID),
+    CONSTRAINT FK_App_Staff FOREIGN KEY (StaffID) REFERENCES dbo.Staff (StaffID)
 );
 GO
 
-CREATE TABLE dbo.AppointmentServices (
+CREATE TABLE dbo.AppointmentServices
+(
     AppointmentServiceID INT IDENTITY(1,1) PRIMARY KEY,
-    AppointmentID INT NOT NULL,
-    ServiceID INT NOT NULL,
-    AssignedStaffID INT NULL,
-    Price DECIMAL(12,2) NOT NULL CHECK (Price >= 0),
-    Quantity INT NOT NULL DEFAULT 1 CHECK (Quantity > 0),
-    ServiceStatus VARCHAR(20) NOT NULL DEFAULT 'pending'
-        CHECK (ServiceStatus IN ('pending','assigned','in_progress','done','canceled','no_show')),
-    ServiceNote NVARCHAR(500) NULL,
+    AppointmentID        INT            NOT NULL,
+    ServiceID            INT            NOT NULL,
+    AssignedStaffID      INT NULL,
+    Price                DECIMAL(12, 2) NOT NULL CHECK (Price >= 0),
+    Quantity             INT            NOT NULL DEFAULT 1 CHECK (Quantity > 0),
+    ServiceStatus        VARCHAR(20)    NOT NULL DEFAULT 'pending'
+        CHECK (ServiceStatus IN ('pending', 'assigned', 'in_progress', 'done', 'canceled', 'no_show')),
+    ServiceNote          NVARCHAR(500) NULL,
     LineTotal AS (Price * Quantity) PERSISTED,
-    CONSTRAINT FK_AppSvc_App FOREIGN KEY (AppointmentID) REFERENCES dbo.Appointments(AppointmentID),
-    CONSTRAINT FK_AppSvc_Service FOREIGN KEY (ServiceID) REFERENCES dbo.Services(ServiceID),
-    CONSTRAINT FK_AppSvc_AssignedStaff FOREIGN KEY (AssignedStaffID) REFERENCES dbo.Staff(StaffID),
+    CONSTRAINT FK_AppSvc_App FOREIGN KEY (AppointmentID) REFERENCES dbo.Appointments (AppointmentID),
+    CONSTRAINT FK_AppSvc_Service FOREIGN KEY (ServiceID) REFERENCES dbo.Services (ServiceID),
+    CONSTRAINT FK_AppSvc_AssignedStaff FOREIGN KEY (AssignedStaffID) REFERENCES dbo.Staff (StaffID),
     CONSTRAINT UQ_AppSvc UNIQUE (AppointmentID, ServiceID)
 );
 GO
@@ -245,19 +267,20 @@ GO
 /* =========================================================
    7) VACCINATION & HEALTH RECORDS
    ========================================================= */
-CREATE TABLE dbo.PetVaccinations (
-    VaccinationID INT IDENTITY(1,1) PRIMARY KEY,
-    PetID INT NOT NULL,
-    VaccineName NVARCHAR(100) NOT NULL,
-    AdministeredDate DATE NOT NULL CONSTRAINT DF_PetVaccinations_AdministeredDate DEFAULT (CAST(SYSDATETIME() AS DATE)),
-    NextDueDate DATE NULL,
-    AppointmentID INT NULL,
+CREATE TABLE dbo.PetVaccinations
+(
+    VaccinationID      INT IDENTITY(1,1) PRIMARY KEY,
+    PetID              INT       NOT NULL,
+    VaccineName        NVARCHAR(100) NOT NULL,
+    AdministeredDate   DATE      NOT NULL CONSTRAINT DF_PetVaccinations_AdministeredDate DEFAULT (CAST(SYSDATETIME() AS DATE)),
+    NextDueDate        DATE NULL,
+    AppointmentID      INT NULL,
     PerformedByStaffID INT NULL,
-    Note NVARCHAR(500) NULL,
-    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    CONSTRAINT FK_PetVacc_Pet FOREIGN KEY (PetID) REFERENCES dbo.Pets(PetID),
-    CONSTRAINT FK_PetVacc_App FOREIGN KEY (AppointmentID) REFERENCES dbo.Appointments(AppointmentID) ON DELETE SET NULL,
-    CONSTRAINT FK_PetVacc_Staff FOREIGN KEY (PerformedByStaffID) REFERENCES dbo.Staff(StaffID)
+    Note               NVARCHAR(500) NULL,
+    CreatedAt          DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_PetVacc_Pet FOREIGN KEY (PetID) REFERENCES dbo.Pets (PetID),
+    CONSTRAINT FK_PetVacc_App FOREIGN KEY (AppointmentID) REFERENCES dbo.Appointments (AppointmentID) ON DELETE SET NULL,
+    CONSTRAINT FK_PetVacc_Staff FOREIGN KEY (PerformedByStaffID) REFERENCES dbo.Staff (StaffID)
 );
 GO
 
@@ -277,111 +300,118 @@ CREATE TABLE dbo.ServiceNotes (
 );
 GO
 
-CREATE TABLE dbo.ServiceNotePhotos (
+CREATE TABLE dbo.ServiceNotePhotos
+(
     ServiceNotePhotoID INT IDENTITY(1,1) PRIMARY KEY,
-    ServiceNoteID INT NOT NULL,
-    ImageUrl VARCHAR(500) NOT NULL,
-    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    CONSTRAINT FK_ServiceNotePhoto_Note FOREIGN KEY (ServiceNoteID) REFERENCES dbo.ServiceNotes(ServiceNoteID) ON DELETE CASCADE
+    ServiceNoteID      INT          NOT NULL,
+    ImageUrl           VARCHAR(500) NOT NULL,
+    CreatedAt          DATETIME2    NOT NULL DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_ServiceNotePhoto_Note FOREIGN KEY (ServiceNoteID) REFERENCES dbo.ServiceNotes (ServiceNoteID) ON DELETE CASCADE
 );
 GO
 
-CREATE TABLE dbo.AppointmentSummaries (
-    SummaryID INT IDENTITY(1,1) PRIMARY KEY,
-    AppointmentID INT NOT NULL UNIQUE,
-    WeightKg DECIMAL(5,2) NULL,
-    Temperature DECIMAL(4,2) NULL,
-    ConditionBefore NVARCHAR(500) NULL,
-    ConditionAfter NVARCHAR(500) NULL,
-    Findings NVARCHAR(MAX) NULL,
-    Recommendations NVARCHAR(MAX) NULL,
-    Note NVARCHAR(500) NULL,
-    WarningFlag BIT NOT NULL DEFAULT 0,
+CREATE TABLE dbo.AppointmentSummaries
+(
+    SummaryID        INT IDENTITY(1,1) PRIMARY KEY,
+    AppointmentID    INT       NOT NULL UNIQUE,
+    WeightKg         DECIMAL(5, 2) NULL,
+    Temperature      DECIMAL(4, 2) NULL,
+    ConditionBefore  NVARCHAR(500) NULL,
+    ConditionAfter   NVARCHAR(500) NULL,
+    Findings         NVARCHAR(MAX) NULL,
+    Recommendations  NVARCHAR(MAX) NULL,
+    Note             NVARCHAR(500) NULL,
+    WarningFlag      BIT       NOT NULL DEFAULT 0,
     SummaryByStaffID INT NULL,
-    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    UpdatedAt DATETIME2 NULL,
-    CONSTRAINT FK_Summary_Appointment FOREIGN KEY (AppointmentID) REFERENCES dbo.Appointments(AppointmentID) ON DELETE CASCADE,
-    CONSTRAINT FK_Summary_Staff FOREIGN KEY (SummaryByStaffID) REFERENCES dbo.Staff(StaffID)
+    CreatedAt        DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    UpdatedAt        DATETIME2 NULL,
+    CONSTRAINT FK_Summary_Appointment FOREIGN KEY (AppointmentID) REFERENCES dbo.Appointments (AppointmentID) ON DELETE CASCADE,
+    CONSTRAINT FK_Summary_Staff FOREIGN KEY (SummaryByStaffID) REFERENCES dbo.Staff (StaffID)
 );
 GO
 
-CREATE TABLE dbo.AppointmentSummaryPhotos (
+CREATE TABLE dbo.AppointmentSummaryPhotos
+(
     AppointmentSummaryPhotoID INT IDENTITY(1,1) PRIMARY KEY,
-    SummaryID INT NOT NULL,
-    ImageUrl VARCHAR(500) NOT NULL,
-    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    CONSTRAINT FK_AppointmentSummaryPhoto_Summary FOREIGN KEY (SummaryID) REFERENCES dbo.AppointmentSummaries(SummaryID) ON DELETE CASCADE
+    SummaryID                 INT          NOT NULL,
+    ImageUrl                  VARCHAR(500) NOT NULL,
+    CreatedAt                 DATETIME2    NOT NULL DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_AppointmentSummaryPhoto_Summary FOREIGN KEY (SummaryID) REFERENCES dbo.AppointmentSummaries (SummaryID) ON DELETE CASCADE
 );
 GO
 
 /* =========================================================
    8) CART / CART ITEMS
    ========================================================= */
-CREATE TABLE dbo.Carts (
-    CartID INT IDENTITY(1,1) PRIMARY KEY,
-    CustomerID INT NOT NULL UNIQUE,
-    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    UpdatedAt DATETIME2 NULL,
-    CONSTRAINT FK_Carts_Customers FOREIGN KEY (CustomerID) REFERENCES dbo.Customers(CustomerID)
+CREATE TABLE dbo.Carts
+(
+    CartID     INT IDENTITY(1,1) PRIMARY KEY,
+    CustomerID INT       NOT NULL UNIQUE,
+    CreatedAt  DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    UpdatedAt  DATETIME2 NULL,
+    CONSTRAINT FK_Carts_Customers FOREIGN KEY (CustomerID) REFERENCES dbo.Customers (CustomerID)
 );
 GO
 
-CREATE TABLE dbo.CartItems (
+CREATE TABLE dbo.CartItems
+(
     CartItemID INT IDENTITY(1,1) PRIMARY KEY,
-    CartID INT NOT NULL,
-    ProductID INT NULL,
-    PetID INT NULL,
-    Quantity INT NOT NULL DEFAULT 1 CHECK (Quantity > 0),
-    AddedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    CONSTRAINT FK_CartItems_Carts FOREIGN KEY (CartID) REFERENCES dbo.Carts(CartID),
-    CONSTRAINT FK_CartItems_Products FOREIGN KEY (ProductID) REFERENCES dbo.Products(ProductID),
-    CONSTRAINT FK_CartItems_Pets FOREIGN KEY (PetID) REFERENCES dbo.Pets(PetID),
+    CartID     INT       NOT NULL,
+    ProductID  INT NULL,
+    PetID      INT NULL,
+    Quantity   INT       NOT NULL DEFAULT 1 CHECK (Quantity > 0),
+    AddedAt    DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_CartItems_Carts FOREIGN KEY (CartID) REFERENCES dbo.Carts (CartID),
+    CONSTRAINT FK_CartItems_Products FOREIGN KEY (ProductID) REFERENCES dbo.Products (ProductID),
+    CONSTRAINT FK_CartItems_Pets FOREIGN KEY (PetID) REFERENCES dbo.Pets (PetID),
     CONSTRAINT CK_CartItems_OnlyOneType CHECK (
         (CASE WHEN ProductID IS NULL THEN 0 ELSE 1 END) +
         (CASE WHEN PetID IS NULL THEN 0 ELSE 1 END) = 1
-    )
+        )
 );
 GO
 
 /* =========================================================
    9) ORDERS / ORDER ITEMS
    ========================================================= */
-CREATE TABLE dbo.Orders (
-    OrderID INT IDENTITY(1,1) PRIMARY KEY,
-    CustomerID INT NOT NULL,
-    OrderCode VARCHAR(30) NOT NULL UNIQUE,
-    ShipName NVARCHAR(120) NULL,
-    ShipPhone VARCHAR(20) NULL,
-    ShipAddress NVARCHAR(255) NULL,
-    Note NVARCHAR(255) NULL,
-    Status VARCHAR(20) NOT NULL DEFAULT 'pending'
-        CHECK (Status IN ('pending','paid','processing','shipped','done','canceled','refunded')),
-    Subtotal DECIMAL(12,2) NOT NULL DEFAULT 0,
-    DiscountTotal DECIMAL(12,2) NOT NULL DEFAULT 0,
-    ShippingFee DECIMAL(12,2) NOT NULL DEFAULT 0,
-    TotalAmount DECIMAL(12,2) NOT NULL DEFAULT 0,
-    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
-    UpdatedAt DATETIME2 NULL,
-    CONSTRAINT FK_Orders_Customers FOREIGN KEY (CustomerID) REFERENCES dbo.Customers(CustomerID)
+CREATE TABLE dbo.Orders
+(
+    OrderID       INT IDENTITY(1,1) PRIMARY KEY,
+    CustomerID    INT            NOT NULL,
+    OrderCode     VARCHAR(30)    NOT NULL UNIQUE,
+    ShipName      NVARCHAR(120) NULL,
+    ShipPhone     VARCHAR(20) NULL,
+    ShipAddress   NVARCHAR(255) NULL,
+    Note          NVARCHAR(255) NULL,
+    Status        VARCHAR(20)    NOT NULL DEFAULT 'pending'
+        CHECK (Status IN ('pending', 'paid', 'processing', 'shipped', 'done', 'canceled', 'refunded')),
+    Subtotal      DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    DiscountTotal DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    ShippingFee   DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    TotalAmount   DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    CreatedAt     DATETIME2      NOT NULL DEFAULT SYSDATETIME(),
+    UpdatedAt     DATETIME2 NULL,
+    CONSTRAINT FK_Orders_Customers FOREIGN KEY (CustomerID) REFERENCES dbo.Customers (CustomerID)
 );
 GO
 
-CREATE TABLE dbo.OrderItems (
+CREATE TABLE dbo.OrderItems
+(
     OrderItemID INT IDENTITY(1,1) PRIMARY KEY,
-    OrderID INT NOT NULL,
-    ProductID INT NULL,
-    PetID INT NULL,
-    ItemName NVARCHAR(150) NOT NULL,
-    UnitPrice DECIMAL(12,2) NOT NULL CHECK (UnitPrice >= 0),
-    Quantity INT NOT NULL DEFAULT 1 CHECK (Quantity > 0),
+    OrderID     INT            NOT NULL,
+    ProductID   INT NULL,
+    PetID       INT NULL,
+    ItemName    NVARCHAR(150) NOT NULL,
+    UnitPrice   DECIMAL(12, 2) NOT NULL CHECK (UnitPrice >= 0),
+    Quantity    INT            NOT NULL DEFAULT 1 CHECK (Quantity > 0),
     LineTotal AS (UnitPrice * Quantity) PERSISTED,
-    CONSTRAINT FK_OrderItems_Orders FOREIGN KEY (OrderID) REFERENCES dbo.Orders(OrderID),
-    CONSTRAINT FK_OrderItems_Products FOREIGN KEY (ProductID) REFERENCES dbo.Products(ProductID),
-    CONSTRAINT FK_OrderItems_Pets FOREIGN KEY (PetID) REFERENCES dbo.Pets(PetID),
+    CONSTRAINT FK_OrderItems_Orders FOREIGN KEY (OrderID) REFERENCES dbo.Orders (OrderID),
+    CONSTRAINT FK_OrderItems_Products FOREIGN KEY (ProductID) REFERENCES dbo.Products (ProductID),
+    CONSTRAINT FK_OrderItems_Pets FOREIGN KEY (PetID) REFERENCES dbo.Pets (PetID),
     CONSTRAINT CK_OrderItems_OnlyOneType CHECK (
         (CASE WHEN ProductID IS NULL THEN 0 ELSE 1 END) +
         (CASE WHEN PetID IS NULL THEN 0 ELSE 1 END) = 1
-    )
+        )
 );
 GO
 
@@ -390,63 +420,64 @@ GO
    - Quan hệ 1-1 với Orders bằng UNIQUE filtered index (OrderID không lặp)
    - Tương tự cho Appointments (nếu bạn muốn 1-1)
    ========================================================= */
-CREATE TABLE dbo.Payments (
-    PaymentID INT IDENTITY(1,1) PRIMARY KEY,
+CREATE TABLE dbo.Payments
+(
+    PaymentID     INT IDENTITY(1,1) PRIMARY KEY,
 
-    PaymentType VARCHAR(10) NOT NULL CHECK (PaymentType IN ('order','service')),
-    OrderID INT NULL,
+    PaymentType   VARCHAR(10)    NOT NULL CHECK (PaymentType IN ('order', 'service')),
+    OrderID       INT NULL,
     AppointmentID INT NULL,
 
-    Method VARCHAR(30) NOT NULL CHECK (Method IN ('cod','bank','momo','vnpay','paypal','cash','other')),
-    Amount DECIMAL(12,2) NOT NULL CHECK (Amount >= 0),
-    Status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (Status IN ('pending','success','failed','refunded')),
-    PaidAt DATETIME2 NULL,
-    CreatedAt DATETIME2 NOT NULL DEFAULT SYSDATETIME(),
+    Method        VARCHAR(30)    NOT NULL CHECK (Method IN ('cod', 'bank', 'momo', 'vnpay', 'paypal', 'cash', 'other')),
+    Amount        DECIMAL(12, 2) NOT NULL CHECK (Amount >= 0),
+    Status        VARCHAR(20)    NOT NULL DEFAULT 'pending' CHECK (Status IN ('pending', 'success', 'failed', 'refunded')),
+    PaidAt        DATETIME2 NULL,
+    CreatedAt     DATETIME2      NOT NULL DEFAULT SYSDATETIME(),
 
-    CONSTRAINT FK_Payments_Orders FOREIGN KEY (OrderID) REFERENCES dbo.Orders(OrderID),
-    CONSTRAINT FK_Payments_Appointments FOREIGN KEY (AppointmentID) REFERENCES dbo.Appointments(AppointmentID),
+    CONSTRAINT FK_Payments_Orders FOREIGN KEY (OrderID) REFERENCES dbo.Orders (OrderID),
+    CONSTRAINT FK_Payments_Appointments FOREIGN KEY (AppointmentID) REFERENCES dbo.Appointments (AppointmentID),
 
     CONSTRAINT CK_Payments_OneTarget CHECK (
-        (PaymentType='order' AND OrderID IS NOT NULL AND AppointmentID IS NULL) OR
-        (PaymentType='service' AND AppointmentID IS NOT NULL AND OrderID IS NULL)
-    )
+        (PaymentType = 'order' AND OrderID IS NOT NULL AND AppointmentID IS NULL) OR
+        (PaymentType = 'service' AND AppointmentID IS NOT NULL AND OrderID IS NULL)
+        )
 );
 GO
 
 -- 1-1: mỗi Order tối đa 1 Payment
 CREATE UNIQUE INDEX UX_Payments_Order_1_1
-ON dbo.Payments(OrderID)
-WHERE PaymentType='order' AND OrderID IS NOT NULL;
+    ON dbo.Payments (OrderID) WHERE PaymentType='order' AND OrderID IS NOT NULL;
 GO
 
 -- (tuỳ chọn nhưng nên có) 1-1: mỗi Appointment tối đa 1 Payment
 CREATE UNIQUE INDEX UX_Payments_Appointment_1_1
-ON dbo.Payments(AppointmentID)
-WHERE PaymentType='service' AND AppointmentID IS NOT NULL;
+    ON dbo.Payments (AppointmentID) WHERE PaymentType='service' AND AppointmentID IS NOT NULL;
 GO
 
 /* =========================================================
    11) FEEDBACKS (PRODUCT / SERVICE / GENERAL)
    ========================================================= */
-CREATE TABLE dbo.Feedbacks (
-    FeedbackID INT IDENTITY(1,1) PRIMARY KEY,
+CREATE TABLE dbo.Feedbacks
+(
+    FeedbackID    INT IDENTITY(1,1) PRIMARY KEY,
 
-    CustomerID INT NULL,
-    FeedbackType VARCHAR(10) NOT NULL CHECK (FeedbackType IN ('product','service','general')),
+    CustomerID    INT NULL,
+    FeedbackType  VARCHAR(10) NOT NULL CHECK (FeedbackType IN ('product', 'service', 'general')),
 
-    OrderItemID INT NULL,
+    OrderItemID   INT NULL,
     AppointmentID INT NULL,
-    ServiceID INT NULL,
-    StaffID INT NULL,
+    ServiceID     INT NULL,
+    StaffID       INT NULL,
 
-    Rating INT NULL CHECK (Rating BETWEEN 1 AND 5),
-    Subject NVARCHAR(100) NULL,
-    Comment NVARCHAR(MAX) NULL,
+    Rating        INT NULL CHECK (Rating BETWEEN 1 AND 5),
+    Subject       NVARCHAR(100) NULL,
+    Comment       NVARCHAR(MAX) NULL,
 
-    Email VARCHAR(255) NULL,
-    PhoneNumber VARCHAR(20) NULL,
+    Email         VARCHAR(255) NULL,
+    PhoneNumber   VARCHAR(20) NULL,
 
-    ImageUrls VARCHAR(MAX) NULL,
+    ImageUrls     VARCHAR(MAX
+) NULL,
     ServiceName NVARCHAR(200) NULL,
     ReplyMessage NVARCHAR(MAX) NULL,
     RepliedAt DATETIME2 NULL,
@@ -495,38 +526,40 @@ GO
 /* =========================================================
    11b) NOTIFICATIONS (khách hàng — Unicode NVARCHAR)
    ========================================================= */
-CREATE TABLE dbo.Notifications (
+CREATE TABLE dbo.Notifications
+(
     NotificationID INT IDENTITY(1,1) PRIMARY KEY,
-    CustomerID INT NOT NULL,
-    AppointmentID INT NULL,
-    Title NVARCHAR(200) NOT NULL,
-    Message NVARCHAR(MAX) NOT NULL,
-    Type NVARCHAR(50) NOT NULL,
-    IsRead BIT NOT NULL CONSTRAINT DF_Notifications_IsRead DEFAULT 0,
-    CreatedAt DATETIME2 NOT NULL CONSTRAINT DF_Notifications_CreatedAt DEFAULT SYSDATETIME(),
-    CONSTRAINT FK_Notifications_Customer FOREIGN KEY (CustomerID) REFERENCES dbo.Customers(CustomerID),
-    CONSTRAINT FK_Notifications_Appointment FOREIGN KEY (AppointmentID) REFERENCES dbo.Appointments(AppointmentID)
+    CustomerID     INT       NOT NULL,
+    AppointmentID  INT NULL,
+    Title          NVARCHAR(200) NOT NULL,
+    Message        NVARCHAR(MAX) NOT NULL,
+    Type           NVARCHAR(50) NOT NULL,
+    IsRead         BIT       NOT NULL CONSTRAINT DF_Notifications_IsRead DEFAULT 0,
+    CreatedAt      DATETIME2 NOT NULL CONSTRAINT DF_Notifications_CreatedAt DEFAULT SYSDATETIME(),
+    CONSTRAINT FK_Notifications_Customer FOREIGN KEY (CustomerID) REFERENCES dbo.Customers (CustomerID),
+    CONSTRAINT FK_Notifications_Appointment FOREIGN KEY (AppointmentID) REFERENCES dbo.Appointments (AppointmentID)
 );
 GO
 
 /* =========================================================
    12) Verification-Tokens(for email)
    ========================================================= */
-CREATE TABLE dbo.verification_tokens (
-    id BIGINT IDENTITY(1,1) PRIMARY KEY,
-    token VARCHAR(255) NOT NULL UNIQUE,
-    expiry_date DATETIME2 NOT NULL,
+CREATE TABLE dbo.verification_tokens
+(
+    id          BIGINT IDENTITY(1,1) PRIMARY KEY,
+    token       VARCHAR(255) NOT NULL UNIQUE,
+    expiry_date DATETIME2    NOT NULL,
     customer_id INT NULL,
-    staff_id INT NULL,
+    staff_id    INT NULL,
     CONSTRAINT FK_VerificationToken_Customer
-        FOREIGN KEY (customer_id) REFERENCES dbo.Customers(CustomerID) ON DELETE CASCADE,
+        FOREIGN KEY (customer_id) REFERENCES dbo.Customers (CustomerID) ON DELETE CASCADE,
     CONSTRAINT FK_VerificationToken_Staff
-        FOREIGN KEY (staff_id) REFERENCES dbo.Staff(StaffID) ON DELETE CASCADE,
+        FOREIGN KEY (staff_id) REFERENCES dbo.Staff (StaffID) ON DELETE CASCADE,
     CONSTRAINT CK_VerificationToken_CustomerOrStaff
         CHECK (
             (customer_id IS NOT NULL AND staff_id IS NULL)
-            OR (customer_id IS NULL AND staff_id IS NOT NULL)
-        )
+                OR (customer_id IS NULL AND staff_id IS NOT NULL)
+            )
 );
 GO
 
@@ -534,68 +567,71 @@ GO
    13) INDEXES
    ========================================================= */
 -- Products
-CREATE INDEX IX_Products_Category ON dbo.Products(CategoryID);
-CREATE INDEX IX_Products_Active ON dbo.Products(IsActive) WHERE IsActive = 1;
-CREATE INDEX IX_Products_SKU ON dbo.Products(SKU);
+CREATE INDEX IX_Products_Category ON dbo.Products (CategoryID);
+CREATE INDEX IX_Products_Active ON dbo.Products (IsActive) WHERE IsActive = 1;
+CREATE INDEX IX_Products_SKU ON dbo.Products (SKU);
 
 -- Pets
-CREATE INDEX IX_Pets_OwnerCustomer ON dbo.Pets(OwnerCustomerID);
-CREATE INDEX IX_Pets_Available ON dbo.Pets(IsAvailable) WHERE IsAvailable = 1;
-CREATE INDEX IX_Pets_Type ON dbo.Pets(PetType, IsAvailable);
+CREATE INDEX IX_Pets_OwnerCustomer ON dbo.Pets (OwnerCustomerID);
+CREATE INDEX IX_Pets_Available ON dbo.Pets (IsAvailable) WHERE IsAvailable = 1;
+CREATE INDEX IX_Pets_Type ON dbo.Pets (PetType, IsAvailable);
 
 -- Orders / OrderItems
-CREATE INDEX IX_Orders_Customer ON dbo.Orders(CustomerID, CreatedAt DESC);
-CREATE INDEX IX_Orders_Status ON dbo.Orders(Status, CreatedAt DESC);
-CREATE INDEX IX_Orders_Code ON dbo.Orders(OrderCode);
-CREATE INDEX IX_OrderItems_Order ON dbo.OrderItems(OrderID);
-CREATE INDEX IX_OrderItems_Product ON dbo.OrderItems(ProductID);
-CREATE INDEX IX_OrderItems_Pet ON dbo.OrderItems(PetID);
+CREATE INDEX IX_Orders_Customer ON dbo.Orders (CustomerID, CreatedAt DESC);
+CREATE INDEX IX_Orders_Status ON dbo.Orders (Status, CreatedAt DESC);
+CREATE INDEX IX_Orders_Code ON dbo.Orders (OrderCode);
+CREATE INDEX IX_OrderItems_Order ON dbo.OrderItems (OrderID);
+CREATE INDEX IX_OrderItems_Product ON dbo.OrderItems (ProductID);
+CREATE INDEX IX_OrderItems_Pet ON dbo.OrderItems (PetID);
 
 -- Appointments / Services
-CREATE INDEX IX_Appointments_Customer ON dbo.Appointments(CustomerID, AppointmentDate DESC);
-CREATE INDEX IX_Appointments_Pet ON dbo.Appointments(PetID, AppointmentDate DESC);
-CREATE INDEX IX_Appointments_StatusDate ON dbo.Appointments(Status, AppointmentDate);
-CREATE INDEX IX_Appointments_Code ON dbo.Appointments(AppointmentCode);
-CREATE INDEX IX_AppSvc_Appointment ON dbo.AppointmentServices(AppointmentID);
-CREATE INDEX IX_AppSvc_Service ON dbo.AppointmentServices(ServiceID);
-CREATE INDEX IX_AppSvc_AssignedStaff ON dbo.AppointmentServices(AssignedStaffID) WHERE AssignedStaffID IS NOT NULL;
-CREATE INDEX IX_AppSvc_Status ON dbo.AppointmentServices(ServiceStatus);
+CREATE INDEX IX_Appointments_Customer ON dbo.Appointments (CustomerID, AppointmentDate DESC);
+CREATE INDEX IX_Appointments_Pet ON dbo.Appointments (PetID, AppointmentDate DESC);
+CREATE INDEX IX_Appointments_StatusDate ON dbo.Appointments (Status, AppointmentDate);
+CREATE INDEX IX_Appointments_Code ON dbo.Appointments (AppointmentCode);
+CREATE INDEX IX_AppSvc_Appointment ON dbo.AppointmentServices (AppointmentID);
+CREATE INDEX IX_AppSvc_Service ON dbo.AppointmentServices (ServiceID);
+CREATE INDEX IX_AppSvc_AssignedStaff ON dbo.AppointmentServices (AssignedStaffID) WHERE AssignedStaffID IS NOT NULL;
+CREATE INDEX IX_AppSvc_Status ON dbo.AppointmentServices (ServiceStatus);
+
+-- Services → ServiceTypes (FK column; supports joins / filters by type)
+CREATE INDEX IX_Services_ServiceType ON dbo.Services (ServiceTypeID);
 
 -- Staff schedules / assignments (removed; schedule is derived from AppointmentServices.AssignedStaffID)
 
 -- Payments
-CREATE INDEX IX_Payments_TypeStatusPaidAt ON dbo.Payments(PaymentType, Status, PaidAt);
-CREATE INDEX IX_Payments_Order ON dbo.Payments(OrderID) WHERE OrderID IS NOT NULL;
-CREATE INDEX IX_Payments_Appointment ON dbo.Payments(AppointmentID) WHERE AppointmentID IS NOT NULL;
+CREATE INDEX IX_Payments_TypeStatusPaidAt ON dbo.Payments (PaymentType, Status, PaidAt);
+CREATE INDEX IX_Payments_Order ON dbo.Payments (OrderID) WHERE OrderID IS NOT NULL;
+CREATE INDEX IX_Payments_Appointment ON dbo.Payments (AppointmentID) WHERE AppointmentID IS NOT NULL;
 
 -- Feedbacks
-CREATE INDEX IX_Feedbacks_Type ON dbo.Feedbacks(FeedbackType, Status, CreatedAt DESC);
-CREATE INDEX IX_Feedbacks_Customer ON dbo.Feedbacks(CustomerID, CreatedAt DESC);
-CREATE INDEX IX_Feedbacks_OrderItem ON dbo.Feedbacks(OrderItemID);
-CREATE INDEX IX_Feedbacks_Appointment ON dbo.Feedbacks(AppointmentID);
-CREATE INDEX IX_Feedbacks_Service ON dbo.Feedbacks(ServiceID);
-CREATE INDEX IX_Feedbacks_Staff ON dbo.Feedbacks(StaffID) WHERE StaffID IS NOT NULL;
-CREATE INDEX IX_Feedbacks_Status ON dbo.Feedbacks(Status, CreatedAt DESC);
+CREATE INDEX IX_Feedbacks_Type ON dbo.Feedbacks (FeedbackType, Status, CreatedAt DESC);
+CREATE INDEX IX_Feedbacks_Customer ON dbo.Feedbacks (CustomerID, CreatedAt DESC);
+CREATE INDEX IX_Feedbacks_OrderItem ON dbo.Feedbacks (OrderItemID);
+CREATE INDEX IX_Feedbacks_Appointment ON dbo.Feedbacks (AppointmentID);
+CREATE INDEX IX_Feedbacks_Service ON dbo.Feedbacks (ServiceID);
+CREATE INDEX IX_Feedbacks_Staff ON dbo.Feedbacks (StaffID) WHERE StaffID IS NOT NULL;
+CREATE INDEX IX_Feedbacks_Status ON dbo.Feedbacks (Status, CreatedAt DESC);
 
 -- Notifications
-CREATE INDEX IX_Notifications_Customer_CreatedAt ON dbo.Notifications(CustomerID, CreatedAt DESC);
-CREATE INDEX IX_Notifications_Customer_IsRead ON dbo.Notifications(CustomerID, IsRead);
+CREATE INDEX IX_Notifications_Customer_CreatedAt ON dbo.Notifications (CustomerID, CreatedAt DESC);
+CREATE INDEX IX_Notifications_Customer_IsRead ON dbo.Notifications (CustomerID, IsRead);
 
 -- Vaccinations / Health
-CREATE INDEX IX_PetVacc_Pet ON dbo.PetVaccinations(PetID, AdministeredDate DESC);
-CREATE INDEX IX_PetVacc_NextDue ON dbo.PetVaccinations(NextDueDate) WHERE NextDueDate IS NOT NULL;
-CREATE INDEX IX_ServiceNotes_Appointment ON dbo.ServiceNotes(AppointmentID);
-CREATE INDEX IX_ServiceNotes_ServiceLine ON dbo.ServiceNotes(AppointmentServiceID);
-CREATE INDEX IX_ServiceNotes_Staff ON dbo.ServiceNotes(StaffID);
-CREATE INDEX IX_ServiceNotePhotos_Note ON dbo.ServiceNotePhotos(ServiceNoteID);
-CREATE INDEX IX_Summaries_Appointment ON dbo.AppointmentSummaries(AppointmentID);
-CREATE INDEX IX_AppointmentSummaryPhotos_Summary ON dbo.AppointmentSummaryPhotos(SummaryID);
+CREATE INDEX IX_PetVacc_Pet ON dbo.PetVaccinations (PetID, AdministeredDate DESC);
+CREATE INDEX IX_PetVacc_NextDue ON dbo.PetVaccinations (NextDueDate) WHERE NextDueDate IS NOT NULL;
+CREATE INDEX IX_ServiceNotes_Appointment ON dbo.ServiceNotes (AppointmentID);
+CREATE INDEX IX_ServiceNotes_ServiceLine ON dbo.ServiceNotes (AppointmentServiceID);
+CREATE INDEX IX_ServiceNotes_Staff ON dbo.ServiceNotes (StaffID);
+CREATE INDEX IX_ServiceNotePhotos_Note ON dbo.ServiceNotePhotos (ServiceNoteID);
+CREATE INDEX IX_Summaries_Appointment ON dbo.AppointmentSummaries (AppointmentID);
+CREATE INDEX IX_AppointmentSummaryPhotos_Summary ON dbo.AppointmentSummaryPhotos (SummaryID);
 
 -- Cart
-CREATE INDEX IX_CartItems_Cart ON dbo.CartItems(CartID);
+CREATE INDEX IX_CartItems_Cart ON dbo.CartItems (CartID);
 
 -- Feature 10 minimal
-CREATE INDEX IX_system_configs_UpdatedAt ON dbo.system_configs(updated_at DESC);
+CREATE INDEX IX_system_configs_UpdatedAt ON dbo.system_configs (updated_at DESC);
 GO
 
 /* =========================================================
@@ -604,74 +640,94 @@ GO
    ========================================================= */
 
 -- Seed Admin (Staff role admin)
-DECLARE @AdminRoleID INT = (SELECT RoleID FROM dbo.Roles WHERE RoleName='admin');
+DECLARE
+@AdminRoleID INT = (SELECT RoleID FROM dbo.Roles WHERE RoleName='admin');
 INSERT INTO dbo.Staff(RoleID, Username, PasswordHash, Email, Phone, FullName, HireDate, Bio)
-VALUES (@AdminRoleID, 'admin', 'e10adc3949ba59abbe56e057f20f883e', 'admin@petshop.com', '0901234567', N'System Administrator', '2024-01-01', N'System administration');
+VALUES (@AdminRoleID, 'admin', 'e10adc3949ba59abbe56e057f20f883e', 'admin@petshop.com', '0901234567',
+        N'System Administrator', '2024-01-01', N'System administration');
 
 -- Seed Staff
-DECLARE @StaffRoleID INT = (SELECT RoleID FROM dbo.Roles WHERE RoleName='staff');
+DECLARE
+@StaffRoleID INT = (SELECT RoleID FROM dbo.Roles WHERE RoleName='staff');
 INSERT INTO dbo.Staff(RoleID, Username, PasswordHash, Email, Phone, FullName, HireDate, Bio)
-VALUES
-(@StaffRoleID, 'staff01', 'e10adc3949ba59abbe56e057f20f883e', 'staff01@petshop.com', '0912345678', N'Nguyen Van A', '2024-01-15', N'Pet care specialist, three years of experience'),
-(@StaffRoleID, 'staff02', 'e10adc3949ba59abbe56e057f20f883e', 'staff02@petshop.com', '0923456789', N'Tran Thi B', '2024-02-01', N'Veterinarian, internal medicine specialist'),
-(@StaffRoleID, 'staff03', 'e10adc3949ba59abbe56e057f20f883e', 'staff03@petshop.com', '0934567890', N'Le Van C', '2024-03-10', N'Spa and grooming specialist');
+VALUES (@StaffRoleID, 'staff01', 'e10adc3949ba59abbe56e057f20f883e', 'staff01@petshop.com', '0912345678',
+        N'Nguyen Van A', '2024-01-15', N'Pet care specialist, three years of experience'),
+       (@StaffRoleID, 'staff02', 'e10adc3949ba59abbe56e057f20f883e', 'staff02@petshop.com', '0923456789', N'Tran Thi B',
+        '2024-02-01', N'Veterinarian, internal medicine specialist'),
+       (@StaffRoleID, 'staff03', 'e10adc3949ba59abbe56e057f20f883e', 'staff03@petshop.com', '0934567890', N'Le Van C',
+        '2024-03-10', N'Spa and grooming specialist');
 
 -- Seed thêm theo yêu cầu
-IF @AdminRoleID IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.Staff WHERE Username = 'thanhadmin')
+IF
+@AdminRoleID IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.Staff WHERE Username = 'thanhadmin')
     INSERT INTO dbo.Staff (RoleID, Username, PasswordHash, Email, Phone, FullName, HireDate, Bio, IsActive)
     VALUES (@AdminRoleID, 'thanhadmin', 'ab360fe720a97d07db534fecacefdfa9', 'thanhadmin@petshop.com', '0909990001', N'Thanh Admin', CAST(GETDATE() AS DATE), N'Admin account seed', 1);
 
-IF @StaffRoleID IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.Staff WHERE Username = 'thanhstaff')
+IF
+@StaffRoleID IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.Staff WHERE Username = 'thanhstaff')
     INSERT INTO dbo.Staff (RoleID, Username, PasswordHash, Email, Phone, FullName, HireDate, Bio, IsActive)
     VALUES (@StaffRoleID, 'thanhstaff', '814dd16d54e715bef23709ed6926dde9', 'thanhstaff@petshop.com', '0909990002', N'Thanh Staff', CAST(GETDATE() AS DATE), N'Staff account seed', 1);
 
 -- Seed Customers
 
 -- Seed Categoriesr
-INSERT INTO dbo.Categories(Name, Description) VALUES
-(N'Dog Food', N'Nutritious food for dogs of all kinds'),
-(N'Cat Food', N'Nutritious food for cats of all kinds'),
-(N'Pet Accessories', N'Toys, collars, and clothes for pets'),
-(N'Hygiene & Care', N'Bathing and hygiene products for pets'),
-(N'Health', N'Vitamins, supplements, and health care products');
+INSERT INTO dbo.Categories(Name, Description)
+VALUES (N'Dog Food', N'Nutritious food for dogs of all kinds'),
+       (N'Cat Food', N'Nutritious food for cats of all kinds'),
+       (N'Pet Accessories', N'Toys, collars, and clothes for pets'),
+       (N'Hygiene & Care', N'Bathing and hygiene products for pets'),
+       (N'Health', N'Vitamins, supplements, and health care products');
 
--- Seed Service Types (Name matches Services.ServiceType for BR-21 dependency check; used as filters in booking)
-INSERT INTO dbo.ServiceTypes(Name, Description, IsActive) VALUES
-('vaccination', N'Vaccination and immunization services', 1),
-('boarding', N'Pet boarding and daycare', 1),
-('hygiene', N'Bathing, grooming, and hygiene care', 1),
-('health_check', N'General health check-up and consultation', 1);
+-- Seed Service Types (Services.ServiceTypeID FK → ServiceTypes; Name used for BR-21 / booking filters)
+INSERT INTO dbo.ServiceTypes(Name, Description, IsActive)
+VALUES ('vaccination', N'Vaccination and immunization services', 1),
+       ('boarding', N'Pet boarding and daycare', 1),
+       ('hygiene', N'Bathing, grooming, and hygiene care', 1),
+       ('health_check', N'General health check-up and consultation', 1);
 
 -- Seed Services
-INSERT INTO dbo.Services(ServiceType, Name, Description, BasePrice, DurationMinutes) VALUES
-('vaccination', N'Rabies Vaccination', N'Rabies vaccination for dogs and cats', 150000, 30),
-('vaccination', N'Five-in-One Vaccination', N'Basic five-disease vaccination for dogs', 200000, 30),
-('vaccination', N'Seven-in-One Vaccination', N'Comprehensive seven-disease vaccination for dogs', 250000, 30),
-('hygiene', N'Basic Spa Bath', N'Bathing, hygiene, and basic nail trimming', 100000, 60),
-('hygiene', N'Premium Spa Bath', N'Spa bath + massage + coat grooming', 200000, 90),
-('hygiene', N'Professional Grooming', N'Grooming and styling on request', 150000, 60),
-('health_check', N'General Health Check-up', N'Comprehensive health examination', 300000, 45),
-('health_check', N'Specialist Consultation', N'In-depth examination and specialized consultation', 500000, 60),
-('boarding', N'Daily Pet Boarding', N'Professional pet boarding service', 80000, 1440),
-('boarding', N'Weekly Pet Boarding', N'Weekly pet boarding service', 500000, 10080);
+INSERT INTO dbo.Services(ServiceTypeID, Name, Description, BasePrice, DurationMinutes)
+VALUES ((SELECT ServiceTypeID FROM dbo.ServiceTypes WHERE Name = 'vaccination'), N'Rabies Vaccination',
+        N'Rabies vaccination for dogs and cats', 150000, 30),
+       ((SELECT ServiceTypeID FROM dbo.ServiceTypes WHERE Name = 'vaccination'), N'Five-in-One Vaccination',
+        N'Basic five-disease vaccination for dogs', 200000, 30),
+       ((SELECT ServiceTypeID FROM dbo.ServiceTypes WHERE Name = 'vaccination'), N'Seven-in-One Vaccination',
+        N'Comprehensive seven-disease vaccination for dogs', 250000, 30),
+       ((SELECT ServiceTypeID FROM dbo.ServiceTypes WHERE Name = 'hygiene'), N'Basic Spa Bath',
+        N'Bathing, hygiene, and basic nail trimming', 100000, 60),
+       ((SELECT ServiceTypeID FROM dbo.ServiceTypes WHERE Name = 'hygiene'), N'Premium Spa Bath',
+        N'Spa bath + massage + coat grooming', 200000, 90),
+       ((SELECT ServiceTypeID FROM dbo.ServiceTypes WHERE Name = 'hygiene'), N'Professional Grooming',
+        N'Grooming and styling on request', 150000, 60),
+       ((SELECT ServiceTypeID FROM dbo.ServiceTypes WHERE Name = 'health_check'), N'General Health Check-up',
+        N'Comprehensive health examination', 300000, 45),
+       ((SELECT ServiceTypeID FROM dbo.ServiceTypes WHERE Name = 'health_check'), N'Specialist Consultation',
+        N'In-depth examination and specialized consultation', 500000, 60),
+       ((SELECT ServiceTypeID FROM dbo.ServiceTypes WHERE Name = 'boarding'), N'Daily Pet Boarding',
+        N'Professional pet boarding service', 80000, 1440),
+       ((SELECT ServiceTypeID FROM dbo.ServiceTypes WHERE Name = 'boarding'), N'Weekly Pet Boarding',
+        N'Weekly pet boarding service', 500000, 10080);
 
 -- Seed FEATURE 10 (tối giản)
-INSERT INTO dbo.system_configs(config_key, config_value, data_type) VALUES
-('SITE_NAME', N'PetShop', 'string'),
-('MAINTENANCE_MODE', N'false', 'bool');
+INSERT INTO dbo.system_configs(config_key, config_value, data_type)
+VALUES ('SITE_NAME', N'PetShop', 'string'),
+       ('MAINTENANCE_MODE', N'false', 'bool');
 
-INSERT INTO dbo.AccessControl(RoleID, PermissionCode, IsAllowed) VALUES
-(@AdminRoleID, 'SYSTEM.CONFIG', 1),
-(@AdminRoleID, 'SYSTEM.ACL', 1),
-(@StaffRoleID, 'SYSTEM.CONFIG', 0),
-(@StaffRoleID, 'SYSTEM.ACL', 0);
+INSERT INTO dbo.AccessControl(RoleID, PermissionCode, IsAllowed)
+VALUES (@AdminRoleID, 'SYSTEM.CONFIG', 1),
+       (@AdminRoleID, 'SYSTEM.ACL', 1),
+       (@StaffRoleID, 'SYSTEM.CONFIG', 0),
+       (@StaffRoleID, 'SYSTEM.ACL', 0);
 
 /* Seed tài khoản demo BCrypt (khớp Spring Security) — bỏ qua nếu đã tồn tại */
-DECLARE @BcryptDemo VARCHAR(255) = '$2a$10$mAmFNpItJZzLBtgxhoKEvOkJbc2WXWB2oh0sNjaBDZICaXJgzMI2O';
-IF @AdminRoleID IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.Staff WHERE Username = 'thai01')
+DECLARE
+@BcryptDemo VARCHAR(255) = '$2a$10$mAmFNpItJZzLBtgxhoKEvOkJbc2WXWB2oh0sNjaBDZICaXJgzMI2O';
+IF
+@AdminRoleID IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.Staff WHERE Username = 'thai01')
     INSERT INTO dbo.Staff (RoleID, Username, PasswordHash, Email, Phone, FullName, HireDate, Bio, IsActive)
     VALUES (@AdminRoleID, 'thai01', @BcryptDemo, 'thai01@petworld.local', '0900000001', N'Thai Admin', CAST(GETDATE() AS DATE), N'Admin account seed', 1);
-IF @StaffRoleID IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.Staff WHERE Username = 'thai02')
+IF
+@StaffRoleID IS NOT NULL AND NOT EXISTS (SELECT 1 FROM dbo.Staff WHERE Username = 'thai02')
     INSERT INTO dbo.Staff (RoleID, Username, PasswordHash, Email, Phone, FullName, HireDate, Bio, IsActive)
     VALUES (@StaffRoleID, 'thai02', @BcryptDemo, 'thai02@petworld.local', '0900000002', N'Thai Staff', CAST(GETDATE() AS DATE), N'Staff account seed', 1);
 GO

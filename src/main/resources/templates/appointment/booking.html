@@ -134,11 +134,11 @@
                                                 type="checkbox"
                                                 name="mainServices"
                                                 th:value="${svc.id}"
-                                                th:data-type="${svc.serviceType}"
+                                                th:data-type="${svc.serviceType != null ? svc.serviceType.name : ''}"
                                                 th:data-price="${svc.basePrice}"
                                                 th:data-duration="${svc.durationMinutes}"
                                                 th:data-name="${svc.name}"
-                                                th:data-unit="${svc.serviceType == 'boarding' ? 'day' : 'time'}"
+                                                th:data-unit="${svc.serviceType != null && svc.serviceType.name == 'boarding' ? 'day' : 'time'}"
                                         />
                                     </td>
                                     <td class="col-name">

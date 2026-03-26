@@ -133,7 +133,8 @@ public class HealthCheckService implements IHealthCheckService {
                 .appointmentId(appointment.getId())
                 .serviceLineId(serviceLine.getId())
                 .serviceName(serviceLine.getService() != null ? serviceLine.getService().getName() : null)
-                .serviceType(serviceLine.getService() != null ? serviceLine.getService().getServiceType() : null)
+                .serviceType(serviceLine.getService() != null && serviceLine.getService().getServiceType() != null
+                        ? serviceLine.getService().getServiceType().getName() : null)
                 .oneTimeVaccine(oneTimeVaccine)
                 .appointmentCode(appointment.getAppointmentCode())
                 .petId(appointment.getPetId())
@@ -289,8 +290,10 @@ public class HealthCheckService implements IHealthCheckService {
     private void createVaccinationRecordIfNeeded(Staff staff, Appointment appointment, AppointmentServiceLine serviceLine, ServiceNoteRequest request) {
         if (staff == null || appointment == null || serviceLine == null) return;
         if (serviceLine.getService() == null) return;
+        ServiceType st = serviceLine.getService().getServiceType();
+        if (st == null) return;
 
-        String type = serviceLine.getService().getServiceType();
+        String type = st.getName();
         if (type == null) return;
         String normalized = type.trim().toLowerCase(Locale.ROOT);
         if (!"vaccine".equals(normalized) && !"vaccination".equals(normalized)) return;

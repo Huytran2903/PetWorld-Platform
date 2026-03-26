@@ -205,7 +205,7 @@
                                                 <td>
                                                     <span
                                                         class="badge badge-outline"
-                                                        th:text="${line.service.serviceType}"
+                                                        th:text="${line.service.serviceType != null ? line.service.serviceType.name : '-'}"
                                                     >
                                                         TYPE
                                                     </span>

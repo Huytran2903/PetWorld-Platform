@@ -21,9 +21,10 @@ public class ServiceItem {
     @Column(name = "ServiceID")
     private Integer id;
 
-    @NotBlank(message = "Service type is required")
-    @Column(name = "ServiceType", nullable = false, length = 20)
-    private String serviceType;
+    @NotNull(message = "Service type is required")
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @JoinColumn(name = "ServiceTypeID", nullable = false)
+    private ServiceType serviceType;
 
     @NotBlank(message = "Name is required")
     @Size(max = 120)
