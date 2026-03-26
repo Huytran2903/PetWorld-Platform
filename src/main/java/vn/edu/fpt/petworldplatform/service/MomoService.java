@@ -26,17 +26,13 @@ public class MomoService {
     public String createPaymentUrl(String orderId, BigDecimal amount, String orderInfo) throws Exception {
         String requestId = String.valueOf(System.currentTimeMillis());
 
-        // ==========================================
-        // ĐÃ SỬA Ở ĐÂY: Đổi từ "captureWallet" sang "payWithATM"
-        // ==========================================
+
         String requestType = "payWithATM";
 
-        String extraData = ""; // Có thể để trống hoặc gửi chuỗi Base64
+        String extraData = "";
 
-        // MoMo yêu cầu số tiền là số nguyên (long)
         long amountLong = amount.longValue();
 
-        // 1. Tạo chuỗi dữ liệu thô để ký theo đúng thứ tự MoMo quy định
         String rawData = "accessKey=" + momoConfig.getAccessKey() +
                 "&amount=" + amountLong +
                 "&extraData=" + extraData +
@@ -48,7 +44,6 @@ public class MomoService {
                 "&requestId=" + requestId +
                 "&requestType=" + requestType;
 
-        // 2. Tạo chữ ký HmacSHA256 (Dùng secretKey để ký)
         String signature = hmacSha256(rawData, momoConfig.getSecretKey());
 
         // 3. Tạo Body cho yêu cầu JSON

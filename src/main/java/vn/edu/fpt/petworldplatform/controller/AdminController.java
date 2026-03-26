@@ -68,6 +68,7 @@ public class AdminController {
 
     private final CustomerService customerService;
     private final CartService cartService;
+    private final FileStorageService fileStorageService;
 
     private final ServiceTypeService serviceTypeService;
     private final ServiceItemService serviceItemService;
@@ -182,7 +183,7 @@ public class AdminController {
     @PostMapping("/admin/pet/save")
     public String savePet(@Validated @ModelAttribute("selectedPet") Pets pet,
                           BindingResult result,
-                          @RequestParam("imageFile") MultipartFile imageFile,
+                          @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
                           RedirectAttributes redirectAttributes,
                           @RequestParam("mode") String formMode,
                           Model model) {
@@ -195,7 +196,6 @@ public class AdminController {
             if (pet.getPetID() != null) {
                 Pets oldPet = petService.getPetById(pet.getPetID());
                 if (oldPet != null) {
-                    // Ráp lại danh sách tiêm phòng cũ để Hibernate không báo lỗi Orphan
                     pet.setVaccinations(oldPet.getVaccinations());
 
                     // Nếu KHÔNG chọn ảnh mới, lấy luôn đường dẫn ảnh cũ đắp vào
@@ -216,13 +216,12 @@ public class AdminController {
                     PetVaccinations newVaccine = new PetVaccinations();
                     newVaccine.setPet(pet);
 
-                    // ---- BƠM DỮ LIỆU TỪ MODAL VÀO ENTITY ----
                     newVaccine.setVaccineName(pet.getVaccineName());
                     newVaccine.setNote(pet.getVaccineNote());
 
                     // Nếu có nhập ngày hẹn tiếp theo
                     if (pet.getNextDueDate() != null) {
-                        newVaccine.setNextDueDate(pet.getNextDueDate()); // Ép kiểu LocalDate sang LocalDateTime nếu cần
+                        newVaccine.setNextDueDate(pet.getNextDueDate());
                     }
 
                     // Mặc định ngày tiêm là ngay lúc bấm Save
@@ -230,12 +229,10 @@ public class AdminController {
 
                     // Xử lý Staff ID (Giả sử bạn có class Staff)
                     if (pet.getVaccinationStaffID() != null) {
-                        // Bạn cần tạo 1 object Staff rỗng chỉ chứa ID để Hibernate map khóa ngoại
                         Staff performedBy = new Staff();
                         performedBy.setStaffId(pet.getVaccinationStaffID());
                         newVaccine.setPerformedByStaff(performedBy);
                     }
-                    // ------------------------------------------
 
                     pet.getVaccinations().add(newVaccine);
                 }
@@ -245,28 +242,27 @@ public class AdminController {
                 }
             }
 
+
             if (imageFile != null && !imageFile.isEmpty()) {
-                Path uploadPath = Paths.get("uploads");
-                if (!Files.exists(uploadPath)) {
-                    Files.createDirectories(uploadPath);
-                }
-
-                String fileName = UUID.randomUUID().toString() + "_" + imageFile.getOriginalFilename();
-
-                try (InputStream inputStream = imageFile.getInputStream()) {
-                    Files.copy(inputStream, uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
-                }
-
-                // Lưu đường dẫn Web vào Database
-                pet.setImageUrl("/uploads/" + fileName);
+                String secureImageUrl = fileStorageService.storeFile(imageFile);
+                pet.setImageUrl(secureImageUrl);
             }
 
             petService.savePet(pet);
             redirectAttributes.addFlashAttribute("message", "Pet saved successfully!");
 
+        } catch (RuntimeException e) {
+            // Bắt các lỗi bảo mật từ FileStorageService (Sai đuôi file, sai định dạng MIME)
+            model.addAttribute("formMode", formMode);
+            model.addAttribute("errorMessage", e.getMessage());
+            return "admin/pet-form";
+
         } catch (IOException e) {
+            // Bắt lỗi hệ thống
             e.printStackTrace();
-            redirectAttributes.addFlashAttribute("error", "Lỗi khi lưu ảnh: " + e.getMessage());
+            model.addAttribute("formMode", formMode);
+            model.addAttribute("errorMessage", "Lỗi khi lưu ảnh: " + e.getMessage());
+            return "admin/pet-form";
         }
 
         return "redirect:/admin/manage-pet";
@@ -408,60 +404,48 @@ public class AdminController {
                               @RequestParam(value = "mode", required = false) String formMode,
                               Model model) {
 
-
         if (result.hasErrors()) {
             model.addAttribute("formMode", formMode);
-
             model.addAttribute("cates", categoryService.getAllCategories());
-
             return "admin/product-form";
         }
 
         try {
-            // 1. Kiểm tra nếu người dùng CÓ chọn file ảnh mới
+            // 2. Xử lý File Ảnh với FileStorageService
             if (imageFile != null && !imageFile.isEmpty()) {
 
-                // Tạo đường dẫn tới thư mục "uploads" nằm ngay tại thư mục gốc dự án
-                Path uploadPath = Paths.get("uploads");
-
-                // Tạo thư mục nếu chưa tồn tại
-                if (!Files.exists(uploadPath)) {
-                    Files.createDirectories(uploadPath);
-                }
-
-                // Tạo tên file ngẫu nhiên (UUID) để tránh trùng lặp
-                String fileName = UUID.randomUUID().toString() + "_" + imageFile.getOriginalFilename();
-
-                // Lưu file vật lý vào ổ cứng
-                try (InputStream inputStream = imageFile.getInputStream()) {
-                    Files.copy(inputStream, uploadPath.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
-                }
-
-                // [QUAN TRỌNG] Lưu đường dẫn Web vào Database (Ví dụ: /uploads/abc.jpg)
-                product.setImageUrl("/uploads/" + fileName);
+                String secureImageUrl = fileStorageService.storeFile(imageFile);
+                product.setImageUrl(secureImageUrl);
 
             } else {
-                // 2. Logic Edit: Người dùng KHÔNG chọn ảnh mới -> Giữ nguyên ảnh cũ
+                // 3. Logic Edit: Người dùng KHÔNG chọn ảnh mới -> Giữ nguyên ảnh cũ
                 if (product.getProductId() != null) {
-                    // Lấy sản phẩm cũ từ Database ra để lấy lại đường dẫn ảnh cũ
-                    // Tuỳ vào cách bạn đặt tên hàm trong Service mà thay đổi cho phù hợp nhé:
                     Product oldProduct = productService.findProductById(product.getProductId());
-
                     if (oldProduct != null && (product.getImageUrl() == null || product.getImageUrl().isEmpty())) {
                         product.setImageUrl(oldProduct.getImageUrl());
                     }
                 }
             }
 
-            // Lưu sản phẩm vào Database
+            // 4. Lưu sản phẩm vào Database
             productService.saveProduct(product);
             redirectAttributes.addFlashAttribute("message", "Product saved successfully!");
 
-        } catch (IOException e) {
-            e.printStackTrace();
-            redirectAttributes.addFlashAttribute("error", "Lỗi khi lưu ảnh: " + e.getMessage());
-        }
+        } catch (RuntimeException e) {
+            // Bắt các lỗi bảo mật từ FileStorageService (Sai đuôi file, sai định dạng MIME)
+            model.addAttribute("formMode", formMode);
+            model.addAttribute("cates", categoryService.getAllCategories());
+            model.addAttribute("errorMessage", e.getMessage());
+            return "admin/product-form";
 
+        } catch (IOException e) {
+            // Bắt lỗi hệ thống (Không tạo được thư mục, đầy ổ cứng...)
+            e.printStackTrace();
+            model.addAttribute("formMode", formMode);
+            model.addAttribute("cates", categoryService.getAllCategories());
+            model.addAttribute("errorMessage", "System error while saving image: " + e.getMessage());
+            return "admin/product-form";
+        }
 
         return "redirect:/admin/manage-product";
     }
