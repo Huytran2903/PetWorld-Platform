@@ -61,6 +61,7 @@ public class CustomerController {
     private final PetService petService;
 
     private final FeedbackService feedbackService;
+    private final FileStorageService fileStorageService;
 
 
     @Autowired
@@ -208,10 +209,10 @@ public class CustomerController {
 
     @GetMapping("/customer/appointments")
     public String appointmentHistory(HttpSession session,
-                                       Model model,
-                                       RedirectAttributes redirectAttributes,
-                                       @RequestParam(defaultValue = "0") int page,
-                                       @RequestParam(defaultValue = "5") int size) {
+                                     Model model,
+                                     RedirectAttributes redirectAttributes,
+                                     @RequestParam(defaultValue = "0") int page,
+                                     @RequestParam(defaultValue = "5") int size) {
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
         if (customer == null) {
             return "redirect:/login";
@@ -655,45 +656,33 @@ public class CustomerController {
         if (customer == null) return "redirect:/login";
 
         try {
+            // Thiết lập thông tin chủ sở hữu
             petDTO.setCreatePetOwnerType("customer");
             petDTO.setOwnerId(customer.getCustomerId());
 
             MultipartFile imageFile = petDTO.getImageFile();
-            String imageUrlPath = null;
+
 
             if (imageFile != null && !imageFile.isEmpty()) {
-
-                Path uploadPath = Paths.get("uploads");
-
-                // 2. Tạo thư mục nếu chưa tồn tại trên ổ cứng
-                if (!Files.exists(uploadPath)) {
-                    Files.createDirectories(uploadPath);
-                }
-
-                String fileName = UUID.randomUUID().toString() + "_" + imageFile.getOriginalFilename();
-
-                // 4. Đường dẫn vật lý chi tiết của file ảnh
-                Path filePath = uploadPath.resolve(fileName);
-
-                // 5. Copy file từ request của người dùng lưu vào ổ cứng
-                try (InputStream inputStream = imageFile.getInputStream()) {
-                    Files.copy(inputStream, filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                }
-
-                // 6. [QUAN TRỌNG] Gán lại đường dẫn Web để lưu vào Database
-                imageUrlPath = "/uploads/" + fileName;
-
+                String secureImageUrl = fileStorageService.storeFile(imageFile);
+                petDTO.setImageUrl(secureImageUrl);
             }
 
-            petDTO.setImageUrl(imageUrlPath);
+            // Lưu thú cưng vào Database
             petService.createPet(petDTO);
 
             redirectAttributes.addFlashAttribute("message", "Thêm thú cưng thành công!");
             return "redirect:/customer/pet/my-pets";
 
+        } catch (RuntimeException e) {
+            // Bắt lỗi bảo mật từ FileStorageService (Sai đuôi file, file hack...)
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/customer/pet/pet-create";
+
         } catch (Exception e) {
+            // Bắt các lỗi hệ thống (IOException, Database error...)
             e.printStackTrace();
-            redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("error", "Lỗi hệ thống: " + e.getMessage());
             return "redirect:/customer/pet/pet-create";
         }
     }
@@ -731,11 +720,13 @@ public class CustomerController {
     @PostMapping("/customer/pet/pet-update")
     public String handlePetUpdateSubmit(@ModelAttribute Pets petFromForm,
                                         @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
-                                        RedirectAttributes redirectAttributes,
-                                        HttpSession session) {
+                                        RedirectAttributes redirectAttributes
+                                        ) {
         try {
+            // 1. Lấy thú cưng hiện tại từ Database
             Pets existingPet = petService.getPetById(petFromForm.getPetID());
 
+            // 2. Cập nhật các thông tin cơ bản từ Form
             existingPet.setName(petFromForm.getName());
             existingPet.setAgeMonths(petFromForm.getAgeMonths());
             existingPet.setPetType(petFromForm.getPetType());
@@ -743,40 +734,28 @@ public class CustomerController {
             existingPet.setWeightKg(petFromForm.getWeightKg());
             existingPet.setColor(petFromForm.getColor());
             existingPet.setNote(petFromForm.getNote());
+
             existingPet.setOwner(existingPet.getOwner());
 
+
             if (imageFile != null && !imageFile.isEmpty()) {
-                // 1. Tạo tên file duy nhất chống trùng lặp (dùng UUID kết hợp tên gốc)
-                String fileName = java.util.UUID.randomUUID().toString() + "_" + imageFile.getOriginalFilename();
-
-                // 2. Trỏ thẳng đến thư mục "uploads" ở thư mục gốc dự án
-                java.nio.file.Path uploadPath = java.nio.file.Paths.get("uploads");
-
-                // 3. Tạo thư mục nếu chưa có
-                if (!java.nio.file.Files.exists(uploadPath)) {
-                    java.nio.file.Files.createDirectories(uploadPath);
-                }
-
-                // 4. Đường dẫn vật lý chi tiết
-                java.nio.file.Path filePath = uploadPath.resolve(fileName);
-
-                // 5. Lưu file vào ổ cứng (Chỉ cần lưu 1 lần duy nhất!)
-                try (java.io.InputStream inputStream = imageFile.getInputStream()) {
-                    java.nio.file.Files.copy(inputStream, filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                }
-
-                // 6. Gán đường dẫn mới cho entity (Bắt đầu bằng /uploads/)
-                existingPet.setImageUrl("/uploads/" + fileName);
-
-                System.out.println("DEBUG: Đã lưu ảnh vào thư mục ngoài: " + filePath.toAbsolutePath());
+                String secureImageUrl = fileStorageService.storeFile(imageFile);
+                existingPet.setImageUrl(secureImageUrl);
             }
 
+            // 4. Lưu lại vào Database
             petService.savePet(existingPet);
 
             redirectAttributes.addFlashAttribute("message", "Cập nhật thành công!");
             return "redirect:/customer/pet/pet-detail?id=" + existingPet.getPetID();
 
+        } catch (RuntimeException e) {
+            // Bắt lỗi bảo mật file (sai đuôi file, sai định dạng MIME...)
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/customer/pet/pet-update?id=" + petFromForm.getPetID();
+
         } catch (Exception e) {
+            // Bắt lỗi hệ thống (IOException, mất kết nối DB...)
             e.printStackTrace();
             redirectAttributes.addFlashAttribute("error", "Lỗi cập nhật: " + e.getMessage());
             return "redirect:/customer/pet/pet-update?id=" + petFromForm.getPetID();
