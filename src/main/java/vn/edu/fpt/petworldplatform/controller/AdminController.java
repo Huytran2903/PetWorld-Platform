@@ -86,40 +86,51 @@ public class AdminController {
     //List
     @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("/admin/manage-pet")
-    public String getAllPets(Model model, @RequestParam(value = "kw", required = false, defaultValue = "")                              String keyword, @RequestParam(value = "page", defaultValue = "0") int page,
-                                   @RequestParam(name = "type", defaultValue = "", required = false) String type) {
+    public String getAllPets(Model model,
+                             @RequestParam(value = "kw", required = false, defaultValue = "") String keyword,
+                             @RequestParam(value = "page", defaultValue = "0") int page,
+                             @RequestParam(name = "type", defaultValue = "", required = false) String type,
+                             @RequestParam(name = "status", defaultValue = "", required = false) String status) {
 
         int pageSize = 8;
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by("petID").ascending());
-
         Page<Pets> petPage;
 
         boolean hasKeyword = (keyword != null && !keyword.trim().isEmpty());
         boolean hasType = (type != null && !type.trim().isEmpty());
+        boolean hasStatus = (status != null && !status.trim().isEmpty());
 
-
-        // 1. Trường hợp: Có CẢ Tên và Loại (Kết hợp filter)
-        if (hasKeyword && hasType) {
-            petPage = petService.findPetByNameAndType(keyword.trim(), type.trim(), pageable);
+        // --- LOGIC MỚI: LỌC THEO STATUS DỰA TRÊN SERVICE CỦA BẠN ---
+        if (hasStatus) {
+            if (status.equalsIgnoreCase("shop")) {
+                // Gọi hàm service bạn cung cấp cho Shop Pet
+                petPage = petService.getPetByOwnerIsNull(status, pageable);
+            } else if (status.equalsIgnoreCase("customer")) {
+                // Gọi hàm service bạn cung cấp cho Customer Pet
+                petPage = petService.getPetByOwnerNotNull(status, pageable);
+            } else {
+                petPage = petService.getAllPet(pageable);
+            }
         }
-        // 2. Trường hợp: CHỈ có Tên
-        else if (hasKeyword) {
-            petPage = petService.searchPetByName(keyword.trim(), pageable);
-        }
-        // 3. Trường hợp: CHỈ có Loại
-        else if (hasType) {
-            petPage = petService.getAvailablePetsByType(type.trim(), pageable);
-        }
-        // 4. Trường hợp: KHÔNG có gì (Lấy mặc định)
+        // --- LOGIC CŨ CỦA BẠN: KHÔNG ĐỔI CÁC HÀM SERVICE ĐÃ GỌI ---
         else {
-            petPage = petService.getAllPet(pageable);
+            if (hasKeyword && hasType) {
+                petPage = petService.findPetByNameAndType(keyword.trim(), type.trim(), pageable);
+            } else if (hasKeyword) {
+                petPage = petService.searchPetByName(keyword.trim(), pageable);
+            } else if (hasType) {
+                petPage = petService.getAvailablePetsByType(type.trim(), pageable);
+            } else {
+                petPage = petService.getAllPet(pageable);
+            }
         }
 
-        model.addAttribute("pets", petPage.getContent());           // Danh sách pet của trang hiện tại
-        model.addAttribute("totalPages", petPage.getTotalPages());    // Tổng số trang (để vẽ nút 1, 2, 3...)
-        model.addAttribute("currentPage", page);                      // Trang hiện tại
+        model.addAttribute("pets", petPage.getContent());
+        model.addAttribute("totalPages", petPage.getTotalPages());
+        model.addAttribute("currentPage", page);
         model.addAttribute("kw", keyword);
         model.addAttribute("selectedType", type);
+        model.addAttribute("selectedStatus", status); // Thêm để giữ trạng thái chọn trên HTML
 
         return "admin/managePet";
     }
@@ -437,7 +448,7 @@ public class AdminController {
                 if (product.getProductId() != null) {
                     // Lấy sản phẩm cũ từ Database ra để lấy lại đường dẫn ảnh cũ
                     // Tuỳ vào cách bạn đặt tên hàm trong Service mà thay đổi cho phù hợp nhé:
-                    Product oldProduct = productService.getProductById(product.getProductId());
+                    Product oldProduct = productService.findProductById(product.getProductId());
 
                     if (oldProduct != null && (product.getImageUrl() == null || product.getImageUrl().isEmpty())) {
                         product.setImageUrl(oldProduct.getImageUrl());
@@ -461,7 +472,7 @@ public class AdminController {
     @PreAuthorize("hasAuthority('MANAGE_PRODUCT')")
     @GetMapping("/admin/product/edit/{id}")
     public String updateProduct(Model model, @PathVariable("id") Integer id) {
-        model.addAttribute("selectedPro", productService.getProductById(id));
+        model.addAttribute("selectedPro", productService.findProductById(id));
 
         model.addAttribute("cates", categoryService.getAllCategories());
 

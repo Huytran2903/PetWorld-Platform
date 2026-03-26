@@ -20,7 +20,7 @@ public class ProductService {
         return productRepo.findByIsActiveTrue(pageable);
     }
 
-    public Product getProductById(Integer id) {
+    public Product findProductById(Integer id) {
         return productRepo.findById(id).get();
     }
 

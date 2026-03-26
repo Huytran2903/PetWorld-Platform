@@ -20,8 +20,18 @@
         .cam-tuy-chinh:focus {
             box-shadow: 0 0 0 0.25rem rgba(255, 165, 79, 0.25) !important;
         }
+        .admin-filter-select {
+            border-radius: 50px !important;
+            height: 45px;
+            cursor: pointer;
+            border: 1px solid #dee2e6;
+        }
+        /* Style cho thanh search linh hoạt */
+        .search-container {
+            min-width: 250px;
+            max-width: 450px;
+        }
     </style>
-
 </head>
 <body>
 
@@ -45,41 +55,45 @@
         <main class="container-fluid px-4">
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
                 <div class="card-header bg-white py-4 border-0">
-                    <div class="row g-3 align-items-center">
-                        <div class="col-md-9">
-                            <form th:action="@{/admin/manage-pet}" method="get" class="d-flex gap-2 align-items-center">
+                    <form th:action="@{/admin/manage-pet}" method="get" class="d-flex flex-wrap align-items-center gap-2">
 
-                                <div class="search-box position-relative d-flex align-items-center flex-grow-1">
-                                    <span class="position-absolute start-0 translate-middle-y ms-3 text-muted" style="top: 50%; z-index: 5;">
-                                        <i class="bi bi-search"></i>
-                                    </span>
-                                    <input type="text" name="kw" th:value="${kw}"
-                                           class="form-control rounded-pill ps-5 pe-5 shadow-sm"
-                                           placeholder="Search pet by name..."
-                                           style="height: 45px;">
-                                    <button type="submit"
-                                            class="btn rounded-pill position-absolute end-0 me-1 text-white fw-bold"
-                                            style="height: 38px; padding: 0 20px; background-color: #FFA54F; border: none;">
-                                        Search
-                                    </button>
-                                </div>
-
-                                <select name="type" class="form-select admin-filter-select shadow-sm"
-                                        th:classappend="${selectedType != null and selectedType != '' ? 'cam-tuy-chinh' : ''}"
-                                        onchange="this.form.submit()">
-                                    <option value="">Type: All</option>
-                                    <option value="Dog" th:selected="${selectedType == 'Dog'}">Dog</option>
-                                    <option value="Cat" th:selected="${selectedType == 'Cat'}">Cat</option>
-                                </select>
-
-                                <a th:href="@{/admin/manage-pet}"
-                                   class="btn btn-light rounded-pill d-flex align-items-center justify-content-center shadow-sm"
-                                   style="height: 45px; width: 45px; flex-shrink: 0;" title="Reset all filters">
-                                    <i class="bi bi-arrow-clockwise"></i>
-                                </a>
-                            </form>
+                        <div class="search-container position-relative d-flex align-items-center flex-grow-1">
+                            <span class="position-absolute start-0 translate-middle-y ms-3 text-muted" style="top: 50%; z-index: 5;">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" name="kw" th:value="${kw}"
+                                   class="form-control rounded-pill ps-5 pe-5 shadow-sm"
+                                   placeholder="Search pet by name..."
+                                   style="height: 45px;">
+                            <button type="submit"
+                                    class="btn rounded-pill position-absolute end-0 me-1 text-white fw-bold"
+                                    style="height: 38px; padding: 0 20px; background-color: #FFA54F; border: none;">
+                                Search
+                            </button>
                         </div>
-                    </div>
+
+                        <select name="type" class="form-select admin-filter-select shadow-sm" style="width: 140px;"
+                                th:classappend="${selectedType != null and selectedType != '' ? 'cam-tuy-chinh' : ''}"
+                                onchange="this.form.submit()">
+                            <option value="">Type: All</option>
+                            <option value="Dog" th:selected="${selectedType == 'Dog'}">Dog</option>
+                            <option value="Cat" th:selected="${selectedType == 'Cat'}">Cat</option>
+                        </select>
+
+                        <select name="status" class="form-select admin-filter-select shadow-sm" style="width: 160px;"
+                                th:classappend="${selectedStatus != null and selectedStatus != '' ? 'cam-tuy-chinh' : ''}"
+                                onchange="this.form.submit()">
+                            <option value="">Status: All</option>
+                            <option value="shop" th:selected="${selectedStatus == 'shop'}">Shop Pet</option>
+                            <option value="customer" th:selected="${selectedStatus == 'customer'}">Customer Pet</option>
+                        </select>
+
+                        <a th:href="@{/admin/manage-pet}"
+                           class="btn btn-light rounded-pill d-flex align-items-center justify-content-center shadow-sm"
+                           style="height: 45px; width: 45px; flex-shrink: 0;" title="Reset all filters">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </a>
+                    </form>
                 </div>
 
                 <div class="table-responsive">
@@ -107,7 +121,6 @@
                             </td>
                             <td><div class="fw-bold text-dark" th:text="${p.name}"></div></td>
                             <td th:text="${p.breed}"></td>
-
                             <td>
                                 <span class="badge rounded-pill px-3 py-1 fw-medium"
                                       th:styleappend="${p.petType == 'Dog' ? 'background-color: #ffe8d6; color: #fd7e14;' : (p.petType == 'Cat' ? 'background-color: #fff3cd; color: #cca900;' : 'background-color: #f8f9fa; color: #212529;')}">
@@ -136,7 +149,7 @@
                                         <i class="bi bi-shop me-1"></i> Shop Pet
                                     </span>
                                 </div>
-                                <div th:unless="${p.owner == null}">
+                                <div th:if="${p.owner != null}">
                                     <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-3 py-1">
                                         <i class="bi bi-person-heart me-1"></i> Customer Pet
                                     </span>
@@ -149,7 +162,6 @@
                                        class="btn btn-sm btn-outline-secondary border-0 px-3 py-2">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
-
                                     <button th:if="${p.owner == null}"
                                             type="button" class="btn btn-sm btn-outline-danger border-0 px-3 py-2"
                                             data-bs-toggle="modal" data-bs-target="#deleteConfirmationModal"
@@ -157,7 +169,6 @@
                                             th:data-name="${p.name}">
                                         <i class="bi bi-trash3"></i>
                                     </button>
-
                                     <button th:unless="${p.owner == null}"
                                             type="button" class="btn btn-sm btn-outline-danger border-0 px-3 py-2"
                                             data-bs-toggle="modal" data-bs-target="#cannotDeleteModal">
@@ -174,18 +185,20 @@
                     <nav aria-label="Page navigation">
                         <ul class="pagination justify-content-center align-items-center mb-0">
                             <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                                <a class="page-link shadow-sm" th:href="@{/admin/manage-pet(page=${currentPage - 1}, kw=${kw}, type=${selectedType})}">Previous</a>
+                                <a class="page-link shadow-sm"
+                                   th:href="@{/admin/manage-pet(page=${currentPage - 1}, kw=${kw}, type=${selectedType}, status=${selectedStatus})}">Previous</a>
                             </li>
 
                             <li class="page-item mx-1" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
                                 th:classappend="${i == currentPage} ? 'active'">
                                 <a class="page-link shadow-sm"
-                                   th:href="@{/admin/manage-pet(page=${i}, kw=${kw}, type=${selectedType})}"
+                                   th:href="@{/admin/manage-pet(page=${i}, kw=${kw}, type=${selectedType}, status=${selectedStatus})}"
                                    th:text="${i + 1}"></a>
                             </li>
 
                             <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
-                                <a class="page-link shadow-sm" th:href="@{/admin/manage-pet(page=${currentPage + 1}, kw=${kw}, type=${selectedType})}">Next</a>
+                                <a class="page-link shadow-sm"
+                                   th:href="@{/admin/manage-pet(page=${currentPage + 1}, kw=${kw}, type=${selectedType}, status=${selectedStatus})}">Next</a>
                             </li>
                         </ul>
                     </nav>
@@ -251,7 +264,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-    // Logic cho modal xác nhận xóa
+    // Xử lý modal xác nhận xóa động
     const deleteModal = document.getElementById('deleteConfirmationModal');
     if (deleteModal) {
         deleteModal.addEventListener('show.bs.modal', event => {

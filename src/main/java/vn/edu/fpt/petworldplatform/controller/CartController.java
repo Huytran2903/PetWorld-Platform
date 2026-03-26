@@ -56,31 +56,29 @@ public class CartController {
     @Autowired
     private PetRepo petRepo;
 
-    @GetMapping("/cart/add-pet/{id}") // Khớp {id} với PathVariable
+    @GetMapping("/cart/add-pet/{id}")
     public String addPetToCart(@PathVariable("id") Integer id,
-                               Authentication authentication) {
-        // 1. Kiểm tra đăng nhập
+                                   Authentication authentication) {
+
         if (authentication == null || !authentication.isAuthenticated()) {
             return "redirect:/login";
         }
 
-        // 2. Lấy Customer ID bằng hàm thông minh (Hỗ trợ cả Form và Google)
+
         Integer customerId = getCustomerIdFromAuth(authentication);
 
         if (customerId == null) {
             return "redirect:/login?error=account_not_found";
         }
 
-        // 3. Tìm đối tượng Pet từ Database
-        // Giả sử bạn đã @Autowired petRepository
+
         Pets pet = petRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pet not found with ID: " + id));
 
-        // 4. Gọi Service xử lý (Lưu ý: pet truyền vào vị trí thứ 2, product là null)
+
         cartService.addToCart(customerId, pet, null, 1);
 
-        // 5. BẮT BUỘC DÙNG REDIRECT
-        // Để trình duyệt chuyển hướng hẳn về trang danh sách, tránh F5 bị add thêm pet
+
         return "redirect:/pets";
     }
 
@@ -89,26 +87,23 @@ public class CartController {
                                    @RequestParam(value = "qty", defaultValue = "1") Integer qty,
                                    Authentication authentication) {
 
-        // 1. Kiểm tra đăng nhập
+
         if (authentication == null || !authentication.isAuthenticated()) {
             return "redirect:/login";
         }
 
-        // 2. Lấy Customer ID bằng hàm thông minh (Hỗ trợ cả Form và Google)
+
         Integer customerId = getCustomerIdFromAuth(authentication);
 
         if (customerId == null) {
             return "redirect:/login?error=account_not_found";
         }
 
-        // 3. Tìm đối tượng Product từ Database
         Product product = productRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found with ID: " + id));
 
-        // 4. Gọi Service: Truyền Pet là null, truyền đối tượng Product và số lượng
         cartService.addToCart(customerId, null, product, qty);
 
-        // 5. Redirect về danh sách sản phẩm để tránh lỗi F5 cộng dồn
         return "redirect:/products";
     }
 
@@ -176,12 +171,12 @@ public class CartController {
 
     @GetMapping("/cart/checkout-order")
     public String checkoutOrder(Model model) {
-        // 1. Kiểm tra xem có dữ liệu order được truyền sang không
+
         if (!model.containsAttribute("order")) {
             return "redirect:/";
         }
 
-        // 2. Lấy đối tượng order "tạm" từ bộ nhớ đệm
+        //Lấy đối tượng order "tạm" từ bộ nhớ đệm
         Order tempOrder = (Order) model.getAttribute("order");
 
         if (tempOrder != null && tempOrder.getOrderID() != null) {

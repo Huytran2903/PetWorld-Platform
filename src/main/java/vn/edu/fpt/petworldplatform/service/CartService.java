@@ -57,7 +57,6 @@ public class CartService {
             newItem.setProduct(null); // Đảm bảo đúng ràng buộc DB
             newItem.setQuantity(1);   // Thú cưng luôn là 1
 
-            // Bạn có thể bỏ dòng setAddedAt này vì @PrePersist trong CartItem đã tự động làm việc này rồi!
             newItem.setAddedAt(LocalDateTime.now());
 
             cartItemRepo.save(newItem);

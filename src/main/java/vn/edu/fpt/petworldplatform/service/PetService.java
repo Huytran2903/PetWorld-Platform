@@ -91,6 +91,15 @@ public class PetService {
         return petRepo.findAllByNameContainingIgnoreCase(keyword, pageable);
     }
 
+    //Filter theo status Pet
+        public Page<Pets> getPetByOwnerIsNull(String status, Pageable pageable) {
+            return petRepo.findAllByOwnerIsNull(status, pageable);
+        }
+
+        public Page<Pets> getPetByOwnerNotNull(String status, Pageable pageable) {
+            return petRepo.findAllByOwnerIsNotNull(status, pageable);
+        }
+
     public Page<Pets> getAvailablePetsByType(String type, Pageable pageable) {
 
         // Nếu không truyền type, hoặc chọn "All" -> Lấy tất cả pet đang bán

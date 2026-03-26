@@ -18,7 +18,7 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import vn.edu.fpt.petworldplatform.service.CustomUserDetailsService;
 
 @Configuration
-// @EnableWebSecurity
+ @EnableWebSecurity
 @EnableAsync
 @RequiredArgsConstructor
 //@EnableMethodSecurity

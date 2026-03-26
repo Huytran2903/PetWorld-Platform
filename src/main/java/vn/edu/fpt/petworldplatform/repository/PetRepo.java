@@ -97,4 +97,7 @@ public interface PetRepo extends JpaRepository<Pets, Integer> {
     );
 
     Page<Pets> findAllByNameContainingIgnoreCase(String keyword, Pageable pageable);
+
+    Page<Pets> findAllByOwnerIsNull( String status, Pageable pageable);
+    Page<Pets> findAllByOwnerIsNotNull(String status, Pageable pageable);
 }
