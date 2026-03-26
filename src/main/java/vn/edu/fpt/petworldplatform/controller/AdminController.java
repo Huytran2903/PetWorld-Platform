@@ -815,8 +815,15 @@ public class AdminController {
     public String saveService(@Valid @ModelAttribute("service") ServiceItem service, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
         Integer id = service.getId();
         if (id != null && id == 0) service.setId(null);
-        if (service.getServiceType() != null && !service.getServiceType().isBlank() && !bindingResult.hasFieldErrors("name")) {
-            if (serviceItemService.isNameDuplicate(service.getName().trim(), service.getServiceType(), service.getId())) {
+        String selectedTypeName = null;
+        if (service.getServiceType() != null && service.getServiceType().getId() != null) {
+            selectedTypeName = serviceTypeService.findById(service.getServiceType().getId())
+                    .map(ServiceType::getName)
+                    .map(String::trim)
+                    .orElse(null);
+        }
+        if (selectedTypeName != null && !selectedTypeName.isBlank() && !bindingResult.hasFieldErrors("name")) {
+            if (serviceItemService.isNameDuplicate(service.getName().trim(), selectedTypeName, service.getId())) {
                 bindingResult.rejectValue("name", "duplicate", "A service with this name already exists in the selected type.");
             }
         }
@@ -828,7 +835,6 @@ public class AdminController {
             return "admin/service-list";
         }
         service.setName(service.getName().trim());
-        if (service.getServiceType() != null) service.setServiceType(service.getServiceType().trim());
         try {
             serviceItemService.save(service);
             redirectAttributes.addFlashAttribute("message", "Service saved successfully.");

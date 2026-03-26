@@ -54,7 +54,7 @@ public class BookingService {
     }
 
     public List<ServiceItem> findActiveServices() {
-        return serviceItemRepository.findAllByOrderByServiceTypeAscNameAsc().stream()
+        return serviceItemRepository.findAllOrderedByTypeAndName().stream()
                 .filter(s -> Boolean.TRUE.equals(s.getIsActive()))
                 .toList();
     }
@@ -63,7 +63,7 @@ public class BookingService {
         if (serviceType == null || serviceType.isBlank()) {
             return findActiveServices();
         }
-        return serviceItemRepository.findByServiceTypeIgnoreCaseOrderByNameAsc(serviceType.trim()).stream()
+        return serviceItemRepository.findByServiceTypeNameIgnoreCaseOrderByNameAsc(serviceType.trim()).stream()
                 .filter(s -> Boolean.TRUE.equals(s.getIsActive()))
                 .toList();
     }
@@ -129,7 +129,8 @@ public class BookingService {
         for (ServiceItem svc : services) {
             if (Boolean.TRUE.equals(svc.getIsActive())) {
                 totalDuration += (svc.getDurationMinutes() != null ? svc.getDurationMinutes() : 30);
-                if ("boarding".equalsIgnoreCase(svc.getServiceType()) || (svc.getDurationMinutes() != null && svc.getDurationMinutes() >= 1440)) {
+                String typeName = svc.getServiceType() != null ? svc.getServiceType().getName() : null;
+                if ("boarding".equalsIgnoreCase(typeName) || (svc.getDurationMinutes() != null && svc.getDurationMinutes() >= 1440)) {
                     hasBoarding = true;
                 }
             }
@@ -213,9 +214,8 @@ public class BookingService {
     }
 
     private boolean isVaccineService(ServiceItem svc) {
-        String t = svc.getServiceType();
-        if (t == null) return false;
-        String type = t.trim().toLowerCase(Locale.ROOT);
+        if (svc == null || svc.getServiceType() == null || svc.getServiceType().getName() == null) return false;
+        String type = svc.getServiceType().getName().trim().toLowerCase(Locale.ROOT);
         return "vaccine".equals(type) || "vaccination".equals(type);
     }
 
@@ -339,9 +339,13 @@ public class BookingService {
         // 1) Compute totalDurationMinutes
         List<AppointmentServiceLine> lines = appointmentServiceLineRepository.findByAppointment_Id(appointmentId);
         int totalMinutes = computeAppointmentDurationMinutes(lines);
-        boolean hasBoarding = lines.stream().anyMatch(l -> 
-            "boarding".equalsIgnoreCase(l.getService().getServiceType()) || 
-            (l.getService().getDurationMinutes() != null && l.getService().getDurationMinutes() >= 1440));
+        boolean hasBoarding = lines.stream().anyMatch(l -> {
+            ServiceItem s = l.getService();
+            if (s == null) return false;
+            String tn = s.getServiceType() != null ? s.getServiceType().getName() : null;
+            return "boarding".equalsIgnoreCase(tn)
+                    || (s.getDurationMinutes() != null && s.getDurationMinutes() >= 1440);
+        });
 
         // 2) Define newEnd
         LocalDateTime newEnd = newStart.plusMinutes(totalMinutes);

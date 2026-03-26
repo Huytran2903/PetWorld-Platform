@@ -540,7 +540,7 @@
 
 
 
-                                <span class="badge" th:text="${line.service.serviceType}">TYPE</span>
+                                <span class="badge" th:text="${line.service.serviceType != null ? line.service.serviceType.name : '-'}">TYPE</span>
 
 
 

@@ -96,7 +96,7 @@
                         <td class="ps-4 fw-bold text-muted" th:text="${svc.id}">1</td>
                         <td>
                             <span class="badge bg-light text-dark border px-2 py-1"
-                                  th:text="${svc.serviceType}">—</span>
+                                  th:text="${svc.serviceType != null ? svc.serviceType.name : '—'}">—</span>
                         </td>
                         <td><span class="fw-bold text-dark" th:text="${svc.name}">—</span></td>
                         <td><span class="text-muted small"
@@ -165,12 +165,13 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Service Type <span class="text-danger">*</span></label>
-                            <select class="form-select" th:field="*{serviceType}" id="svcType" required>
+                            <select class="form-select" th:field="*{serviceType.id}" id="svcType" required>
                                 <option value="" disabled th:selected="${service.serviceType == null}">
                                     -- Select type --
                                 </option>
                                 <option th:each="t : ${serviceTypes}"
-                                        th:value="${t.name}"
+                                        th:value="${t.id}"
+                                        th:attr="data-name=${t.name}"
                                         th:text="${t.name}">
                                 </option>
                             </select>
@@ -261,7 +262,8 @@
             const typeSelect = document.getElementById('svcType');
             const block = document.getElementById('vaccineScheduleBlock');
             if (!typeSelect || !block) return;
-            const val = (typeSelect.value || '').toLowerCase();
+            const opt = typeSelect.options[typeSelect.selectedIndex];
+            const val = (opt && opt.getAttribute('data-name') || '').toLowerCase();
             block.style.display = (val === 'vaccination' || val === 'vaccine') ? 'block' : 'none';
         }
 

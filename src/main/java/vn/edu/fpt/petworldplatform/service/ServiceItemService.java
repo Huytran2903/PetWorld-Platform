@@ -4,8 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.petworldplatform.entity.ServiceItem;
+import vn.edu.fpt.petworldplatform.entity.ServiceType;
 import vn.edu.fpt.petworldplatform.repository.PetVaccinationRepository;
 import vn.edu.fpt.petworldplatform.repository.ServiceItemRepository;
+import vn.edu.fpt.petworldplatform.repository.ServiceTypeRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,16 +18,17 @@ public class ServiceItemService {
 
     private final ServiceItemRepository serviceItemRepository;
     private final PetVaccinationRepository petVaccinationRepository;
+    private final ServiceTypeRepository serviceTypeRepository;
 
     public List<ServiceItem> findAll() {
-        return serviceItemRepository.findAllByOrderByServiceTypeAscNameAsc();
+        return serviceItemRepository.findAllOrderedByTypeAndName();
     }
 
     public List<ServiceItem> findByServiceType(String serviceType) {
         if (serviceType == null || serviceType.isBlank()) {
             return findAll();
         }
-        return serviceItemRepository.findByServiceTypeIgnoreCaseOrderByNameAsc(serviceType.trim());
+        return serviceItemRepository.findByServiceTypeNameIgnoreCaseOrderByNameAsc(serviceType.trim());
     }
 
     public Optional<ServiceItem> findById(Integer id) {
@@ -38,14 +41,20 @@ public class ServiceItemService {
         String n = name.trim();
         String t = serviceType.trim();
         if (excludeId == null) {
-            return serviceItemRepository.existsByNameIgnoreCaseAndServiceType(n, t);
+            return serviceItemRepository.countByNameIgnoreCaseAndServiceTypeName(n, t) > 0;
         }
-        return serviceItemRepository.existsByNameIgnoreCaseAndServiceTypeAndIdNot(n, t, excludeId);
+        return serviceItemRepository.countByNameIgnoreCaseAndServiceTypeNameAndIdNot(n, t, excludeId) > 0;
     }
 
     @Transactional
     public ServiceItem save(ServiceItem entity) {
         if (entity == null) throw new IllegalArgumentException("Service is required.");
+        if (entity.getServiceType() == null || entity.getServiceType().getId() == null) {
+            throw new IllegalArgumentException("Service type is required.");
+        }
+        ServiceType resolvedType = serviceTypeRepository.findById(entity.getServiceType().getId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid service type."));
+        entity.setServiceType(resolvedType);
 
         Integer id = entity.getId();
         if (id != null) {
@@ -53,9 +62,11 @@ public class ServiceItemService {
             if (existingOpt.isPresent()) {
                 ServiceItem existing = existingOpt.get();
                 boolean existingIsVaccine = existing.getServiceType() != null
-                        && existing.getServiceType().trim().equalsIgnoreCase("vaccination");
+                        && existing.getServiceType().getName() != null
+                        && existing.getServiceType().getName().trim().equalsIgnoreCase("vaccination");
                 boolean newIsVaccine = entity.getServiceType() != null
-                        && entity.getServiceType().trim().equalsIgnoreCase("vaccination");
+                        && entity.getServiceType().getName() != null
+                        && entity.getServiceType().getName().trim().equalsIgnoreCase("vaccination");
 
                 // Prevent retroactive behavior changes for vaccine services that already have usage/records.
                 if (existingIsVaccine && newIsVaccine) {
