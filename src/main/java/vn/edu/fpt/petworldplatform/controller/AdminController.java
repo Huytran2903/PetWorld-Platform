@@ -21,11 +21,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ContentDisposition;
-import vn.edu.fpt.petworldplatform.dto.AdminVaccinationRowDTO;
-import vn.edu.fpt.petworldplatform.dto.PetFormDTO;
-import vn.edu.fpt.petworldplatform.dto.PetStatisticsDTO;
+import vn.edu.fpt.petworldplatform.dto.*;
 import vn.edu.fpt.petworldplatform.entity.*;
-import vn.edu.fpt.petworldplatform.dto.StaffFormDTO;
 import vn.edu.fpt.petworldplatform.entity.Categories;
 import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.entity.ServiceItem;
@@ -281,11 +278,11 @@ public class AdminController {
     @PreAuthorize("hasAuthority('MANAGE_CATEGORY')")
     @GetMapping("/admin/manage-categories")
     public String getAllCategories(Model model, @RequestParam(value = "kw", required = false, defaultValue = "") String keyword) {
-         if(!keyword.equals("")) {
+        if (!keyword.equals("")) {
             model.addAttribute("categories", categoryService.searchCateByName(keyword));
-         } else {
-             model.addAttribute("categories", categoryService.getAllCategories());
-         }
+        } else {
+            model.addAttribute("categories", categoryService.getAllCategories());
+        }
         return "admin/manageCategories";
     }
 
@@ -494,15 +491,15 @@ public class AdminController {
     public String showStaffList(
             @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword,
             @RequestParam(name = "page", required = false, defaultValue = "1") int page,
-            @RequestParam(name = "size", required = false, defaultValue = "5") int size, // 5 người/trang
+            @RequestParam(name = "size", required = false, defaultValue = "5") int size,
             Model model) {
 
-        Page<Staff> staffPage = staffService.getStaffsWithPaginationAndSearch(keyword, page, size);
+        Page<StaffDisplayDTO> staffPage = staffService.getStaffsWithPaginationAndSearch(keyword, page, size);
 
-        model.addAttribute("staffs", staffPage.getContent()); // Danh sách hiển thị trên bảng
-        model.addAttribute("currentPage", page);              // Trang hiện tại
-        model.addAttribute("totalPages", staffPage.getTotalPages()); // Tổng số trang
-        model.addAttribute("totalItems", staffPage.getTotalElements()); // Tổng số nhân viên
+        model.addAttribute("staffs", staffPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", staffPage.getTotalPages());
+        model.addAttribute("totalItems", staffPage.getTotalElements());
 
         model.addAttribute("keyword", keyword);
 
@@ -522,13 +519,21 @@ public class AdminController {
 
     @PreAuthorize("hasAuthority('MANAGE_STAFF')")
     @PostMapping("/admin/staff-manage/create")
-    public String createStaff(@ModelAttribute("newStaff") StaffFormDTO staffDTO,
+    public String createStaff(@Valid @ModelAttribute("newStaff") StaffFormDTO staffDTO,
                               BindingResult bindingResult,
                               Model model,
                               RedirectAttributes redirectAttributes) {
 
-        if (staffService.isEmailExists(staffDTO.getEmail())) {
-            bindingResult.rejectValue("email", "error.email", "This email is already in use!");
+        if (staffDTO.getUsername() != null && !staffDTO.getUsername().trim().isEmpty()) {
+            if (staffService.isUsernameExists(staffDTO.getUsername())) {
+                bindingResult.rejectValue("username", "error.username", "This username is already in use!");
+            }
+        }
+
+        if (staffDTO.getEmail() != null && !staffDTO.getEmail().trim().isEmpty()) {
+            if (staffService.isEmailExists(staffDTO.getEmail())) {
+                bindingResult.rejectValue("email", "error.email", "This email is already in use!");
+            }
         }
 
         if (staffDTO.getPhone() != null && !staffDTO.getPhone().trim().isEmpty()) {
@@ -566,7 +571,25 @@ public class AdminController {
 
     @PreAuthorize("hasAuthority('MANAGE_STAFF')")
     @PostMapping("/admin/staff-manage/update")
-    public String updateStaff(@Valid @ModelAttribute("newStaff") StaffFormDTO staffDTO, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
+    public String updateStaff(@Valid @ModelAttribute("newStaff") StaffFormDTO staffDTO,
+                              BindingResult bindingResult,
+                              Model model,
+                              RedirectAttributes redirectAttributes) {
+
+        Integer currentStaffId = staffDTO.getStaffId();
+
+        if (staffDTO.getUsername() != null && !staffDTO.getUsername().trim().isEmpty()) {
+            if (staffService.isUsernameExistsForOther(staffDTO.getUsername(), currentStaffId)) {
+                bindingResult.rejectValue("username", "error.username", "This username is already in use by another staff!");
+            }
+        }
+
+
+        if (staffDTO.getPhone() != null && !staffDTO.getPhone().trim().isEmpty()) {
+            if (staffService.isPhoneExistsForOther(staffDTO.getPhone(), currentStaffId)) {
+                bindingResult.rejectValue("phone", "error.phone", "This phone number is already in use by another staff!");
+            }
+        }
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("roles", roleService.getAllRoles());
@@ -605,10 +628,10 @@ public class AdminController {
 
         Page<Customer> customerPage = customerService.getCustomersWithPaginationAndSearch(keyword, page, size);
 
-        model.addAttribute("customers", customerPage.getContent());     // Danh sách hiển thị
-        model.addAttribute("currentPage", page);                        // Trang hiện tại
-        model.addAttribute("totalPages", customerPage.getTotalPages()); // Tổng số trang
-        model.addAttribute("totalItems", customerPage.getTotalElements()); // Tổng số khách hàng
+        model.addAttribute("customers", customerPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", customerPage.getTotalPages());
+        model.addAttribute("totalItems", customerPage.getTotalElements());
 
         model.addAttribute("keyword", keyword);
 

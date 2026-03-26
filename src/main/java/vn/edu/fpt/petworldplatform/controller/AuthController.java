@@ -140,12 +140,6 @@ public class AuthController {
         return "redirect:/login";
     }
 
-    @GetMapping("/logout")
-    public String logout(HttpSession session) {
-        session.invalidate();
-        return "redirect:/";
-    }
-
 
     @GetMapping("/profile/change-password")
     public String showChangePasswordForm(Model model) {
@@ -201,15 +195,15 @@ public class AuthController {
     @PostMapping("/forgot-password")
     public String processForgotPassword(@RequestParam("email") String email,
                                         RedirectAttributes redirectAttributes,
-                                        HttpSession session) {
+                                        HttpSession session
+    ) {
         try {
             customerService.sendResetPasswordEmail(email);
+            session.setAttribute("resetEmail", email);
 
 
             redirectAttributes.addFlashAttribute("message", "OTP has been sent to " + email);
             redirectAttributes.addFlashAttribute("openOtpModal", true);
-
-            redirectAttributes.addFlashAttribute("emailForgot", email);
 
             return "redirect:/login";
         } catch (Exception e) {
@@ -226,13 +220,11 @@ public class AuthController {
         Customer customer = customerService.getByResetPasswordToken(otp);
 
         if (customer == null || !customer.getEmail().equals(email)) {
-            System.out.println("DEBUG: OTP sai hoặc email không khớp!");
             redirectAttributes.addFlashAttribute("error", "Invalid or expired OTP code!");
             redirectAttributes.addFlashAttribute("openOtpModal", true);
             return "redirect:/login";
         }
 
-        System.out.println("DEBUG: OTP chuẩn! Đang chuyển hướng tới trang đổi mật khẩu...");
         return "redirect:/reset-password?token=" + otp;
     }
 

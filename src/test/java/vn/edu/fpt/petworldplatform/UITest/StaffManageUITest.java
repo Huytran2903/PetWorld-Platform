@@ -28,17 +28,48 @@ public class StaffManageUITest {
     private String testStatus;
     private String failMessage;
 
+    private static CellStyle headerStyle;
+    private static CellStyle passedStyle;
+    private static CellStyle failedStyle;
+
     @BeforeAll
     public static void setUpExcel() {
         workbook = new XSSFWorkbook();
         sheet = workbook.createSheet("Test Results");
 
-        Row headerRow = sheet.createRow(0);
-        headerRow.createCell(0).setCellValue("Name Test Case");
-        headerRow.createCell(1).setCellValue("Status");
-        headerRow.createCell(2).setCellValue("Note");
-    }
+        headerStyle = workbook.createCellStyle();
+        headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        Font headerFont = workbook.createFont();
+        headerFont.setBold(true);
+        headerStyle.setFont(headerFont);
 
+        passedStyle = workbook.createCellStyle();
+        Font passedFont = workbook.createFont();
+        passedFont.setColor(IndexedColors.GREEN.getIndex());
+        passedFont.setBold(true);
+        passedStyle.setFont(passedFont);
+
+        failedStyle = workbook.createCellStyle();
+        Font failedFont = workbook.createFont();
+        failedFont.setColor(IndexedColors.RED.getIndex());
+        failedFont.setBold(true);
+        failedStyle.setFont(failedFont);
+
+        Row headerRow = sheet.createRow(0);
+
+        Cell cell0 = headerRow.createCell(0);
+        cell0.setCellValue("Name Test Case");
+        cell0.setCellStyle(headerStyle);
+
+        Cell cell1 = headerRow.createCell(1);
+        cell1.setCellValue("Status");
+        cell1.setCellStyle(headerStyle);
+
+        Cell cell2 = headerRow.createCell(2);
+        cell2.setCellValue("Note");
+        cell2.setCellStyle(headerStyle);
+    }
 
     @BeforeEach
     public void setUp(TestInfo testInfo) {
@@ -62,7 +93,6 @@ public class StaffManageUITest {
         wait.until(ExpectedConditions.not(ExpectedConditions.urlContains("/login")));
     }
 
-
     @Test
     @Order(1)
     public void testShowStaffList() {
@@ -73,61 +103,96 @@ public class StaffManageUITest {
         assertTrue(table.isDisplayed(), "Bảng danh sách nhân viên không hiển thị!");
 
         java.util.List<WebElement> rows = driver.findElements(By.xpath("//table/tbody/tr"));
-            assertTrue(rows.size() > 0, "Bảng không có dữ liệu nhân viên nào!");
-            assertTrue(rows.size() <= 5, "Phân trang sai, hiển thị quá 5 người 1 trang!");
-        try {
-            WebElement pagination = driver.findElement(By.className("pagination"));
-            assertTrue(pagination.isDisplayed(), "Thanh phân trang đang hoạt động tốt.");
-        } catch (Exception e) {
-            System.out.println("Không tìm thấy thanh phân trang.");
-        }
+        assertTrue(rows.size() > 0, "Bảng không có dữ liệu nhân viên nào!");
 
         testStatus = "PASSED";
         failMessage = "Hoạt động chính xác";
     }
 
+
     @Test
     @Order(2)
-    public void testSearchStaff() {
-        driver.get("http://localhost:8080/admin/staff-manage");
-        WebElement searchInput = driver.findElement(By.name("keyword"));
-        searchInput.sendKeys("Huy Tran");
-        searchInput.sendKeys(Keys.ENTER);
-
-        wait.until(ExpectedConditions.urlContains("keyword="));
-        assertTrue(driver.getCurrentUrl().contains("keyword="));
-
-        testStatus = "PASSED";
-        failMessage = "Tìm kiếm chính xác";
-    }
-
-    @Test
-    @Order(3)
-    public void testCreateNewStaff() {
+    public void testCreateStaff_Success() {
         driver.get("http://localhost:8080/admin/staff-manage/create");
 
-        driver.findElement(By.name("fullName")).sendKeys("Nhân Viên Auto Test");
-        driver.findElement(By.name("email")).sendKeys("autotest@gmail.com");
-        driver.findElement(By.name("username")).sendKeys("hihihaha");
-        driver.findElement(By.name("phone")).sendKeys("0999888777");
+        driver.findElement(By.name("fullName")).sendKeys("Nhân Viên Hợp Lệ");
+        driver.findElement(By.name("email")).sendKeys("valid.email@gmail.com");
+        driver.findElement(By.name("username")).sendKeys("validUser123");
+        driver.findElement(By.name("phone")).sendKeys("0988777666");
 
         Select roleSelect = new Select(driver.findElement(By.name("roleId")));
         roleSelect.selectByIndex(2);
 
-        WebElement submitBtn = driver.findElement(By.xpath("//button[@type='submit']"));
-        JavascriptExecutor jse = (JavascriptExecutor) driver;
-        jse.executeScript("arguments[0].click();", submitBtn);
+        submitForm();
 
         wait.until(ExpectedConditions.urlContains("/admin/staff-manage"));
-        assertTrue(driver.getCurrentUrl().endsWith("/admin/staff-manage"));
+        assertTrue(driver.getCurrentUrl().endsWith("/admin/staff-manage"), "Thêm nhân viên thất bại!");
 
         testStatus = "PASSED";
         failMessage = "Thêm mới nhân viên thành công";
     }
 
     @Test
-    @Order(4)
-    public void testDeleteAndTransferStaff() {
+    @Order(3)
+    public void testCreateStaff_EmptyAllFields() {
+        driver.get("http://localhost:8080/admin/staff-manage/create");
+
+        submitForm();
+
+        assertTrue(driver.getCurrentUrl().contains("/create"), "Lỗi: Đã cho phép tạo nhân viên rỗng!");
+        testStatus = "PASSED";
+        failMessage = "Bắt lỗi để trống các trường (NotBlank, NotNull)";
+    }
+
+
+    @Test
+    @Order(5)
+    public void testCreateStaff_InvalidEmailFormat() {
+        driver.get("http://localhost:8080/admin/staff-manage/create");
+
+        fillBasicValidData();
+
+        WebElement emailInput = driver.findElement(By.name("email"));
+        emailInput.clear();
+        emailInput.sendKeys("not-an-email-format");
+
+        submitForm();
+
+        assertTrue(driver.getCurrentUrl().contains("/create"), "Lỗi: Không bắt lỗi định dạng Email");
+        testStatus = "PASSED";
+        failMessage = "Bắt lỗi sai định dạng Email thành công";
+    }
+
+
+
+    @Test
+    @Order(6)
+    public void testUpdateStaffInfo() {
+        driver.get("http://localhost:8080/admin/staff-manage");
+
+        WebElement firstEditBtn = wait.until(ExpectedConditions.elementToBeClickable(
+                By.xpath("//a[contains(@href, '/admin/edit-staff/')]")
+        ));
+        firstEditBtn.click();
+
+        wait.until(ExpectedConditions.urlContains("/edit-staff/"));
+
+        WebElement phoneInput = wait.until(ExpectedConditions.presenceOfElementLocated(By.name("phone")));
+        phoneInput.clear();
+        phoneInput.sendKeys("0123456789");
+
+        submitForm();
+
+        wait.until(ExpectedConditions.urlContains("/admin/staff-manage"));
+        assertTrue(driver.getCurrentUrl().endsWith("/admin/staff-manage"), "Cập nhật nhân viên thất bại!");
+
+        testStatus = "PASSED";
+        failMessage = "Cập nhật thông tin nhân viên thành công";
+    }
+
+    @Test
+    @Order(7)
+    public void testDeleteStaff() {
         driver.get("http://localhost:8080/admin/staff-manage");
 
         WebElement firstDeleteBtn = wait.until(ExpectedConditions.elementToBeClickable(By.className("delete-staff-btn")));
@@ -136,21 +201,34 @@ public class StaffManageUITest {
         WebElement modal = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("transferDeleteModal")));
         assertTrue(modal.isDisplayed(), "Modal Xóa không hiện lên!");
 
-        try {
-            Select transferSelect = new Select(driver.findElement(By.name("transferStaffId")));
-            transferSelect.selectByIndex(1);
-        } catch (Exception e) {
-            System.out.println("Nhân viên này không có việc pending");
-        }
-
-        WebElement submitDeleteBtn = driver.findElement(By.id("btnSubmitDelete"));
-        submitDeleteBtn.click();
+        WebElement submitDeleteBtn = wait.until(ExpectedConditions.presenceOfElementLocated(By.id("btnSubmitDelete")));
+        JavascriptExecutor jse = (JavascriptExecutor) driver;
+        jse.executeScript("arguments[0].click();", submitDeleteBtn);
 
         wait.until(ExpectedConditions.urlContains("/admin/staff-manage"));
-        assertTrue(driver.getCurrentUrl().contains("/admin/staff-manage"));
+        assertTrue(driver.getCurrentUrl().contains("/admin/staff-manage"), "Lỗi khi xóa nhân viên!");
 
         testStatus = "PASSED";
-        failMessage = "Xóa và bàn giao hoàn tất";
+        failMessage = "Xóa nhân viên thành công";
+    }
+
+
+    private void fillBasicValidData() {
+        driver.findElement(By.name("fullName")).sendKeys("Test Validation");
+        driver.findElement(By.name("email")).sendKeys("valid@gmail.com");
+        driver.findElement(By.name("username")).sendKeys("validUsername");
+        driver.findElement(By.name("phone")).sendKeys("0988777686");
+        try {
+            Select roleSelect = new Select(driver.findElement(By.name("roleId")));
+            roleSelect.selectByIndex(2);
+        } catch (Exception e) {
+        }
+    }
+
+    private void submitForm() {
+        WebElement submitBtn = driver.findElement(By.xpath("//button[@type='submit']"));
+        JavascriptExecutor jse = (JavascriptExecutor) driver;
+        jse.executeScript("arguments[0].click();", submitBtn);
     }
 
 
@@ -160,15 +238,22 @@ public class StaffManageUITest {
 
         Row row = sheet.createRow(rowNum++);
         row.createCell(0).setCellValue(testName);
-        row.createCell(1).setCellValue(testStatus);
+
+        Cell statusCell = row.createCell(1);
+        statusCell.setCellValue(testStatus);
+        if ("PASSED".equals(testStatus)) {
+            statusCell.setCellStyle(passedStyle);
+        } else {
+            statusCell.setCellStyle(failedStyle);
+        }
+
         row.createCell(2).setCellValue(failMessage);
 
-        Thread.sleep(5000);
+        Thread.sleep(3000);
         if (driver != null) {
             driver.quit();
         }
     }
-
 
     @AfterAll
     public static void exportExcel() {

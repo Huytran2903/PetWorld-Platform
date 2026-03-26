@@ -63,14 +63,14 @@ public class SecurityConfig {
                         .requestMatchers("/reset-password/**", "/forgot-password", "/verify-forgot-password-otp").permitAll()
                         // --------------------
 
-                        // .requestMatchers("/admin/**").hasRole("ADMIN")
-                        // .requestMatchers("/staff/**").hasRole("STAFF")
+                         .requestMatchers("/admin/**").hasRole("ADMIN")
+                         .requestMatchers("/staff/**").hasRole("STAFF")
                         // // C. Chặn staff truy cập trang customer
                         // // Cho phép CUSTOMER (ROLE_CUSTOMER) hoặc OIDC_USER
                         // .requestMatchers("/customer/**", "/cart/**", "/appointment/**")
                         // .hasAnyAuthority("ROLE_CUSTOMER", "OIDC_USER")
 
-                        // .requestMatchers("/profile/**").authenticated()
+                         .requestMatchers("/profile/**").authenticated()
 
                         // D. Còn lại khóa hết
                         .anyRequest().permitAll())

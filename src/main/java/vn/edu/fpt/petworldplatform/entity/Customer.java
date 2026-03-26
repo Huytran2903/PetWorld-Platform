@@ -21,7 +21,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Customer implements UserDetails {
+public class Customer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -73,16 +73,6 @@ public class Customer implements UserDetails {
 
     @Column(name = "LockedUntil")
     private LocalDateTime lockedUntil;
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
-    }
-
-    @Override
-    public @Nullable String getPassword() {
-        return this.passwordHash;
-    }
 
 
     @OneToMany(mappedBy = "owner", fetch = FetchType.LAZY)

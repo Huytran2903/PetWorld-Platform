@@ -18,6 +18,7 @@
         rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
     />
+    <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}" />
     <link rel="stylesheet" th:href="@{/css/sidebar-admin.css}" />
 
     <style>
@@ -116,14 +117,35 @@
             border-radius: 10px;
             border: 1px solid #e5e7eb;
         }
+
+        /* Consistent admin dashboard layout (Sidebar left, content scroll right) */
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #f8f9fa;
+        }
+
+        .admin-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .admin-main-content {
+            flex-grow: 1;
+            padding: 2rem;
+            height: 100vh;
+            overflow-y: auto;
+            background-color: #f9fafb;
+        }
     </style>
 </head>
 
-<body class="bg-light">
-    <div class="d-flex">
+<body>
+    <div class="admin-wrapper">
         <div th:replace="~{fragments/sidebar-admin :: aside(activePage='appointments')}"></div>
 
-        <div class="container-fluid p-4">
+        <div class="admin-main-content">
+            <div class="container-fluid py-4 px-md-5">
             <div class="d-flex align-items-center mb-4 gap-3">
                 <a th:href="@{/admin/appointments}" class="btn btn-outline-secondary btn-sm">
                     <i class="bi bi-arrow-left"></i> Back
@@ -200,7 +222,7 @@
                                         <span th:if="${appointment.status == 'done'}"
                                               th:classappend="${appointmentPaymentPaid} ? 'bg-success' : 'bg-warning text-dark'"
                                               class="badge ms-2"
-                                              th:text="${appointmentPaymentPaid} ? 'Đã thanh toán' : 'Chưa thanh toán'">Payment</span>
+                                              th:text="${appointmentPaymentPaid} ? 'Đã thanh toán' : 'Not paid'">Payment</span>
                                     </div>
                                 </div>
 
@@ -208,7 +230,7 @@
                                     <label class="form-label text-muted small">Payment Status</label>
                                     <div class="fw-bold">
                                         <span th:if="${appointmentPaymentPaid}" class="text-success">Đã thanh toán</span>
-                                        <span th:unless="${appointmentPaymentPaid}" class="text-warning">Chưa thanh toán</span>
+                                        <span th:unless="${appointmentPaymentPaid}" class="text-warning">Not paid</span>
                                         <span th:if="${appointmentTotalAmount != null}"
                                               class="text-muted ms-1 small" th:text="'(' + ${#numbers.formatDecimal(appointmentTotalAmount, 0, 'POINT', 0, 'COMMA')} + ' ₫)'">(amount)</span>
                                     </div>
@@ -553,6 +575,7 @@
             </div>
         </div>
     </div>
+</div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

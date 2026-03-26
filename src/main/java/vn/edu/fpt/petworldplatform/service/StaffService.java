@@ -9,6 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import vn.edu.fpt.petworldplatform.dto.StaffDisplayDTO;
 import vn.edu.fpt.petworldplatform.dto.StaffFormDTO;
 import vn.edu.fpt.petworldplatform.entity.*;
 import vn.edu.fpt.petworldplatform.repository.*;
@@ -24,11 +25,10 @@ public class StaffService {
 
     private final StaffRepository staffRepo;
     private final PetVaccinationRepository petVaccinationRepo;
-    private final PetHealthRecordRepository petHealthRecordRepo;
-    private final StaffScheduleRepository staffScheduleRepo;
     private final FeedbackRepository feedbackRepo;
     private final AppointmentServiceLineRepository appointmentServiceRepo;
     private final AppointmentRepository appointmentRepo;
+    private final ServiceNoteRepository serviceNoteRepo;
 
     @Autowired
     private RoleRepo roleRepo;
@@ -59,6 +59,18 @@ public class StaffService {
         return staffRepo.existsByPhone(phone);
     }
 
+    public boolean isUsernameExists(String username) {
+        return staffRepo.existsByUsername(username);
+    }
+
+    public boolean isUsernameExistsForOther(String username, Integer currentStaffId) {
+        return staffRepo.existsByUsernameAndStaffIdNot(username, currentStaffId);
+    }
+
+    public boolean isPhoneExistsForOther(String phone, Integer currentStaffId) {
+        return staffRepo.existsByPhoneAndStaffIdNot(phone, currentStaffId);
+    }
+
     public Optional<Staff> findById(Long staffId) {
         if (staffId == null) {
             return Optional.empty();
@@ -70,13 +82,35 @@ public class StaffService {
         return staffRepo.findAll();
     }
 
-    public Page<Staff> getStaffsWithPaginationAndSearch(String keyword, int page, int size) {
+    public Page<StaffDisplayDTO> getStaffsWithPaginationAndSearch(String keyword, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("staffId").descending());
 
+        Page<Staff> staffPage;
         if (keyword != null && !keyword.trim().isEmpty()) {
-            return staffRepo.searchStaffs(keyword.trim(), pageable);
+            staffPage = staffRepo.searchStaffs(keyword.trim(), pageable);
+        } else {
+            staffPage = staffRepo.findAll(pageable);
         }
-        return staffRepo.findAll(pageable);
+
+        return staffPage.map(staff -> {
+            Integer id = staff.getStaffId();
+
+            String roleName = (staff.getRole() != null) ? staff.getRole().getRoleName() : "No Role";
+
+            return StaffDisplayDTO.builder()
+                    .staffId(id)
+                    .username(staff.getUsername())
+                    .fullName(staff.getFullName())
+                    .email(staff.getEmail())
+                    .phone(staff.getPhone())
+                    .roleName(roleName)
+                    .isActive(staff.getIsActive())
+
+                    .pendingVaccinesCount(petVaccinationRepo.countPendingVaccines(id))
+                    .pendingAppointmentsCount(appointmentServiceRepo.countPendingServices(id))
+                    .inProgressAppointmentsCount(appointmentServiceRepo.countInProgressServices(id))
+                    .build();
+        });
     }
 
     @Transactional
@@ -142,7 +176,6 @@ public class StaffService {
 
         existingStaff.setFullName(dto.getFullName());
         existingStaff.setUsername(dto.getUsername());
-        existingStaff.setEmail(dto.getEmail());
         existingStaff.setPhone(dto.getPhone());
 
         Role role = (Role) roleRepo.findById(dto.getRoleId())
@@ -165,7 +198,7 @@ public class StaffService {
         long inProgressCount = appointmentServiceRepo.countInProgressServices(oldStaffId);
 
         if (inProgressCount > 0) {
-            throw new IllegalStateException("Hủy thao tác! Nhân viên này đang có " + inProgressCount + " dịch vụ đang thực hiện (In-Progress). Vui lòng hoàn thành hoặc gán lại dịch vụ trước khi xóa.");
+            throw new IllegalStateException("Hủy thao tác! Nhân viên này đang có " + inProgressCount + " dịch vụ đang thực hiện. Vui lòng hoàn thành hoặc gán lại dịch vụ trước khi xóa.");
         }
 
         if (newStaffId != null) {
@@ -176,13 +209,12 @@ public class StaffService {
 
 
         if (newStaffId != null) {
-            // Có người nhận -> Bàn giao việc dở dang
             petVaccinationRepo.transferFutureVaccinations(oldStaffId, newStaffId);
             appointmentServiceRepo.transferPendingServices(oldStaffId, newStaffId);
+            serviceNoteRepo.transferDraftNotes(oldStaffId, newStaffId);
 
             appointmentRepo.transferPendingAppointments(oldStaffId, newStaffId);
         } else {
-            // Không ai nhận -> Trả dịch vụ về trạng thái vô chủ
             appointmentServiceRepo.unassignPendingServices(oldStaffId);
 
             appointmentRepo.unassignPendingAppointments(oldStaffId);
@@ -191,15 +223,11 @@ public class StaffService {
 
         petVaccinationRepo.clearAllVaccinationReferences(oldStaffId);
         appointmentServiceRepo.clearAllStaffReferences(oldStaffId);
-        petHealthRecordRepo.unassignAllHealthRecords(oldStaffId);
-
-        //Set NULL cho StaffID ở tất cả các Lịch hẹn trong quá khứ
+        serviceNoteRepo.clearStaffFromDoneNotes(oldStaffId);
         appointmentRepo.clearAllStaffReferences(oldStaffId);
 
-        // Đẩy tất cả các lệnh UPDATE xuống Database
         staffRepo.flush();
 
-        staffScheduleRepo.deleteByStaff(oldStaff);
         feedbackRepo.deleteByStaff(oldStaff);
 
         staffRepo.delete(oldStaff);

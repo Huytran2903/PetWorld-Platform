@@ -80,18 +80,21 @@ public interface ServiceExecutionHistoryRepository extends JpaRepository<Appoint
             "  a.AppointmentCode, " +
             "  c.FullName AS CustomerName, " +
             "  p.Name AS PetName, " +
-            "  STRING_AGG(s.Name, ', ') AS ServiceNames, " +
+            "  (SELECT STRING_AGG(s2.Name, ', ') " +
+            "     FROM AppointmentServices aps2 " +
+            "     JOIN Services s2 ON aps2.ServiceID = s2.ServiceID " +
+            "    WHERE aps2.AppointmentID = a.AppointmentID) AS ServiceNames, " +
             "  a.AppointmentDate, " +
             "  a.Status, " +
-            "  STRING_AGG(st.FullName, ', ') AS AssignedStaff " +
+            "  (SELECT STRING_AGG(x.FullName, ', ') " +
+            "     FROM (SELECT DISTINCT st2.FullName " +
+            "             FROM AppointmentServices aps3 " +
+            "             JOIN Staff st2 ON aps3.AssignedStaffID = st2.StaffID " +
+            "            WHERE aps3.AppointmentID = a.AppointmentID " +
+            "              AND aps3.AssignedStaffID IS NOT NULL) x) AS AssignedStaff " +
             "FROM Appointments a " +
             "JOIN Customers c ON a.CustomerID = c.CustomerID " +
             "JOIN Pets p ON a.PetID = p.PetID " +
-            "LEFT JOIN AppointmentServices aps ON a.AppointmentID = aps.AppointmentID " +
-            "LEFT JOIN Services s ON aps.ServiceID = s.ServiceID " +
-            "LEFT JOIN AppointmentAssignments aa ON a.AppointmentID = aa.AppointmentID " +
-            "LEFT JOIN Staff st ON aa.StaffID = st.StaffID " +
-            "GROUP BY a.AppointmentID, a.AppointmentCode, c.FullName, p.Name, a.AppointmentDate, a.Status " +
             "ORDER BY a.AppointmentDate DESC",
             nativeQuery = true)
     List<Object[]> getAllServiceExecutionHistory();
@@ -101,19 +104,22 @@ public interface ServiceExecutionHistoryRepository extends JpaRepository<Appoint
             "  a.AppointmentCode, " +
             "  c.FullName AS CustomerName, " +
             "  p.Name AS PetName, " +
-            "  STRING_AGG(s.Name, ', ') AS ServiceNames, " +
+            "  (SELECT STRING_AGG(s2.Name, ', ') " +
+            "     FROM AppointmentServices aps2 " +
+            "     JOIN Services s2 ON aps2.ServiceID = s2.ServiceID " +
+            "    WHERE aps2.AppointmentID = a.AppointmentID) AS ServiceNames, " +
             "  a.AppointmentDate, " +
             "  a.Status, " +
-            "  STRING_AGG(st.FullName, ', ') AS AssignedStaff " +
+            "  (SELECT STRING_AGG(x.FullName, ', ') " +
+            "     FROM (SELECT DISTINCT st2.FullName " +
+            "             FROM AppointmentServices aps3 " +
+            "             JOIN Staff st2 ON aps3.AssignedStaffID = st2.StaffID " +
+            "            WHERE aps3.AppointmentID = a.AppointmentID " +
+            "              AND aps3.AssignedStaffID IS NOT NULL) x) AS AssignedStaff " +
             "FROM Appointments a " +
             "JOIN Customers c ON a.CustomerID = c.CustomerID " +
             "JOIN Pets p ON a.PetID = p.PetID " +
-            "LEFT JOIN AppointmentServices aps ON a.AppointmentID = aps.AppointmentID " +
-            "LEFT JOIN Services s ON aps.ServiceID = s.ServiceID " +
-            "LEFT JOIN AppointmentAssignments aa ON a.AppointmentID = aa.AppointmentID " +
-            "LEFT JOIN Staff st ON aa.StaffID = st.StaffID " +
             "WHERE a.Status = :status " +
-            "GROUP BY a.AppointmentID, a.AppointmentCode, c.FullName, p.Name, a.AppointmentDate, a.Status " +
             "ORDER BY a.AppointmentDate DESC",
             nativeQuery = true)
     List<Object[]> getServiceExecutionHistoryByStatus(@Param("status") String status);
@@ -123,20 +129,23 @@ public interface ServiceExecutionHistoryRepository extends JpaRepository<Appoint
             "  a.AppointmentCode, " +
             "  c.FullName AS CustomerName, " +
             "  p.Name AS PetName, " +
-            "  STRING_AGG(s.Name, ', ') AS ServiceNames, " +
+            "  (SELECT STRING_AGG(s2.Name, ', ') " +
+            "     FROM AppointmentServices aps2 " +
+            "     JOIN Services s2 ON aps2.ServiceID = s2.ServiceID " +
+            "    WHERE aps2.AppointmentID = a.AppointmentID) AS ServiceNames, " +
             "  a.AppointmentDate, " +
             "  a.Status, " +
-            "  STRING_AGG(st.FullName, ', ') AS AssignedStaff " +
+            "  (SELECT STRING_AGG(x.FullName, ', ') " +
+            "     FROM (SELECT DISTINCT st2.FullName " +
+            "             FROM AppointmentServices aps3 " +
+            "             JOIN Staff st2 ON aps3.AssignedStaffID = st2.StaffID " +
+            "            WHERE aps3.AppointmentID = a.AppointmentID " +
+            "              AND aps3.AssignedStaffID IS NOT NULL) x) AS AssignedStaff " +
             "FROM Appointments a " +
             "JOIN Customers c ON a.CustomerID = c.CustomerID " +
             "JOIN Pets p ON a.PetID = p.PetID " +
-            "LEFT JOIN AppointmentServices aps ON a.AppointmentID = aps.AppointmentID " +
-            "LEFT JOIN Services s ON aps.ServiceID = s.ServiceID " +
-            "LEFT JOIN AppointmentAssignments aa ON a.AppointmentID = aa.AppointmentID " +
-            "LEFT JOIN Staff st ON aa.StaffID = st.StaffID " +
             "WHERE a.AppointmentDate >= COALESCE(:startDate, '1900-01-01 00:00:00') " +
             "  AND a.AppointmentDate <= COALESCE(:endDate, '2099-12-31 23:59:59') " +
-            "GROUP BY a.AppointmentID, a.AppointmentCode, c.FullName, p.Name, a.AppointmentDate, a.Status " +
             "ORDER BY a.AppointmentDate DESC",
             nativeQuery = true)
     List<Object[]> getServiceExecutionHistoryByDateRange(@Param("startDate") LocalDateTime startDate,
@@ -147,21 +156,24 @@ public interface ServiceExecutionHistoryRepository extends JpaRepository<Appoint
             "  a.AppointmentCode, " +
             "  c.FullName AS CustomerName, " +
             "  p.Name AS PetName, " +
-            "  STRING_AGG(s.Name, ', ') AS ServiceNames, " +
+            "  (SELECT STRING_AGG(s2.Name, ', ') " +
+            "     FROM AppointmentServices aps2 " +
+            "     JOIN Services s2 ON aps2.ServiceID = s2.ServiceID " +
+            "    WHERE aps2.AppointmentID = a.AppointmentID) AS ServiceNames, " +
             "  a.AppointmentDate, " +
             "  a.Status, " +
-            "  STRING_AGG(st.FullName, ', ') AS AssignedStaff " +
+            "  (SELECT STRING_AGG(x.FullName, ', ') " +
+            "     FROM (SELECT DISTINCT st2.FullName " +
+            "             FROM AppointmentServices aps3 " +
+            "             JOIN Staff st2 ON aps3.AssignedStaffID = st2.StaffID " +
+            "            WHERE aps3.AppointmentID = a.AppointmentID " +
+            "              AND aps3.AssignedStaffID IS NOT NULL) x) AS AssignedStaff " +
             "FROM Appointments a " +
             "JOIN Customers c ON a.CustomerID = c.CustomerID " +
             "JOIN Pets p ON a.PetID = p.PetID " +
-            "LEFT JOIN AppointmentServices aps ON a.AppointmentID = aps.AppointmentID " +
-            "LEFT JOIN Services s ON aps.ServiceID = s.ServiceID " +
-            "LEFT JOIN AppointmentAssignments aa ON a.AppointmentID = aa.AppointmentID " +
-            "LEFT JOIN Staff st ON aa.StaffID = st.StaffID " +
             "WHERE a.Status = :status " +
             "  AND a.AppointmentDate >= COALESCE(:startDate, '1900-01-01 00:00:00') " +
             "  AND a.AppointmentDate <= COALESCE(:endDate, '2099-12-31 23:59:59') " +
-            "GROUP BY a.AppointmentID, a.AppointmentCode, c.FullName, p.Name, a.AppointmentDate, a.Status " +
             "ORDER BY a.AppointmentDate DESC",
             nativeQuery = true)
     List<Object[]> getServiceExecutionHistoryByStatusAndDateRange(@Param("status") String status,

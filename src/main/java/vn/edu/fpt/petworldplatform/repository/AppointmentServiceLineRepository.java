@@ -88,7 +88,9 @@ public interface AppointmentServiceLineRepository extends JpaRepository<Appointm
     @Query(value = "UPDATE AppointmentServices SET AssignedStaffID = NULL WHERE AssignedStaffID = :oldStaffId", nativeQuery = true)
     void clearAllStaffReferences(@Param("oldStaffId") Integer oldStaffId);
 
-    // Đếm In-Progress
     @Query("SELECT COUNT(a) FROM AppointmentServiceLine a WHERE a.assignedStaff.staffId = :staffId AND a.serviceStatus = 'in_progress'")
     long countInProgressServices(@Param("staffId") Integer staffId);
+
+    @Query("SELECT COUNT(s) FROM AppointmentServiceLine s WHERE s.assignedStaff.staffId = :staffId AND s.serviceStatus IN ('pending', 'assigned')")
+    long countPendingServices(@Param("staffId") Integer staffId);
 }

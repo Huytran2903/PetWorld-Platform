@@ -12,6 +12,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import vn.edu.fpt.petworldplatform.dto.WorkShiftDTO;
 import vn.edu.fpt.petworldplatform.entity.Staff;
 import vn.edu.fpt.petworldplatform.service.IWorkScheduleService;
 import vn.edu.fpt.petworldplatform.service.StaffService;
@@ -62,7 +63,8 @@ public class WorkScheduleController {
 
         try {
             model.addAttribute("activePage", "work-schedule");
-            model.addAttribute("schedules", workScheduleService.getStaffSchedule(staff.getStaffId(), weekStart, weekEnd));
+            java.util.List<WorkShiftDTO> schedules = workScheduleService.getStaffSchedule(staff.getStaffId(), weekStart, weekEnd);
+            model.addAttribute("schedules", schedules);
             model.addAttribute("startDate", weekStart);
             model.addAttribute("endDate", weekEnd);
             model.addAttribute("nextWeekStart", weekStart.plusWeeks(1));

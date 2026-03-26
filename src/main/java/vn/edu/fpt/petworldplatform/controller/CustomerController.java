@@ -3,6 +3,7 @@ package vn.edu.fpt.petworldplatform.controller;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,17 +30,9 @@ import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryRepository;
 import vn.edu.fpt.petworldplatform.repository.PaymentRepository;
 import vn.edu.fpt.petworldplatform.repository.PetVaccinationRepository;
 import vn.edu.fpt.petworldplatform.entity.*;
-import vn.edu.fpt.petworldplatform.repository.PetHealthPhotoRepository;
-import vn.edu.fpt.petworldplatform.repository.PetHealthRecordRepository;
-import vn.edu.fpt.petworldplatform.entity.*;
 import vn.edu.fpt.petworldplatform.repository.PetRepo;
 import vn.edu.fpt.petworldplatform.service.*;
 import vn.edu.fpt.petworldplatform.util.SecuritySupport;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -54,7 +47,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.Set;
-import java.util.UUID;
 
 
 @Controller
@@ -77,46 +69,25 @@ public class CustomerController {
     @Autowired
     private PaymentRepository paymentRepository;
 
-    @Autowired
-    private PetHealthRecordRepository petHealthRecordRepository;
-
-    @Autowired
-    private PetHealthPhotoRepository petHealthPhotoRepository;
-
     @GetMapping("/profile")
     public String profileShow(Model model) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        // 1. Kiểm tra chưa đăng nhập
-        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
-            return "redirect:/login";
-        }
-
-        // 2. Chặn Staff đi lạc vào trang Profile của khách (Đuổi về Dashboard)
-        if (auth.getPrincipal() instanceof CustomUserDetails) {
-            Object account = ((CustomUserDetails) auth.getPrincipal()).getAccount();
-            if (account instanceof Staff) {
-                Staff staff = (Staff) account;
-
-                String roleName = staff.getRole().getRoleName().toUpperCase();
-
-                if ("ADMIN".equals(roleName)) {
-                    return "redirect:/admin/reports/revenue";
-                } else {
-                    return "redirect:/staff/assigned_list";
-                }
+        Staff currentStaff = securitySupport.getCurrentAuthenticatedStaff();
+        if (currentStaff != null) {
+            String roleName = currentStaff.getRole().getRoleName().toUpperCase();
+            if ("ADMIN".equals(roleName)) {
+                return "redirect:/admin/reports/revenue";
+            } else {
+                return "redirect:/staff/assigned_list";
             }
         }
 
-        // 3. Lấy thông tin Customer
-        Customer authUser = securitySupport.getCurrentAuthenticatedCustomer();
+        Integer customerId = securitySupport.getCurrentAuthenticatedCustomerId();
 
-        if (authUser == null) {
+        if (customerId == null) {
             return "redirect:/login";
         }
 
-        // 4. Lấy data mới nhất từ Database để hiển thị
-        Customer currentFreshUser = customerService.findById(authUser.getCustomerId()).orElse(null);
+        Customer currentFreshUser = customerService.findById(customerId).orElse(null);
 
         if (currentFreshUser != null) {
             model.addAttribute("user", currentFreshUser);
@@ -132,10 +103,13 @@ public class CustomerController {
 
     @GetMapping("/profile/edit")
     public String profileSetting(Model model) {
-        Customer authUser = securitySupport.getCurrentAuthenticatedCustomer();
-        if (authUser == null) return "redirect:/login";
+        Integer customerId = securitySupport.getCurrentAuthenticatedCustomerId();
 
-        Customer currentFreshUser = customerService.findById(authUser.getCustomerId()).orElse(null);
+        if (customerId == null) {
+            return "redirect:/login";
+        }
+
+        Customer currentFreshUser = customerService.findById(customerId).orElse(null);
         if (currentFreshUser == null) return "redirect:/login?logout";
 
         ProfileFormDTO form = new ProfileFormDTO();
@@ -157,9 +131,18 @@ public class CustomerController {
                                 HttpSession session,
                                 Model model) {
 
-        Customer authUser = securitySupport.getCurrentAuthenticatedCustomer();
+        Staff currentStaff = securitySupport.getCurrentAuthenticatedStaff();
+        if (currentStaff != null) {
+            String roleName = currentStaff.getRole().getRoleName().toUpperCase();
+            if ("ADMIN".equals(roleName)) {
+                return "redirect:/admin/reports/revenue";
+            } else {
+                return "redirect:/staff/assigned_list";
+            }
+        }
 
-        if (authUser == null) {
+        Integer customerId = securitySupport.getCurrentAuthenticatedCustomerId();
+        if (customerId == null) {
             return "redirect:/login";
         }
 
@@ -168,8 +151,7 @@ public class CustomerController {
         }
 
         try {
-
-            Customer currentUser = customerService.findById(authUser.getCustomerId()).orElse(null);
+            Customer currentUser = customerService.findById(customerId).orElse(null);
 
             if (currentUser == null) {
                 return "redirect:/login?logout";
@@ -185,17 +167,13 @@ public class CustomerController {
 
             return "redirect:/profile?success";
 
+        } catch (DataIntegrityViolationException e) {
+            model.addAttribute("error", "Email or phone number has already exist!");
+            return "auth/editProfile";
+
         } catch (Exception e) {
             e.printStackTrace();
-
-            String message = e.getMessage();
-            if (message != null && (message.contains("Duplicate") || message.contains("UNIQUE"))) {
-                model.addAttribute("error", "Email or phone number has already exist!");
-            } else {
-                model.addAttribute("error", "System error: " + e.getMessage());
-            }
-
-            model.addAttribute("user", profileForm);
+            model.addAttribute("error", "System error: " + e.getMessage());
             return "auth/editProfile";
         }
     }
@@ -229,13 +207,29 @@ public class CustomerController {
     private PetVaccinationRepository petVaccinationRepository;
 
     @GetMapping("/customer/appointments")
-    public String appointmentHistory(HttpSession session, Model model, RedirectAttributes redirectAttributes) {
+    public String appointmentHistory(HttpSession session,
+                                       Model model,
+                                       RedirectAttributes redirectAttributes,
+                                       @RequestParam(defaultValue = "0") int page,
+                                       @RequestParam(defaultValue = "5") int size) {
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
         if (customer == null) {
             return "redirect:/login";
         }
-        List<Appointment> appointments = bookingService.findAppointmentsByCustomerId(customer.getCustomerId());
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.max(size, 1);
+
+        var appointmentPage = bookingService.findAppointmentsPageByCustomerId(
+                customer.getCustomerId(),
+                PageRequest.of(safePage, safeSize)
+        );
+        List<Appointment> appointments = appointmentPage.getContent();
         model.addAttribute("appointments", appointments);
+        model.addAttribute("currentPage", safePage);
+        model.addAttribute("pageSize", safeSize);
+        model.addAttribute("totalPages", appointmentPage.getTotalPages());
+        model.addAttribute("hasPrevious", appointmentPage.hasPrevious());
+        model.addAttribute("hasNext", appointmentPage.hasNext());
 
         // Inline service details: batch load all service lines for these appointments
         List<Integer> apptIds = appointments.stream().map(Appointment::getId).toList();
@@ -315,10 +309,6 @@ public class CustomerController {
             model.addAttribute("reviewedServiceLineIds", reviewedServiceLineIds);
             model.addAttribute("feedbackByLineId", feedbackByLineId);
 
-            java.util.Map<Integer, PetHealthRecord> recordByAppointmentId = new java.util.HashMap<>();
-            java.util.Map<Integer, List<PetHealthPhoto>> photosByAppointmentId = new java.util.HashMap<>();
-            java.util.Map<Integer, PetHealthRecord> healthRecordByServiceLineId = new java.util.HashMap<>();
-            java.util.Map<Integer, List<PetHealthPhoto>> healthPhotosByServiceLineId = new java.util.HashMap<>();
             java.util.Map<Integer, AppointmentSummary> summaryByAppointmentId = new java.util.HashMap<>();
             java.util.Map<Integer, String> serviceStaffByAppointmentId = new java.util.HashMap<>();
 
@@ -443,9 +433,9 @@ public class CustomerController {
 
     @GetMapping("/customer/appointments/{id}/payment")
     public String appointmentPaymentPage(@PathVariable Integer id,
-                                        HttpSession session,
-                                        Model model,
-                                        RedirectAttributes redirectAttributes) {
+                                         HttpSession session,
+                                         Model model,
+                                         RedirectAttributes redirectAttributes) {
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
         if (customer == null) {
             return "redirect:/login";

@@ -63,17 +63,9 @@ public class Staff {
     @ToString.Exclude
     private List<PetVaccinations> vaccinations;
 
-    @OneToMany(mappedBy = "performedByStaff", fetch = FetchType.LAZY)
-    @ToString.Exclude
-    private List<PetHealthRecord> healthRecords;
-
     @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
     @ToString.Exclude
     private List<Feedback> feedbacks;
-
-    @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
-    @ToString.Exclude
-    private List<StaffSchedule> schedules;
 
     @OneToMany(mappedBy = "assignedStaff", fetch = FetchType.LAZY)
     @ToString.Exclude
@@ -92,34 +84,7 @@ public class Staff {
     @Column(name = "LockedUntil")
     private LocalDateTime lockedUntil;
 
-    public long getPendingVaccinesCount() {
-        if (this.vaccinations == null) return 0;
-        LocalDate today = LocalDate.now();
-        return this.vaccinations.stream()
-                .filter(v -> v.getNextDueDate() != null && !v.getNextDueDate().isBefore(today))
-                .count();
-    }
-
-    // 1. Đếm việc CẦN BÀN GIAO (pending, assigned)
-    public long getPendingAppointmentsCount() {
-        if (this.appointmentServiceLines == null || this.appointmentServiceLines.isEmpty()) return 0;
-        return this.appointmentServiceLines.stream()
-                .filter(service -> {
-                    String status = service.getServiceStatus();
-                    return status != null && (status.equalsIgnoreCase("assigned") || status.equalsIgnoreCase("pending"));
-                })
-                .count();
-    }
-
-    // 2. Đếm việc ĐANG LÀM DỞ (in_progress) - Dùng để chặn xóa
-    public long getInProgressAppointmentsCount() {
-        if (this.appointmentServiceLines == null || this.appointmentServiceLines.isEmpty()) return 0;
-        return this.appointmentServiceLines.stream()
-                .filter(service -> "in_progress".equalsIgnoreCase(service.getServiceStatus()))
-                .count();
-    }
-
-    public long getPendingHealthRecordsCount() {
-        return 0;
-    }
+    @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private List<ServiceNote> serviceNotes;
 }

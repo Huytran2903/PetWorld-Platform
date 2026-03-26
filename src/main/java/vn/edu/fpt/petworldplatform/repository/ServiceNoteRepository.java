@@ -1,6 +1,9 @@
 package vn.edu.fpt.petworldplatform.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import vn.edu.fpt.petworldplatform.entity.ServiceNote;
 
 import java.util.List;
@@ -12,4 +15,12 @@ public interface ServiceNoteRepository extends JpaRepository<ServiceNote, Intege
     List<ServiceNote> findByAppointment_Id(Integer appointmentId);
 
     List<ServiceNote> findByAppointment_IdOrderByUpdatedAtDesc(Integer appointmentId);
+
+    @Modifying
+    @Query("UPDATE ServiceNote s SET s.staff.staffId = :newId WHERE s.staff.staffId = :oldId AND s.status = 'draft'")
+    void transferDraftNotes(@Param("oldId") Integer oldId, @Param("newId") Integer newId);
+
+    @Modifying
+    @Query("UPDATE ServiceNote s SET s.staff = null WHERE s.staff.staffId = :oldId AND s.status = 'done'")
+    void clearStaffFromDoneNotes(@Param("oldId") Integer oldId);
 }

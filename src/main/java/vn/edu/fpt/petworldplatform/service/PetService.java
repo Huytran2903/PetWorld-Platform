@@ -223,36 +223,29 @@ public class PetService {
         List<Object[]> serviceResults = isOtherSpecies
                 ? petRepo.countServicePetsByOtherSpeciesAndDateRange(startDateTime, endDateTime)
                 : petRepo.countServicePetsBySpeciesAndDateRange(species, startDateTime, endDateTime);
-        long serviceCount = serviceResults.isEmpty() ? 0 : (Long) serviceResults.get(0)[1];
+        long serviceCount = serviceResults.isEmpty() ? 0 : ((Number) serviceResults.get(0)[1]).longValue();
 
         // Sale pets
         List<Object[]> saleResults = isOtherSpecies
                 ? petRepo.countSalePetsByOtherSpeciesAndDateRange(startDateTime, endDateTime)
                 : petRepo.countSalePetsBySpeciesAndDateRange(species, startDateTime, endDateTime);
-        long saleCount = saleResults.isEmpty() ? 0 : (Long) saleResults.get(0)[1];
+        long saleCount = saleResults.isEmpty() ? 0 : ((Number) saleResults.get(0)[1]).longValue();
 
         // Sold pets
         List<Object[]> soldResults = isOtherSpecies
                 ? petRepo.countSoldPetsByOtherSpeciesAndDateRange(startDateTime, endDateTime)
                 : petRepo.countSoldPetsBySpeciesAndDateRange(species, startDateTime, endDateTime);
-        long soldCount = soldResults.isEmpty() ? 0 : (Long) soldResults.get(0)[1];
+        long soldCount = soldResults.isEmpty() ? 0 : ((Number) soldResults.get(0)[1]).longValue();
 
-        long total = serviceCount + saleCount;
+        long total = serviceCount + saleCount + soldCount;
 
-        if (serviceCount > 0) {
-            stats.add(new PetStatisticsDTO.PetSpeciesStats("SERVICE", serviceCount,
-                    total > 0 ? (serviceCount * 100.0 / total) : 0.0));
-        }
-
-        if (saleCount > 0) {
-            stats.add(new PetStatisticsDTO.PetSpeciesStats("SALE", saleCount,
-                    total > 0 ? (saleCount * 100.0 / total) : 0.0));
-        }
-
-        if (soldCount > 0) {
-            stats.add(new PetStatisticsDTO.PetSpeciesStats("SOLD", soldCount,
-                    total > 0 ? (soldCount * 100.0 / total) : 0.0));
-        }
+        // Keep a fixed category order so view lookups by index remain correct.
+        stats.add(new PetStatisticsDTO.PetSpeciesStats("SERVICE", serviceCount,
+            total > 0 ? (serviceCount * 100.0 / total) : 0.0));
+        stats.add(new PetStatisticsDTO.PetSpeciesStats("SALE", saleCount,
+            total > 0 ? (saleCount * 100.0 / total) : 0.0));
+        stats.add(new PetStatisticsDTO.PetSpeciesStats("SOLD", soldCount,
+            total > 0 ? (soldCount * 100.0 / total) : 0.0));
 
         return stats;
     }

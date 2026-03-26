@@ -33,4 +33,10 @@ public interface StaffRepository extends JpaRepository<Staff, Integer> {
     Page<Staff> searchStaffs(@Param("keyword") String keyword, Pageable pageable);
 
     boolean existsByPhone(String phone);
+
+    boolean existsByUsername(String username);
+
+    boolean existsByUsernameAndStaffIdNot(String username, Integer staffId);
+
+    boolean existsByPhoneAndStaffIdNot(String phone, Integer staffId);
 }

@@ -85,6 +85,7 @@ public class OrderService {
                 oi.setProductID(ci.getProduct().getProductId());
                 oi.setItemName(ci.getProduct().getName());
                 oi.setUnitPrice(ci.getProduct().getSalePrice());
+
             } else if (ci.getPet() != null) {
                 oi.setPetID(ci.getPet().getPetID());
                 oi.setItemName(ci.getPet().getName());
