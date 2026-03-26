@@ -47,25 +47,22 @@
                         </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 text-sm">
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="p-4 text-gray-700">Feb 10, 2026</td>
-                            <td class="p-4 font-bold text-gray-800">Spa & Grooming</td>
-                            <td class="p-4 text-gray-500 italic">Cắt móng và tắm thơm</td>
-                            <td class="p-4 text-right">
-                                <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Completed</span>
-                            </td>
-                        </tr>
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="p-4 text-gray-700">Jan 05, 2026</td>
-                            <td class="p-4 font-bold text-gray-800">Vaccination (Rabies)</td>
-                            <td class="p-4 text-gray-500 italic">Mũi 1</td>
-                            <td class="p-4 text-right">
-                                <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Completed</span>
-                            </td>
-                        </tr>
-                        <tr class="hover:bg-gray-50 transition">
+                        <tr th:if="${#lists.isEmpty(historyList)}" class="hover:bg-gray-50 transition">
                             <td class="p-4 text-gray-700">--</td>
                             <td class="p-4 text-gray-400 italic" colspan="3">No more records found.</td>
+                        </tr>
+                        <tr th:each="appt : ${historyList}" class="hover:bg-gray-50 transition">
+                            <td class="p-4 text-gray-700"
+                                th:text="${appt.appointmentDate != null ? #temporals.format(appt.appointmentDate, 'dd/MM/yyyy HH:mm') : '--'}">--</td>
+                            <td class="p-4 font-bold text-gray-800"
+                                th:text="${serviceNamesByAppointmentId != null and serviceNamesByAppointmentId.containsKey(appt.id) ? serviceNamesByAppointmentId.get(appt.id) : '--'}">--</td>
+                            <td class="p-4 text-gray-500 italic"
+                                th:text="${appt.note != null and !#strings.isEmpty(appt.note) ? appt.note : '--'}">--</td>
+                            <td class="p-4 text-right">
+                                <span class="px-2 py-1 rounded text-xs font-bold"
+                                      th:classappend="${appt.status != null and (appt.status.toLowerCase() == 'done' or appt.status.toLowerCase() == 'completed') ? ' bg-green-100 text-green-700' : ' bg-gray-100 text-gray-700'}"
+                                      th:text="${appt.status != null ? #strings.capitalize(appt.status) : '--'}">--</span>
+                            </td>
                         </tr>
                         </tbody>
                     </table>
