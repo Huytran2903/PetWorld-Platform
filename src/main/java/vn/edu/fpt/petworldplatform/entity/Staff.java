@@ -83,4 +83,8 @@ public class Staff {
 
     @Column(name = "LockedUntil")
     private LocalDateTime lockedUntil;
+
+    @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private List<ServiceNote> serviceNotes;
 }

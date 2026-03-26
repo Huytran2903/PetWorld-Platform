@@ -591,10 +591,10 @@ public class AdminController {
 
         Page<Customer> customerPage = customerService.getCustomersWithPaginationAndSearch(keyword, page, size);
 
-        model.addAttribute("customers", customerPage.getContent());     // Danh sách hiển thị
-        model.addAttribute("currentPage", page);                        // Trang hiện tại
-        model.addAttribute("totalPages", customerPage.getTotalPages()); // Tổng số trang
-        model.addAttribute("totalItems", customerPage.getTotalElements()); // Tổng số khách hàng
+        model.addAttribute("customers", customerPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", customerPage.getTotalPages());
+        model.addAttribute("totalItems", customerPage.getTotalElements());
 
         model.addAttribute("keyword", keyword);
 

@@ -21,7 +21,7 @@ import vn.edu.fpt.petworldplatform.service.CustomUserDetailsService;
  @EnableWebSecurity
 @EnableAsync
 @RequiredArgsConstructor
-@EnableMethodSecurity
+//@EnableMethodSecurity
 public class SecurityConfig {
 
     private final GoogleLoginSuccessHandler googleLoginSuccessHandler;

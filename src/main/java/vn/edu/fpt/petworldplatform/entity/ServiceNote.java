@@ -31,7 +31,7 @@ public class ServiceNote {
     private AppointmentServiceLine serviceLine;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "StaffID", nullable = false)
+    @JoinColumn(name = "StaffID")
     private Staff staff;
 
     @Column(name = "Note", columnDefinition = "NVARCHAR(MAX)")

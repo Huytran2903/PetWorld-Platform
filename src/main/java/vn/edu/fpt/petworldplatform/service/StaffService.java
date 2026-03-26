@@ -28,6 +28,7 @@ public class StaffService {
     private final FeedbackRepository feedbackRepo;
     private final AppointmentServiceLineRepository appointmentServiceRepo;
     private final AppointmentRepository appointmentRepo;
+    private final ServiceNoteRepository serviceNoteRepo;
 
     @Autowired
     private RoleRepo roleRepo;
@@ -199,6 +200,7 @@ public class StaffService {
         if (newStaffId != null) {
             petVaccinationRepo.transferFutureVaccinations(oldStaffId, newStaffId);
             appointmentServiceRepo.transferPendingServices(oldStaffId, newStaffId);
+            serviceNoteRepo.transferDraftNotes(oldStaffId, newStaffId);
 
             appointmentRepo.transferPendingAppointments(oldStaffId, newStaffId);
         } else {
@@ -210,7 +212,7 @@ public class StaffService {
 
         petVaccinationRepo.clearAllVaccinationReferences(oldStaffId);
         appointmentServiceRepo.clearAllStaffReferences(oldStaffId);
-
+        serviceNoteRepo.clearStaffFromDoneNotes(oldStaffId);
         appointmentRepo.clearAllStaffReferences(oldStaffId);
 
         staffRepo.flush();

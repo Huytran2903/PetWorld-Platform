@@ -194,16 +194,16 @@ public class AuthController {
 
     @PostMapping("/forgot-password")
     public String processForgotPassword(@RequestParam("email") String email,
-                                        RedirectAttributes redirectAttributes
+                                        RedirectAttributes redirectAttributes,
+                                        HttpSession session
     ) {
         try {
             customerService.sendResetPasswordEmail(email);
+            session.setAttribute("resetEmail", email);
 
 
             redirectAttributes.addFlashAttribute("message", "OTP has been sent to " + email);
             redirectAttributes.addFlashAttribute("openOtpModal", true);
-
-            redirectAttributes.addFlashAttribute("emailForgot", email);
 
             return "redirect:/login";
         } catch (Exception e) {
