@@ -86,12 +86,6 @@ public class OrderService {
                 oi.setItemName(ci.getProduct().getName());
                 oi.setUnitPrice(ci.getProduct().getSalePrice());
 
-                Product p = ci.getProduct();
-                if (p.getStock() < ci.getQuantity()) {
-                    throw new RuntimeException("Sản phẩm " + p.getName() + " không đủ hàng!");
-                }
-                p.setStock(p.getStock() - ci.getQuantity());
-                productRepo.save(p);
             } else if (ci.getPet() != null) {
                 oi.setPetID(ci.getPet().getPetID());
                 oi.setItemName(ci.getPet().getName());
