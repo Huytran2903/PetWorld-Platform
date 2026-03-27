@@ -9,7 +9,9 @@ import java.util.List;
 
 public interface ServiceItemRepository extends JpaRepository<ServiceItem, Integer> {
 
-    /** Sort by service type name, then service name (derived query name would misparse nested _Name + Asc). */
+    /**
+     * Sort by service type name, then service name (derived query name would misparse nested _Name + Asc).
+     */
     @Query("SELECT s FROM ServiceItem s ORDER BY s.serviceType.name ASC, s.name ASC")
     List<ServiceItem> findAllOrderedByTypeAndName();
 
@@ -23,7 +25,12 @@ public interface ServiceItemRepository extends JpaRepository<ServiceItem, Intege
     long countByNameIgnoreCaseAndServiceTypeNameAndIdNot(
             @Param("name") String name, @Param("typeName") String typeName, @Param("excludeId") Integer excludeId);
 
-    /** Count appointments that use this service (for soft-delete constraint). */
+    /**
+     * Count appointments that use this service (for soft-delete constraint).
+     */
     @Query(value = "SELECT COUNT(*) FROM AppointmentServices WHERE ServiceID = :id", nativeQuery = true)
     long countAppointmentsByServiceId(@Param("id") Integer serviceId);
+
+
+    List<ServiceItem> findByServiceTypeIdAndIsActiveTrue(Integer serviceTypeId);
 }

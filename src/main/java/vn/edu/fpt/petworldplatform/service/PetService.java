@@ -10,9 +10,11 @@ import vn.edu.fpt.petworldplatform.dto.PetStatisticsDTO;
 import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.PetVaccinations;
 import vn.edu.fpt.petworldplatform.entity.Pets;
+import vn.edu.fpt.petworldplatform.entity.ServiceItem;
 import vn.edu.fpt.petworldplatform.repository.CustomerRepo;
 import vn.edu.fpt.petworldplatform.repository.PetRepo;
 import vn.edu.fpt.petworldplatform.repository.PetVaccinationRepository;
+import vn.edu.fpt.petworldplatform.repository.ServiceItemRepository;
 import vn.edu.fpt.petworldplatform.util.FileUploadUtil;
 
 import java.io.IOException;
@@ -33,7 +35,7 @@ public class PetService {
     private CustomerRepo customerRepo;
 
     @Autowired
-    private PetVaccinationRepository vaccinationRepo;
+    private ServiceItemRepository serviceItemRepository;
 
     //OanhTP
     public Page<Pets> findAllPets(Pageable pageable) {
@@ -81,8 +83,8 @@ public class PetService {
         petRepo.deleteById(id);
     }
 
-    public List<PetVaccinations> getAllVaccines() {
-        return vaccinationRepo.findAll();
+    public List<ServiceItem> getAllVaccines() {
+        return serviceItemRepository.findByServiceTypeIdAndIsActiveTrue(1);
     }
 
     public Page<Pets> findPetByNameAndType(String keyword, String type, Pageable pageable) {
