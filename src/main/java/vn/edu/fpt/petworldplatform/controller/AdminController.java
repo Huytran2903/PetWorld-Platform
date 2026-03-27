@@ -84,7 +84,7 @@ public class AdminController {
     //List
     @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("/admin/manage-pet")
-    public String getAllPets(Model model,
+    public String showAllPets(Model model,
                              @RequestParam(value = "kw", required = false, defaultValue = "") String keyword,
                              @RequestParam(value = "page", defaultValue = "0") int page,
                              @RequestParam(name = "type", defaultValue = "", required = false) String type,
@@ -136,7 +136,7 @@ public class AdminController {
     //Edit Pet
     @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("admin/pet/edit/{id}")
-    public String updatePet(Model model, @PathVariable("id") Integer id) {
+    public String editPet(Model model, @PathVariable("id") Integer id) {
         Pets pet = petService.getPetById(id);
 
         if (pet.getVaccinations() != null && !pet.getVaccinations().isEmpty()) {
@@ -279,7 +279,7 @@ public class AdminController {
     //List
     @PreAuthorize("hasAuthority('MANAGE_CATEGORY')")
     @GetMapping("/admin/manage-categories")
-    public String getAllCategories(Model model, @RequestParam(value = "kw", required = false, defaultValue = "") String keyword) {
+    public String showAllCategories(Model model, @RequestParam(value = "kw", required = false, defaultValue = "") String keyword) {
         if (!keyword.equals("")) {
             model.addAttribute("categories", categoryService.searchCateByName(keyword));
         } else {

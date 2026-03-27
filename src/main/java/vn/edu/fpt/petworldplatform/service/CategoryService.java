@@ -19,7 +19,7 @@ public class CategoryService {
     @Autowired
     private ProductRepo productRepo;
 
-    public List<Categories> getAllCategories()  {
+        public List<Categories> getAllCategories()  {
         return categoryRepo.findAll();
     }
 
