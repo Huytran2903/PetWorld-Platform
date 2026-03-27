@@ -95,7 +95,7 @@ public class ProductController {
 
     //Pet List
     @GetMapping("/pets")
-    public String showAllPet(
+    public String showAllPets(
             Model model,
             @RequestParam(name = "kw", required = false, defaultValue = "") String keyword,
             @RequestParam(name = "page", defaultValue = "0") int page,
@@ -163,7 +163,7 @@ public class ProductController {
 
     //Pet Detail
     @GetMapping("/pet/detail/{id}")
-    public String petDetail(Model model, @PathVariable("id") Integer id) {
+    public String getPetDetail(Model model, @PathVariable("id") Integer id) {
         model.addAttribute("petDetail", petService.getPetById(id));
         return "product/pet-detail";
     }
