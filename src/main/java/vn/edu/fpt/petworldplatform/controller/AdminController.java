@@ -164,6 +164,9 @@ public class AdminController {
     @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("/admin/pet/new")
     public String createPet(Model model) {
+        List<PetVaccinations> vaccineList = petService.getAllVaccines();
+
+        model.addAttribute("vaccineList", vaccineList);
         model.addAttribute("selectedPet", new PetFormDTO());
         model.addAttribute("formMode", "add");
         model.addAttribute("staffList", staffService.getAllStaffs());

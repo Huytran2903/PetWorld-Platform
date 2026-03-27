@@ -190,8 +190,14 @@
                                 <div class="mb-3">
                                     <label class="form-label fw-bold text-secondary small">Vaccine Name <span
                                             class="text-danger">*</span></label>
-                                    <input type="text" class="form-control shadow-none border-warning-subtle"
-                                           th:field="*{vaccineName}" id="modalVaccineName" placeholder="e.g., Rabies">
+                                    <select class="form-select shadow-none border-warning-subtle"
+                                            th:field="*{vaccineName}" id="modalVaccineName">
+                                        <option value="">-- Choose Vaccine --</option>
+                                        <option th:each="vaccine : ${vaccineList}"
+                                                th:value="${vaccine.vaccineName}"
+                                                th:text="${vaccine.vaccineName}">
+                                        </option>
+                                    </select>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label fw-bold text-secondary small">Administered By

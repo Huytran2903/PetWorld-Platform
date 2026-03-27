@@ -8,9 +8,11 @@ import org.springframework.web.multipart.MultipartFile;
 import vn.edu.fpt.petworldplatform.dto.PetCreateDTO;
 import vn.edu.fpt.petworldplatform.dto.PetStatisticsDTO;
 import vn.edu.fpt.petworldplatform.entity.Customer;
+import vn.edu.fpt.petworldplatform.entity.PetVaccinations;
 import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.repository.CustomerRepo;
 import vn.edu.fpt.petworldplatform.repository.PetRepo;
+import vn.edu.fpt.petworldplatform.repository.PetVaccinationRepository;
 import vn.edu.fpt.petworldplatform.util.FileUploadUtil;
 
 import java.io.IOException;
@@ -30,6 +32,8 @@ public class PetService {
     @Autowired
     private CustomerRepo customerRepo;
 
+    @Autowired
+    private PetVaccinationRepository vaccinationRepo;
 
     //OanhTP
     public Page<Pets> findAllPets(Pageable pageable) {
@@ -77,6 +81,10 @@ public class PetService {
         petRepo.deleteById(id);
     }
 
+    public List<PetVaccinations> getAllVaccines() {
+        return vaccinationRepo.findAll();
+    }
+
     public Page<Pets> findPetByNameAndType(String keyword, String type, Pageable pageable) {
         // Đảm bảo keyword không bị null để tránh lỗi SQL
         String searchName = (keyword != null) ? keyword.trim() : "";
@@ -92,13 +100,13 @@ public class PetService {
     }
 
     //Filter theo status Pet
-        public Page<Pets> getPetByOwnerIsNull(String status, Pageable pageable) {
-            return petRepo.findAllByOwnerIsNull(status, pageable);
-        }
+    public Page<Pets> getPetByOwnerIsNull(String status, Pageable pageable) {
+        return petRepo.findAllByOwnerIsNull(status, pageable);
+    }
 
-        public Page<Pets> getPetByOwnerNotNull(String status, Pageable pageable) {
-            return petRepo.findAllByOwnerIsNotNull(status, pageable);
-        }
+    public Page<Pets> getPetByOwnerNotNull(String status, Pageable pageable) {
+        return petRepo.findAllByOwnerIsNotNull(status, pageable);
+    }
 
     public Page<Pets> getAvailablePetsByType(String type, Pageable pageable) {
 
@@ -241,11 +249,11 @@ public class PetService {
 
         // Keep a fixed category order so view lookups by index remain correct.
         stats.add(new PetStatisticsDTO.PetSpeciesStats("SERVICE", serviceCount,
-            total > 0 ? (serviceCount * 100.0 / total) : 0.0));
+                total > 0 ? (serviceCount * 100.0 / total) : 0.0));
         stats.add(new PetStatisticsDTO.PetSpeciesStats("SALE", saleCount,
-            total > 0 ? (saleCount * 100.0 / total) : 0.0));
+                total > 0 ? (saleCount * 100.0 / total) : 0.0));
         stats.add(new PetStatisticsDTO.PetSpeciesStats("SOLD", soldCount,
-            total > 0 ? (soldCount * 100.0 / total) : 0.0));
+                total > 0 ? (soldCount * 100.0 / total) : 0.0));
 
         return stats;
     }

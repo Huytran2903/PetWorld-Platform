@@ -472,19 +472,19 @@ public class CartController {
 
             if (!order.getCustomer().getCustomerId().equals(customerId)) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Bạn không có quyền hủy đơn hàng này!");
-                return "redirect:/order-history";
+                return "redirect:/cart/order-history";
             }
 
             // 3. Gọi Service để thực thi logic hủy (đã bao gồm trả lại Pet về AVAILABLE)
             orderService.cancelOrderById(orderId);
 
             // 4. Thông báo thành công qua URL parameter để HTML hiển thị Alert
-            return "redirect:/order-history?canceledSuccess=true";
+            return "redirect:/cart/order-history?canceledSuccess=true";
 
         } catch (RuntimeException e) {
             // Bắt các lỗi như: đơn không ở trạng thái pending, không tìm thấy đơn...
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/order-history";
+            return "redirect:/cart/order-history";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Đã xảy ra lỗi hệ thống khi hủy đơn.");
             return "redirect:/cart/order-history";
