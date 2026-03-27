@@ -39,7 +39,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -768,6 +767,9 @@ public class CustomerController {
         if (customer == null) return "redirect:/login";
 
         Pets pet = petService.getPetById(id);
+        if (pet == null || pet.getOwner() == null) {
+            return "redirect:/customer/pet/my-pets";
+        }
 
         if (!pet.getOwner().getCustomerId().equals(customer.getCustomerId())) {
             return "redirect:/access-denied";
@@ -775,8 +777,29 @@ public class CustomerController {
 
         model.addAttribute("pet", pet);
 
-        List<Appointment> historyList = new ArrayList<>();
+        List<Appointment> historyList = bookingService.findAppointmentsByCustomerAndPet(
+                customer.getCustomerId(),
+                pet.getPetID()
+        );
         model.addAttribute("historyList", historyList);
+
+        List<Integer> appointmentIds = historyList.stream().map(Appointment::getId).toList();
+        Map<Integer, String> serviceNamesByAppointmentId = new LinkedHashMap<>();
+
+        if (!appointmentIds.isEmpty()) {
+            List<AppointmentServiceLine> lines = bookingService.findServiceLinesByAppointmentIds(appointmentIds);
+            serviceNamesByAppointmentId = lines.stream()
+                    .filter(line -> line.getAppointment() != null
+                            && line.getAppointment().getId() != null
+                            && line.getService() != null
+                            && line.getService().getName() != null)
+                    .collect(Collectors.groupingBy(
+                            line -> line.getAppointment().getId(),
+                            LinkedHashMap::new,
+                            Collectors.mapping(line -> line.getService().getName(), Collectors.joining(", "))
+                    ));
+        }
+        model.addAttribute("serviceNamesByAppointmentId", serviceNamesByAppointmentId);
 
         return "customer/pet/pet-history";
     }
