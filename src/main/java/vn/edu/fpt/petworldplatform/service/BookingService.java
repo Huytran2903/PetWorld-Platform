@@ -236,6 +236,10 @@ public class BookingService {
         return list;
     }
 
+    public List<Appointment> findAppointmentsByCustomerAndPet(Integer customerId, Integer petId) {
+        return appointmentRepository.findByCustomerIdAndPetIdOrderByAppointmentDateDesc(customerId, petId);
+    }
+
     /**
      * Customer appointment list with pagination:
      * pending first, then all others ordered by appointment date (newest first).

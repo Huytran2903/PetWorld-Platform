@@ -17,6 +17,8 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
 
     List<Appointment> findByCustomerIdOrderByAppointmentDateDesc(Integer customerId);
 
+        List<Appointment> findByCustomerIdAndPetIdOrderByAppointmentDateDesc(Integer customerId, Integer petId);
+
     List<Appointment> findByCustomerIdAndStatusInOrderByAppointmentDateDesc(Integer customerId, List<String> statuses);
 
     // Pending first, then all others ordered by appointment date (newest first).
