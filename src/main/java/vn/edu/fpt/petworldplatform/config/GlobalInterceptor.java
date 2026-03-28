@@ -3,14 +3,21 @@ package vn.edu.fpt.petworldplatform.config;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
+import vn.edu.fpt.petworldplatform.service.CustomerService;
+import vn.edu.fpt.petworldplatform.service.StaffService;
 
 @Component
+@RequiredArgsConstructor
 public class GlobalInterceptor implements HandlerInterceptor {
+
+    private final CustomerService customerService;
+    private final StaffService staffService;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
@@ -21,22 +28,17 @@ public class GlobalInterceptor implements HandlerInterceptor {
                 && !(auth.getPrincipal() instanceof String) // Không phải người dùng ẩn danh
                 && session.getAttribute("loggedInAccount") == null) {
 
-            Object principal = auth.getPrincipal();
-
-            // ── Handle CustomUserDetails (local login) ──
-            if (principal instanceof CustomUserDetails) {
-                CustomUserDetails userDetails = (CustomUserDetails) principal;
+            // Handle CustomUserDetails (traditional login)
+            if (auth.getPrincipal() instanceof CustomUserDetails) {
+                CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
                 Object account = userDetails.getAccount();
                 session.setAttribute("loggedInAccount", account);
             }
-            // ── Handle OAuth2 users (Google, GitHub, etc) ──
-            else if (principal instanceof DefaultOidcUser) {
-                DefaultOidcUser oidcUser = (DefaultOidcUser) principal;
-                // Optionally store OAuth2 user info in session
-                String email = oidcUser.getEmail();
-                String name = oidcUser.getFullName();
-                session.setAttribute("loggedInOAuth2User", oidcUser);
-                // You can add more attributes as needed
+            // Handle DefaultOidcUser (OAuth2 - Google, GitHub, etc.)
+            else if (auth.getPrincipal() instanceof DefaultOidcUser) {
+                // OAuth2 users don't have a local account object yet
+                // You can handle this case as needed (e.g., create account on-the-fly)
+                // For now, we skip storing in session
             }
         }
         return true;

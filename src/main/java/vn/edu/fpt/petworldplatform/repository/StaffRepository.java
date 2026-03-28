@@ -39,4 +39,6 @@ public interface StaffRepository extends JpaRepository<Staff, Integer> {
     boolean existsByUsernameAndStaffIdNot(String username, Integer staffId);
 
     boolean existsByPhoneAndStaffIdNot(String phone, Integer staffId);
+
+    List<Staff> findStaffByRole_RoleId(Integer roleRoleId);
 }
