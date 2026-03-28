@@ -325,14 +325,14 @@ public class AdminController {
     @GetMapping("/admin/category/delete/{id}")
     public String deleteCategory(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) {
         try {
-            // Kiểm tra xem category có sản phẩm nào không (gọi qua service)
+
             boolean hasProducts = categoryService.hasProducts(id);
 
             if (hasProducts) {
-                // Nếu có sản phẩm, không cho xóa và gửi thông báo lỗi
+
                 redirectAttributes.addFlashAttribute("errorMessage", "Không thể xóa! Danh mục này vẫn đang chứa sản phẩm.");
             } else {
-                // Nếu không có, tiến hành xóa
+
                 categoryService.deleteCategoryById(id);
                 redirectAttributes.addFlashAttribute("successMessage", "Xóa danh mục thành công!");
             }
