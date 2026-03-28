@@ -71,7 +71,6 @@ public class EmailService {
         mailSender.send(message);
     }
 
-    @Async
     public void sendServiceAssignmentEmail(Staff staff, Appointment appointment, AppointmentServiceLine line) {
         if (staff == null || staff.getEmail() == null || staff.getEmail().isBlank() || appointment == null || line == null) {
             return;
