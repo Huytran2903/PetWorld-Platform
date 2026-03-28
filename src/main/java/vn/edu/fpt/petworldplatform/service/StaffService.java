@@ -79,7 +79,7 @@ public class StaffService {
     }
 
     public List<Staff> getAllStaffs() {
-        return staffRepo.findAll();
+        return staffRepo.findStaffByRole_RoleId(2);
     }
 
     public Page<StaffDisplayDTO> getStaffsWithPaginationAndSearch(String keyword, int page, int size) {
