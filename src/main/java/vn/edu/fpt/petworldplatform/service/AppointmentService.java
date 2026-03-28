@@ -354,7 +354,14 @@ public class AppointmentService implements IAppointmentService {
 
         List<Staff> activeStaff = staffRepository.findByIsActiveTrue();
 
+        final Integer assignedStaffIdOnLine = line.getAssignedStaffId();
+
         return activeStaff.stream().filter(staff -> {
+
+            if (isAdminRole(staff)
+                    && (assignedStaffIdOnLine == null || !assignedStaffIdOnLine.equals(staff.getStaffId()))) {
+                return false;
+            }
 
             long conflictCount = appointmentServiceLineRepository.countOverlappingAssignedLines(
 
@@ -428,5 +435,13 @@ public class AppointmentService implements IAppointmentService {
         appointment.setStaff(staff);
         appointment.setUpdatedAt(LocalDateTime.now());
         appointmentRepository.save(appointment);
+    }
+
+    /** Admins are not offered for new service-line assignment (unless already assigned on that line). */
+    private static boolean isAdminRole(Staff staff) {
+        if (staff == null || staff.getRole() == null || staff.getRole().getRoleName() == null) {
+            return false;
+        }
+        return "admin".equalsIgnoreCase(staff.getRole().getRoleName().trim());
     }
 }

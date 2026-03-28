@@ -36,6 +36,18 @@ public class ServiceExecutionHistoryService {
         return repo.getPendingAppointmentsCount();
     }
 
+    public Long getConfirmedCount() {
+        return repo.getConfirmedAppointmentsCount();
+    }
+
+    public Long getCanceledCount() {
+        return repo.getCanceledAppointmentsCount();
+    }
+
+    public Long getNoShowCount() {
+        return repo.getNoShowAppointmentsCount();
+    }
+
     // ============================================================
     // NEW: Lấy số liệu thống kê - THEO KHOẢNG NGÀY
     // Dùng cho stat cards khi user chọn startDate/endDate
@@ -50,6 +62,18 @@ public class ServiceExecutionHistoryService {
 
     public Long getPendingCountByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
         return repo.getPendingCountByDateRange(startDate, endDate);
+    }
+
+    public Long getConfirmedCountByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        return repo.getConfirmedCountByDateRange(startDate, endDate);
+    }
+
+    public Long getCanceledCountByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        return repo.getCanceledCountByDateRange(startDate, endDate);
+    }
+
+    public Long getNoShowCountByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        return repo.getNoShowCountByDateRange(startDate, endDate);
     }
 
     // ============================================================

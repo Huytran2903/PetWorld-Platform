@@ -120,15 +120,14 @@ public class CartController {
             return "redirect:/login?error=account_not_found";
         }
 
-        // =========================================================
-        // THÊM 2 DÒNG NÀY ĐỂ LẤY THÔNG TIN TỪ DB TRUYỀN RA GIAO DIỆN
+
         Customer currentCustomer = customerService.findById(customerId).orElse(null);
         model.addAttribute("customer", currentCustomer);
-        // =========================================================
+
 
         Carts cart = cartService.getCartDetail(customerId);
 
-        // Nếu chưa có giỏ hàng
+
         if (cart == null) {
             model.addAttribute("subtotal", BigDecimal.ZERO);
             model.addAttribute("tax", BigDecimal.ZERO);
@@ -136,16 +135,14 @@ public class CartController {
             return "customer/shopping-cart";
         }
 
-        // 1. Lấy Subtotal từ Service
+
         BigDecimal subtotal = cartService.calculateSubtotal(cart);
 
-        // 2. THAY ĐỔI TẠI ĐÂY: Gán cứng phí ship 25,000 (Bỏ phần tính Tax 0.05)
+
         BigDecimal shippingFee = new BigDecimal("25000");
 
-        // 3. THAY ĐỔI TẠI ĐÂY: Tổng cộng = Tiền hàng + Phí ship
         BigDecimal total = subtotal.add(shippingFee);
 
-        // 4. Đưa dữ liệu ra giao diện
         model.addAttribute("cart", cart);
         model.addAttribute("subtotal", subtotal);
         model.addAttribute("shippingfree", shippingFee);
@@ -161,7 +158,7 @@ public class CartController {
         try {
             cartService.updateQuantity(cartItemId, action);
         } catch (RuntimeException e) {
-            // Gửi thông báo lỗi xuống giao diện nếu hết kho
+
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
 
@@ -176,14 +173,12 @@ public class CartController {
             return "redirect:/";
         }
 
-        //Lấy đối tượng order "tạm" từ bộ nhớ đệm
         Order tempOrder = (Order) model.getAttribute("order");
 
         if (tempOrder != null && tempOrder.getOrderID() != null) {
-            // 3. Truy vấn lại Order THẬT từ Database để lấy toàn bộ dữ liệu (bao gồm cả OrderItems)
+
             Order realOrder = orderRepo.findById(tempOrder.getOrderID()).orElse(tempOrder);
 
-            // 4. Ghi đè order thật vào lại Model cho Thymeleaf đọc
             model.addAttribute("order", realOrder);
         }
 
@@ -201,41 +196,38 @@ public class CartController {
             RedirectAttributes ra) {
 
         try {
-            // 1. BẢO VỆ LỚP 1: Kiểm tra trạng thái đăng nhập
+
             if (authentication == null || !authentication.isAuthenticated()) {
-                ra.addFlashAttribute("errorMessage", "Bạn cần đăng nhập để đặt hàng!");
+                ra.addFlashAttribute("errorMessage", "Please log in to place an order!");
                 return "redirect:/login";
             }
 
-            // =================================================================
-            // 2. BẢO VỆ LỚP 2: Lấy Customer ID an toàn (ĐÃ SỬA Ở ĐÂY)
-            // =================================================================
+
             Integer customerId = getCustomerIdFromAuth(authentication);
 
-            // 3. BẢO VỆ LỚP 3: Chặn đứng lỗi SQL INSERT NULL
+
             if (customerId == null) {
-                ra.addFlashAttribute("errorMessage", "Phiên đăng nhập bị lỗi. Vui lòng đăng xuất và đăng nhập lại!");
+                ra.addFlashAttribute("errorMessage", "Your session has expired or is invalid. Please sign out and sign back in!");
                 return "redirect:/login";
             }
 
-            // 4. GỌI SERVICE TẠO ĐƠN HÀNG TRONG DATABASE
+
             Order newOrder = orderService.createOrder(
                     customerId, shipName, shipPhone, shipAddress, note, paymentMethod
             );
 
-            // 5. ĐIỀU HƯỚNG THANH TOÁN
+
             if ("MOMO".equalsIgnoreCase(paymentMethod)) {
                 String orderCode = newOrder.getOrderCode();
                 String orderInfo = "Thanh toán đơn hàng Pet World - Mã: " + orderCode;
 
-                // Gọi API MoMo với số tiền TotalAmount chính xác từ DB
+
                 String payUrl = momoService.createPaymentUrl(orderCode, newOrder.getTotalAmount(), orderInfo);
 
                 return "redirect:" + payUrl;
 
             } else {
                 cartService.clearCart(customerId);
-                // Trường hợp COD: Đơn hàng đã được tạo ở trạng thái 'pending'
                 ra.addFlashAttribute("successMessage", "Order Completed Successfully!");
                 ra.addFlashAttribute("order", newOrder);
                 return "redirect:/cart/checkout-order";
@@ -261,14 +253,13 @@ public class CartController {
 
     @GetMapping("/cart/momo-return")
     public String momoReturn(@RequestParam("resultCode") String resultCode,
-                             @RequestParam("orderId") String orderId, // orderId này chính là orderCode bạn gửi sang MoMo
+                             @RequestParam("orderId") String orderId,
                              Authentication authentication,
                              RedirectAttributes redirectAttributes) {
 
-        // 1. Nếu giao dịch thành công (MoMo trả về resultCode = "0")
         if ("0".equals(resultCode)) {
             try {
-                // Try find as Order payment first
+
                 Order order = orderService.findByOrderCode(orderId);
                 if (order != null) {
                     order.setStatus("paid");
@@ -281,7 +272,7 @@ public class CartController {
                         cartService.clearCart(customerId);
                     }
 
-                    redirectAttributes.addFlashAttribute("successMessage", "Đã thanh toán thành công đơn hàng " + orderId);
+                    redirectAttributes.addFlashAttribute("successMessage", "Your order has been paid successfully. " + orderId);
                     return "redirect:/cart/checkout-order";
                 }
 
@@ -331,7 +322,7 @@ public class CartController {
             }
         }
 
-        // Failed payment
+        // Failed
         try {
             Order order = orderService.findByOrderCode(orderId);
             if (order != null) {
@@ -434,16 +425,16 @@ public class CartController {
         if (authentication == null || !authentication.isAuthenticated()) {
             return null;
         }
-        // Nếu là Google
+        //Google
         if (authentication.getPrincipal() instanceof OAuth2User oauth2User) {
             String email = oauth2User.getAttribute("email");
             return customerService.findIdByEmail(email);
         }
-        // Nếu là Customer lưu sẵn
+        //Customer lưu sẵn
         if (authentication.getPrincipal() instanceof Customer customer) {
             return customer.getCustomerId();
         }
-        // Nếu là Form thường
+        //Form thường
         return customerService.findIdByUsername(authentication.getName());
     }
 
@@ -462,10 +453,10 @@ public class CartController {
                               Authentication authentication,
                               RedirectAttributes redirectAttributes) {
         try {
-            // 1. Lấy thông tin khách hàng đang đăng nhập (Tận dụng hàm lấy ID bạn đã có)
+
             Integer customerId = getCustomerIdFromAuth(authentication);
 
-            // 2. Tìm đơn hàng để kiểm tra quyền sở hữu (Bảo mật: Tránh việc khách A hủy đơn khách B)
+            //user a hủy đơn của user b
             Order order = orderRepo.findById(orderId)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng!"));
 
@@ -474,14 +465,14 @@ public class CartController {
                 return "redirect:/cart/order-history";
             }
 
-            // 3. Gọi Service để thực thi logic hủy (đã bao gồm trả lại Pet về AVAILABLE)
+
             orderService.cancelOrderById(orderId);
 
-            // 4. Thông báo thành công qua URL parameter để HTML hiển thị Alert
+
             return "redirect:/cart/order-history?canceledSuccess=true";
 
         } catch (RuntimeException e) {
-            // Bắt các lỗi như: đơn không ở trạng thái pending, không tìm thấy đơn...
+
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/cart/order-history";
         } catch (Exception e) {

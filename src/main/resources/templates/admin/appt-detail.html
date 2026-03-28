@@ -286,7 +286,7 @@
                                                     th:each="staff : ${assignedManagers}"
                                                     th:value="${staff.staffId}"
                                                     th:selected="${currentManagerId != null and currentManagerId == staff.staffId}"
-                                                    th:text="${staff.fullName + ' (' + staff.role.roleName + ')'}"
+                                                    th:text="${staff.fullName + (staff.role != null and staff.role.roleName != null and !#strings.toLowerCase(staff.role.roleName).equals('admin') ? ' (' + staff.role.roleName + ')' : '')}"
                                                 >
                                                     Staff Name
                                                 </option>
@@ -546,7 +546,8 @@
                                     >
                                         <div class="mb-2">
                                             <select name="staffId" class="form-select" required>
-                                                <option value="" disabled selected>
+                                                <option value="" disabled
+                                                        th:selected="${line.assignedStaffId == null}">
                                                     Select staff for this service...
                                                 </option>
 
@@ -554,7 +555,7 @@
                                                     th:each="staff : ${availableStaffByLine[line.id]}"
                                                     th:value="${staff.staffId}"
                                                     th:selected="${line.assignedStaffId != null and line.assignedStaffId == staff.staffId}"
-                                                    th:text="${staff.fullName + ' (' + staff.role.roleName + ')'}"
+                                                    th:text="${staff.fullName + (staff.role != null and staff.role.roleName != null and !#strings.toLowerCase(staff.role.roleName).equals('admin') ? ' (' + staff.role.roleName + ')' : '')}"
                                                 >
                                                     Staff Name
                                                 </option>

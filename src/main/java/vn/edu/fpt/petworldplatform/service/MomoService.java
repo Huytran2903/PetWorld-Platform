@@ -113,7 +113,7 @@ public class MomoService {
         HttpEntity<Map<String, Object>> entity = new HttpEntity<>(message, headers);
 
         try {
-            // Gửi request và nhận response trả về kiểu Map
+
             ResponseEntity<Map> response = restTemplate.postForEntity(endpoint, entity, Map.class);
 
             // Lấy URL thanh toán từ kết quả trả về

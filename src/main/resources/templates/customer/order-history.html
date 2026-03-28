@@ -32,7 +32,6 @@
             color: rgba(255, 255, 255, 0.9) !important;
         }
 
-        /* CSS cho nút Home */
         .btn-home {
             background-color: rgba(255, 255, 255, 0.2);
             color: white;
@@ -59,35 +58,12 @@
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05) !important;
         }
 
-        .badge-pending {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-
-        .badge-paid {
-            background-color: #cce5ff;
-            color: #004085;
-        }
-
-        .badge-processing {
-            background-color: #e2d9f3;
-            color: #593196;
-        }
-
-        .badge-shipped {
-            background-color: #d1ecf1;
-            color: #0c5460;
-        }
-
-        .badge-done {
-            background-color: #d4edda;
-            color: #155724;
-        }
-
-        .badge-canceled {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
+        .badge-pending { background-color: #fff3cd; color: #856404; }
+        .badge-paid { background-color: #cce5ff; color: #004085; }
+        .badge-processing { background-color: #e2d9f3; color: #593196; }
+        .badge-shipped { background-color: #d1ecf1; color: #0c5460; }
+        .badge-done { background-color: #d4edda; color: #155724; }
+        .badge-canceled { background-color: #f8d7da; color: #721c24; }
 
         .text-price {
             color: var(--price-color);
@@ -144,6 +120,11 @@
             background-color: #f8f9fa;
             color: #ccc;
         }
+
+        /* Tăng z-index cho Modal xác nhận để hiện đè lên Modal chi tiết */
+        .confirm-modal {
+            z-index: 1060 !important;
+        }
     </style>
 </head>
 <body>
@@ -174,7 +155,7 @@
 
             <div th:if="${param.canceledSuccess}"
                  class="alert alert-success alert-dismissible fade show rounded-4 mb-4 shadow-sm">
-                <i class="bi bi-check-circle-fill me-2"></i> Yêu cầu hủy đơn hàng đã được thực hiện!
+                <i class="bi bi-check-circle-fill me-2"></i> The order cancellation request has been processed!
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
 
@@ -297,15 +278,13 @@
                                 </div>
 
                                 <div class="modal-footer border-top-0 px-4 pb-4 justify-content-start">
-                                    <form th:if="${ord.status == 'pending'}"
-                                          th:action="@{'/orders/cancel/' + ${ord.getOrderID()}}"
-                                          method="post"
-                                          onsubmit="return confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?');">
-                                        <button type="submit"
-                                                class="btn btn-outline-danger btn-cancel fw-bold shadow-sm">
-                                            <i class="bi bi-trash3 me-2"></i> Cancel Order
-                                        </button>
-                                    </form>
+                                    <button th:if="${ord.status == 'pending'}"
+                                            type="button"
+                                            class="btn btn-outline-danger btn-cancel fw-bold shadow-sm"
+                                            data-bs-toggle="modal"
+                                            th:data-bs-target="'#confirmCancelModal-' + ${ord.orderID}">
+                                        <i class="bi bi-trash3 me-2"></i> Cancel Order
+                                    </button>
 
                                     <div th:if="${ord.status == 'canceled'}"
                                          class="alert alert-secondary py-2 px-3 mb-0 rounded-pill small">
@@ -313,8 +292,30 @@
                                     </div>
                                     <div th:if="${ord.status != 'pending' and ord.status != 'canceled'}"
                                          class="text-muted small">
-                                        <i class="bi bi-lock-fill me-1"></i> Order is being processed. Cancellation
-                                        locked.
+                                        <i class="bi bi-lock-fill me-1"></i> Order is being processed. Cancellation locked.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal fade confirm-modal" th:id="'confirmCancelModal-' + ${ord.orderID}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-sm">
+                            <div class="modal-content shadow-lg border-0" style="border-radius: 25px;">
+                                <div class="modal-body p-4 text-center">
+                                    <div class="mb-3">
+                                        <i class="bi bi-exclamation-triangle text-danger" style="font-size: 3rem;"></i>
+                                    </div>
+                                    <h5 class="fw-bold mb-2">Cancel Order?</h5>
+                                    <p class="text-muted small mb-4">
+                                        Are you sure you want to cancel order <span class="fw-bold text-dark" th:text="${ord.orderCode}"></span>?
+                                        This action cannot be undone.
+                                    </p>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-light w-100 rounded-pill fw-bold" data-bs-dismiss="modal">No, Back</button>
+                                        <form th:action="@{'/orders/cancel/' + ${ord.getOrderID()}}" method="post" class="w-100">
+                                            <button type="submit" class="btn btn-danger w-100 rounded-pill fw-bold">Yes, Cancel</button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>

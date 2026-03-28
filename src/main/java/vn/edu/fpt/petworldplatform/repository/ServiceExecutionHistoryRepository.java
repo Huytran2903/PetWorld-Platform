@@ -24,6 +24,15 @@ public interface ServiceExecutionHistoryRepository extends JpaRepository<Appoint
     @Query(value = "SELECT COUNT(*) FROM Appointments WHERE Status = 'pending'", nativeQuery = true)
     Long getPendingAppointmentsCount();
 
+    @Query(value = "SELECT COUNT(*) FROM Appointments WHERE Status = 'confirmed'", nativeQuery = true)
+    Long getConfirmedAppointmentsCount();
+
+    @Query(value = "SELECT COUNT(*) FROM Appointments WHERE Status = 'canceled'", nativeQuery = true)
+    Long getCanceledAppointmentsCount();
+
+    @Query(value = "SELECT COUNT(*) FROM Appointments WHERE Status = 'no_show'", nativeQuery = true)
+    Long getNoShowAppointmentsCount();
+
     // ============================================================
     // Đếm theo khoảng ngày (dùng khi filter)
     // ============================================================
@@ -41,6 +50,21 @@ public interface ServiceExecutionHistoryRepository extends JpaRepository<Appoint
                    "AND AppointmentDate >= :startDate AND AppointmentDate <= :endDate", nativeQuery = true)
     Long getPendingCountByDateRange(@Param("startDate") LocalDateTime startDate,
                                     @Param("endDate") LocalDateTime endDate);
+
+    @Query(value = "SELECT COUNT(*) FROM Appointments WHERE Status = 'confirmed' " +
+                   "AND AppointmentDate >= :startDate AND AppointmentDate <= :endDate", nativeQuery = true)
+    Long getConfirmedCountByDateRange(@Param("startDate") LocalDateTime startDate,
+                                      @Param("endDate") LocalDateTime endDate);
+
+    @Query(value = "SELECT COUNT(*) FROM Appointments WHERE Status = 'canceled' " +
+                   "AND AppointmentDate >= :startDate AND AppointmentDate <= :endDate", nativeQuery = true)
+    Long getCanceledCountByDateRange(@Param("startDate") LocalDateTime startDate,
+                                     @Param("endDate") LocalDateTime endDate);
+
+    @Query(value = "SELECT COUNT(*) FROM Appointments WHERE Status = 'no_show' " +
+                   "AND AppointmentDate >= :startDate AND AppointmentDate <= :endDate", nativeQuery = true)
+    Long getNoShowCountByDateRange(@Param("startDate") LocalDateTime startDate,
+                                   @Param("endDate") LocalDateTime endDate);
 
     // ============================================================
     // Đếm theo status (dùng khi filter chỉ có status)
@@ -196,7 +220,7 @@ public interface ServiceExecutionHistoryRepository extends JpaRepository<Appoint
             "FROM Services s " +
             "LEFT JOIN AppointmentServices aps ON s.ServiceID = aps.ServiceID " +
             "LEFT JOIN Appointments a ON aps.AppointmentID = a.AppointmentID " +
-            "                        AND a.Status IN ('done', 'in_progress') " +
+            "                        AND a.Status IN ('done') " +
             "WHERE s.IsActive = 1 " +
             "GROUP BY s.ServiceID, s.Name " +
             "ORDER BY UsageCount DESC",
@@ -220,7 +244,7 @@ public interface ServiceExecutionHistoryRepository extends JpaRepository<Appoint
             "INNER JOIN AppointmentServices aps ON s.ServiceID = aps.ServiceID " +
             "INNER JOIN Appointments a ON aps.AppointmentID = a.AppointmentID " +
             "WHERE s.IsActive = 1 " +
-            "  AND a.Status IN ('done', 'in_progress') " +
+            "  AND a.Status IN ('done') " +
             "  AND a.AppointmentDate >= :startDate " +
             "  AND a.AppointmentDate <= :endDate " +
             "GROUP BY s.ServiceID, s.Name " +
