@@ -60,7 +60,7 @@ public class PetService {
         // Admin/shop pet: owner = null => bắt buộc có giá hợp lệ
         if (pet.getOwner() == null) {
             if (pet.getPrice() == null || pet.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalArgumentException("Giá bán là bắt buộc và phải lớn hơn 0 cho thú cưng của shop.");
+                throw new IllegalArgumentException("Sale price is required and must be greater than 0 for shop pets.");
             }
             pet.setIsAvailable(true);
         } else {
@@ -150,7 +150,7 @@ public class PetService {
         if ("shop".equalsIgnoreCase(dto.getCreatePetOwnerType())) {
             // Pet của shop: bắt buộc phải có giá hợp lệ
             if (dto.getPrice() == null || dto.getPrice() <= 0) {
-                throw new IllegalArgumentException("Giá bán là bắt buộc và phải lớn hơn 0 cho thú cưng của shop.");
+                throw new IllegalArgumentException("Sale price is required and must be greater than 0 for shop pets.");
             }
             pet.setPrice(BigDecimal.valueOf(dto.getPrice()));
             pet.setOwner(null);
@@ -158,11 +158,11 @@ public class PetService {
 
         } else {
             if (dto.getOwnerId() == null) {
-                throw new IllegalArgumentException("Vui lòng nhập ID Khách hàng (Owner ID)!");
+                throw new IllegalArgumentException("Owner ID is required for customer pets.");
             }
 
             Customer owner = customerRepo.findById(dto.getOwnerId())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy khách hàng có ID: " + dto.getOwnerId()));
+                    .orElseThrow(() -> new RuntimeException("Customer not found for ID: " + dto.getOwnerId()));
 
             pet.setOwner(owner);
             pet.setPrice(null);

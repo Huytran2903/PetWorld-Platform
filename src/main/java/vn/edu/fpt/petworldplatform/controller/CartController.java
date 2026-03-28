@@ -314,12 +314,11 @@ public class CartController {
                             notificationService.createForCustomer(notifyCustomer, appointment, title, message, "payment_success");
                         }
 
-                        Integer appointmentId = payment.getAppointment().getId();
                         redirectAttributes.addFlashAttribute(
                                 "message",
                                 "Payment successful for appointment " + payment.getAppointment().getAppointmentCode()
                         );
-                        return "redirect:/customer/appointments/" + appointmentId;
+                        return "redirect:/customer/appointments";
                     }
                 }
 

@@ -29,6 +29,7 @@ public class StaffService {
     private final AppointmentServiceLineRepository appointmentServiceRepo;
     private final AppointmentRepository appointmentRepo;
     private final ServiceNoteRepository serviceNoteRepo;
+    private final AppointmentSummaryRepository appointmentSummaryRepo;
 
     @Autowired
     private RoleRepo roleRepo;
@@ -62,6 +63,7 @@ public class StaffService {
     public boolean isUsernameExists(String username) {
         return staffRepo.existsByUsername(username);
     }
+
 
     public boolean isUsernameExistsForOther(String username, Integer currentStaffId) {
         return staffRepo.existsByUsernameAndStaffIdNot(username, currentStaffId);
@@ -225,6 +227,8 @@ public class StaffService {
         appointmentServiceRepo.clearAllStaffReferences(oldStaffId);
         serviceNoteRepo.clearStaffFromDoneNotes(oldStaffId);
         appointmentRepo.clearAllStaffReferences(oldStaffId);
+
+        appointmentSummaryRepo.clearAllAppointmentSummary(oldStaffId);
 
         staffRepo.flush();
 

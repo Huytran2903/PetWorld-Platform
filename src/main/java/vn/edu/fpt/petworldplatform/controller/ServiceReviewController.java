@@ -77,6 +77,11 @@ public class ServiceReviewController {
                 return "redirect:/customer/appointments";
             }
 
+            if (feedbackService.hasAlreadyReviewed(id, selectedServiceId, customer.getCustomerId())) {
+                redirectAttributes.addFlashAttribute("message", "You have already submitted a review for this service.");
+                return "redirect:/customer/appointments";
+            }
+
             model.addAttribute("appointment", appointment);
             model.addAttribute("serviceLines", serviceLines);
             ServiceReviewDTO reviewDTO = new ServiceReviewDTO();
@@ -140,6 +145,11 @@ public class ServiceReviewController {
                 return "redirect:/customer/appointments";
             }
 
+            if (feedbackService.hasAlreadyReviewed(id, selectedServiceId, customer.getCustomerId())) {
+                redirectAttributes.addFlashAttribute("message", "You have already submitted a review for this service.");
+                return "redirect:/customer/appointments";
+            }
+
             // Keep service fixed from outside button to avoid mismatched selections.
             reviewDTO.setServiceId(selectedServiceId);
 
@@ -169,10 +179,15 @@ public class ServiceReviewController {
             feedbackService.submitServiceReview(reviewDTO, id, customer);
 
             redirectAttributes.addFlashAttribute("message", "Your review has been submitted successfully. Thank you!");
-            return "redirect:/customer/appointments/" + id + "/review?serviceId=" + selectedServiceId;
+            return "redirect:/customer/appointments";
 
         } catch (IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            String msg = e.getMessage();
+            if (msg != null && msg.toLowerCase().contains("already submitted")) {
+                redirectAttributes.addFlashAttribute("message", "You have already submitted a review for this service.");
+                return "redirect:/customer/appointments";
+            }
+            redirectAttributes.addFlashAttribute("error", msg);
             if (serviceId == null) {
                 return "redirect:/customer/appointments";
             }

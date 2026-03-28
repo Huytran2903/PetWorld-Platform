@@ -44,6 +44,7 @@ public class Pets {
     private String breed;
 
     @NotBlank(message = "Gender is required!")
+    @Pattern(regexp = "^(Male|Female)$", message = "Gender must be Male or Female.")
     @Column(name = "Gender", nullable = false)
     private String gender;
 
@@ -54,8 +55,8 @@ public class Pets {
     private Integer ageMonths;
 
     @NotNull(message = "Weight is required!")
-    @Min(value = 1, message = "Weight must be at least 1kg")
-    @Max(value = 100, message = "Weight must be less than 100kg")
+    @DecimalMin(value = "0.1", message = "Weight must be at least 0.1 kg.")
+    @DecimalMax(value = "100.0", message = "Weight must not exceed 100 kg.")
     @Column(name = "WeightKg")
     private Double weightKg;
 

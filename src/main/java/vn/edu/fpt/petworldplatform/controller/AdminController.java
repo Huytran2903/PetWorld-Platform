@@ -38,6 +38,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -871,16 +872,30 @@ public class AdminController {
             @RequestParam(value = "endDate", required = false) String endDate,
             Model model) {
 
-        LocalDate start = (startDate != null && !startDate.isEmpty()) ?
-                LocalDate.parse(startDate) : LocalDate.of(2020, 1, 1);
-        LocalDate end = (endDate != null && !endDate.isEmpty()) ?
-                LocalDate.parse(endDate) : LocalDate.now();
+        LocalDate defaultStart = LocalDate.of(2020, 1, 1);
+        LocalDate defaultEnd = LocalDate.now();
+        LocalDate start;
+        LocalDate end;
+
+        try {
+            start = (startDate != null && !startDate.isBlank()) ? LocalDate.parse(startDate.trim()) : defaultStart;
+            end = (endDate != null && !endDate.isBlank()) ? LocalDate.parse(endDate.trim()) : defaultEnd;
+            if (start.isAfter(end)) {
+                model.addAttribute("error", "Start date must be earlier than or equal to end date.");
+                start = defaultStart;
+                end = defaultEnd;
+            }
+        } catch (DateTimeParseException e) {
+            model.addAttribute("error", "Invalid date format. Please use the date picker and try again.");
+            start = defaultStart;
+            end = defaultEnd;
+        }
 
         PetStatisticsDTO statistics = petService.getPetStatistics(start, end);
 
         model.addAttribute("statistics", statistics);
-        model.addAttribute("startDate", startDate);
-        model.addAttribute("endDate", endDate);
+        model.addAttribute("startDate", start.toString());
+        model.addAttribute("endDate", end.toString());
 
         return "admin/statistics/pet-report";
     }
@@ -891,10 +906,17 @@ public class AdminController {
             @RequestParam(value = "startDate", required = false) String startDate,
             @RequestParam(value = "endDate", required = false) String endDate) {
 
-        LocalDate start = (startDate != null && !startDate.isEmpty()) ?
-                LocalDate.parse(startDate) : LocalDate.of(2020, 1, 1);
-        LocalDate end = (endDate != null && !endDate.isEmpty()) ?
-                LocalDate.parse(endDate) : LocalDate.now();
+        LocalDate start;
+        LocalDate end;
+        try {
+            start = (startDate != null && !startDate.isBlank()) ? LocalDate.parse(startDate.trim()) : LocalDate.of(2020, 1, 1);
+            end = (endDate != null && !endDate.isBlank()) ? LocalDate.parse(endDate.trim()) : LocalDate.now();
+            if (start.isAfter(end)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Start date must be earlier than or equal to end date.");
+            }
+        } catch (DateTimeParseException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid date format. Please use yyyy-MM-dd.");
+        }
 
         PetStatisticsDTO statistics = petService.getPetStatistics(start, end);
 

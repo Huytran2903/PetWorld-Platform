@@ -228,6 +228,10 @@ public class CustomerService {
         return customerRepo.findAll(pageable);
     }
 
+    public boolean checkUsernameExists(String username) {
+        return customerRepo.existsByUsername(username);
+    }
+
     public Customer getCustomerById(Integer id){
         return customerRepo.findById(id).get();
     }
