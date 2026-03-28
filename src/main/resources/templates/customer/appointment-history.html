@@ -61,6 +61,11 @@
             gap: 8px;
         }
 
+        .health-photos-mini a {
+            display: block;
+            line-height: 0;
+        }
+
         .health-photos-mini img {
             width: 100%;
             height: 70px;
@@ -299,6 +304,24 @@
                                             <div><strong>Temperature:</strong> <span th:text="${appointmentSummaryByAppointmentId.get(appt.id).temperature != null ? appointmentSummaryByAppointmentId.get(appt.id).temperature + ' °C' : '-'}">-</span></div>
                                             <div><strong>Before:</strong> <span th:text="${appointmentSummaryByAppointmentId.get(appt.id).conditionBefore ?: '-'}">-</span></div>
                                             <div><strong>After:</strong> <span th:text="${appointmentSummaryByAppointmentId.get(appt.id).conditionAfter ?: '-'}">-</span></div>
+                                        </div>
+
+                                        <div class="mt-2" th:if="${summaryPhotosByAppointmentId != null and summaryPhotosByAppointmentId.containsKey(appt.id) and !summaryPhotosByAppointmentId.get(appt.id).isEmpty()}">
+                                            <strong>Photos from staff:</strong>
+                                            <div class="health-photos-mini">
+                                                <a
+                                                    th:each="photo : ${summaryPhotosByAppointmentId.get(appt.id)}"
+                                                    th:href="${photo.imageUrl}"
+                                                    target="_self"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    <img
+                                                        th:src="${photo.imageUrl}"
+                                                        alt="Health summary photo from staff"
+                                                        loading="lazy"
+                                                    />
+                                                </a>
+                                            </div>
                                         </div>
 
                                         <div style="margin-top: 8px;">

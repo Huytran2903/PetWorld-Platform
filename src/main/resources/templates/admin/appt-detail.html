@@ -222,14 +222,14 @@
                                         <span th:if="${appointment.status == 'done'}"
                                               th:classappend="${appointmentPaymentPaid} ? 'bg-success' : 'bg-warning text-dark'"
                                               class="badge ms-2"
-                                              th:text="${appointmentPaymentPaid} ? 'Đã thanh toán' : 'Not paid'">Payment</span>
+                                              th:text="${appointmentPaymentPaid} ? 'payment successful' : 'Not paid'">Payment</span>
                                     </div>
                                 </div>
 
                                 <div class="col-md-6" th:if="${appointment.status == 'done'}">
                                     <label class="form-label text-muted small">Payment Status</label>
                                     <div class="fw-bold">
-                                        <span th:if="${appointmentPaymentPaid}" class="text-success">Đã thanh toán</span>
+                                        <span th:if="${appointmentPaymentPaid}" class="text-success">Payment successful</span>
                                         <span th:unless="${appointmentPaymentPaid}" class="text-warning">Not paid</span>
                                         <span th:if="${appointmentTotalAmount != null}"
                                               class="text-muted ms-1 small" th:text="'(' + ${#numbers.formatDecimal(appointmentTotalAmount, 0, 'POINT', 0, 'COMMA')} + ' ₫)'">(amount)</span>

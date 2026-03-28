@@ -245,6 +245,7 @@ public class CustomerController {
             model.addAttribute("reviewedServiceLineIds", java.util.Set.of());
             model.addAttribute("feedbackByLineId", java.util.Map.of());
             model.addAttribute("appointmentSummaryByAppointmentId", java.util.Map.of());
+            model.addAttribute("summaryPhotosByAppointmentId", java.util.Map.of());
         } else {
             List<vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine> lines = bookingService.findServiceLinesByAppointmentIds(apptIds);
             java.util.Map<Integer, List<vn.edu.fpt.petworldplatform.entity.AppointmentServiceLine>> linesByApptId =
@@ -330,6 +331,16 @@ public class CustomerController {
 
             model.addAttribute("appointmentSummaryByAppointmentId", summaryByAppointmentId);
             model.addAttribute("serviceStaffByAppointmentId", serviceStaffByAppointmentId);
+
+            java.util.Map<Integer, List<AppointmentSummaryPhoto>> summaryPhotosByAppointmentId = new java.util.HashMap<>();
+            if (!summaryByAppointmentId.isEmpty()) {
+                java.util.Set<Integer> apptIdsForPhotos = summaryByAppointmentId.keySet();
+                List<AppointmentSummaryPhoto> allSummaryPhotos =
+                        appointmentSummaryPhotoRepository.findAllByAppointmentIdIn(apptIdsForPhotos);
+                summaryPhotosByAppointmentId = allSummaryPhotos.stream()
+                        .collect(Collectors.groupingBy(p -> p.getSummary().getAppointment().getId()));
+            }
+            model.addAttribute("summaryPhotosByAppointmentId", summaryPhotosByAppointmentId);
 
             // Vaccine records (batch)
             Map<Integer, List<vn.edu.fpt.petworldplatform.dto.VaccineRecordViewDTO>> vaccineRecordsByAppointmentId = new LinkedHashMap<>();

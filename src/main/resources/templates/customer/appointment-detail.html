@@ -798,7 +798,7 @@
                     >
                         <img
                             th:each="photo : ${summaryPhotos}"
-                            th:src="@{${photo.imageUrl}}"
+                            th:src="${photo.imageUrl}"
                             alt="Health summary evidence"
                         />
                     </div>
