@@ -48,7 +48,6 @@ public class CustomLoginFailureHandler extends SimpleUrlAuthenticationFailureHan
 
         String username = request.getParameter("username");
 
-        // Nếu lỗi là do tài khoản đang trong thời gian bị khóa
         if (exception instanceof LockedException) {
             super.setDefaultFailureUrl("/login?error=locked");
             super.onAuthenticationFailure(request, response, exception);
@@ -71,7 +70,7 @@ public class CustomLoginFailureHandler extends SimpleUrlAuthenticationFailureHan
 
     private void processCustomerFailure(Customer customer) {
         int attempts = customer.getFailedAttempts() == null ? 0 : customer.getFailedAttempts();
-        attempts++; // Tăng số lần sai lên 1
+        attempts++;
         customer.setFailedAttempts(attempts);
 
         long lockMinutes = calculateLockTimeInMinutes(attempts);

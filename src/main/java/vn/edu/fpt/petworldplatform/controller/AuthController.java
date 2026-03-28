@@ -55,7 +55,7 @@ public class AuthController {
     }
 
 
-    @PostMapping("/do-register") // Đảm bảo mapping đúng với form
+    @PostMapping("/do-register")
     public String handleRegister(@Valid @ModelAttribute("customer") Customer customer,
                                  BindingResult bindingResult,
                                  Model model) {
@@ -68,6 +68,11 @@ public class AuthController {
 
         if (customerService.checkEmailExists(customer.getEmail())) {
             model.addAttribute("error", "Email has already exist! Please try again!");
+            return "auth/register";
+        }
+
+        if (customerService.checkUsernameExists(customer.getUsername())) {
+            model.addAttribute("error", "Username has already exist! Please try again!");
             return "auth/register";
         }
 
@@ -201,6 +206,7 @@ public class AuthController {
             customerService.sendResetPasswordEmail(email);
             session.setAttribute("resetEmail", email);
 
+            redirectAttributes.addFlashAttribute("emailForgot", email);
 
             redirectAttributes.addFlashAttribute("message", "OTP has been sent to " + email);
             redirectAttributes.addFlashAttribute("openOtpModal", true);
@@ -218,6 +224,7 @@ public class AuthController {
                                        RedirectAttributes redirectAttributes) {
         String email = (String) session.getAttribute("resetEmail");
         Customer customer = customerService.getByResetPasswordToken(otp);
+        redirectAttributes.addFlashAttribute("emailForgot", email);
 
         if (customer == null || !customer.getEmail().equals(email)) {
             redirectAttributes.addFlashAttribute("error", "Invalid or expired OTP code!");

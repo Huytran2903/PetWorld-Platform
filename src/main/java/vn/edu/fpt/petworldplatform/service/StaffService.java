@@ -29,6 +29,7 @@ public class StaffService {
     private final AppointmentServiceLineRepository appointmentServiceRepo;
     private final AppointmentRepository appointmentRepo;
     private final ServiceNoteRepository serviceNoteRepo;
+    private final AppointmentSummaryRepository appointmentSummaryRepo;
 
     @Autowired
     private RoleRepo roleRepo;
@@ -198,7 +199,7 @@ public class StaffService {
         long inProgressCount = appointmentServiceRepo.countInProgressServices(oldStaffId);
 
         if (inProgressCount > 0) {
-            throw new IllegalStateException("Hủy thao tác! Nhân viên này đang có " + inProgressCount + " dịch vụ đang thực hiện. Vui lòng hoàn thành hoặc gán lại dịch vụ trước khi xóa.");
+            throw new IllegalStateException("Nhân viên này đang có " + inProgressCount + " dịch vụ đang thực hiện. Vui lòng hoàn thành hoặc gán lại dịch vụ trước khi xóa.");
         }
 
         if (newStaffId != null) {
@@ -225,6 +226,8 @@ public class StaffService {
         appointmentServiceRepo.clearAllStaffReferences(oldStaffId);
         serviceNoteRepo.clearStaffFromDoneNotes(oldStaffId);
         appointmentRepo.clearAllStaffReferences(oldStaffId);
+
+        appointmentSummaryRepo.clearAllAppointmentSummary(oldStaffId);
 
         staffRepo.flush();
 

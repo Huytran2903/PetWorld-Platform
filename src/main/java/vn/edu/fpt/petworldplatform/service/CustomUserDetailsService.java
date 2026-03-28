@@ -43,7 +43,7 @@ public class CustomUserDetailsService implements UserDetailsService {
             return new CustomUserDetails(customer.getUsername(), customer.getPasswordHash(), customer.getIsActive() != null ? customer.getIsActive() : true, authorities, customer);
         }
 
-        Staff staff = staffRepo.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy tài khoản: " + username));
+        Staff staff = staffRepo.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Invalid account with username " + username));
 
         List<GrantedAuthority> authorities = new ArrayList<>();
 

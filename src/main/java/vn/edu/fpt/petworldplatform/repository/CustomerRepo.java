@@ -25,4 +25,6 @@ public interface CustomerRepo extends JpaRepository<Customer, Integer> {
     Page<Customer> searchCustomers(@Param("keyword") String keyword, Pageable pageable);
 
     long countByIsActiveTrue();
+
+    boolean existsByUsername(String username);
 }

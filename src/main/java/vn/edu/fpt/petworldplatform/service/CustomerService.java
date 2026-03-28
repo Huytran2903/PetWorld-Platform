@@ -199,6 +199,10 @@ public class CustomerService {
         return customerRepo.existsByEmail(email);
     }
 
+    public boolean checkUsernameExists(String username) {
+        return customerRepo.existsByUsername(username);
+    }
+
     public Optional<Customer> findById(int id) {
         return customerRepo.findById(id);
     }
@@ -228,7 +232,7 @@ public class CustomerService {
         return customerRepo.findAll(pageable);
     }
 
-    public Customer getCustomerById(Integer id){
+    public Customer getCustomerById(Integer id) {
         return customerRepo.findById(id).get();
     }
 }

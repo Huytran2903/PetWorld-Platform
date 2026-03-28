@@ -87,4 +87,8 @@ public class Staff {
     @OneToMany(mappedBy = "staff", fetch = FetchType.LAZY)
     @ToString.Exclude
     private List<ServiceNote> serviceNotes;
+
+    @OneToMany(mappedBy = "summaryByStaff", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private List<AppointmentSummary> appointmentSummaries;
 }
