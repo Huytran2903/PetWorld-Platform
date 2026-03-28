@@ -18,7 +18,7 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import vn.edu.fpt.petworldplatform.service.CustomUserDetailsService;
 
 @Configuration
- @EnableWebSecurity
+//  @EnableWebSecurity
 @EnableAsync
 @RequiredArgsConstructor
 //@EnableMethodSecurity
@@ -63,8 +63,8 @@ public class SecurityConfig {
                         .requestMatchers("/reset-password/**", "/forgot-password", "/verify-forgot-password-otp").permitAll()
                         // --------------------
 
-                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                         .requestMatchers("/staff/**").hasRole("STAFF")
+                         .requestMatchers("/admin/**").permitAll()
+                         .requestMatchers("/staff/**").permitAll()
                         // // C. Chặn staff truy cập trang customer
                         // // Cho phép CUSTOMER (ROLE_CUSTOMER) hoặc OIDC_USER
                         // .requestMatchers("/customer/**", "/cart/**", "/appointment/**")

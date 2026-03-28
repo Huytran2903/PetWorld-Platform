@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -16,16 +17,27 @@ public class GlobalInterceptor implements HandlerInterceptor {
         HttpSession session = request.getSession();
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-
         if (auth != null && auth.isAuthenticated()
                 && !(auth.getPrincipal() instanceof String) // Không phải người dùng ẩn danh
                 && session.getAttribute("loggedInAccount") == null) {
 
-            CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
-            Object account = userDetails.getAccount();
+            Object principal = auth.getPrincipal();
 
-            session.setAttribute("loggedInAccount", account);
-
+            // ── Handle CustomUserDetails (local login) ──
+            if (principal instanceof CustomUserDetails) {
+                CustomUserDetails userDetails = (CustomUserDetails) principal;
+                Object account = userDetails.getAccount();
+                session.setAttribute("loggedInAccount", account);
+            }
+            // ── Handle OAuth2 users (Google, GitHub, etc) ──
+            else if (principal instanceof DefaultOidcUser) {
+                DefaultOidcUser oidcUser = (DefaultOidcUser) principal;
+                // Optionally store OAuth2 user info in session
+                String email = oidcUser.getEmail();
+                String name = oidcUser.getFullName();
+                session.setAttribute("loggedInOAuth2User", oidcUser);
+                // You can add more attributes as needed
+            }
         }
         return true;
     }

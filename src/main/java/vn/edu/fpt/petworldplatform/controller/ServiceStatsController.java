@@ -40,10 +40,22 @@ public class ServiceStatsController {
 
             Model model) {
 
+        LocalDate today = LocalDate.now();
+        String dateError = null;
+
         try {
+            // ── Date Validation ────────────────────────────────────
+            if (fromDate != null && fromDate.isAfter(today)) {
+                dateError = "From date cannot be in the future.";
+            } else if (toDate != null && toDate.isAfter(today)) {
+                dateError = "To date cannot be in the future.";
+            } else if (fromDate != null && toDate != null && fromDate.isAfter(toDate)) {
+                dateError = "From date must be earlier than or equal to To date.";
+            }
+
             List<ServiceUsageStatsDTO> stats;
 
-            boolean isFiltered = (fromDate != null || toDate != null);
+            boolean isFiltered = (fromDate != null || toDate != null) && dateError == null;
 
             if (!isFiltered) {
                 // No filter → all time
@@ -79,6 +91,8 @@ public class ServiceStatsController {
         // Pass back so inputs retain values after submit
         model.addAttribute("fromDate", fromDate);
         model.addAttribute("toDate", toDate);
+        model.addAttribute("maxDate", today);
+        model.addAttribute("dateError", dateError);
 
         return "staff/service-stats";
     }
