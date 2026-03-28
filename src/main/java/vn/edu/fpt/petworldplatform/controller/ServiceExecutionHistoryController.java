@@ -1,5 +1,6 @@
 package vn.edu.fpt.petworldplatform.controller;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,21 +29,37 @@ public class ServiceExecutionHistoryController {
     @GetMapping("/service-execution-history")
     public String getServiceHistory(
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate startDate,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+            LocalDate endDate,
             Model model) {
 
         try {
+            LocalDate today = LocalDate.now();
+            String dateError = null;
+
+            // ── Date Validation ────────────────────────────────────
+            if (startDate != null && startDate.isAfter(today)) {
+                dateError = "From date cannot be in the future.";
+            } else if (endDate != null && endDate.isAfter(today)) {
+                dateError = "To date cannot be in the future.";
+            } else if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
+                dateError = "From date must be earlier than or equal to To date.";
+            }
+
             List<ServiceExecutionHistoryDTO> history;
             boolean filtered = false;
 
             boolean hasStatus    = isNotEmpty(status);
-            boolean hasStartDate = isNotEmpty(startDate);
-            boolean hasEndDate   = isNotEmpty(endDate);
-            boolean hasDateRange = hasStartDate && hasEndDate;
+            boolean hasStartDate = startDate != null;
+            boolean hasEndDate   = endDate != null;
+            boolean hasDateRange = hasStartDate && hasEndDate && dateError == null;
 
-            LocalDateTime start = hasStartDate ? parseDate(startDate, true)  : null;
-            LocalDateTime end   = hasEndDate   ? parseDate(endDate,   false) : null;
+            LocalDateTime start = hasStartDate ? startDate.atStartOfDay()  : null;
+            LocalDateTime end   = hasEndDate   ? endDate.atTime(LocalTime.MAX) : null;
 
             // ── Fetch history ──────────────────────────────────────
             if (hasStatus && hasDateRange) {
@@ -65,27 +82,41 @@ public class ServiceExecutionHistoryController {
             Long completedCount;
             Long inProgressCount;
             Long pendingCount;
+            Long confirmedCount;
+            Long canceledCount;
+            Long noShowCount;
 
             if (hasDateRange) {
                 // Pass status (may be null) so query can optionally filter by it too
                 completedCount   = service.getCompletedCountByDateRange(start, end);
                 inProgressCount  = service.getInProgressCountByDateRange(start, end);
                 pendingCount     = service.getPendingCountByDateRange(start, end);
+                confirmedCount   = service.getConfirmedCountByDateRange(start, end);
+                canceledCount    = service.getCanceledCountByDateRange(start, end);
+                noShowCount      = service.getNoShowCountByDateRange(start, end);
             } else {
                 completedCount   = service.getCompletedCount();
                 inProgressCount  = service.getInProgressCount();
                 pendingCount     = service.getPendingCount();
+                confirmedCount   = service.getConfirmedCount();
+                canceledCount    = service.getCanceledCount();
+                noShowCount      = service.getNoShowCount();
             }
 
             model.addAttribute("completedCount",   completedCount   != null ? completedCount   : 0L);
             model.addAttribute("inProgressCount",  inProgressCount  != null ? inProgressCount  : 0L);
             model.addAttribute("pendingCount",     pendingCount     != null ? pendingCount     : 0L);
+            model.addAttribute("confirmedCount",   confirmedCount   != null ? confirmedCount   : 0L);
+            model.addAttribute("canceledCount",    canceledCount    != null ? canceledCount    : 0L);
+            model.addAttribute("noShowCount",      noShowCount      != null ? noShowCount      : 0L);
 
             model.addAttribute("history",   history);
             model.addAttribute("filtered",  filtered);
             model.addAttribute("status",    status);
             model.addAttribute("startDate", startDate);
             model.addAttribute("endDate",   endDate);
+            model.addAttribute("maxDate",   today);
+            model.addAttribute("dateError", dateError);
 
         } catch (Exception e) {
             model.addAttribute("history",        List.of());
@@ -94,6 +125,10 @@ public class ServiceExecutionHistoryController {
             model.addAttribute("completedCount",  0L);
             model.addAttribute("inProgressCount", 0L);
             model.addAttribute("pendingCount",    0L);
+            model.addAttribute("confirmedCount",  0L);
+            model.addAttribute("canceledCount",   0L);
+            model.addAttribute("noShowCount",     0L);
+            model.addAttribute("maxDate",        LocalDate.now());
             e.printStackTrace();
         }
 
@@ -102,10 +137,5 @@ public class ServiceExecutionHistoryController {
 
     private boolean isNotEmpty(String str) {
         return str != null && !str.trim().isEmpty();
-    }
-
-    private LocalDateTime parseDate(String dateStr, boolean isStartOfDay) {
-        LocalDate date = LocalDate.parse(dateStr);
-        return isStartOfDay ? date.atStartOfDay() : date.atTime(LocalTime.MAX);
     }
 }
