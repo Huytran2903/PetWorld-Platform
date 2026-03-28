@@ -152,6 +152,9 @@ public class AdminController {
         } else {
             pet.setIsVaccinated(false);
         }
+        List<ServiceItem> vaccineList = petService.getAllVaccines();
+
+        model.addAttribute("vaccineList", vaccineList);
 
         model.addAttribute("selectedPet", pet);
         model.addAttribute("formMode", "edit");
@@ -164,7 +167,7 @@ public class AdminController {
     @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("/admin/pet/new")
     public String createPet(Model model) {
-        List<PetVaccinations> vaccineList = petService.getAllVaccines();
+        List<ServiceItem> vaccineList = petService.getAllVaccines();
 
         model.addAttribute("vaccineList", vaccineList);
         model.addAttribute("selectedPet", new PetFormDTO());

@@ -193,9 +193,10 @@
                                     <select class="form-select shadow-none border-warning-subtle"
                                             th:field="*{vaccineName}" id="modalVaccineName">
                                         <option value="">-- Choose Vaccine --</option>
+
                                         <option th:each="vaccine : ${vaccineList}"
-                                                th:value="${vaccine.vaccineName}"
-                                                th:text="${vaccine.vaccineName}">
+                                                th:value="${vaccine.name}"
+                                                th:text="${vaccine.name}">
                                         </option>
                                     </select>
                                 </div>

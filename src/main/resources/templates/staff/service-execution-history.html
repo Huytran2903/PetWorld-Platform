@@ -156,6 +156,21 @@
             color: white;
         }
 
+        .stat-card.confirmed .stat-icon {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+        }
+
+        .stat-card.canceled .stat-icon {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .stat-card.no-show .stat-icon {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+        }
+
         .stat-card h3 {
             color: var(--text-muted);
             font-size: 14px;
@@ -491,6 +506,30 @@
                 <h3>Pending</h3>
                 <div class="stat-value" th:text="${pendingCount}">0</div>
             </div>
+
+            <div class="stat-card confirmed">
+                <div class="stat-icon">
+                    <i class="fas fa-thumbs-up"></i>
+                </div>
+                <h3>Confirmed</h3>
+                <div class="stat-value" th:text="${confirmedCount}">0</div>
+            </div>
+
+            <div class="stat-card canceled">
+                <div class="stat-icon">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <h3>Canceled</h3>
+                <div class="stat-value" th:text="${canceledCount}">0</div>
+            </div>
+
+            <div class="stat-card no-show">
+                <div class="stat-icon">
+                    <i class="fas fa-ban"></i>
+                </div>
+                <h3>No Show</h3>
+                <div class="stat-value" th:text="${noShowCount}">0</div>
+            </div>
         </div>
 
         <!-- Filter Section -->
@@ -498,6 +537,9 @@
             <h3>
                 <i class="fas fa-filter"></i> Filters
             </h3>
+            <div class="alert alert-danger mb-3" role="alert" th:if="${dateError != null}" th:text="${dateError}">
+                Invalid date range.
+            </div>
             <form th:action="@{/staff/service-execution-history}" method="get" class="filter-form">
                 <div class="form-group">
                     <label for="status">Status</label>
@@ -514,12 +556,12 @@
 
                 <div class="form-group">
                     <label for="startDate">From Date</label>
-                    <input type="date" id="startDate" name="startDate" th:value="${startDate}">
+                    <input type="date" id="startDate" name="startDate" th:value="${startDate}" th:attr="max=${maxDate}">
                 </div>
 
                 <div class="form-group">
                     <label for="endDate">To Date</label>
-                    <input type="date" id="endDate" name="endDate" th:value="${endDate}">
+                    <input type="date" id="endDate" name="endDate" th:value="${endDate}" th:attr="max=${maxDate}">
                 </div>
 
                 <div class="form-group filter-actions">
