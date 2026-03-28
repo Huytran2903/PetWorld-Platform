@@ -98,19 +98,17 @@ public class AdminController {
         boolean hasType = (type != null && !type.trim().isEmpty());
         boolean hasStatus = (status != null && !status.trim().isEmpty());
 
-        // --- LOGIC MỚI: LỌC THEO STATUS DỰA TRÊN SERVICE CỦA BẠN ---
+
         if (hasStatus) {
             if (status.equalsIgnoreCase("shop")) {
-                // Gọi hàm service bạn cung cấp cho Shop Pet
                 petPage = petService.getPetByOwnerIsNull(status, pageable);
             } else if (status.equalsIgnoreCase("customer")) {
-                // Gọi hàm service bạn cung cấp cho Customer Pet
                 petPage = petService.getPetByOwnerNotNull(status, pageable);
             } else {
                 petPage = petService.getAllPet(pageable);
             }
         }
-        // --- LOGIC CŨ CỦA BẠN: KHÔNG ĐỔI CÁC HÀM SERVICE ĐÃ GỌI ---
+
         else {
             if (hasKeyword && hasType) {
                 petPage = petService.findPetByNameAndType(keyword.trim(), type.trim(), pageable);
@@ -128,7 +126,7 @@ public class AdminController {
         model.addAttribute("currentPage", page);
         model.addAttribute("kw", keyword);
         model.addAttribute("selectedType", type);
-        model.addAttribute("selectedStatus", status); // Thêm để giữ trạng thái chọn trên HTML
+        model.addAttribute("selectedStatus", status);
 
         return "admin/managePet";
     }
@@ -204,13 +202,13 @@ public class AdminController {
                 if (oldPet != null) {
                     pet.setVaccinations(oldPet.getVaccinations());
 
-                    // Nếu KHÔNG chọn ảnh mới, lấy luôn đường dẫn ảnh cũ đắp vào
+
                     if (imageFile == null || imageFile.isEmpty()) {
                         pet.setImageUrl(oldPet.getImageUrl());
                     }
                 }
             } else {
-                // Đảm bảo list không bị null khi Thêm mới
+
                 if (pet.getVaccinations() == null) {
                     pet.setVaccinations(new ArrayList<>());
                 }
@@ -225,15 +223,15 @@ public class AdminController {
                     newVaccine.setVaccineName(pet.getVaccineName());
                     newVaccine.setNote(pet.getVaccineNote());
 
-                    // Nếu có nhập ngày hẹn tiếp theo
+
                     if (pet.getNextDueDate() != null) {
                         newVaccine.setNextDueDate(pet.getNextDueDate());
                     }
 
-                    // Mặc định ngày tiêm là ngay lúc bấm Save
+
                     newVaccine.setAdministeredDate(LocalDate.now());
 
-                    // Xử lý Staff ID (Giả sử bạn có class Staff)
+
                     if (pet.getVaccinationStaffID() != null) {
                         Staff performedBy = new Staff();
                         performedBy.setStaffId(pet.getVaccinationStaffID());
@@ -258,13 +256,13 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("message", "Pet saved successfully!");
 
         } catch (RuntimeException e) {
-            // Bắt các lỗi bảo mật từ FileStorageService (Sai đuôi file, sai định dạng MIME)
+
             model.addAttribute("formMode", formMode);
             model.addAttribute("errorMessage", e.getMessage());
             return "admin/pet-form";
 
         } catch (IOException e) {
-            // Bắt lỗi hệ thống
+
             e.printStackTrace();
             model.addAttribute("formMode", formMode);
             model.addAttribute("errorMessage", "Lỗi khi lưu ảnh: " + e.getMessage());
@@ -356,13 +354,13 @@ public class AdminController {
             @RequestParam(value = "categoryId", required = false) Integer categoryId,
             @RequestParam(value = "page", defaultValue = "0") int page) {
 
-        // 1. Cấu hình phân trang: 10 sản phẩm mỗi trang, sắp xếp theo ID tăng dần
+
         int pageSize = 10;
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by("productId").ascending());
 
         Page<Product> productPage;
 
-        // 2. Logic Filter giống hệt trang Customer
+
         boolean hasKeyword = (keyword != null && !keyword.trim().isEmpty());
         boolean hasCategory = (categoryId != null && categoryId > 0);
 
@@ -376,7 +374,7 @@ public class AdminController {
             productPage = productService.getAllProducts(pageable);
         }
 
-        // 3. Đẩy dữ liệu ra giao diện
+
         model.addAttribute("products", productPage.getContent());
         model.addAttribute("totalPages", productPage.getTotalPages());
         model.addAttribute("currentPage", page);
@@ -417,14 +415,14 @@ public class AdminController {
         }
 
         try {
-            // 2. Xử lý File Ảnh với FileStorageService
+
             if (imageFile != null && !imageFile.isEmpty()) {
 
                 String secureImageUrl = fileStorageService.storeFile(imageFile);
                 product.setImageUrl(secureImageUrl);
 
             } else {
-                // 3. Logic Edit: Người dùng KHÔNG chọn ảnh mới -> Giữ nguyên ảnh cũ
+
                 if (product.getProductId() != null) {
                     Product oldProduct = productService.findProductById(product.getProductId());
                     if (oldProduct != null && (product.getImageUrl() == null || product.getImageUrl().isEmpty())) {
@@ -433,19 +431,19 @@ public class AdminController {
                 }
             }
 
-            // 4. Lưu sản phẩm vào Database
+
             productService.saveProduct(product);
             redirectAttributes.addFlashAttribute("message", "Product saved successfully!");
 
         } catch (RuntimeException e) {
-            // Bắt các lỗi bảo mật từ FileStorageService (Sai đuôi file, sai định dạng MIME)
+
             model.addAttribute("formMode", formMode);
             model.addAttribute("cates", categoryService.getAllCategories());
             model.addAttribute("errorMessage", e.getMessage());
             return "admin/product-form";
 
         } catch (IOException e) {
-            // Bắt lỗi hệ thống (Không tạo được thư mục, đầy ổ cứng...)
+
             e.printStackTrace();
             model.addAttribute("formMode", formMode);
             model.addAttribute("cates", categoryService.getAllCategories());
@@ -965,17 +963,16 @@ public class AdminController {
             @RequestParam(name = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(name = "statusFilter", required = false) String statusFilter) {
 
-        // 1. Khởi tạo phân trang (thường admin muốn xem đơn mới nhất trước nên dùng Sort)
+
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
-        // 2. Gọi hàm getFilteredOrders từ Service (hàm có 4 trường hợp logic)
+
         Page<Order> orderPage = orderService.getAllOrderFilter(startDate, endDate, statusFilter, pageable);
 
-        // 3. Đưa dữ liệu danh sách đơn hàng vào Model
+
         model.addAttribute("ord", orderPage);
 
-        // 4. QUAN TRỌNG: Gửi ngược lại các giá trị filter để hiển thị trên UI
-        // và để các link phân trang (Previous/Next) có dữ liệu để giữ bộ lọc
+
         model.addAttribute("startDate", startDate);
         model.addAttribute("endDate", endDate);
         model.addAttribute("statusFilter", statusFilter);
@@ -989,22 +986,19 @@ public class AdminController {
                                @RequestParam("status") String status,
                                RedirectAttributes redirectAttributes) {
         try {
-            // 1. Gọi Service để thực hiện logic nghiệp vụ
+
             orderService.updateOrderStatusByAdmin(orderID, status);
 
-            // 2. Nếu thành công, gửi thông báo xanh
             redirectAttributes.addFlashAttribute("successMessage", "Cập nhật trạng thái đơn hàng #" + orderID + " thành công!");
 
         } catch (RuntimeException e) {
-            // 3. Nếu Service ném lỗi (ví dụ: Đơn Paid không được về Pending)
-            // Ta bắt lấy cái tin nhắn lỗi đó để hiển thị ra màn hình
+
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         } catch (Exception e) {
-            // Phòng hờ các lỗi hệ thống khác
             redirectAttributes.addFlashAttribute("errorMessage", "Đã xảy ra lỗi hệ thống: " + e.getMessage());
         }
 
-        // 4. Redirect về trang danh sách (Để tránh việc F5 gây lặp lại request)
+
         return "redirect:/admin/manage-order";
     }
 

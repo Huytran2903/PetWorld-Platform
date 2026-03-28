@@ -24,7 +24,6 @@ public class CartService {
     private CartItemRepository cartItemRepo;
 
 
-    //Thêm pet và product vào giỏ hàng - OanhTP
     @Transactional
     public void addToCart(Integer customerId, Pets petId, Product productId, Integer quantity) {
 
@@ -97,11 +96,10 @@ public class CartService {
      * Lấy chi tiết giỏ hàng kèm theo danh sách các món hàng (CartItems)
      */
     public Carts getCartDetail(Integer customerId) {
-        // Tìm giỏ hàng theo CustomerID
+
         return cartRepo.findByCustomerId(customerId)
                 .orElseGet(() -> {
-                    // Nếu chưa có giỏ hàng, trả về một đối tượng Cart mới (rỗng)
-                    // để tránh lỗi NullPointerException ở View
+
                     Carts emptyCart = new Carts();
                     emptyCart.setCustomerId(customerId);
                     return emptyCart;
@@ -174,14 +172,13 @@ public class CartService {
 
     @Transactional
     public void clearCart(Integer customerId) {
-        // Lấy giỏ hàng hiện tại bằng hàm có sẵn của bạn
+
         Carts cart = getCartDetail(customerId);
 
         if (cart != null && cart.getItems() != null && !cart.getItems().isEmpty()) {
-            // Xóa toàn bộ các món hàng (CartItem) nằm trong giỏ này khỏi Database
+
             cartItemRepo.deleteAll(cart.getItems());
 
-            // Xóa sạch list trong bộ nhớ và cập nhật lại giỏ hàng
             cart.getItems().clear();
             cartRepo.save(cart);
         }

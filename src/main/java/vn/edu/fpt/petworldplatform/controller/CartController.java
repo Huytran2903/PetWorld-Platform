@@ -216,19 +216,18 @@ public class CartController {
                     customerId, shipName, shipPhone, shipAddress, note, paymentMethod
             );
 
-            // 5. ĐIỀU HƯỚNG THANH TOÁN
+
             if ("MOMO".equalsIgnoreCase(paymentMethod)) {
                 String orderCode = newOrder.getOrderCode();
                 String orderInfo = "Thanh toán đơn hàng Pet World - Mã: " + orderCode;
 
-                // Gọi API MoMo với số tiền TotalAmount chính xác từ DB
+
                 String payUrl = momoService.createPaymentUrl(orderCode, newOrder.getTotalAmount(), orderInfo);
 
                 return "redirect:" + payUrl;
 
             } else {
                 cartService.clearCart(customerId);
-                //COD: Đơn hàng đã được tạo ở trạng thái 'pending'
                 ra.addFlashAttribute("successMessage", "Order Completed Successfully!");
                 ra.addFlashAttribute("order", newOrder);
                 return "redirect:/cart/checkout-order";
@@ -458,7 +457,7 @@ public class CartController {
 
             Integer customerId = getCustomerIdFromAuth(authentication);
 
-            //tránh user a hủy đơn của user b
+            //user a hủy đơn của user b
             Order order = orderRepo.findById(orderId)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng!"));
 
@@ -474,7 +473,7 @@ public class CartController {
             return "redirect:/cart/order-history?canceledSuccess=true";
 
         } catch (RuntimeException e) {
-            // Bắt các lỗi như: đơn không ở trạng thái pending, không tìm thấy đơn...
+
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/cart/order-history";
         } catch (Exception e) {
