@@ -266,7 +266,7 @@ public class AdminController {
 
             e.printStackTrace();
             model.addAttribute("formMode", formMode);
-            model.addAttribute("errorMessage", "Lỗi khi lưu ảnh: " + e.getMessage());
+            model.addAttribute("errorMessage", "Error upload: " + e.getMessage());
             return "admin/pet-form";
         }
 
@@ -331,17 +331,14 @@ public class AdminController {
             boolean hasProducts = categoryService.hasProducts(id);
 
             if (hasProducts) {
-
-                redirectAttributes.addFlashAttribute("errorMessage", "Không thể xóa! Danh mục này vẫn đang chứa sản phẩm.");
+                redirectAttributes.addFlashAttribute("errorMessage", "Cannot delete! This category still contains products.");
             } else {
-
                 categoryService.deleteCategoryById(id);
-                redirectAttributes.addFlashAttribute("successMessage", "Xóa danh mục thành công!");
+                redirectAttributes.addFlashAttribute("successMessage", "Category deleted successfully!");
             }
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Đã xảy ra lỗi trong quá trình xóa.");
+            redirectAttributes.addFlashAttribute("errorMessage", "An error occurred while deleting the category.");
         }
-
         return "redirect:/admin/manage-categories";
     }
 
@@ -601,9 +598,19 @@ public class AdminController {
     public String deleteStaff(@RequestParam("staffId") Integer staffId,
                               @RequestParam(value = "transferStaffId", required = false) Integer transferStaffId,
                               RedirectAttributes ra) {
-        staffService.deleteAndTransferWork(staffId, transferStaffId);
+        try {
+            staffService.deleteAndTransferWork(staffId, transferStaffId);
 
-        ra.addFlashAttribute("success", "Xóa và bàn giao công việc thành công!");
+            ra.addFlashAttribute("message", "Staff deleted and tasks reassigned successfully!");
+
+        } catch (IllegalStateException e) {
+
+            ra.addFlashAttribute("error", e.getMessage());
+
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "A system error occurred while deleting the staff member. Please try again!");
+        }
+
         return "redirect:/admin/staff-manage";
     }
 
@@ -662,7 +669,7 @@ public class AdminController {
     public String editVaccinationRecord(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
         Optional<PetVaccinations> opt = petVaccinationRepository.findById(id);
         if (opt.isEmpty()) {
-            redirectAttributes.addFlashAttribute("error", "Không tìm thấy bản ghi tiêm chủng.");
+            redirectAttributes.addFlashAttribute("error", "Vaccination record not found.");
             return "redirect:/admin/vaccination-records";
         }
         PetVaccinations v = opt.get();
@@ -681,7 +688,7 @@ public class AdminController {
                                         RedirectAttributes redirectAttributes) {
         Optional<PetVaccinations> opt = petVaccinationRepository.findById(id);
         if (opt.isEmpty()) {
-            redirectAttributes.addFlashAttribute("error", "Không tìm thấy bản ghi tiêm chủng.");
+            redirectAttributes.addFlashAttribute("error", "Vaccination record not found.");
             return "redirect:/admin/vaccination-records";
         }
         PetVaccinations v = opt.get();
@@ -706,7 +713,7 @@ public class AdminController {
             v.setNote(t.isEmpty() ? null : t);
         }
         petVaccinationRepository.save(v);
-        redirectAttributes.addFlashAttribute("message", "Đã cập nhật bản ghi tiêm chủng.");
+        redirectAttributes.addFlashAttribute("message", "Vaccination record updated successfully.");
         return "redirect:/admin/vaccination-records";
     }
 
@@ -1011,13 +1018,13 @@ public class AdminController {
 
             orderService.updateOrderStatusByAdmin(orderID, status);
 
-            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật trạng thái đơn hàng #" + orderID + " thành công!");
+            redirectAttributes.addFlashAttribute("successMessage", "Order #" + orderID + " status updated successfully!");
 
         } catch (RuntimeException e) {
 
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Đã xảy ra lỗi hệ thống: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "A system error occurred: " + e.getMessage());
         }
 
 

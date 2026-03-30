@@ -51,10 +51,15 @@ public interface AppointmentServiceLineRepository extends JpaRepository<Appointm
 
     List<AppointmentServiceLine> findByAppointment_IdAndAssignedStaffIdOrderByIdAsc(Integer appointmentId, Integer staffId);
 
+    /**
+     * Counts other appointments' service lines that still require this staff's time and overlap the given window.
+     * Excludes finished appointments and completed/canceled service lines so staff show as available correctly.
+     */
     @Query("SELECT COUNT(asl) FROM AppointmentServiceLine asl " +
             "WHERE asl.assignedStaffId = :staffId " +
             "AND asl.appointment.id <> :appointmentId " +
-            "AND asl.appointment.status NOT IN ('canceled', 'rejected') " +
+            "AND LOWER(TRIM(asl.appointment.status)) NOT IN ('canceled', 'rejected', 'done', 'no_show') " +
+            "AND LOWER(TRIM(asl.serviceStatus)) IN ('pending', 'assigned', 'in_progress') " +
             "AND asl.appointment.appointmentDate < :newEnd " +
             "AND asl.appointment.endTime > :newStart")
     long countOverlappingAssignedLines(@Param("staffId") Integer staffId,
@@ -73,17 +78,16 @@ public interface AppointmentServiceLineRepository extends JpaRepository<Appointm
     // delete all lines belonging to an appointment
     void deleteAllByAppointment(Appointment appointment);
 
-    // 1. Chuyển giao dịch vụ (Bọc TRIM và LOWER để diệt khoảng trắng thừa)
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = "UPDATE AppointmentServices SET AssignedStaffID = :newStaffId WHERE AssignedStaffID = :oldStaffId AND LTRIM(RTRIM(LOWER(ServiceStatus))) IN ('pending', 'assigned', 'in_progress')", nativeQuery = true)
     void transferPendingServices(@Param("oldStaffId") Integer oldStaffId, @Param("newStaffId") Integer newStaffId);
 
-    // 2. Trả về vô chủ (NULL) nếu không bàn giao
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = "UPDATE AppointmentServices SET AssignedStaffID = NULL, ServiceStatus = 'pending' WHERE AssignedStaffID = :oldStaffId AND LTRIM(RTRIM(LOWER(ServiceStatus))) IN ('pending', 'assigned', 'in_progress')", nativeQuery = true)
     void unassignPendingServices(@Param("oldStaffId") Integer oldStaffId);
 
-    // 3. Quét sạch dấu vết quá khứ
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = "UPDATE AppointmentServices SET AssignedStaffID = NULL WHERE AssignedStaffID = :oldStaffId", nativeQuery = true)
     void clearAllStaffReferences(@Param("oldStaffId") Integer oldStaffId);

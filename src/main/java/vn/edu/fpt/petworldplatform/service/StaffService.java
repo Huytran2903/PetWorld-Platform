@@ -192,20 +192,21 @@ public class StaffService {
     public void deleteAndTransferWork(Integer oldStaffId, Integer newStaffId) {
 
         Staff oldStaff = staffRepo.findById(oldStaffId)
-                .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy nhân viên cần xóa!"));
+                .orElseThrow(() -> new IllegalArgumentException("Staff member to be deleted not found!"));
 
         if ("admin".equalsIgnoreCase(oldStaff.getRole().getRoleName())) {
-            throw new RuntimeException("Không thể xóa tài khoản Admin của hệ thống!");
+            throw new RuntimeException("Cannot delete the system Admin account!");
         }
+
         long inProgressCount = appointmentServiceRepo.countInProgressServices(oldStaffId);
 
         if (inProgressCount > 0) {
-            throw new IllegalStateException("Hủy thao tác! Nhân viên này đang có " + inProgressCount + " dịch vụ đang thực hiện. Vui lòng hoàn thành hoặc gán lại dịch vụ trước khi xóa.");
+            throw new IllegalStateException("Action canceled! This staff member has " + inProgressCount + " service(s) in progress. Please complete or reassign them before deletion.");
         }
 
         if (newStaffId != null) {
             if (!staffRepo.existsById(newStaffId)) {
-                throw new IllegalArgumentException("Không tìm thấy nhân viên nhận bàn giao!");
+                throw new IllegalArgumentException("Replacement staff for handover not found!");
             }
         }
 

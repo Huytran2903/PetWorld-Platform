@@ -23,7 +23,6 @@ public class CustomUserDetails extends User {
         return account;
     }
 
-    // --- HÀM KIỂM TRA TRẠNG THÁI KHÓA ---
     private static boolean checkLockStatus(Object account) {
         if (account instanceof Customer) {
             Customer customer = (Customer) account;

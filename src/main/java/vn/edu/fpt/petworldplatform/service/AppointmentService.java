@@ -262,7 +262,7 @@ public class AppointmentService implements IAppointmentService {
 
                 appointment.getAppointmentDate(),
 
-                appointment.getEndTime()
+                effectiveOverlapEnd(appointment)
 
         );
 
@@ -371,7 +371,7 @@ public class AppointmentService implements IAppointmentService {
 
                     appointment.getAppointmentDate(),
 
-                    appointment.getEndTime()
+                    effectiveOverlapEnd(appointment)
 
             );
 
@@ -443,5 +443,16 @@ public class AppointmentService implements IAppointmentService {
             return false;
         }
         return "admin".equalsIgnoreCase(staff.getRole().getRoleName().trim());
+    }
+
+    /** Overlap checks need a non-null end; legacy rows may omit EndTime. */
+    private static LocalDateTime effectiveOverlapEnd(Appointment appointment) {
+        if (appointment.getEndTime() != null) {
+            return appointment.getEndTime();
+        }
+        if (appointment.getAppointmentDate() != null) {
+            return appointment.getAppointmentDate().plusMinutes(60);
+        }
+        return null;
     }
 }

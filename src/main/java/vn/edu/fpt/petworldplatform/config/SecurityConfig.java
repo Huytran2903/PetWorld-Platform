@@ -18,7 +18,7 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 import vn.edu.fpt.petworldplatform.service.CustomUserDetailsService;
 
 @Configuration
-//  @EnableWebSecurity
+  @EnableWebSecurity
 @EnableAsync
 @RequiredArgsConstructor
 @EnableMethodSecurity
@@ -47,12 +47,11 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable()).securityContext(context -> context.securityContextRepository(new HttpSessionSecurityContextRepository())).httpBasic(Customizer.withDefaults())
-                // --- PHÂN QUYỀN ---
                 .authorizeHttpRequests(auth -> auth
-                        // A. Link Tĩnh
+                        //Link Tĩnh
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/fonts/**", "/webjars/**").permitAll()
 
-                        // B. Link Public
+                        //Link Public
                         .requestMatchers("/", "/home", "/index").permitAll()
                         .requestMatchers("/login", "/register", "/do-register", "/do-verify-otp", "/resend-otp",
                                 "/resend-forgot-password-otp", "/do-login").permitAll()
@@ -61,19 +60,15 @@ public class SecurityConfig {
                         .requestMatchers("/uploads/**").permitAll()
 
                         .requestMatchers("/reset-password/**", "/forgot-password", "/verify-forgot-password-otp").permitAll()
-                        // --------------------
 
-                         .requestMatchers("/admin/**").permitAll()
-                         .requestMatchers("/staff/**").permitAll()
-                        // // C. Chặn staff truy cập trang customer
-                        // // Cho phép CUSTOMER (ROLE_CUSTOMER) hoặc OIDC_USER
-                        // .requestMatchers("/customer/**", "/cart/**", "/appointment/**")
-                        // .hasAnyAuthority("ROLE_CUSTOMER", "OIDC_USER")
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/staff/**").hasRole("STAFF")
+
 
                          .requestMatchers("/profile/**").authenticated()
 
-                        // D. Còn lại khóa hết
-                        .anyRequest().permitAll())
+                        //Còn lại khóa hết
+                        .anyRequest().authenticated())
 
                 .formLogin(form -> form
                         .loginPage("/login")

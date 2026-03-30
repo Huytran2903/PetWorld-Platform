@@ -55,7 +55,7 @@ public class AuthController {
     }
 
 
-    @PostMapping("/do-register") // Đảm bảo mapping đúng với form
+    @PostMapping("/do-register")
     public String handleRegister(@Valid @ModelAttribute("customer") Customer customer,
                                  BindingResult bindingResult,
                                  Model model) {

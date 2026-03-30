@@ -1,593 +1,173 @@
 <!DOCTYPE html>
-
-
-
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
     layout:decorate="~{fragments/layout_user}">
-
-
-
 <head>
-
-
-
     <title>Appointment Detail</title>
-
-
-
     <link rel="stylesheet" th:href="@{/css/appointment-history.css}" />
-
-
-
     <style>
         .health-report {
-
-
-
             border: 1px solid var(--border);
-
-
-
             border-radius: 14px;
-
-
-
             overflow: hidden;
-
-
-
             background: #fff;
-
-
-
             margin-top: 14px;
-
-
-
         }
-
-
-
         .health-report-header {
-
-
-
             padding: 12px 14px;
-
-
-
             border-bottom: 1px solid var(--border);
-
-
-
             background: #f8fafc;
-
-
-
             display: flex;
-
-
-
             justify-content: space-between;
-
-
-
             align-items: center;
-
-
-
         }
-
-
-
         .health-report-title {
             font-weight: 800;
             color: var(--navy);
         }
-
-
-
         .warning-chip {
-
-
-
             background: #fef2f2;
-
-
-
             color: #b91c1c;
-
-
-
             border: 1px solid #fecaca;
-
-
-
             padding: 4px 10px;
-
-
-
             border-radius: 999px;
-
-
-
             font-size: 12px;
-
-
-
             font-weight: 800;
-
-
-
         }
-
-
-
         .health-grid {
-
-
-
             padding: 12px 14px;
-
-
-
             display: grid;
-
-
-
             grid-template-columns: 1fr 1fr;
-
-
-
             gap: 10px 16px;
-
-
-
         }
-
-
-
         .health-item .k {
             color: var(--muted);
             font-size: 12px;
             font-weight: 700;
         }
-
-
-
         .health-item .v {
             color: var(--text);
             font-weight: 700;
             margin-top: 2px;
         }
-
-
-
         .health-notes {
             padding: 0 14px 12px;
         }
-
-
-
         .health-notes .block {
-
-
-
             margin-top: 10px;
-
-
-
             padding: 10px;
-
-
-
             border: 1px solid var(--border);
-
-
-
             border-radius: 10px;
-
-
-
             background: #fff;
-
-
-
         }
-
-
-
         .health-photos {
-
-
-
             padding: 0 14px 14px;
-
-
-
             display: grid;
-
-
-
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-
-
-
             gap: 10px;
-
-
-
         }
-
-
-
         .health-photos img {
-
-
-
             width: 100%;
-
-
-
             height: 110px;
-
-
-
             object-fit: cover;
-
-
-
             border-radius: 10px;
-
-
-
             border: 1px solid var(--border);
-
-
-
         }
     </style>
-
-
-
 </head>
-
-
-
 <body>
-
-
-
     <main layout:fragment="content" class="container">
-
-
-
         <div th:if="${message}" class="alert alert-success" role="alert" th:text="${message}"></div>
-
-
-
         <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}"></div>
 
-
-
-
-
-
-
         <div class="hero">
-
-
-
             <div class="hero-inner">
-
-
-
                 <div>
-
-
-
                     <h1>Appointment Detail</h1>
-
-
-
                     <p>View detailed information for this appointment.</p>
-
-
-
                 </div>
-
-
-
                 <div style="display:flex; gap:10px; align-items:center;">
-
-
-
                     <a th:href="@{/customer/appointments}" class="btn btn-secondary btn-sm">Back to History</a>
-
-
-
                     <div class="type-pill">DETAIL</div>
-
-
-
                 </div>
-
-
-
             </div>
-
-
-
         </div>
 
-
-
-
-
-
-
         <section class="card">
-
-
-
             <header class="card-header">
-
-
-
                 <div>
-
-
-
                     <h2 class="title" th:text="${appointment.appointmentCode}">APT-20260101-0001</h2>
-
-
-
                     <p class="subtitle">General information</p>
-
-
-
                 </div>
-
-
-
                 <div class="pill">INFO</div>
-
-
-
             </header>
-
-
-
-
-
-
-
             <div class="card-body">
-
-
-
                 <div class="info-grid">
-
-
-
                     <div>
-
-
-
                         <p><strong>Status:</strong>
-
-
-
                             <span class="badge"
                                 th:classappend="${appointment.status != null ? 'status-' + appointment.status.toLowerCase() : ''}"
                                 th:text="${appointment.status != null ? #strings.capitalize(appointment.status) : '—'}">Pending</span>
-
                             <span th:if="${hasPaid}" class="badge bg-success ms-2">Paid</span>
                             <span th:if="${!hasPaid and appointment.status != null and appointment.status.toLowerCase() == 'done'}"
                                   class="badge bg-warning text-dark ms-2">Unpaid</span>
-
-
                         </p>
-
-
-
                         <p><strong>Date:</strong> <span
                                 th:text="${#temporals.format(appointment.appointmentDate, 'dd/MM/yyyy')}">01/01/2026</span>
                         </p>
-
-
-
                         <p><strong>Pet Name:</strong> <span
                                 th:text="${appointment.pet != null ? appointment.pet.name : 'N/A'}">Pet Name</span></p>
-
-
-
                         <p><strong>Staff:</strong> <span th:text="${serviceStaffName}">Staff Name</span></p>
-
-
-
                     </div>
-
-
-
                     <div>
-
-
-
                         <p><strong>Note:</strong> <span th:text="${appointment.note ?: '—'}">—</span></p>
-
-
-
                         <p th:if="${appointment.cancellationReason}">
-
-
-
                             <strong>Cancellation Reason:</strong> <span
                                 th:text="${appointment.cancellationReason}">—</span>
-
-
-
                         </p>
-
-
-
                         <p th:if="${appointment.previousAppointmentDate}">
-
-
-
                             <strong>Previous Date:</strong> <span
                                 th:text="${#temporals.format(appointment.previousAppointmentDate, 'dd/MM/yyyy')}">—</span>
-
-
-
                         </p>
-
-
-
                     </div>
-
-
-
                 </div>
-
-
-
             </div>
-
-
-
         </section>
 
-
-
-
-
-
-
         <section class="card">
-
-
-
             <header class="card-header">
-
-
-
                 <div>
-
-
-
                     <h2 class="title">Service Details</h2>
-
-
-
                     <p class="subtitle">List of services included in this appointment</p>
-
-
-
                 </div>
-
-
-
                 <div class="pill">SERVICES</div>
-
-
-
             </header>
-
-
-
-
-
-
-
             <div class="card-body">
-
-
-
                 <div class="service-list">
-
-
-
                     <div th:if="${#lists.isEmpty(serviceLines)}" class="empty-state">
-
-
-
                         <p>No services found for this appointment.</p>
-
-
-
                     </div>
 
-
-
-
-
-
-
                     <article th:each="line : ${serviceLines}" class="service-item">
-
-
-
                         <div>
-
-
-
                             <h4 class="service-name" th:text="${line.service.name}">Service Name</h4>
-
-
-
                             <p class="service-meta">
-
-
-
                                 <span class="badge" th:text="${line.service.serviceType != null ? line.service.serviceType.name : '-'}">TYPE</span>
-
-
-
                                 <span class="badge badge-outline"
                                     th:text="${line.serviceStatus != null ? line.serviceStatus : 'pending'}">pending</span>
-
-
-
                                 <span
                                     th:text="'Staff: ' + ${line.assignedStaff != null and line.assignedStaff.fullName != null ? line.assignedStaff.fullName : 'N/A'}">Staff</span>
                                 <span
                                     th:text="'Duration: ' + ${line.service.durationMinutes} + ' minutes'">Duration</span>
-
-
-
                             </p>
-
-
-
                         </div>
-
-
-
                         <div class="service-price">
-
-
-
                             <span
                                 th:text="${#numbers.formatDecimal(line.price, 0, 'COMMA', 0, 'POINT')} + ' VND'">Price</span>
-
-
-
                             <small th:text="'x' + ${line.quantity}">Qty</small>
-
-
-
                             <div style="margin-top:6px;">
                                 <span class="text-muted">Manager summary is shown below.</span>
                             </div>
-
-
-
-
                         </div>
-
-
-
                     </article>
 
                     <div th:if="${!#lists.isEmpty(serviceLines)}"
@@ -596,188 +176,56 @@
                         <span class="fw-bold">Total</span>
                         <strong th:text="${totalAmount != null ? #numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT') + ' VND' : '0 VND'}">0 VND</strong>
                     </div>
-
                 </div>
-
-
-
             </div>
-
-
-
         </section>
 
-
-
-
-
-
-
         <section class="card" th:if="${appointmentSummary != null}">
-
-
-
             <header class="card-header">
-
-
-
                 <div>
-
-
-
                     <h2 class="title">Health Summary</h2>
-
-
-
                     <p class="subtitle">Summary from appointment manager</p>
-
-
-
                 </div>
-
-
-
                 <div class="pill">SUMMARY</div>
-
-
-
             </header>
-
-
-
-
-
-
-
             <div class="card-body">
-
-
-
                 <div class="health-report">
-
-
-
                     <div class="health-report-header">
-
-
-
                         <div class="health-report-title">Summary</div>
-
-
-
                         <span th:if="${appointmentSummary.warningFlag}" class="warning-chip">Warning</span>
-
-
-
                     </div>
 
-
-
-
-
-
-
                     <div class="health-grid">
-
-
-
                         <div class="health-item">
-
-
-
                             <div class="k">Weight</div>
-
-
-
                             <div class="v"
                                 th:text="${appointmentSummary.weightKg != null ? appointmentSummary.weightKg + ' kg' : '-'}">
                                 -</div>
-
-
-
                         </div>
-
-
-
                         <div class="health-item">
-
-
-
                             <div class="k">Temperature</div>
-
-
-
                             <div class="v"
                                 th:text="${appointmentSummary.temperature != null ? appointmentSummary.temperature + ' °C' : '-'}">
                                 -</div>
-
-
-
                         </div>
-
-
-
                         <div class="health-item">
-
-
-
                             <div class="k">Condition Before</div>
-
-
-
                             <div class="v" th:text="${appointmentSummary.conditionBefore ?: '-'}">-</div>
-
-
-
                         </div>
-
-
-
                         <div class="health-item">
-
-
-
                             <div class="k">Condition After</div>
-
-
-
                             <div class="v" th:text="${appointmentSummary.conditionAfter ?: '-'}">-</div>
-
-
-
                         </div>
-
-
-
                     </div>
-
-
-
-
-
-
 
                     <div class="health-notes">
-
-
-
                         <div class="block"><strong>Findings:</strong> <span
                                 th:text="${appointmentSummary.findings ?: '-'}">-</span></div>
-
-
-
                         <div class="block"><strong>Recommendations:</strong> <span
                                 th:text="${appointmentSummary.recommendations ?: '-'}">-</span></div>
-
-
-
                         <div class="block"><strong>Notes:</strong> <span
                                 th:text="${appointmentSummary.note ?: '-'}">-</span></div>
-
-
-
                     </div>
-
                     <div class="health-notes" th:if="${vaccineRecords != null and !#lists.isEmpty(vaccineRecords)}">
                         <div class="block" style="border-left:4px solid #f59e0b; background:#fff7ed;">
                             <strong>Vaccination</strong>
@@ -809,34 +257,9 @@
                     >
                         No summary photos.
                     </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                 </div>
-
-
-
             </div>
-
-
-
         </section>
-
-
 
         <section class="card" th:if="${appointment != null}">
             <header class="card-header">
@@ -906,254 +329,86 @@
             </div>
         </div>
 
-
-
-
-
-
-
-
-    <style>
-        .info-grid {
-
-
-
-            display: grid;
-
-
-
-            grid-template-columns: 1fr 1fr;
-
-
-
-            gap: 20px;
-
-
-
-        }
-
-
-
-        .service-list {
-
-
-
-            display: flex;
-
-
-
-            flex-direction: column;
-
-
-
-            gap: 12px;
-
-
-
-        }
-
-
-
-        .service-item {
-
-
-
-            display: flex;
-
-
-
-            justify-content: space-between;
-
-
-
-            align-items: flex-start;
-
-
-
-            padding: 12px 16px;
-
-
-
-            border: 1px solid var(--border);
-
-
-
-            border-radius: 12px;
-
-
-
-            background: #fff;
-
-
-
-        }
-
-
-
-        .service-name {
-
-
-
-            margin: 0 0 6px;
-
-
-
-            font-weight: 700;
-
-
-
-        }
-
-
-
-        .service-meta {
-
-
-
-            margin: 0;
-
-
-
-            font-size: 0.85rem;
-
-
-
-            color: var(--muted);
-
-
-
-            display: flex;
-
-
-
-            gap: 12px;
-
-
-
-            align-items: center;
-
-
-
-        }
-
-
-
-        .service-price {
-
-
-
-            text-align: right;
-
-
-
-            font-weight: 800;
-
-
-
-            color: var(--primary);
-
-
-
-        }
-
-
-
-        .service-price small {
-
-
-
-            display: block;
-
-
-
-            font-weight: 400;
-
-
-
-            color: var(--muted);
-
-
-
-        }
-
-
-
-        @media (max-width: 768px) {
-
-
-
+        <style>
             .info-grid {
-
-
-
-                grid-template-columns: 1fr;
-
-
-
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
             }
-
-
-
-            .service-item {
-
-
-
+            .service-list {
+                display: flex;
                 flex-direction: column;
-
-
-
-                gap: 8px;
-
-
-
+                gap: 12px;
             }
-
-
-
+            .service-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                padding: 12px 16px;
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                background: #fff;
+            }
+            .service-name {
+                margin: 0 0 6px;
+                font-weight: 700;
+            }
+            .service-meta {
+                margin: 0;
+                font-size: 0.85rem;
+                color: var(--muted);
+                display: flex;
+                gap: 12px;
+                align-items: center;
+            }
             .service-price {
-
-
-
-                text-align: left;
-
-
-
+                text-align: right;
+                font-weight: 800;
+                color: var(--primary);
             }
-
-
-
-        }
-    </style>
-
-    <script>
-        function openPaymentMethodModal(apptId) {
-            const modal = document.getElementById('paymentMethodModal');
-            const form = document.getElementById('paymentMethodForm');
-            if (form) {
-                form.action = '/customer/appointments/' + apptId + '/pay';
+            .service-price small {
+                display: block;
+                font-weight: 400;
+                color: var(--muted);
             }
-            if (modal) {
-                modal.style.display = 'block';
+            @media (max-width: 768px) {
+                .info-grid {
+                    grid-template-columns: 1fr;
+                }
+                .service-item {
+                    flex-direction: column;
+                    gap: 8px;
+                }
+                .service-price {
+                    text-align: left;
+                }
             }
-        }
-        function closePaymentMethodModal() {
-            const modal = document.getElementById('paymentMethodModal');
-            if (modal) {
-                modal.style.display = 'none';
-            }
-        }
-        window.addEventListener('click', function (event) {
-            const paymentMethodModal = document.getElementById('paymentMethodModal');
-            if (event.target === paymentMethodModal) {
-                paymentMethodModal.style.display = 'none';
-            }
-        });
-    </script>
+        </style>
 
+        <script>
+            function openPaymentMethodModal(apptId) {
+                const modal = document.getElementById('paymentMethodModal');
+                const form = document.getElementById('paymentMethodForm');
+                if (form) {
+                    form.action = '/customer/appointments/' + apptId + '/pay';
+                }
+                if (modal) {
+                    modal.style.display = 'block';
+                }
+            }
+            function closePaymentMethodModal() {
+                const modal = document.getElementById('paymentMethodModal');
+                if (modal) {
+                    modal.style.display = 'none';
+                }
+            }
+            window.addEventListener('click', function (event) {
+                const paymentMethodModal = document.getElementById('paymentMethodModal');
+                if (event.target === paymentMethodModal) {
+                    paymentMethodModal.style.display = 'none';
+                }
+            });
+        </script>
     </main>
-
 </body>
-
-
-
 </html>
