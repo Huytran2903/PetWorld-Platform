@@ -38,6 +38,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -265,7 +266,7 @@ public class AdminController {
 
             e.printStackTrace();
             model.addAttribute("formMode", formMode);
-            model.addAttribute("errorMessage", "Lỗi khi lưu ảnh: " + e.getMessage());
+            model.addAttribute("errorMessage", "Error upload: " + e.getMessage());
             return "admin/pet-form";
         }
 
@@ -330,17 +331,14 @@ public class AdminController {
             boolean hasProducts = categoryService.hasProducts(id);
 
             if (hasProducts) {
-
-                redirectAttributes.addFlashAttribute("errorMessage", "Không thể xóa! Danh mục này vẫn đang chứa sản phẩm.");
+                redirectAttributes.addFlashAttribute("errorMessage", "Cannot delete! This category still contains products.");
             } else {
-
                 categoryService.deleteCategoryById(id);
-                redirectAttributes.addFlashAttribute("successMessage", "Xóa danh mục thành công!");
+                redirectAttributes.addFlashAttribute("successMessage", "Category deleted successfully!");
             }
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Đã xảy ra lỗi trong quá trình xóa.");
+            redirectAttributes.addFlashAttribute("errorMessage", "An error occurred while deleting the category.");
         }
-
         return "redirect:/admin/manage-categories";
     }
 
@@ -600,9 +598,19 @@ public class AdminController {
     public String deleteStaff(@RequestParam("staffId") Integer staffId,
                               @RequestParam(value = "transferStaffId", required = false) Integer transferStaffId,
                               RedirectAttributes ra) {
-        staffService.deleteAndTransferWork(staffId, transferStaffId);
+        try {
+            staffService.deleteAndTransferWork(staffId, transferStaffId);
 
-        ra.addFlashAttribute("success", "Xóa và bàn giao công việc thành công!");
+            ra.addFlashAttribute("message", "Staff deleted and tasks reassigned successfully!");
+
+        } catch (IllegalStateException e) {
+
+            ra.addFlashAttribute("error", e.getMessage());
+
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "A system error occurred while deleting the staff member. Please try again!");
+        }
+
         return "redirect:/admin/staff-manage";
     }
 
@@ -661,7 +669,7 @@ public class AdminController {
     public String editVaccinationRecord(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
         Optional<PetVaccinations> opt = petVaccinationRepository.findById(id);
         if (opt.isEmpty()) {
-            redirectAttributes.addFlashAttribute("error", "Không tìm thấy bản ghi tiêm chủng.");
+            redirectAttributes.addFlashAttribute("error", "Vaccination record not found.");
             return "redirect:/admin/vaccination-records";
         }
         PetVaccinations v = opt.get();
@@ -680,7 +688,7 @@ public class AdminController {
                                         RedirectAttributes redirectAttributes) {
         Optional<PetVaccinations> opt = petVaccinationRepository.findById(id);
         if (opt.isEmpty()) {
-            redirectAttributes.addFlashAttribute("error", "Không tìm thấy bản ghi tiêm chủng.");
+            redirectAttributes.addFlashAttribute("error", "Vaccination record not found.");
             return "redirect:/admin/vaccination-records";
         }
         PetVaccinations v = opt.get();
@@ -705,7 +713,7 @@ public class AdminController {
             v.setNote(t.isEmpty() ? null : t);
         }
         petVaccinationRepository.save(v);
-        redirectAttributes.addFlashAttribute("message", "Đã cập nhật bản ghi tiêm chủng.");
+        redirectAttributes.addFlashAttribute("message", "Vaccination record updated successfully.");
         return "redirect:/admin/vaccination-records";
     }
 
@@ -869,16 +877,30 @@ public class AdminController {
             @RequestParam(value = "endDate", required = false) String endDate,
             Model model) {
 
-        LocalDate start = (startDate != null && !startDate.isEmpty()) ?
-                LocalDate.parse(startDate) : LocalDate.of(2020, 1, 1);
-        LocalDate end = (endDate != null && !endDate.isEmpty()) ?
-                LocalDate.parse(endDate) : LocalDate.now();
+        LocalDate defaultStart = LocalDate.of(2020, 1, 1);
+        LocalDate defaultEnd = LocalDate.now();
+        LocalDate start;
+        LocalDate end;
+
+        try {
+            start = (startDate != null && !startDate.isBlank()) ? LocalDate.parse(startDate.trim()) : defaultStart;
+            end = (endDate != null && !endDate.isBlank()) ? LocalDate.parse(endDate.trim()) : defaultEnd;
+            if (start.isAfter(end)) {
+                model.addAttribute("error", "Start date must be earlier than or equal to end date.");
+                start = defaultStart;
+                end = defaultEnd;
+            }
+        } catch (DateTimeParseException e) {
+            model.addAttribute("error", "Invalid date format. Please use the date picker and try again.");
+            start = defaultStart;
+            end = defaultEnd;
+        }
 
         PetStatisticsDTO statistics = petService.getPetStatistics(start, end);
 
         model.addAttribute("statistics", statistics);
-        model.addAttribute("startDate", startDate);
-        model.addAttribute("endDate", endDate);
+        model.addAttribute("startDate", start.toString());
+        model.addAttribute("endDate", end.toString());
 
         return "admin/statistics/pet-report";
     }
@@ -889,10 +911,17 @@ public class AdminController {
             @RequestParam(value = "startDate", required = false) String startDate,
             @RequestParam(value = "endDate", required = false) String endDate) {
 
-        LocalDate start = (startDate != null && !startDate.isEmpty()) ?
-                LocalDate.parse(startDate) : LocalDate.of(2020, 1, 1);
-        LocalDate end = (endDate != null && !endDate.isEmpty()) ?
-                LocalDate.parse(endDate) : LocalDate.now();
+        LocalDate start;
+        LocalDate end;
+        try {
+            start = (startDate != null && !startDate.isBlank()) ? LocalDate.parse(startDate.trim()) : LocalDate.of(2020, 1, 1);
+            end = (endDate != null && !endDate.isBlank()) ? LocalDate.parse(endDate.trim()) : LocalDate.now();
+            if (start.isAfter(end)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Start date must be earlier than or equal to end date.");
+            }
+        } catch (DateTimeParseException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid date format. Please use yyyy-MM-dd.");
+        }
 
         PetStatisticsDTO statistics = petService.getPetStatistics(start, end);
 
@@ -989,13 +1018,13 @@ public class AdminController {
 
             orderService.updateOrderStatusByAdmin(orderID, status);
 
-            redirectAttributes.addFlashAttribute("successMessage", "Cập nhật trạng thái đơn hàng #" + orderID + " thành công!");
+            redirectAttributes.addFlashAttribute("successMessage", "Order #" + orderID + " status updated successfully!");
 
         } catch (RuntimeException e) {
 
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Đã xảy ra lỗi hệ thống: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", "A system error occurred: " + e.getMessage());
         }
 
 

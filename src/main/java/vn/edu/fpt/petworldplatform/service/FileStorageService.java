@@ -54,6 +54,6 @@ public class FileStorageService {
             Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
         }
 
-        return "/uploads/" + fileName; // Trả về đường dẫn để lưu vào Database
+        return "/uploads/" + fileName;
     }
 }

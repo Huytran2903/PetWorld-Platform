@@ -654,46 +654,49 @@ public class CustomerController {
     // Backward-compatible mapping: some pages might still link to /customer/pet/create
     @GetMapping({"/customer/pet/pet-create", "/customer/pet/create"})
     public String showPetCreatePage(Model model) {
-        model.addAttribute("petDTO", new PetCreateDTO());
+        if (!model.containsAttribute("petDTO")) {
+            model.addAttribute("petDTO", new PetCreateDTO());
+        }
         return "customer/pet/pet-create";
     }
 
     @PostMapping({"/customer/pet/pet-create", "/customer/pet/create"})
     public String handlePetCreateSubmit(HttpSession session,
-                                        @ModelAttribute PetCreateDTO petDTO,
+                                        @Valid @ModelAttribute("petDTO") PetCreateDTO petDTO,
+                                        BindingResult bindingResult,
+                                        Model model,
                                         RedirectAttributes redirectAttributes) {
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
         if (customer == null) return "redirect:/login";
 
+        if (bindingResult.hasErrors()) {
+            return "customer/pet/pet-create";
+        }
+
         try {
-            // Thiết lập thông tin chủ sở hữu
             petDTO.setCreatePetOwnerType("customer");
             petDTO.setOwnerId(customer.getCustomerId());
 
             MultipartFile imageFile = petDTO.getImageFile();
-
 
             if (imageFile != null && !imageFile.isEmpty()) {
                 String secureImageUrl = fileStorageService.storeFile(imageFile);
                 petDTO.setImageUrl(secureImageUrl);
             }
 
-            // Lưu thú cưng vào Database
             petService.createPet(petDTO);
 
-            redirectAttributes.addFlashAttribute("message", "Thêm thú cưng thành công!");
+            redirectAttributes.addFlashAttribute("message", "Pet added successfully.");
             return "redirect:/customer/pet/my-pets";
 
         } catch (RuntimeException e) {
-            // Bắt lỗi bảo mật từ FileStorageService (Sai đuôi file, file hack...)
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/customer/pet/pet-create";
+            model.addAttribute("error", e.getMessage());
+            return "customer/pet/pet-create";
 
         } catch (Exception e) {
-            // Bắt các lỗi hệ thống (IOException, Database error...)
             e.printStackTrace();
-            redirectAttributes.addFlashAttribute("error", "Lỗi hệ thống: " + e.getMessage());
-            return "redirect:/customer/pet/pet-create";
+            model.addAttribute("error", "Unable to create pet at the moment. Please try again.");
+            return "customer/pet/pet-create";
         }
     }
 
@@ -713,14 +716,24 @@ public class CustomerController {
     }
 
     @GetMapping("/customer/pet/pet-update")
-    public String showPetUpdatePage(@RequestParam("id") Integer id, Model model, HttpSession session) {
+    public String showPetUpdatePage(@RequestParam("id") Integer id,
+                                    Model model,
+                                    HttpSession session,
+                                    RedirectAttributes redirectAttributes) {
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
         if (customer == null) return "redirect:/login";
 
-        Pets pet = petService.getPetById(id);
+        Pets pet;
+        try {
+            pet = petService.getPetById(id);
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("error", "Pet not found.");
+            return "redirect:/customer/pet/my-pets";
+        }
 
-        if (!pet.getOwner().getCustomerId().equals(customer.getCustomerId())) {
-            return "redirect:/access-denied";
+        if (pet.getOwner() == null || !pet.getOwner().getCustomerId().equals(customer.getCustomerId())) {
+            redirectAttributes.addFlashAttribute("error", "You are not allowed to update this pet.");
+            return "redirect:/customer/pet/my-pets";
         }
 
         model.addAttribute("pet", pet);
@@ -728,15 +741,46 @@ public class CustomerController {
     }
 
     @PostMapping("/customer/pet/pet-update")
-    public String handlePetUpdateSubmit(@ModelAttribute Pets petFromForm,
+    public String handlePetUpdateSubmit(@Valid @ModelAttribute("pet") Pets petFromForm,
+                                        BindingResult bindingResult,
                                         @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
-                                        RedirectAttributes redirectAttributes
-                                        ) {
-        try {
-            // 1. Lấy thú cưng hiện tại từ Database
-            Pets existingPet = petService.getPetById(petFromForm.getPetID());
+                                        HttpSession session,
+                                        Model model,
+                                        RedirectAttributes redirectAttributes) {
+        Customer customer = (Customer) session.getAttribute("loggedInAccount");
+        if (customer == null) {
+            return "redirect:/login";
+        }
 
-            // 2. Cập nhật các thông tin cơ bản từ Form
+        Integer petId = petFromForm.getPetID();
+        if (petId == null) {
+            redirectAttributes.addFlashAttribute("error", "You are not allowed to update this pet.");
+            return "redirect:/customer/pet/my-pets";
+        }
+
+        Pets existingPet;
+        try {
+            existingPet = petService.getPetById(petId);
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("error", "Pet not found.");
+            return "redirect:/customer/pet/my-pets";
+        }
+
+        if (existingPet.getOwner() == null || !existingPet.getOwner().getCustomerId().equals(customer.getCustomerId())) {
+            redirectAttributes.addFlashAttribute("error", "You are not allowed to update this pet.");
+            return "redirect:/customer/pet/my-pets";
+        }
+
+        if (bindingResult.hasErrors()) {
+            petFromForm.setOwner(existingPet.getOwner());
+            if (petFromForm.getImageUrl() == null || petFromForm.getImageUrl().isBlank()) {
+                petFromForm.setImageUrl(existingPet.getImageUrl());
+            }
+            model.addAttribute("pet", petFromForm);
+            return "customer/pet/pet-update";
+        }
+
+        try {
             existingPet.setName(petFromForm.getName());
             existingPet.setAgeMonths(petFromForm.getAgeMonths());
             existingPet.setPetType(petFromForm.getPetType());
@@ -744,31 +788,26 @@ public class CustomerController {
             existingPet.setWeightKg(petFromForm.getWeightKg());
             existingPet.setColor(petFromForm.getColor());
             existingPet.setNote(petFromForm.getNote());
-
-            existingPet.setOwner(existingPet.getOwner());
-
+            existingPet.setGender(petFromForm.getGender());
 
             if (imageFile != null && !imageFile.isEmpty()) {
                 String secureImageUrl = fileStorageService.storeFile(imageFile);
                 existingPet.setImageUrl(secureImageUrl);
             }
 
-            // 4. Lưu lại vào Database
             petService.savePet(existingPet);
 
-            redirectAttributes.addFlashAttribute("message", "Cập nhật thành công!");
+            redirectAttributes.addFlashAttribute("message", "Pet profile updated successfully.");
             return "redirect:/customer/pet/pet-detail?id=" + existingPet.getPetID();
 
         } catch (RuntimeException e) {
-            // Bắt lỗi bảo mật file (sai đuôi file, sai định dạng MIME...)
             redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/customer/pet/pet-update?id=" + petFromForm.getPetID();
+            return "redirect:/customer/pet/pet-update?id=" + petId;
 
         } catch (Exception e) {
-            // Bắt lỗi hệ thống (IOException, mất kết nối DB...)
             e.printStackTrace();
-            redirectAttributes.addFlashAttribute("error", "Lỗi cập nhật: " + e.getMessage());
-            return "redirect:/customer/pet/pet-update?id=" + petFromForm.getPetID();
+            redirectAttributes.addFlashAttribute("error", "Unable to update pet profile. Please try again.");
+            return "redirect:/customer/pet/pet-update?id=" + petId;
         }
     }
 
