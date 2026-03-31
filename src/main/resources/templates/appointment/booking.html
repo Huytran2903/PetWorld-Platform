@@ -70,7 +70,7 @@
         </header>
 
         <div class="card-body">
-            <form id="bookForm" th:action="@{/appointment/create}" method="post">
+            <form id="bookForm" th:action="@{/appointment/create}" method="post" novalidate>
                 <input
                         type="hidden"
                         name="serviceType"
@@ -82,14 +82,16 @@
                 <div class="grid">
                     <div>
                         <label for="petId">Select Pet</label>
-                        <select id="petId" name="petId" required>
+                        <select id="petId" name="petId">
                             <option value="">— Select your pet —</option>
                             <option
                                     th:each="pet : ${petList}"
                                     th:value="${pet.id}"
+                                    th:selected="${formPetId != null and formPetId == pet.id}"
                                     th:text="${pet.name} + ' (' + ${pet.petType} + ')'"
                             ></option>
                         </select>
+                        <p id="booking-pet-error" class="booking-field-error" role="alert"></p>
 
                         <div class="hint" th:if="${#lists.isEmpty(petList)}">
                             You have no pets.
@@ -103,9 +105,10 @@
                                 type="datetime-local"
                                 id="appointmentDate"
                                 name="appointmentDate"
-                                required
+                                th:value="${formAppointmentDate != null ? formAppointmentDate : ''}"
                         />
                         <div class="hint" style="color: #dc3545;">Note: Booking must be at least 2 hours ahead and within 30 days from now.</div>
+                        <p id="booking-datetime-error" class="booking-field-error" role="alert"></p>
                     </div>
                 </div>
 
@@ -134,6 +137,7 @@
                                                 type="checkbox"
                                                 name="mainServices"
                                                 th:value="${svc.id}"
+                                                th:checked="${selectedServiceIds != null and selectedServiceIds.contains(svc.id)}"
                                                 th:data-type="${svc.serviceType != null ? svc.serviceType.name : ''}"
                                                 th:data-price="${svc.basePrice}"
                                                 th:data-duration="${svc.durationMinutes}"
@@ -198,6 +202,7 @@
                             id="note"
                             name="note"
                             placeholder="Ex: Allergies, aggressive behavior, needs muzzle..."
+                            th:text="${formNote != null ? formNote : ''}"
                     ></textarea>
                 </div>
 

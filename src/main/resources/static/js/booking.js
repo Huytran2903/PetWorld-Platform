@@ -7,6 +7,40 @@ document.addEventListener("DOMContentLoaded", function() {
     const sumTotal = document.getElementById("sumTotal");
     const petSelect = document.getElementById("petId");
     const appointmentDateInput = document.getElementById("appointmentDate");
+    const petErrorEl = document.getElementById("booking-pet-error");
+    const dateTimeErrorEl = document.getElementById("booking-datetime-error");
+
+    function clearBookingFieldErrors() {
+        [petSelect, appointmentDateInput].forEach((el) => el?.classList.remove("booking-input-invalid"));
+        if (petErrorEl) {
+            petErrorEl.textContent = "";
+            petErrorEl.classList.remove("is-visible");
+        }
+        if (dateTimeErrorEl) {
+            dateTimeErrorEl.textContent = "";
+            dateTimeErrorEl.classList.remove("is-visible");
+        }
+    }
+
+    function showPetError(message) {
+        if (petErrorEl) {
+            petErrorEl.textContent = message;
+            petErrorEl.classList.add("is-visible");
+        }
+        petSelect?.classList.add("booking-input-invalid");
+        petSelect?.focus();
+        petSelect?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function showDateTimeError(message) {
+        if (dateTimeErrorEl) {
+            dateTimeErrorEl.textContent = message;
+            dateTimeErrorEl.classList.add("is-visible");
+        }
+        appointmentDateInput?.classList.add("booking-input-invalid");
+        appointmentDateInput?.focus();
+        appointmentDateInput?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
 
     /** Latest eligibility locks by service name (lowercase) — used to block race if user clicks before UI updates */
     let vaccineLocksByName = new Map();
@@ -253,13 +287,18 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Đổi pet: bỏ chọn vaccine (tránh giữ tick của pet khác), rồi tải eligibility
     petSelect?.addEventListener("change", () => {
+        clearBookingFieldErrors();
         form.querySelectorAll("input[name='mainServices']").forEach(inp => {
             if (isVaccineCheckbox(inp)) inp.checked = false;
         });
         calculateTotal();
         refreshVaccineEligibility();
     });
-    appointmentDateInput?.addEventListener("change", refreshVaccineEligibility);
+    appointmentDateInput?.addEventListener("change", () => {
+        clearBookingFieldErrors();
+        refreshVaccineEligibility();
+    });
+    appointmentDateInput?.addEventListener("input", clearBookingFieldErrors);
 
     // Vaccine bị khóa: không hiện chữ trong bảng; chỉ báo khi user click vào hàng (checkbox disabled thường không nhận click).
     form.addEventListener("click", (e) => {
@@ -275,21 +314,52 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Xử lý trước khi submit (nếu cần gộp note)
     form.addEventListener("submit", (e) => {
-        if (appointmentDateInput && appointmentDateInput.value) {
-            const selected = new Date(appointmentDateInput.value);
-            const now = new Date();
-            const minDate = new Date(now.getTime() + LEAD_HOURS * 60 * 60 * 1000);
-            const maxDate = new Date(now.getTime() + MAX_ADVANCE_DAYS * 24 * 60 * 60 * 1000);
-            if (selected < minDate) {
-                e.preventDefault();
-                alert("Booking must be at least 2 hours in advance.");
-                return;
-            }
-            if (selected > maxDate) {
-                e.preventDefault();
-                alert("Booking can only be made up to 30 days in advance.");
-                return;
-            }
+        clearBookingFieldErrors();
+
+        const petIdVal = (petSelect?.value || "").trim();
+        if (!petIdVal) {
+            e.preventDefault();
+            showPetError("Please select your pet.");
+            return;
+        }
+
+        const dateVal = (appointmentDateInput?.value || "").trim();
+        if (!dateVal) {
+            e.preventDefault();
+            showDateTimeError("Please choose an appointment date and time.");
+            return;
+        }
+
+        const selected = new Date(appointmentDateInput.value);
+        if (Number.isNaN(selected.getTime())) {
+            e.preventDefault();
+            showDateTimeError("Please enter a valid date and time.");
+            return;
+        }
+
+        const now = new Date();
+        const minDate = new Date(now.getTime() + LEAD_HOURS * 60 * 60 * 1000);
+        const maxDate = new Date(now.getTime() + MAX_ADVANCE_DAYS * 24 * 60 * 60 * 1000);
+        if (selected < minDate) {
+            e.preventDefault();
+            showDateTimeError("Booking must be at least 2 hours in advance.");
+            return;
+        }
+        if (selected > maxDate) {
+            e.preventDefault();
+            showDateTimeError("Booking can only be made up to 30 days in advance.");
+            return;
+        }
+
+        const hour = selected.getHours();
+        const minute = selected.getMinutes();
+        const minutesOfDay = hour * 60 + minute;
+        const openMinutes = 8 * 60;
+        const closeMinutes = 20 * 60;
+        if (minutesOfDay < openMinutes || minutesOfDay >= closeMinutes) {
+            e.preventDefault();
+            showDateTimeError("Selected time is outside operating hours (08:00 – 20:00).");
+            return;
         }
 
         const boardingHint = document.getElementById("boardingHint");

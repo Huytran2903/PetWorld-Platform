@@ -208,6 +208,7 @@ public class AuthController {
 
             redirectAttributes.addFlashAttribute("emailForgot", email);
 
+
             redirectAttributes.addFlashAttribute("message", "OTP has been sent to " + email);
             redirectAttributes.addFlashAttribute("openOtpModal", true);
 
@@ -225,9 +226,9 @@ public class AuthController {
         String email = (String) session.getAttribute("resetEmail");
         Customer customer = customerService.getByResetPasswordToken(otp);
         redirectAttributes.addFlashAttribute("emailForgot", email);
-
         if (customer == null || !customer.getEmail().equals(email)) {
             redirectAttributes.addFlashAttribute("error", "Invalid or expired OTP code!");
+
             redirectAttributes.addFlashAttribute("openOtpModal", true);
             return "redirect:/login";
         }

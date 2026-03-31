@@ -222,14 +222,14 @@
                                         <span th:if="${appointment.status == 'done'}"
                                               th:classappend="${appointmentPaymentPaid} ? 'bg-success' : 'bg-warning text-dark'"
                                               class="badge ms-2"
-                                              th:text="${appointmentPaymentPaid} ? 'Đã thanh toán' : 'Not paid'">Payment</span>
+                                              th:text="${appointmentPaymentPaid} ? 'payment successful' : 'Not paid'">Payment</span>
                                     </div>
                                 </div>
 
                                 <div class="col-md-6" th:if="${appointment.status == 'done'}">
                                     <label class="form-label text-muted small">Payment Status</label>
                                     <div class="fw-bold">
-                                        <span th:if="${appointmentPaymentPaid}" class="text-success">Đã thanh toán</span>
+                                        <span th:if="${appointmentPaymentPaid}" class="text-success">Payment successful</span>
                                         <span th:unless="${appointmentPaymentPaid}" class="text-warning">Not paid</span>
                                         <span th:if="${appointmentTotalAmount != null}"
                                               class="text-muted ms-1 small" th:text="'(' + ${#numbers.formatDecimal(appointmentTotalAmount, 0, 'POINT', 0, 'COMMA')} + ' ₫)'">(amount)</span>
@@ -286,7 +286,7 @@
                                                     th:each="staff : ${assignedManagers}"
                                                     th:value="${staff.staffId}"
                                                     th:selected="${currentManagerId != null and currentManagerId == staff.staffId}"
-                                                    th:text="${staff.fullName + ' (' + staff.role.roleName + ')'}"
+                                                    th:text="${staff.fullName + (staff.role != null and staff.role.roleName != null and !#strings.toLowerCase(staff.role.roleName).equals('admin') ? ' (' + staff.role.roleName + ')' : '')}"
                                                 >
                                                     Staff Name
                                                 </option>
@@ -546,7 +546,8 @@
                                     >
                                         <div class="mb-2">
                                             <select name="staffId" class="form-select" required>
-                                                <option value="" disabled selected>
+                                                <option value="" disabled
+                                                        th:selected="${line.assignedStaffId == null}">
                                                     Select staff for this service...
                                                 </option>
 
@@ -554,7 +555,7 @@
                                                     th:each="staff : ${availableStaffByLine[line.id]}"
                                                     th:value="${staff.staffId}"
                                                     th:selected="${line.assignedStaffId != null and line.assignedStaffId == staff.staffId}"
-                                                    th:text="${staff.fullName + ' (' + staff.role.roleName + ')'}"
+                                                    th:text="${staff.fullName + (staff.role != null and staff.role.roleName != null and !#strings.toLowerCase(staff.role.roleName).equals('admin') ? ' (' + staff.role.roleName + ')' : '')}"
                                                 >
                                                     Staff Name
                                                 </option>

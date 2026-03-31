@@ -14,5 +14,4 @@ public interface AppointmentSummaryRepository extends JpaRepository<AppointmentS
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(value = "UPDATE AppointmentSummaries SET SummaryByStaffID = NULL WHERE SummaryByStaffID = :oldStaffId", nativeQuery = true)
     void clearAllAppointmentSummary(@Param("oldStaffId") Integer oldStaffId);
-
 }
