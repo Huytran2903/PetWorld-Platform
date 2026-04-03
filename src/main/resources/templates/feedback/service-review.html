@@ -170,6 +170,10 @@
                                    multiple class="file-input"/>
                         </div>
                         <div class="image-preview" id="imagePreview"></div>
+                        <div class="field-error" id="imageUploadError" style="display:none;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span id="imageUploadErrorText"></span>
+                        </div>
                     </div>
 
                     <!-- Action Buttons -->
@@ -248,6 +252,82 @@
         const uploadArea = document.getElementById('uploadArea');
         const imageFiles = document.getElementById('imageFiles');
         const imagePreview = document.getElementById('imagePreview');
+        const imageUploadError = document.getElementById('imageUploadError');
+        const imageUploadErrorText = document.getElementById('imageUploadErrorText');
+        const MAX_FILES = 5;
+        const MAX_FILE_SIZE = 5 * 1024 * 1024;
+        const MAX_FILES_MESSAGE = 'You can upload up to 5 images only. Please remove some images before adding more.';
+
+        let selectedFiles = [];
+
+        function showUploadError(message) {
+            imageUploadErrorText.textContent = message;
+            imageUploadError.style.display = 'flex';
+        }
+
+        function clearUploadError() {
+            imageUploadErrorText.textContent = '';
+            imageUploadError.style.display = 'none';
+        }
+
+        function syncSelectedFilesToInput() {
+            const dt = new DataTransfer();
+            selectedFiles.forEach(file => dt.items.add(file));
+            imageFiles.files = dt.files;
+        }
+
+        function renderPreview() {
+            imagePreview.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const div = document.createElement('div');
+                    div.className = 'preview-item';
+                    div.innerHTML =
+                        '<img src="' + e.target.result + '" alt="Preview"/>' +
+                        '<button type="button" class="remove-preview" onclick="removeImage(' + index + ')">' +
+                        '<i class="fas fa-times"></i></button>';
+                    imagePreview.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function isSameFile(fileA, fileB) {
+            return fileA.name === fileB.name &&
+                fileA.size === fileB.size &&
+                fileA.lastModified === fileB.lastModified;
+        }
+
+        function appendFiles(fileList) {
+            clearUploadError();
+            const incomingFiles = Array.from(fileList || []);
+
+            for (const file of incomingFiles) {
+                const fileName = (file.name || '').toLowerCase();
+                const hasAllowedExtension = /\.(jpg|jpeg|png|webp|gif)$/.test(fileName);
+
+                if (!hasAllowedExtension || (file.type && !file.type.startsWith('image/'))) {
+                    showUploadError('Only image files are allowed: ' + file.name);
+                    continue;
+                }
+                if (file.size > MAX_FILE_SIZE) {
+                    showUploadError('Image "' + file.name + '" exceeds 5MB and cannot be uploaded.');
+                    continue;
+                }
+                if (selectedFiles.some(existing => isSameFile(existing, file))) {
+                    continue;
+                }
+                if (selectedFiles.length >= MAX_FILES) {
+                    showUploadError(MAX_FILES_MESSAGE);
+                    break;
+                }
+                selectedFiles.push(file);
+            }
+
+            syncSelectedFilesToInput();
+            renderPreview();
+        }
 
         uploadArea.addEventListener('click', (e) => {
             // Avoid triggering the picker twice when clicking directly on the file input.
@@ -273,45 +353,20 @@
         uploadArea.addEventListener('drop', e => {
             e.preventDefault();
             uploadArea.classList.remove('drag-over');
-            imageFiles.files = e.dataTransfer.files;
-            previewImages();
+            appendFiles(e.dataTransfer.files);
         });
 
-        imageFiles.addEventListener('change', previewImages);
-
-        function previewImages() {
-            imagePreview.innerHTML = '';
-            const files = imageFiles.files;
-            const maxFiles = 5;
-            if (files.length > maxFiles) {
-                alert('You can upload a maximum of ' + maxFiles + ' images.');
-                imageFiles.value = '';
-                return;
-            }
-            Array.from(files).forEach((file, index) => {
-                if (!file.type.startsWith('image/')) return;
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const div = document.createElement('div');
-                    div.className = 'preview-item';
-                    div.innerHTML =
-                        '<img src="' + e.target.result + '" alt="Preview"/>' +
-                        '<button type="button" class="remove-preview" onclick="removeImage(' + index + ')">' +
-                        '<i class="fas fa-times"></i></button>';
-                    imagePreview.appendChild(div);
-                };
-                reader.readAsDataURL(file);
-            });
-        }
+        imageFiles.addEventListener('change', function () {
+            appendFiles(imageFiles.files);
+        });
 
         function removeImage(index) {
-            const dt = new DataTransfer();
-            const files = imageFiles.files;
-            for (let i = 0; i < files.length; i++) {
-                if (i !== index) dt.items.add(files[i]);
+            selectedFiles = selectedFiles.filter((_, i) => i !== index);
+            syncSelectedFilesToInput();
+            renderPreview();
+            if (selectedFiles.length < MAX_FILES) {
+                clearUploadError();
             }
-            imageFiles.files = dt.files;
-            previewImages();
         }
 
         // Reset form
@@ -320,7 +375,10 @@
             ratingInput.value = '';
             updateStars(0);
             charCount.textContent = '0';
-            imagePreview.innerHTML = '';
+            selectedFiles = [];
+            syncSelectedFilesToInput();
+            renderPreview();
+            clearUploadError();
             ratingText.textContent = 'Select a rating';
         }
 

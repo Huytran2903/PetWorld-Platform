@@ -30,7 +30,8 @@
                     <label for="imageFile" class="cursor-pointer bg-orange-50 text-orange-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-orange-100 transition">
                         Upload Photo
                     </label>
-                    <input type="file" id="imageFile" th:field="*{imageFile}" class="hidden" accept="image/*" onchange="previewImage(this)">
+                    <input type="file" id="imageFile" th:field="*{imageFile}" class="hidden" accept="image/*" onchange="handlePetCreateImageChange(this)">
+                    <p id="petImageError" class="mt-2 text-sm text-red-600 hidden"></p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -136,6 +137,37 @@
                 el.addEventListener('input', function () { el.setCustomValidity(''); });
             });
         })();
+
+        function handlePetCreateImageChange(input) {
+            var errorEl = document.getElementById('petImageError');
+            if (!input.files || !input.files[0]) {
+                if (errorEl) {
+                    errorEl.textContent = '';
+                    errorEl.classList.add('hidden');
+                }
+                return;
+            }
+
+            var file = input.files[0];
+            var fileName = (file.name || '').toLowerCase();
+            var hasAllowedExtension = /\.(jpg|jpeg|png|webp|gif)$/.test(fileName);
+            var isImageMime = !file.type || file.type.startsWith('image/');
+
+            if (!hasAllowedExtension || !isImageMime) {
+                input.value = '';
+                if (errorEl) {
+                    errorEl.textContent = 'Only image files (JPG, JPEG, PNG, WEBP, GIF) are allowed.';
+                    errorEl.classList.remove('hidden');
+                }
+                return;
+            }
+
+            if (errorEl) {
+                errorEl.textContent = '';
+                errorEl.classList.add('hidden');
+            }
+            previewImage(input);
+        }
     </script>
 </section>
 </html>

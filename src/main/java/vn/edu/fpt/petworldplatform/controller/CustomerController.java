@@ -583,7 +583,8 @@ public class CustomerController {
                              Model model,
                              @RequestParam(defaultValue = "0") int page,
                              @RequestParam(required = false) String search,
-                             @RequestParam(required = false) String petType) {
+                             @RequestParam(required = false) String petType,
+                             RedirectAttributes redirectAttributes) {
 
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
         if (customer == null) {
@@ -596,6 +597,15 @@ public class CustomerController {
 
         String normalizedSearch = search == null ? "" : search.trim();
         String selectedPetType = normalizePetTypeFilter(petType);
+        boolean invalidPetType = petType != null && !petType.trim().isEmpty() && selectedPetType == null;
+
+        if (invalidPetType) {
+            redirectAttributes.addAttribute("page", 0);
+            redirectAttributes.addAttribute("search", normalizedSearch);
+            redirectAttributes.addAttribute("petType", "");
+            return "redirect:/customer/pet/my-pets";
+        }
+
         String petTypeForQuery = mapPetTypeForQuery(selectedPetType);
 
         Page<Pets> petPage;
@@ -612,13 +622,25 @@ public class CustomerController {
             petPage = petRepo.findByOwner_CustomerId(customer.getCustomerId(), pageable);
         }
 
+        int totalPages = petPage.getTotalPages();
+        boolean outOfRangePage = page < 0
+                || (totalPages == 0 && safePage > 0)
+                || (totalPages > 0 && safePage >= totalPages);
+
+        if (outOfRangePage) {
+            redirectAttributes.addAttribute("page", 0);
+            redirectAttributes.addAttribute("search", normalizedSearch);
+            redirectAttributes.addAttribute("petType", selectedPetType != null ? selectedPetType : "");
+            return "redirect:/customer/pet/my-pets";
+        }
+
         List<Pets> myPets = petPage.getContent();
 
         model.addAttribute("myPets", myPets);
         model.addAttribute("search", normalizedSearch);
         model.addAttribute("selectedPetType", selectedPetType);
-        model.addAttribute("currentPage", safePage);
-        model.addAttribute("totalPages", petPage.getTotalPages());
+        model.addAttribute("currentPage", petPage.getNumber());
+        model.addAttribute("totalPages", totalPages);
         model.addAttribute("totalItems", petPage.getTotalElements());
         model.addAttribute("hasPrevious", petPage.hasPrevious());
         model.addAttribute("hasNext", petPage.hasNext());

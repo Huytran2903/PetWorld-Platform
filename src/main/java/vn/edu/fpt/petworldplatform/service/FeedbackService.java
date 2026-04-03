@@ -71,16 +71,29 @@ public class FeedbackService {
 
         feedback.setCustomer(loggedInCustomer);
 
-        String inputEmail = feedbackDTO.getEmail() != null ? feedbackDTO.getEmail().trim() : "";
-        String inputPhone = feedbackDTO.getPhoneNumber() != null ? feedbackDTO.getPhoneNumber().trim() : "";
-
-        String resolvedEmail = !inputEmail.isBlank() ? inputEmail : loggedInCustomer.getEmail();
-        String resolvedPhone = !inputPhone.isBlank() ? inputPhone : loggedInCustomer.getPhone();
+        String resolvedEmail = resolvePreferredValue(feedbackDTO.getEmail(), loggedInCustomer.getEmail());
+        String resolvedPhone = resolvePreferredValue(feedbackDTO.getPhoneNumber(), loggedInCustomer.getPhone());
 
         feedback.setEmail(resolvedEmail);
         feedback.setPhoneNumber(resolvedPhone);
 
         return feedbackRepository.save(feedback);
+    }
+
+    private String resolvePreferredValue(String userInputValue, String fallbackProfileValue) {
+        String normalizedUserInput = normalize(userInputValue);
+        if (normalizedUserInput != null) {
+            return normalizedUserInput;
+        }
+        return normalize(fallbackProfileValue);
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     /**
