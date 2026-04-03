@@ -40,19 +40,19 @@ public class StaffPaymentController {
 
         Integer staffId = resolveCurrentStaffId(authentication, session);
         if (staffId == null) {
-            redirectAttributes.addFlashAttribute("error", "Bạn cần đăng nhập để xác nhận thanh toán.");
+            redirectAttributes.addFlashAttribute("error", "Please sign in to confirm payment.");
             return "redirect:/staff/appointment_detail?id=" + id;
         }
 
         Appointment appointment = bookingService.findById(id).orElse(null);
         if (appointment == null) {
-            redirectAttributes.addFlashAttribute("error", "Appointment không tồn tại.");
+            redirectAttributes.addFlashAttribute("error", "Appointment not found.");
             return "redirect:/staff/appointment_detail?id=" + id;
         }
 
         // Only manager can confirm
         if (appointment.getStaffId() == null || !appointment.getStaffId().equals(staffId)) {
-            redirectAttributes.addFlashAttribute("error", "Bạn không có quyền xác nhận cho appointment này.");
+            redirectAttributes.addFlashAttribute("error", "You are not allowed to confirm payment for this appointment.");
             return "redirect:/staff/appointment_detail?id=" + id;
         }
 
@@ -63,12 +63,12 @@ public class StaffPaymentController {
 
         if (latestPayment == null || latestPayment.getMethod() == null
                 || !"cod".equalsIgnoreCase(latestPayment.getMethod())) {
-            redirectAttributes.addFlashAttribute("error", "Không tìm thấy COD payment đang chờ xác nhận cho appointment này.");
+            redirectAttributes.addFlashAttribute("error", "No pending cash-on-delivery payment was found for this appointment.");
             return "redirect:/staff/appointment_detail?id=" + id;
         }
 
         if (latestPayment.getPaidAt() != null) {
-            redirectAttributes.addFlashAttribute("message", "COD payment đã được xác nhận trước đó.");
+            redirectAttributes.addFlashAttribute("message", "This COD payment was already confirmed.");
             return "redirect:/staff/appointment_detail?id=" + id;
         }
 
@@ -85,7 +85,7 @@ public class StaffPaymentController {
         String message = "Your cash-on-delivery payment for appointment " + apptCode + " was recorded successfully.";
         notificationService.createForCustomer(notifyCustomer, appointment, title, message, "payment_success");
 
-        redirectAttributes.addFlashAttribute("message", "Đã xác nhận khách hàng thanh toán COD thành công.");
+        redirectAttributes.addFlashAttribute("message", "Customer's cash-on-delivery payment was confirmed successfully.");
         return "redirect:/staff/appointment_detail?id=" + id;
     }
 

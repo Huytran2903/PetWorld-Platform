@@ -6,7 +6,7 @@
     <title>Staff Profile - PetShop</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/sidebar-staff.css}">
+    <link rel="stylesheet" th:href="@{/css/sidebar-admin.css}">
     <style>
         /* Enable smooth scroll for quick-jump button */
         html {
@@ -40,8 +40,16 @@
         }
 
         /* ===== Main Layout ===== */
+        .staff-page-shell {
+            display: flex;
+            align-items: flex-start;
+            width: 100%;
+            min-height: 100vh;
+        }
+
         .main-content {
-            margin-left: 280px;
+            flex: 1;
+            min-width: 0;
             padding: 30px;
             min-height: 100vh;
         }
@@ -434,8 +442,11 @@
         }
 
         @media (max-width: 768px) {
+            .staff-page-shell {
+                flex-direction: column;
+            }
+
             .main-content {
-                margin-left: 0;
                 padding: 20px;
             }
 
@@ -450,7 +461,7 @@
     </style>
 </head>
 <body>
-
+<div class="staff-page-shell">
 <div th:replace="~{fragments/sidebar-staff :: aside(activePage='profile')}"></div>
 
 <main class="main-content">
@@ -662,5 +673,6 @@
         </div>
     </div>
 </main>
+</div>
 </body>
 </html>

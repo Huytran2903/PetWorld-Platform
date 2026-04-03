@@ -1,15 +1,12 @@
 <!DOCTYPE html>
-<html lang="en"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{fragments/layout_user}">
-<head>
-    <title th:text="'Tracking #' + ${appointment.appointmentCode}">Wait For Service</title>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/layout-public :: layout(~{::content}, ~{::headExtras}, ~{::pageScripts})}"
+      th:with="activePage='booking', pageTitle='Track Appointment'">
+<th:block th:fragment="headExtras">
     <link rel="stylesheet" th:href="@{/css/tracking.css}" />
-</head>
-
-<body>
-<main layout:fragment="content" class="container">
+</th:block>
+<div th:fragment="content">
+<main class="container">
 
     <div class="hero">
         <div class="hero-inner">
@@ -167,5 +164,6 @@
     </div>
 
 </main>
-</body>
+</div>
+<th:block th:fragment="pageScripts"></th:block>
 </html>

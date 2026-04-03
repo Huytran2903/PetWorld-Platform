@@ -57,6 +57,76 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     /** Chỉ hiện khi API eligibility lỗi; không giữ ô trống khi không có lỗi. */
+    function hideVaccineLockPopup() {
+        const backdrop = document.getElementById("booking-vaccine-modal");
+        if (!backdrop) return;
+        backdrop.classList.remove("is-open");
+        document.body.classList.remove("booking-modal-open");
+        document.removeEventListener("keydown", onVaccineModalEscape);
+    }
+
+    function onVaccineModalEscape(ev) {
+        if (ev.key === "Escape") hideVaccineLockPopup();
+    }
+
+    /** Custom English popup for locked vaccines (no browser alert). */
+    function showVaccineLockPopup(message) {
+        const text = (message || "").trim();
+        if (!text) return;
+
+        let backdrop = document.getElementById("booking-vaccine-modal");
+        if (!backdrop) {
+            backdrop = document.createElement("div");
+            backdrop.id = "booking-vaccine-modal";
+            backdrop.className = "booking-modal-backdrop";
+            backdrop.setAttribute("role", "dialog");
+            backdrop.setAttribute("aria-modal", "true");
+            backdrop.setAttribute("aria-labelledby", "booking-vaccine-modal-title");
+
+            const dialog = document.createElement("div");
+            dialog.className = "booking-modal-dialog";
+
+            const title = document.createElement("h3");
+            title.id = "booking-vaccine-modal-title";
+            title.className = "booking-modal-title";
+            title.textContent = "Vaccination not available";
+
+            const body = document.createElement("p");
+            body.className = "booking-modal-body";
+            body.id = "booking-vaccine-modal-body";
+
+            const actions = document.createElement("div");
+            actions.className = "booking-modal-actions";
+
+            const okBtn = document.createElement("button");
+            okBtn.type = "button";
+            okBtn.className = "booking-modal-btn booking-modal-btn--primary";
+            okBtn.textContent = "OK";
+
+            actions.appendChild(okBtn);
+            dialog.appendChild(title);
+            dialog.appendChild(body);
+            dialog.appendChild(actions);
+            backdrop.appendChild(dialog);
+            document.body.appendChild(backdrop);
+
+            okBtn.addEventListener("click", hideVaccineLockPopup);
+            backdrop.addEventListener("click", (e) => {
+                if (e.target === backdrop) hideVaccineLockPopup();
+            });
+            dialog.addEventListener("click", (e) => e.stopPropagation());
+        }
+
+        const bodyEl = backdrop.querySelector("#booking-vaccine-modal-body");
+        if (bodyEl) bodyEl.textContent = text;
+
+        backdrop.classList.add("is-open");
+        document.body.classList.add("booking-modal-open");
+        document.removeEventListener("keydown", onVaccineModalEscape);
+        document.addEventListener("keydown", onVaccineModalEscape);
+        backdrop.querySelector(".booking-modal-btn--primary")?.focus();
+    }
+
     function setEligibilityBanner(message) {
         const existing = document.getElementById("vaccine-eligibility-banner");
         if (!message || !String(message).trim()) {
@@ -92,6 +162,8 @@ document.addEventListener("DOMContentLoaded", function() {
     function setBookingDateBounds() {
         if (!appointmentDateInput) return;
         const now = new Date();
+        // Align to minute precision so "exactly 2 hours ahead" isn't rejected due to seconds/millis.
+        now.setSeconds(0, 0);
         const minDate = new Date(now.getTime() + LEAD_HOURS * 60 * 60 * 1000);
         const maxDate = new Date(now.getTime() + MAX_ADVANCE_DAYS * 24 * 60 * 60 * 1000);
         appointmentDateInput.min = toDateTimeLocalValue(minDate);
@@ -124,6 +196,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         vaccineLocksByName = new Map();
         setEligibilityBanner("");
+        hideVaccineLockPopup();
 
         // reset: clear vaccine disable state + inline hints
         inputs.forEach(inp => {
@@ -157,7 +230,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const ct = (res.headers.get("content-type") || "").toLowerCase();
             if (!res.ok || !ct.includes("application/json")) {
                 setEligibilityBanner(
-                    "Không tải được trạng thái vaccine (lỗi mạng hoặc phiên đăng nhập). Các mũi vaccine tạm thời bị khóa — vui lòng tải lại trang hoặc đăng nhập lại."
+                    "Could not load vaccine eligibility (network issue or your session expired). Vaccine options are temporarily locked — please reload the page or sign in again."
                 );
                 calculateTotal();
                 return;
@@ -203,7 +276,7 @@ document.addEventListener("DOMContentLoaded", function() {
         } catch (e) {
             if (seq !== eligibilityRequestSeq) return;
             setEligibilityBanner(
-                "Không tải được trạng thái vaccine. Các mũi vaccine tạm thời bị khóa — vui lòng tải lại trang."
+                "Could not load vaccine eligibility. Vaccine options are temporarily locked — please reload the page."
             );
             calculateTotal();
         }
@@ -309,7 +382,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const msg = cb.getAttribute("data-lock-message") || cb.getAttribute("title");
         if (!msg) return;
         e.preventDefault();
-        alert(msg);
+        showVaccineLockPopup(msg);
     });
 
     // Xử lý trước khi submit (nếu cần gộp note)
@@ -338,6 +411,14 @@ document.addEventListener("DOMContentLoaded", function() {
         }
 
         const now = new Date();
+        // Align to minute precision to avoid failing boundary cases by a few seconds.
+        now.setSeconds(0, 0);
+        selected.setSeconds(0, 0);
+        if (selected < now) {
+            e.preventDefault();
+            showDateTimeError("The selected date and time cannot be in the past.");
+            return;
+        }
         const minDate = new Date(now.getTime() + LEAD_HOURS * 60 * 60 * 1000);
         const maxDate = new Date(now.getTime() + MAX_ADVANCE_DAYS * 24 * 60 * 60 * 1000);
         if (selected < minDate) {

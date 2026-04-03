@@ -1,17 +1,8 @@
 <!DOCTYPE html>
-<html
-    lang="en"
-    xmlns:th="http://www.thymeleaf.org"
->
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Appointment History</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
-    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/layout-public :: layout(~{::content}, ~{::headExtras}, ~{::pageScripts})}"
+      th:with="activePage='history', pageTitle='Appointment History'">
+<th:block th:fragment="headExtras">
     <link rel="stylesheet" th:href="@{/css/appointment-history.css}" />
 
     <style>
@@ -81,10 +72,8 @@
             letter-spacing: 0.5px;
         }
     </style>
-</head>
-
-<body>
-    <div th:replace="~{fragments/header-customer :: header(activePage='history')}"></div>
+</th:block>
+<div th:fragment="content">
     <main class="container">
         <div th:if="${message}" class="alert alert-success" role="alert" th:text="${message}"></div>
         <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}"></div>
@@ -146,7 +135,7 @@
                             </div>
 
                             <div class="appointment-date">
-                                <strong th:text="${#temporals.format(appt.appointmentDate, 'dd/MM/yyyy')}">
+                                <strong th:text="${#temporals.format(appt.appointmentDate, 'dd/MM/yyyy HH:mm')}">
                                     01/01/2026 09:00
                                 </strong>
                             </div>
@@ -175,7 +164,7 @@
 
                                 <p th:if="${appt.previousAppointmentDate}">
                                     <strong>Previous Date:</strong>
-                                    <span th:text="${#temporals.format(appt.previousAppointmentDate, 'dd/MM/yyyy')}">
+                                    <span th:text="${#temporals.format(appt.previousAppointmentDate, 'dd/MM/yyyy HH:mm')}">
                                         —
                                     </span>
                                 </p>
@@ -404,7 +393,7 @@
                     <ul class="pagination mb-0">
                         <li class="page-item" th:classappend="${hasPrevious} ? '' : 'disabled'">
                             <a class="page-link"
-                               th:href="@{/customer/appointments?page=${currentPage - 1}&size=${pageSize}}"
+                               th:href="@{/customer/appointments(page=${currentPage - 1},size=${pageSize})}"
                                aria-label="Previous">
                                 Previous
                             </a>
@@ -414,7 +403,7 @@
                         </li>
                         <li class="page-item" th:classappend="${hasNext} ? '' : 'disabled'">
                             <a class="page-link"
-                               th:href="@{/customer/appointments?page=${currentPage + 1}&size=${pageSize}}"
+                               th:href="@{/customer/appointments(page=${currentPage + 1},size=${pageSize})}"
                                aria-label="Next">
                                 Next
                             </a>
@@ -675,7 +664,6 @@
             };
         </script>
     </main>
-    <div th:replace="~{fragments/footer :: footer}"></div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+</div>
+<th:block th:fragment="pageScripts"></th:block>
 </html>

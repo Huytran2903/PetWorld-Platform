@@ -264,7 +264,7 @@
                         <td th:text="${appt.appointmentCode}">CODE</td>
                         <td th:text="${appt.customer != null ? appt.customer.fullName : 'N/A'}">CUSTOMER NAME</td>
                         <td th:text="${appt.pet != null ? appt.pet.name : 'N/A'}">PET NAME</td>
-                        <td th:text="${#temporals.format(appt.appointmentDate, 'dd/MM/yyyy')}">DATE</td>
+                        <td th:text="${#temporals.format(appt.appointmentDate, 'dd/MM/yyyy HH:mm')}">DATE</td>
                         <td>
                             <span class="badge-status"
                                   th:classappend="' status-' + ${appt.status != null ? appt.status.toLowerCase() : 'pending'}"

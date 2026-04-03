@@ -1,71 +1,10 @@
-<!-- Place this file at: src/main/resources/templates/fragments/sidebar-staff.html -->
-
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Sidebar</title>
-
-    <!-- Font Awesome CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-          integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
-          crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-
-    <!-- Sidebar CSS -->
-    <link rel="stylesheet" th:href="@{/css/sidebar-staff.css}">
-</head>
+<html xmlns:th="http://www.thymeleaf.org">
+<head></head>
 <body>
-    <!-- Fragment aside for staff with activePage parameter -->
-    <aside th:fragment="aside(activePage)" class="sidebar">
-        <div class="sidebar-header">
-            <h3>Staff Menu</h3>
-            <p>Staff Management</p>
-        </div>
-        <nav class="sidebar-nav">
-            <ul>
-                <li>
-                    <a th:href="@{/staff/service-execution-history}"
-                       th:classappend="${activePage == 'service-history'} ? 'active' : ''">
-                        <i class="fas fa-history"></i> Execution History
-                    </a>
-                </li>
-                <li>
-                    <a th:href="@{/staff/service-stats}"
-                       th:classappend="${activePage == 'service-stats'} ? 'active' : ''">
-                        <i class="fas fa-chart-bar"></i> Service Statistics
-                    </a>
-                </li>
-                <li>
-                    <a th:href="@{/staff/assigned_list(staffId=${session.currentStaffId})}"
-                       th:classappend="${activePage == 'appointments'} ? 'active' : ''">
-                        <i class="fas fa-calendar-alt"></i> Appointments
-                    </a>
-                </li>
-                <li>
-                    <a th:href="@{/staff/work-schedule}"
-                       th:classappend="${activePage == 'work-schedule'} ? 'active' : ''">
-                        <i class="fas fa-calendar-week"></i> Work Schedule
-                    </a>
-                </li>
-                <li>
-                    <a th:href="@{/staff/profile}"
-                       th:classappend="${activePage == 'profile'} ? 'active' : ''">
-                        <i class="fas fa-user"></i> Profile
-                    </a>
-                </li>
-                <li>
-                    <a th:href="@{/logout}">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </a>
-                </li>
-            </ul>
-        </nav>
-    </aside>
+
+<!-- Backward-compatible alias: shared dashboard sidebar (staff section via sec:authorize) -->
+<div th:fragment="aside(activePage)" th:replace="~{fragments/sidebar-dashboard :: aside(${activePage})}"></div>
+
 </body>
 </html>

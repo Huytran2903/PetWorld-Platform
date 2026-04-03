@@ -19,50 +19,46 @@
     --shadow: 0 14px 28px rgba(16, 32, 51, 0.08);
     --shadow-orange: 0 8px 20px rgba(255, 165, 79, 0.2);
     --radius: 16px;
-    --header-offset: 124px;
+    /* Taller default before JS runs (two-row customer header). */
+    --header-offset: 180px;
 }
 
-/* =========================================
-   RESET & BASE
-   ========================================= */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
+/* Scoped to booking page only — do not reset global * (breaks shared header/footer). */
+.pw-booking {
     font-family: var(--font);
     background: var(--bg);
     color: var(--text);
     line-height: 1.5;
-    padding: 20px;
-    overflow-y: scroll;
+    padding: 12px 16px 32px;
+    min-width: 0;
 }
 
-main.container {
-    padding-top: 0;
+.pw-booking,
+.pw-booking *,
+.pw-booking *::before,
+.pw-booking *::after {
+    box-sizing: border-box;
 }
 
 /* =========================================
-   LAYOUT (Grid System)
+   LAYOUT (Grid System) — scoped so Bootstrap .container elsewhere is untouched
    ========================================= */
-.container {
+.pw-booking main.container {
+    padding-top: 0;
     max-width: 1200px;
     margin: 0 auto;
     display: grid;
-    /* Cột trái 1fr, cột phải 360px */
     grid-template-columns: 1fr 380px;
     gap: 12px;
     align-items: start;
 }
 
 /* Thông báo flash — chỉ chữ + viền trái mảnh, không ô nền (tránh “hộp đỏ” Bootstrap) */
-/* z-index: below sticky header (1030), above fixed summary (1000) so it never covers the nav */
-.booking-flash {
+/* Below sticky header (1030); above in-page stacking only */
+.pw-booking .booking-flash {
     grid-column: 1 / -1;
     position: relative;
-    z-index: 1020;
+    z-index: 5;
     margin: 0 0 14px;
     padding: 8px 0 10px 14px;
     font-weight: 600;
@@ -74,7 +70,7 @@ main.container {
     border-radius: 0;
 }
 
-.booking-flash--error {
+.pw-booking .booking-flash--error {
     color: #b03a2e;
     border-left-color: #e74c3c;
     font-size: 1.2rem;
@@ -84,17 +80,17 @@ main.container {
     border-left-width: 4px;
 }
 
-.booking-flash--success {
+.pw-booking .booking-flash--success {
     color: #1e6b3a;
     border-left-color: #28a745;
 }
 
-.booking-flash--warn {
+.pw-booking .booking-flash--warn {
     color: #7d6608;
     border-left-color: #f0b429;
 }
 
-.booking-field-error {
+.pw-booking .booking-field-error {
     display: none;
     margin-top: 8px;
     font-size: 0.875rem;
@@ -103,60 +99,58 @@ main.container {
     line-height: 1.4;
 }
 
-.booking-field-error.is-visible {
+.pw-booking .booking-field-error.is-visible {
     display: block;
 }
 
-select.booking-input-invalid,
-input.booking-input-invalid {
+.pw-booking select.booking-input-invalid,
+.pw-booking input.booking-input-invalid {
     border-color: #e74c3c;
     box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.15);
 }
 
-.hero {
+.pw-booking .hero {
     grid-column: 1; /* Nằm bên trái, ngang hàng với Sidebar */
 }
 
-section.card {
+.pw-booking section.card {
     grid-column: 1; /* Form nằm dưới Hero */
 }
 
-aside.card {
+.pw-booking aside.card {
     grid-column: 2;
     grid-row: 1 / 3; /* Bắt đầu từ hàng 1 kéo dài xuống hàng 2 */
+    align-self: start;
 }
 
-/* Reserve space on the right so main content doesn't touch the fixed summary */
-.hero,
-section.card {
-    margin-right: 24px;
+.pw-booking .hero,
+.pw-booking section.card {
+    margin-right: 0;
 }
 
-/* Fixed summary — below header (1030); flash uses 1020 so alert stays above summary, under nav */
-.booking-summary {
-    position: fixed;
-    z-index: 1000;
+/*
+ * Sticky summary inside the grid (shared layout): stays under the global nav (z-index 1030),
+ * does not float over the header like position:fixed + wrong offset did.
+ */
+.pw-booking .booking-summary {
+    position: sticky;
     top: var(--header-offset);
-    right: calc((100vw - 1200px) / 2);
-    width: 380px;
-    max-height: calc(100vh - var(--header-offset) - 20px);
+    z-index: 2;
+    width: 100%;
+    max-width: 380px;
+    justify-self: end;
+    max-height: calc(100vh - var(--header-offset) - 16px);
     overflow: auto;
 }
 
-@media (max-width: 1200px) {
-    .booking-summary {
-        right: 20px;
-    }
-}
-
-.booking-main {
+.pw-booking .booking-main {
     margin-right: 0;
 }
 
 /* =========================================
    HERO SECTION
    ========================================= */
-.hero-inner {
+.pw-booking .hero-inner {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -167,13 +161,13 @@ section.card {
     margin-bottom: 16px;
 }
 
-.hero h1 { font-size: 1.5rem; font-weight: 800; }
-.hero p { color: var(--muted); font-size: 0.9rem; }
+.pw-booking .hero h1 { font-size: 1.5rem; font-weight: 800; }
+.pw-booking .hero p { color: var(--muted); font-size: 0.9rem; }
 
 /* =========================================
    CARDS & FORMS
    ========================================= */
-.card {
+.pw-booking .card {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -181,7 +175,7 @@ section.card {
     overflow: hidden;
 }
 
-.card-header {
+.pw-booking .card-header {
     padding: 20px 24px;
     border-bottom: 1px solid var(--border);
     display: flex;
@@ -190,23 +184,25 @@ section.card {
     background: #fafbfc;
 }
 
-.card-body { padding: 24px; }
+.pw-booking .card-body { padding: 24px; }
 
-.grid {
+.pw-booking .grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
     margin-bottom: 20px;
 }
 
-label {
+.pw-booking label {
     display: block;
     font-weight: 700;
     font-size: 0.85rem;
     margin-bottom: 8px;
 }
 
-input, select, textarea {
+.pw-booking input,
+.pw-booking select,
+.pw-booking textarea {
     width: 100%;
     padding: 12px;
     border: 1px solid var(--border);
@@ -215,7 +211,9 @@ input, select, textarea {
     transition: all 0.2s;
 }
 
-input:focus, select:focus {
+.pw-booking input:focus,
+.pw-booking select:focus,
+.pw-booking textarea:focus {
     border-color: var(--primary);
     box-shadow: 0 0 0 3px var(--focus);
     outline: none;
@@ -224,7 +222,7 @@ input:focus, select:focus {
 /* =========================================
    SERVICE SELECTION (Table Layout)
    ========================================= */
-.svc-table-container {
+.pw-booking .svc-table-container {
     margin-top: 15px;
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -232,18 +230,18 @@ input:focus, select:focus {
     background: #fff;
 }
 
-.svc-table {
+.pw-booking .svc-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 0.9rem;
 }
 
-.svc-table thead {
+.pw-booking .svc-table thead {
     background: #fafbfc;
     border-bottom: 2px solid var(--border);
 }
 
-.svc-table th {
+.pw-booking .svc-table th {
     padding: 12px 15px;
     text-align: left;
     font-weight: 800;
@@ -253,48 +251,48 @@ input:focus, select:focus {
     letter-spacing: 0.5px;
 }
 
-.svc-table td {
+.pw-booking .svc-table td {
     padding: 15px;
     border-bottom: 1px solid var(--border);
     vertical-align: middle;
 }
 
-.svc-row:last-child td {
+.pw-booking .svc-row:last-child td {
     border-bottom: none;
 }
 
-.svc-row:hover {
+.pw-booking .svc-row:hover {
     background-color: #f9f9fb;
 }
 
-.svc-row:has(input:checked) {
+.pw-booking .svc-row:has(input:checked) {
     background-color: var(--primary-pale);
 }
 
-.svc-row.svc-disabled {
+.pw-booking .svc-row.svc-disabled {
     opacity: 0.72;
 }
 
-.svc-row.svc-disabled input[type="checkbox"] {
+.pw-booking .svc-row.svc-disabled input[type="checkbox"] {
     cursor: not-allowed;
     opacity: 0.45;
     pointer-events: none;
 }
 
 /* Clicks pass to the row; JS shows alert with lock reason */
-.svc-row.svc-disabled td {
+.pw-booking .svc-row.svc-disabled td {
     cursor: help;
 }
 
-.col-check { width: 50px; text-align: center !important; }
-.col-name { font-weight: 700; color: var(--text); }
-.col-desc { color: var(--muted); max-width: 280px; }
-.col-price { width: 130px; color: var(--primary); font-weight: 800; }
-.col-duration { width: 100px; color: var(--muted); }
+.pw-booking .col-check { width: 50px; text-align: center !important; }
+.pw-booking .col-name { font-weight: 700; color: var(--text); }
+.pw-booking .col-desc { color: var(--muted); max-width: 280px; }
+.pw-booking .col-price { width: 130px; color: var(--primary); font-weight: 800; }
+.pw-booking .col-duration { width: 100px; color: var(--muted); }
 
-.fw-bold { font-weight: 700; }
+.pw-booking .fw-bold { font-weight: 700; }
 
-.svc-table input[type="checkbox"] {
+.pw-booking .svc-table input[type="checkbox"] {
     width: 18px;
     height: 18px;
     accent-color: var(--primary);
@@ -304,7 +302,8 @@ input:focus, select:focus {
 /* =========================================
    PILLS & BUTTONS
    ========================================= */
-.pill, .type-pill {
+.pw-booking .pill,
+.pw-booking .type-pill {
     background: var(--primary);
     color: white;
     padding: 6px 14px;
@@ -313,7 +312,7 @@ input:focus, select:focus {
     font-weight: 800;
 }
 
-.actions {
+.pw-booking .actions {
     display: flex;
     gap: 12px;
     margin-top: 30px;
@@ -321,7 +320,7 @@ input:focus, select:focus {
     border-top: 1px solid var(--border);
 }
 
-.btn {
+.pw-booking .btn {
     padding: 12px 24px;
     border-radius: 12px;
     font-weight: 700;
@@ -330,16 +329,16 @@ input:focus, select:focus {
     transition: 0.2s;
 }
 
-.btn-primary { background: var(--primary); color: white; }
-.btn-primary:hover { background: #e8943f; transform: translateY(-2px); }
+.pw-booking .btn-primary { background: var(--primary); color: white; }
+.pw-booking .btn-primary:hover { background: #e8943f; transform: translateY(-2px); }
 
-.btn-secondary { background: var(--navy); color: white; }
-.btn-secondary:hover { background: var(--navy2); }
+.pw-booking .btn-secondary { background: var(--navy); color: white; }
+.pw-booking .btn-secondary:hover { background: var(--navy2); }
 
 /* =========================================
    SUMMARY SIDEBAR
    ========================================= */
-.summary-row {
+.pw-booking .summary-row {
     display: flex;
     justify-content: space-between;
     padding: 15px 0;
@@ -347,49 +346,131 @@ input:focus, select:focus {
     font-size: 0.9rem;
 }
 
-.summary-row strong { text-align: right; color: var(--navy); }
+.pw-booking .summary-row strong { text-align: right; color: var(--navy); }
 
-.summary-row:last-child {
+.pw-booking .summary-row:last-child {
     border-bottom: none;
     border-top: 2px solid var(--primary-pale);
     margin-top: 10px;
 }
 
-#sumTotal {
+.pw-booking #sumTotal {
     font-size: 1.3rem;
     color: var(--primary);
     font-weight: 800;
+}
+
+/* Custom vaccine lock popup (no native alert) */
+body.booking-modal-open {
+    overflow: hidden;
+}
+
+.booking-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 4000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    background: rgba(19, 34, 56, 0.5);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+}
+
+.booking-modal-backdrop.is-open {
+    display: flex;
+}
+
+.booking-modal-dialog {
+    width: 100%;
+    max-width: 440px;
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: 0 24px 48px rgba(16, 32, 51, 0.18), var(--shadow);
+    padding: 24px 26px 22px;
+    border: 1px solid var(--border);
+}
+
+.booking-modal-title {
+    margin: 0 0 12px;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--navy);
+    line-height: 1.3;
+}
+
+.booking-modal-body {
+    margin: 0 0 20px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.55;
+}
+
+.booking-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.booking-modal-btn {
+    font-family: var(--font);
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 10px 22px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.booking-modal-btn:hover {
+    background: var(--border);
+}
+
+.booking-modal-btn--primary {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+}
+
+.booking-modal-btn--primary:hover {
+    background: var(--primary-light);
+    border-color: var(--primary-light);
 }
 
 /* =========================================
    RESPONSIVE
    ========================================= */
 @media (max-width: 992px) {
-    .container {
+    .pw-booking main.container {
         grid-template-columns: 1fr;
     }
 
-    /* Disable fixed summary on smaller screens */
-    .booking-summary {
+    .pw-booking .booking-summary {
         position: static;
         width: auto;
-        right: auto;
+        max-width: none;
         top: auto;
         max-height: none;
         overflow: visible;
+        justify-self: stretch;
     }
 
-    .booking-main {
+    .pw-booking .booking-main {
         margin-right: 0;
     }
 
-    aside.card {
+    .pw-booking aside.card {
         grid-column: 1;
     }
 }
 
 @media (max-width: 600px) {
-    .grid {
+    .pw-booking .grid {
         grid-template-columns: 1fr;
     }
 }

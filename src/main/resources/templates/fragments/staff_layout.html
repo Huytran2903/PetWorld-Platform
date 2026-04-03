@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" th:href="@{/css/sidebar-staff.css}">
+    <link rel="stylesheet" th:href="@{/css/sidebar-admin.css}">
     <link rel="stylesheet" th:href="@{/css/assigned_list.css}">
     <style>
         body {
@@ -24,19 +24,17 @@
         .staff-wrapper {
             display: flex;
             width: 100%;
+            align-items: flex-start;
         }
         .staff-content {
             flex: 1;
-            margin-left: 280px; /* Sidebar width */
+            min-width: 0;
             padding: 0;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
         @media (max-width: 768px) {
-            .staff-content {
-                margin-left: 0;
-            }
             .staff-wrapper {
                 flex-direction: column;
             }

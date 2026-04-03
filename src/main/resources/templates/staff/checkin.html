@@ -1,15 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{fragments/staff_layout :: layout(~{::checkin_content})}">
-
-<head>
-    <title>Pet Check-In</title>
-    <link rel="stylesheet" th:href="@{/css/checkin.css}" />
-</head>
-
-<body>
+      th:replace="~{fragments/staff_layout :: layout(~{::checkin_content})}">
 <div th:fragment="checkin_content">
+    <link rel="stylesheet" th:href="@{/css/checkin.css}" />
 
     <div class="hero">
         <div class="hero-inner">
@@ -162,5 +155,4 @@
 
     <script th:src="@{/js/checkin.js}"></script>
 </div>
-</body>
 </html>

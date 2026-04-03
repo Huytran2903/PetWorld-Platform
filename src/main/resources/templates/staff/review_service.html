@@ -1,15 +1,12 @@
 <!DOCTYPE html>
-<html lang="en"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{fragments/layout_user}">
-<head>
-    <title>Submit Service Review</title>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/layout-public :: layout(~{::content}, ~{::headExtras}, ~{::pageScripts})}"
+      th:with="activePage='', pageTitle='Submit Service Review'">
+<th:block th:fragment="headExtras">
     <link rel="stylesheet" th:href="@{/css/review.css}" />
-</head>
-
-<body>
-<main layout:fragment="content" class="container">
+</th:block>
+<div th:fragment="content">
+<main class="container">
 
     <div class="hero">
         <div class="hero-inner">
@@ -125,7 +122,9 @@
         </aside>
     </div>
 
-    <script th:src="@{/js/review.js}"></script>
 </main>
-</body>
+</div>
+<th:block th:fragment="pageScripts">
+    <script th:src="@{/js/review.js}"></script>
+</th:block>
 </html>

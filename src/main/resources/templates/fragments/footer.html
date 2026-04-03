@@ -4,9 +4,9 @@
 
 <footer th:fragment="footer" id="footer" class="py-5" style="background-color: #F9F9F9; border-top: 1px solid #EEE;">
     <div class="container py-5">
-        <div class="row g-4">
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4 g-lg-5 justify-content-center text-center text-lg-start footer-balanced">
 
-            <div class="col-md-4">
+            <div class="col">
                 <div class="footer-menu">
                     <img th:src="@{/images/logo-petshop.png}" alt="logo" class="mb-3" style="max-height: 50px;">
                     <h4 class="fw-bold mb-3" style="color: #FFA54F; font-family: 'Prata', serif;">Pet World</h4>
@@ -27,7 +27,7 @@
                 </div>
             </div>
 
-            <div class="col-6 col-md-2">
+            <div class="col">
                 <h5 class="fw-bold mb-4" style="color: #333;">Quick Links</h5>
                 <ul class="list-unstyled d-grid gap-2">
                     <li><a th:href="@{/}" class="footer-link">Home</a></li>
@@ -37,7 +37,7 @@
                 </ul>
             </div>
 
-            <div class="col-6 col-md-2">
+            <div class="col">
                 <h5 class="fw-bold mb-4" style="color: #333;">Help</h5>
                 <ul class="list-unstyled d-grid gap-2">
                     <li><a th:href="@{/about-us}" class="footer-link">About Us</a></li>
@@ -45,18 +45,21 @@
                 </ul>
             </div>
 
-            <div class="col-md-4">
+            <div class="col">
                 <h5 class="fw-bold mb-4" style="color: #333;">Contact Info</h5>
-                <ul class="list-unstyled d-grid gap-3">
-                    <li class="d-flex align-items-center gap-2" style="color: #444;">
+                <ul class="list-unstyled d-grid gap-3 text-lg-start">
+                    <li class="d-flex align-items-center gap-2 justify-content-center justify-content-lg-start"
+                        style="color: #444;">
                         <iconify-icon icon="mdi:map-marker" class="fs-5" style="color: #FFA54F;"></iconify-icon>
                         <span th:text="${globalConfigs != null and globalConfigs['SHOP_ADDRESS'] != null ? globalConfigs['SHOP_ADDRESS'] : 'Fpt Can Tho, Viet Nam'}"></span>
                     </li>
-                    <li class="d-flex align-items-center gap-2" style="color: #444;">
+                    <li class="d-flex align-items-center gap-2 justify-content-center justify-content-lg-start"
+                        style="color: #444;">
                         <iconify-icon icon="mdi:email" class="fs-5" style="color: #FFA54F;"></iconify-icon>
                         <span th:text="${globalConfigs != null and globalConfigs['SHOP_EMAIL'] != null ? globalConfigs['SHOP_EMAIL'] : 'Petworldfpt@gmail.com'}"></span>
                     </li>
-                    <li class="d-flex align-items-center gap-2" style="color: #444;">
+                    <li class="d-flex align-items-center gap-2 justify-content-center justify-content-lg-start"
+                        style="color: #444;">
                         <iconify-icon icon="mdi:phone" class="fs-5" style="color: #FFA54F;"></iconify-icon>
                         <span th:text="${globalConfigs != null and globalConfigs['SHOP_PHONE'] != null ? globalConfigs['SHOP_PHONE'] : '0123 456 789'}"></span>
                     </li>
@@ -175,6 +178,16 @@
 
         .accordion-button:not(.collapsed) {
             color: #FFA54F !important;
+        }
+
+        .footer-balanced .social-links ul {
+            justify-content: center;
+        }
+
+        @media (min-width: 992px) {
+            .footer-balanced .social-links ul {
+                justify-content: flex-start;
+            }
         }
     </style>
 </footer>

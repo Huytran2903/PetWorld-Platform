@@ -22,6 +22,7 @@ import vn.edu.fpt.petworldplatform.repository.ServiceItemRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
@@ -72,14 +73,19 @@ public class BookingService {
      * BR-17: Booking must be at least 2 hours in advance.
      */
     public Optional<String> validateAppointmentDateTime(LocalDateTime dateTime) {
-        LocalDateTime now = LocalDateTime.now();
-        if (dateTime.isBefore(now.plusHours(LEAD_TIME_HOURS))) {
+        // Compare at minute precision to avoid rejecting "exactly 2 hours" due to seconds/millis in now().
+        LocalDateTime now = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
+        LocalDateTime requested = dateTime.truncatedTo(ChronoUnit.MINUTES);
+        if (requested.isBefore(now)) {
+            return Optional.of("The selected date and time cannot be in the past.");
+        }
+        if (requested.isBefore(now.plusHours(LEAD_TIME_HOURS))) {
             return Optional.of("Booking must be at least 2 hours in advance.");
         }
-        if (dateTime.isAfter(now.plusDays(MAX_ADVANCE_BOOKING_DAYS))) {
+        if (requested.isAfter(now.plusDays(MAX_ADVANCE_BOOKING_DAYS))) {
             return Optional.of("Booking can only be made up to 30 days in advance.");
         }
-        LocalTime time = dateTime.toLocalTime();
+        LocalTime time = requested.toLocalTime();
         if (time.isBefore(OPEN_TIME) || !time.isBefore(CLOSE_TIME)) {
             return Optional.of("Selected time is outside operating hours (08:00 - 20:00).");
         }
