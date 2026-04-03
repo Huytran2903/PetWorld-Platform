@@ -3,7 +3,24 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
 
-<header th:fragment="header(activePage)" class="bg-white sticky-top"
+<style>
+    .pw-customer-header .main-logo {
+        display: flex;
+        align-items: center;
+    }
+
+    .pw-customer-header .main-logo img {
+        max-height: 90px !important;
+        width: auto;
+    }
+
+    .pw-customer-header .pw-user-name {
+        font-size: 1rem;
+        line-height: 1.2;
+    }
+</style>
+
+<header th:fragment="header(activePage)" class="bg-white sticky-top pw-customer-header"
         style="z-index: 1030; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
 
     <div class="container-fluid" style="background-color: #FFA54F;">
@@ -13,7 +30,7 @@
                     <div class="main-logo">
                         <a th:href="@{/}">
                             <img th:src="@{/images/logo-petshop.png}" alt="logo" class="img-fluid"
-                                 style="max-height: 60px;">
+                                 style="max-height: 90px;">
                         </a>
                     </div>
                 </div>
@@ -37,7 +54,7 @@
                         <a th:href="@{/profile}"
                            class="d-flex align-items-center gap-2 text-decoration-none text-white border-end pe-3 me-3">
                             <iconify-icon icon="healthicons:person" class="fs-4"></iconify-icon>
-                            <span class="fw-bold"
+                            <span class="fw-bold pw-user-name"
                                   th:text="${session.loggedInAccount?.fullName ?: #authentication.name}">User</span>
                         </a>
                         <a th:href="@{/logout}" class="text-white" title="Logout">
