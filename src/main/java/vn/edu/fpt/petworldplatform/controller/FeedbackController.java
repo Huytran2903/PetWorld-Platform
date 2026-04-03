@@ -102,16 +102,23 @@ public class FeedbackController {
         }
 
         try {
+            Customer loggedInCustomer = (loggedInAccount instanceof Customer) ? (Customer) loggedInAccount : null;
+
+            // Check anti-spam cooldown before handling file uploads.
+            feedbackService.validateGeneralFeedbackCooldown(loggedInCustomer);
+
             // Process image uploads
             if (imageFiles != null && imageFiles.length > 0) {
                 String imageUrls = processImageUploads(imageFiles);
                 feedbackDTO.setImageUrls(imageUrls);
             }
-            
-            Customer loggedInCustomer = (loggedInAccount instanceof Customer) ? (Customer) loggedInAccount : null;
+
             feedbackService.submitGeneralFeedback(feedbackDTO, loggedInCustomer);
             redirectAttributes.addFlashAttribute("successMessage", "Feedback submitted successfully! Thank you for your feedback.");
             return "redirect:/feedback";
+        } catch (IllegalStateException e) {
+            model.addAttribute("errorMessage", e.getMessage());
+            return "feedback/general-feedback";
         } catch (Exception e) {
             model.addAttribute("errorMessage", "Error submitting feedback: " + e.getMessage());
             return "feedback/general-feedback";

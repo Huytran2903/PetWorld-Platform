@@ -16,6 +16,9 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Integer> {
     boolean existsByAppointmentIdAndServiceIdAndCustomer_CustomerId(
             Integer appointmentId, Integer serviceId, Integer customerId);
 
+    java.util.Optional<Feedback> findTopByCustomer_CustomerIdAndTypeOrderByCreatedAtDesc(
+            Integer customerId, String type);
+
     java.util.Optional<Feedback> findTopByAppointmentIdAndServiceIdAndCustomer_CustomerIdOrderByCreatedAtDesc(
             Integer appointmentId, Integer serviceId, Integer customerId);
 
