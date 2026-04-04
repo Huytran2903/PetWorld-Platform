@@ -1,15 +1,12 @@
 package vn.edu.fpt.petworldplatform.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.Notification;
 import vn.edu.fpt.petworldplatform.entity.SystemConfigs;
 import vn.edu.fpt.petworldplatform.service.CartService;
 import vn.edu.fpt.petworldplatform.service.ConfigService;
-import vn.edu.fpt.petworldplatform.service.CustomerService;
 import vn.edu.fpt.petworldplatform.service.NotificationService;
 import vn.edu.fpt.petworldplatform.util.SecuritySupport;
 

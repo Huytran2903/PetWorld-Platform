@@ -113,10 +113,14 @@ public class Pets {
     private List<CartItem> cartsList = new ArrayList<>();
 
     @OneToMany(mappedBy = "pet", cascade = CascadeType.ALL, orphanRemoval = true)
-    @EqualsAndHashCode.Exclude
     @ToString.Exclude
     private List<PetVaccinations> vaccinations = new ArrayList<>();
 
+    @OneToMany(mappedBy = "pet", fetch = FetchType.LAZY)
+    @EqualsAndHashCode.Exclude
+    @JsonIgnore
+    @ToString.Exclude
+    private List<OrderItems> orderItems;
 
     @Transient
     private Boolean isVaccinated;

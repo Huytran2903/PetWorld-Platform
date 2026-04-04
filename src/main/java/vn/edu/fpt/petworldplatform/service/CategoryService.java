@@ -1,12 +1,10 @@
 package vn.edu.fpt.petworldplatform.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import vn.edu.fpt.petworldplatform.entity.Categories;
-import vn.edu.fpt.petworldplatform.repository.CategoryRepo;
-import vn.edu.fpt.petworldplatform.repository.ProductRepo;
+import vn.edu.fpt.petworldplatform.repository.CategoryRepository;
+import vn.edu.fpt.petworldplatform.repository.ProductRepository;
 
 import java.util.List;
 
@@ -14,33 +12,33 @@ import java.util.List;
 public class CategoryService {
 
     @Autowired
-    private CategoryRepo categoryRepo;
+    private CategoryRepository categoryRepository;
 
     @Autowired
-    private ProductRepo productRepo;
+    private ProductRepository productRepository;
 
         public List<Categories> getAllCategories()  {
-        return categoryRepo.findAll();
+        return categoryRepository.findAll();
     }
 
     public Categories getCategoryById(Integer id) {
-        return categoryRepo.findById(id).get();
+        return categoryRepository.findById(id).get();
     }
 
     public void saveCategory(Categories cate) {
-        categoryRepo.save(cate);
+        categoryRepository.save(cate);
     }
 
     public void deleteCategoryById(Integer id) {
-        categoryRepo.deleteById(id);
+        categoryRepository.deleteById(id);
     }
 
     public boolean hasProducts(Integer categoryId) {
-        return productRepo.existsByCategory_CategoryID(categoryId);
+        return productRepository.existsByCategory_CategoryID(categoryId);
     }
 
     public List<Categories> searchCateByName(String keyword) {
-        return categoryRepo.findAllByNameContainingIgnoreCase(keyword);
+        return categoryRepository.findAllByNameContainingIgnoreCase(keyword);
     }
 
 }

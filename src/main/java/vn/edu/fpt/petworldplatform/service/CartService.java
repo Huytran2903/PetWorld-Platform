@@ -8,7 +8,7 @@ import vn.edu.fpt.petworldplatform.entity.Carts;
 import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.entity.Product;
 import vn.edu.fpt.petworldplatform.repository.CartItemRepository;
-import vn.edu.fpt.petworldplatform.repository.CartRepo;
+import vn.edu.fpt.petworldplatform.repository.CartRepository;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -18,7 +18,7 @@ import java.util.Optional;
 public class CartService {
 
     @Autowired
-    private CartRepo cartRepo;
+    private CartRepository cartRepository;
 
     @Autowired
     private CartItemRepository cartItemRepo;
@@ -28,12 +28,12 @@ public class CartService {
     public void addToCart(Integer customerId, Pets petId, Product productId, Integer quantity) {
 
 
-        Carts cart = cartRepo.findByCustomerId(customerId)
+        Carts cart = cartRepository.findByCustomerId(customerId)
                 .orElseGet(() -> {
                     Carts newCart = new Carts();
                     newCart.setCustomerId(customerId);
                     newCart.setCreatedAt(LocalDateTime.now());
-                    return cartRepo.save(newCart);
+                    return cartRepository.save(newCart);
                 });
 
 
@@ -89,7 +89,7 @@ public class CartService {
 
 
     public Optional<Carts> getCartByCustomer(Integer customerId) {
-        return cartRepo.findByCustomerId(customerId);
+        return cartRepository.findByCustomerId(customerId);
     }
 
     /**
@@ -97,7 +97,7 @@ public class CartService {
      */
     public Carts getCartDetail(Integer customerId) {
 
-        return cartRepo.findByCustomerId(customerId)
+        return cartRepository.findByCustomerId(customerId)
                 .orElseGet(() -> {
 
                     Carts emptyCart = new Carts();
@@ -180,12 +180,12 @@ public class CartService {
             cartItemRepo.deleteAll(cart.getItems());
 
             cart.getItems().clear();
-            cartRepo.save(cart);
+            cartRepository.save(cart);
         }
     }
 
     public void deleteCartByIdCustomer(Integer customerId) {
-        cartRepo.deleteByCustomerId(customerId);
+        cartRepository.deleteByCustomerId(customerId);
     }
 }
 

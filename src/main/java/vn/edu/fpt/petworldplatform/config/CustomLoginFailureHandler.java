@@ -10,7 +10,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationFa
 import org.springframework.stereotype.Component;
 import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.Staff;
-import vn.edu.fpt.petworldplatform.repository.CustomerRepo;
+import vn.edu.fpt.petworldplatform.repository.CustomerRepository;
 import vn.edu.fpt.petworldplatform.repository.StaffRepository;
 
 import java.io.IOException;
@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 public class CustomLoginFailureHandler extends SimpleUrlAuthenticationFailureHandler {
 
     @Autowired
-    private CustomerRepo customerRepo;
+    private CustomerRepository customerRepository;
 
     @Autowired
     private StaffRepository staffRepo;
@@ -54,7 +54,7 @@ public class CustomLoginFailureHandler extends SimpleUrlAuthenticationFailureHan
             return;
         }
 
-        Customer customer = customerRepo.findByUsername(username).orElse(null);
+        Customer customer = customerRepository.findByUsername(username).orElse(null);
         if (customer != null) {
             processCustomerFailure(customer);
         } else {
@@ -79,7 +79,7 @@ public class CustomLoginFailureHandler extends SimpleUrlAuthenticationFailureHan
             customer.setLockedUntil(LocalDateTime.now().plusMinutes(lockMinutes));
         }
 
-        customerRepo.save(customer);
+        customerRepository.save(customer);
     }
 
     private void processStaffFailure(Staff staff) {

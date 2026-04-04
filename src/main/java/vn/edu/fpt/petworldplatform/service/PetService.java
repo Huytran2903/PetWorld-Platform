@@ -8,12 +8,10 @@ import org.springframework.web.multipart.MultipartFile;
 import vn.edu.fpt.petworldplatform.dto.PetCreateDTO;
 import vn.edu.fpt.petworldplatform.dto.PetStatisticsDTO;
 import vn.edu.fpt.petworldplatform.entity.Customer;
-import vn.edu.fpt.petworldplatform.entity.PetVaccinations;
 import vn.edu.fpt.petworldplatform.entity.Pets;
 import vn.edu.fpt.petworldplatform.entity.ServiceItem;
-import vn.edu.fpt.petworldplatform.repository.CustomerRepo;
-import vn.edu.fpt.petworldplatform.repository.PetRepo;
-import vn.edu.fpt.petworldplatform.repository.PetVaccinationRepository;
+import vn.edu.fpt.petworldplatform.repository.CustomerRepository;
+import vn.edu.fpt.petworldplatform.repository.PetRepository;
 import vn.edu.fpt.petworldplatform.repository.ServiceItemRepository;
 import vn.edu.fpt.petworldplatform.util.FileUploadUtil;
 
@@ -29,31 +27,31 @@ import java.util.UUID;
 public class PetService {
 
     @Autowired
-    private PetRepo petRepo;
+    private PetRepository petRepository;
 
     @Autowired
-    private CustomerRepo customerRepo;
+    private CustomerRepository customerRepository;
 
     @Autowired
     private ServiceItemRepository serviceItemRepository;
 
     //OanhTP
     public Page<Pets> findAllPets(Pageable pageable) {
-        return petRepo.findAll(pageable);
+        return petRepository.findAll(pageable);
     }
 
     // --- 1. Lấy danh sách - Customer
     //OanhTP
     public Page<Pets> getAllPetWithPagination(Pageable pageable) {
-        return petRepo.findByOwnerIsNullAndPriceIsNotNull(pageable);
+        return petRepository.findByOwnerIsNullAndPriceIsNotNull(pageable);
     }
 
     public Page<Pets> getAllPet(Pageable pageable) {
-        return petRepo.findAll(pageable);
+        return petRepository.findAll(pageable);
     }
 
     public List<Pets> getAllPets() {
-        return petRepo.findAll();
+        return petRepository.findAll();
     }
 
     public void savePet(Pets pet) {
@@ -71,16 +69,16 @@ public class PetService {
             }
         }
 
-        petRepo.save(pet);
+        petRepository.save(pet);
     }
 
     public Pets getPetById(Integer id) {
-        return petRepo.findById(id)
+        return petRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("No pet found with this ID: " + id));
     }
 
     public void removePet(Integer id) {
-        petRepo.deleteById(id);
+        petRepository.deleteById(id);
     }
 
     public List<ServiceItem> getAllVaccines() {
@@ -92,33 +90,33 @@ public class PetService {
         String searchName = (keyword != null) ? keyword.trim() : "";
         String searchType = (type != null) ? type.trim() : "";
 
-        return petRepo.findAllByNameContainingIgnoreCaseAndPetTypeIgnoreCaseAndOwnerIsNullAndPriceIsNotNull(
+        return petRepository.findAllByNameContainingIgnoreCaseAndPetTypeIgnoreCaseAndOwnerIsNullAndPriceIsNotNull(
                 searchName, searchType, pageable
         );
     }
 
     public Page<Pets> searchPetByName(String keyword, Pageable pageable) {
-        return petRepo.findAllByNameContainingIgnoreCase(keyword, pageable);
+        return petRepository.findAllByNameContainingIgnoreCase(keyword, pageable);
     }
 
     //Filter theo status Pet
     public Page<Pets> getPetByOwnerIsNull(String status, Pageable pageable) {
-        return petRepo.findAllByOwnerIsNull(status, pageable);
+        return petRepository.findAllByOwnerIsNull(status, pageable);
     }
 
     public Page<Pets> getPetByOwnerNotNull(String status, Pageable pageable) {
-        return petRepo.findAllByOwnerIsNotNull(status, pageable);
+        return petRepository.findAllByOwnerIsNotNull(status, pageable);
     }
 
     public Page<Pets> getAvailablePetsByType(String type, Pageable pageable) {
 
         // Nếu không truyền type, hoặc chọn "All" -> Lấy tất cả pet đang bán
         if (type == null || type.trim().isEmpty() || type.equalsIgnoreCase("All")) {
-            return petRepo.findAllByOwnerIsNullAndPriceIsNotNull(pageable);
+            return petRepository.findAllByOwnerIsNullAndPriceIsNotNull(pageable);
         }
 
         // Nếu có chọn Type cụ thể ("Dog", "Cat", "Bird"...) -> Lọc theo loại và đang bán
-        return petRepo.findAllByPetTypeIgnoreCase(type, pageable);
+        return petRepository.findAllByPetTypeIgnoreCase(type, pageable);
     }
 
     public void createPet(PetCreateDTO dto) throws IOException {
@@ -161,7 +159,7 @@ public class PetService {
                 throw new IllegalArgumentException("Owner ID is required for customer pets.");
             }
 
-            Customer owner = customerRepo.findById(dto.getOwnerId())
+            Customer owner = customerRepository.findById(dto.getOwnerId())
                     .orElseThrow(() -> new RuntimeException("Customer not found for ID: " + dto.getOwnerId()));
 
             pet.setOwner(owner);
@@ -169,7 +167,7 @@ public class PetService {
             pet.setIsAvailable(false);
         }
 
-        petRepo.save(pet);
+        petRepository.save(pet);
     }
 
     public void updatePet(Pets petFromForm) {
@@ -187,15 +185,15 @@ public class PetService {
             existingPet.setPrice(petFromForm.getPrice());
         }
 
-        petRepo.save(existingPet);
+        petRepository.save(existingPet);
     }
 
     public long getTotalPets() {
-        return petRepo.countTotalPets();
+        return petRepository.countTotalPets();
     }
 
     public List<Object[]> getPetStatsBySpecies() {
-        return petRepo.countPetsBySpecies();
+        return petRepository.countPetsBySpecies();
     }
 
     public PetStatisticsDTO getPetStatistics(LocalDate startDate, LocalDate endDate) {
@@ -208,10 +206,10 @@ public class PetService {
         LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
 
         // Overall counts
-        stats.setTotalPets(petRepo.countPetsByDateRange(startDateTime, endDateTime));
-        stats.setTotalServicePets(petRepo.countServicePetsByDateRange(startDateTime, endDateTime));
-        stats.setTotalSalePets(petRepo.countSalePetsByDateRange(startDateTime, endDateTime));
-        stats.setSoldPets(petRepo.countSoldPetsByDateRange(startDateTime, endDateTime));
+        stats.setTotalPets(petRepository.countPetsByDateRange(startDateTime, endDateTime));
+        stats.setTotalServicePets(petRepository.countServicePetsByDateRange(startDateTime, endDateTime));
+        stats.setTotalSalePets(petRepository.countSalePetsByDateRange(startDateTime, endDateTime));
+        stats.setSoldPets(petRepository.countSoldPetsByDateRange(startDateTime, endDateTime));
 
         // For service completion, we'll use soldPets as completed services for now
         stats.setCompletedServicePets(stats.getSoldPets());
@@ -231,20 +229,20 @@ public class PetService {
 
         // Service pets
         List<Object[]> serviceResults = isOtherSpecies
-                ? petRepo.countServicePetsByOtherSpeciesAndDateRange(startDateTime, endDateTime)
-                : petRepo.countServicePetsBySpeciesAndDateRange(species, startDateTime, endDateTime);
+                ? petRepository.countServicePetsByOtherSpeciesAndDateRange(startDateTime, endDateTime)
+                : petRepository.countServicePetsBySpeciesAndDateRange(species, startDateTime, endDateTime);
         long serviceCount = serviceResults.isEmpty() ? 0 : ((Number) serviceResults.get(0)[1]).longValue();
 
         // Sale pets
         List<Object[]> saleResults = isOtherSpecies
-                ? petRepo.countSalePetsByOtherSpeciesAndDateRange(startDateTime, endDateTime)
-                : petRepo.countSalePetsBySpeciesAndDateRange(species, startDateTime, endDateTime);
+                ? petRepository.countSalePetsByOtherSpeciesAndDateRange(startDateTime, endDateTime)
+                : petRepository.countSalePetsBySpeciesAndDateRange(species, startDateTime, endDateTime);
         long saleCount = saleResults.isEmpty() ? 0 : ((Number) saleResults.get(0)[1]).longValue();
 
         // Sold pets
         List<Object[]> soldResults = isOtherSpecies
-                ? petRepo.countSoldPetsByOtherSpeciesAndDateRange(startDateTime, endDateTime)
-                : petRepo.countSoldPetsBySpeciesAndDateRange(species, startDateTime, endDateTime);
+                ? petRepository.countSoldPetsByOtherSpeciesAndDateRange(startDateTime, endDateTime)
+                : petRepository.countSoldPetsBySpeciesAndDateRange(species, startDateTime, endDateTime);
         long soldCount = soldResults.isEmpty() ? 0 : ((Number) soldResults.get(0)[1]).longValue();
 
         long total = serviceCount + saleCount + soldCount;

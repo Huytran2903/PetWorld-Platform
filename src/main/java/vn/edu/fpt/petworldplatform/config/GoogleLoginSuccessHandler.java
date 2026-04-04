@@ -11,7 +11,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 import vn.edu.fpt.petworldplatform.entity.AuthProvider;
 import vn.edu.fpt.petworldplatform.entity.Customer;
-import vn.edu.fpt.petworldplatform.repository.CustomerRepo;
+import vn.edu.fpt.petworldplatform.repository.CustomerRepository;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -20,7 +20,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class GoogleLoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private final CustomerRepo customerRepository;
+    private final CustomerRepository customerRepository;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 

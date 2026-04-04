@@ -1,6 +1,5 @@
 package vn.edu.fpt.petworldplatform.service;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -12,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.petworldplatform.entity.AuthProvider;
 import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.VerificationToken;
-import vn.edu.fpt.petworldplatform.repository.CustomerRepo;
+import vn.edu.fpt.petworldplatform.repository.CustomerRepository;
 import vn.edu.fpt.petworldplatform.repository.VerificationTokenRepo;
 
 import java.security.SecureRandom;
@@ -20,13 +19,12 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class CustomerService {
 
-    private final CustomerRepo customerRepo;
+    private final CustomerRepository customerRepository;
     private final VerificationTokenRepo verificationTokenRepo;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
@@ -42,7 +40,7 @@ public class CustomerService {
         customer.setPasswordHash(passwordEncoder.encode(customer.getPasswordHash()));
         customer.setIsActive(false);
 
-        Customer savedCustomer = customerRepo.save(customer);
+        Customer savedCustomer = customerRepository.save(customer);
 
         String otp = generateOtp();
 
@@ -60,7 +58,7 @@ public class CustomerService {
 
             Customer customer = tokenEntity.getCustomer();
             customer.setIsActive(true);
-            customerRepo.save(customer);
+            customerRepository.save(customer);
 
             verificationTokenRepo.delete(tokenEntity);
             return true;
@@ -85,7 +83,7 @@ public class CustomerService {
         Customer customer = verificationToken.getCustomer();
         if (customer != null) {
             customer.setIsActive(true);
-            customerRepo.save(customer);
+            customerRepository.save(customer);
         }
 
         verificationTokenRepo.delete(verificationToken);
@@ -96,7 +94,7 @@ public class CustomerService {
 
     @Transactional
     public void resendOtp(String email, String actionType) throws Exception {
-        Customer customer = customerRepo.findByEmail(email).orElseThrow(() -> new Exception("Account has not exist!"));
+        Customer customer = customerRepository.findByEmail(email).orElseThrow(() -> new Exception("Account has not exist!"));
 
         if ("FORGOT_PASSWORD".equals(actionType) && customer.getAuthProvider() == AuthProvider.GOOGLE) {
             throw new Exception("Email này được liên kết với Google. Vui lòng đăng nhập bằng nút Google!");
@@ -123,7 +121,7 @@ public class CustomerService {
     }
 
     public void sendResetPasswordEmail(String email) throws Exception {
-        Customer customer = customerRepo.findByEmail(email).orElseThrow(() -> new Exception("Email has not exist!"));
+        Customer customer = customerRepository.findByEmail(email).orElseThrow(() -> new Exception("Email has not exist!"));
 
         if (customer.getAuthProvider() == AuthProvider.GOOGLE) {
             throw new Exception("Email này được liên kết với Google. Vui lòng đăng nhập bằng nút Google!");
@@ -166,7 +164,7 @@ public class CustomerService {
     public void updatePassword(Customer customer, String newRawPassword) {
         String encodedPass = passwordEncoder.encode(newRawPassword);
         customer.setPasswordHash(encodedPass);
-        customerRepo.save(customer);
+        customerRepository.save(customer);
 
         VerificationToken token = verificationTokenRepo.findByCustomer(customer);
         if (token != null) {
@@ -175,36 +173,36 @@ public class CustomerService {
     }
 
     public List<Customer> getAllCustomer() {
-        return customerRepo.findAll();
+        return customerRepository.findAll();
     }
 
 
     public void updateCustomerStatus(int id, boolean newStatus) {
-        Customer customer = customerRepo.findById(id).orElseThrow(() -> new RuntimeException("Customer not found with id: " + id));
+        Customer customer = customerRepository.findById(id).orElseThrow(() -> new RuntimeException("Customer not found with id: " + id));
 
         customer.setIsActive(newStatus);
 
-        customerRepo.save(customer);
+        customerRepository.save(customer);
     }
 
     public Optional<Customer> findByEmail(String email) {
-        return customerRepo.findByEmail(email);
+        return customerRepository.findByEmail(email);
     }
 
     public void updateCustomer(Customer customer) {
-        customerRepo.save(customer);
+        customerRepository.save(customer);
     }
 
     public boolean checkEmailExists(String email) {
-        return customerRepo.existsByEmail(email);
+        return customerRepository.existsByEmail(email);
     }
 
     public boolean checkUsernameExists(String username) {
-        return customerRepo.existsByUsername(username);
+        return customerRepository.existsByUsername(username);
     }
 
     public Optional<Customer> findById(int id) {
-        return customerRepo.findById(id);
+        return customerRepository.findById(id);
     }
 
     public boolean verifyOldPassword(Customer customer, String oldRawPassword) {
@@ -214,12 +212,12 @@ public class CustomerService {
     //OanhTP - findIdByUsername
     public Integer findIdByUsername(String username) {
         // Tìm khách hàng theo username
-        return customerRepo.findByUsername(username).map(customer -> customer.getCustomerId()) // Lấy ID từ đối tượng Customer
+        return customerRepository.findByUsername(username).map(customer -> customer.getCustomerId()) // Lấy ID từ đối tượng Customer
                 .orElseThrow(() -> new RuntimeException("Customer not found with username: " + username));
     }
 
     public Integer findIdByEmail(String email) {
-        return customerRepo.findByEmail(email).map(Customer::getCustomerId).orElse(null);
+        return customerRepository.findByEmail(email).map(Customer::getCustomerId).orElse(null);
     }
 
     public Page<Customer> getCustomersWithPaginationAndSearch(String keyword, int page, int size) {
@@ -227,12 +225,12 @@ public class CustomerService {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("customerId").descending());
 
         if (keyword != null && !keyword.trim().isEmpty()) {
-            return customerRepo.searchCustomers(keyword.trim(), pageable);
+            return customerRepository.searchCustomers(keyword.trim(), pageable);
         }
-        return customerRepo.findAll(pageable);
+        return customerRepository.findAll(pageable);
     }
 
     public Customer getCustomerById(Integer id) {
-        return customerRepo.findById(id).get();
+        return customerRepository.findById(id).get();
     }
 }

@@ -10,7 +10,7 @@ import vn.edu.fpt.petworldplatform.entity.Pets;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface PetRepo extends JpaRepository<Pets, Integer> {
+public interface PetRepository extends JpaRepository<Pets, Integer> {
 
     List<Pets> findByNameContaining(String name);
     List<Pets> findByOwner_CustomerId(Integer customerId);

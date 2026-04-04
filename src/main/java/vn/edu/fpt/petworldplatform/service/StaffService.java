@@ -32,7 +32,7 @@ public class StaffService {
     private final AppointmentSummaryRepository appointmentSummaryRepo;
 
     @Autowired
-    private RoleRepo roleRepo;
+    private RoleRepository roleRepository;
 
     @Autowired
     private EmailService emailService;
@@ -124,7 +124,7 @@ public class StaffService {
         staffEntity.setEmail(dto.getEmail());
         staffEntity.setPhone(dto.getPhone());
 
-        Role role = (Role) roleRepo.findById(dto.getRoleId())
+        Role role = (Role) roleRepository.findById(dto.getRoleId())
                 .orElseThrow(() -> new RuntimeException("Role not found"));
         staffEntity.setRole(role);
 
@@ -180,7 +180,7 @@ public class StaffService {
         existingStaff.setUsername(dto.getUsername());
         existingStaff.setPhone(dto.getPhone());
 
-        Role role = (Role) roleRepo.findById(dto.getRoleId())
+        Role role = (Role) roleRepository.findById(dto.getRoleId())
                 .orElseThrow(() -> new RuntimeException("Role not found"));
         existingStaff.setRole(role);
 

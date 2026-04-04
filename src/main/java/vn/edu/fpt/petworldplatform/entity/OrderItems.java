@@ -2,6 +2,7 @@ package vn.edu.fpt.petworldplatform.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.math.BigDecimal;
 
 @Entity
@@ -20,11 +21,13 @@ public class OrderItems {
     @JoinColumn(name = "OrderID", nullable = false) //góc nhìn db: cột fk orderId trỏ sang talbe Order
     private Order order;                            //góc nhìn oop: biến này link sang class Order
 
-    @Column(name = "ProductID")
-    private Integer productID;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ProductID")
+    private Product product;
 
-    @Column(name = "PetID")
-    private Integer petID;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "PetID")
+    private Pets pet;
 
     @Column(name = "ItemName", nullable = false, length = 150)
     private String itemName;
@@ -40,10 +43,15 @@ public class OrderItems {
     @Column(name = "LineTotal", precision = 12, scale = 2, insertable = false, updatable = false)
     private BigDecimal lineTotal;
 
-    public void setProduct(Product product) {
-    }
 
-    public void setPet(Pets pet) {
-
+    @Transient
+    public String getImageUrl() {
+        if (this.pet != null) {
+            return this.pet.getImageUrl();
+        }
+        if (this.product != null) {
+            return this.product.getImageUrl();
+        }
+        return "";
     }
 }

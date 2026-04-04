@@ -18,29 +18,32 @@ import java.util.List;
 @Service
 public class OrderService {
     @Autowired
-    private OrderRepo orderRepo;
+    private OrderRepository orderRepository;
 
     @Autowired
-    private OrderItemRepo orderItemRepo;
+    private OrderItemRepository orderItemRepository;
 
     @Autowired
     private CartItemRepository cartItemRepo;
 
     @Autowired
-    private CustomerRepo customerRepo;
+    private CustomerRepository customerRepository;
 
     @Autowired
-    private ProductRepo productRepo;
+    private PetRepository petRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
 
     @Autowired
     private PaymentRepository paymentRepo;
     @Autowired
-    private CartRepo cartRepo;
+    private CartRepository cartRepository;
 
     @Transactional
     public Order createOrder(Integer customerId, String name, String phone, String addr, String note, String method) {
 
-        Carts cart = cartRepo.findByCustomerId(customerId)
+        Carts cart = cartRepository.findByCustomerId(customerId)
                 .orElseThrow(() -> new RuntimeException("Giỏ hàng không tồn tại!"));
 
 
@@ -72,8 +75,7 @@ public class OrderService {
         order.setTotalAmount(subtotal.add(shippingFee));
 
 
-
-        order = orderRepo.save(order);
+        order = orderRepository.save(order);
 
         List<OrderItems> listOrderItems = new ArrayList<>();
 
@@ -82,24 +84,27 @@ public class OrderService {
             oi.setOrder(order);
 
             if (ci.getProduct() != null) {
-                oi.setProductID(ci.getProduct().getProductId());
-                oi.setItemName(ci.getProduct().getName());
-                oi.setUnitPrice(ci.getProduct().getSalePrice());
-
                 Product p = ci.getProduct();
-                if(p.getStock() < ci.getQuantity()) {
+                oi.setProduct(p);
+                oi.setItemName(p.getName());
+                oi.setUnitPrice(p.getSalePrice());
+
+                if (p.getStock() < ci.getQuantity()) {
                     throw new RuntimeException("Not enough stock available for product " + p.getName() + " !");
                 }
                 p.setStock(p.getStock() - ci.getQuantity());
-                productRepo.save(p);
+                productRepository.save(p);
 
             } else if (ci.getPet() != null) {
-                oi.setPetID(ci.getPet().getPetID());
-                oi.setItemName(ci.getPet().getName());
-                oi.setUnitPrice(ci.getPet().getSalePrice());
 
                 Pets pet = ci.getPet();
-                Customer owner = customerRepo.findById(customerId).get();
+
+                oi.setPet(pet);
+                oi.setItemName(pet.getName());
+                oi.setUnitPrice(pet.getSalePrice());
+
+
+                Customer owner = customerRepository.findById(customerId).get();
                 pet.setOwner(owner);
                 pet.setIsAvailable(false);
                 pet.setPurchasedAt(LocalDateTime.now());
@@ -107,7 +112,7 @@ public class OrderService {
 
             oi.setQuantity(ci.getQuantity());
 
-            orderItemRepo.save(oi);
+            orderItemRepository.save(oi);
 
 
             listOrderItems.add(oi);
@@ -152,13 +157,13 @@ public class OrderService {
     }
 
     //Admin
-    public Page<Order> getAllOrder(Pageable pageable){
-       return orderRepo.findAll(pageable);
+    public Page<Order> getAllOrder(Pageable pageable) {
+        return orderRepository.findAll(pageable);
     }
 
     //Customer
-    public Page<Order> getAllOrderById(Pageable pageable, Customer customer){
-        return orderRepo.findAllByCustomerOrderByOrderIDDesc(pageable, customer);
+    public Page<Order> getAllOrderById(Pageable pageable, Customer customer) {
+        return orderRepository.findAllByCustomerOrderByOrderIDDesc(pageable, customer);
     }
 
 
@@ -170,7 +175,7 @@ public class OrderService {
 
 
         if (hasDate && hasStatus) {
-            return orderRepo.findByCreatedAtBetweenAndStatus(
+            return orderRepository.findByCreatedAtBetweenAndStatus(
                     startDate.atStartOfDay(),
                     endDate.atTime(LocalTime.MAX),
                     status,
@@ -179,7 +184,7 @@ public class OrderService {
 
 
         if (hasDate) {
-            return orderRepo.findByCreatedAtBetween(
+            return orderRepository.findByCreatedAtBetween(
                     startDate.atStartOfDay(),
                     endDate.atTime(LocalTime.MAX),
                     pageable);
@@ -187,52 +192,65 @@ public class OrderService {
 
 
         if (hasStatus) {
-            return orderRepo.findByStatus(status, pageable);
+            return orderRepository.findByStatus(status, pageable);
         }
 
 
-        return orderRepo.findAll(pageable);
+        return orderRepository.findAll(pageable);
     }
 
     public Order findByOrderCode(String orderCode) {
-        return orderRepo.findByOrderCode(orderCode);
+        return orderRepository.findByOrderCode(orderCode);
     }
 
 
     public Order updateOrder(Order order) {
-        return orderRepo.save(order);
+        return orderRepository.save(order);
     }
 
 
     @Transactional
     public void updateOrderStatusByAdmin(Integer orderID, String newStatus) {
 
-        Order order = orderRepo.findById(orderID)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng ID: " + orderID));
+        Order order = orderRepository.findById(orderID)
+                .orElseThrow(() -> new RuntimeException("Order not found with ID: " + orderID));
 
         String currentStatus = order.getStatus().toLowerCase();
         String targetStatus = newStatus.toLowerCase().trim();
 
-
         if ("done".equals(currentStatus) || "canceled".equals(currentStatus)) {
-            throw new RuntimeException("Đơn hàng đã kết thúc (Done/Canceled), không thể sửa!");
+            throw new RuntimeException("The order has already been finalized (Done/Canceled) and cannot be modified.");
         }
-
 
         if ("paid".equals(currentStatus) && "pending".equals(targetStatus)) {
-            throw new RuntimeException("Đơn đã thanh toán (Paid), không thể quay về Chờ xử lý!");
+            throw new RuntimeException("The order is already Paid and cannot be reverted to Pending status.");
         }
-
 
         if ("paid".equals(currentStatus) && "canceled".equals(targetStatus)) {
-            throw new RuntimeException("Đơn đã thanh toán MoMo, không được phép Hủy. Hãy dùng Refund (Hoàn tiền)!");
+            throw new RuntimeException("Orders paid via MoMo cannot be canceled directly. Please initiate the Refund process instead.");
         }
 
+        if ("canceled".equals(targetStatus)) {
+            for (OrderItems item : order.getOrderItems()) {
 
+                if (item.getProduct() != null) {
+                    Product product = item.getProduct();
+                    int restoredStock = product.getStock() + item.getQuantity();
+                    product.setStock(restoredStock);
+                    productRepository.save(product);
+                }
+
+                if (item.getPet() != null) {
+                    Pets pet = item.getPet();
+                    pet.setOwner(null);
+                    pet.setIsAvailable(true);
+                    petRepository.save(pet);
+                }
+            }
+        }
 
         order.setStatus(targetStatus);
-
-        orderRepo.saveAndFlush(order);
+        orderRepository.saveAndFlush(order);
     }
 
     private void deductProductStockForDoneOrder(Order order) {
@@ -241,12 +259,11 @@ public class OrderService {
         }
 
         for (OrderItems item : order.getOrderItems()) {
-            if (item.getProductID() == null) {
+            if (item.getProduct() == null) {
                 continue;
             }
 
-            Product product = productRepo.findById(item.getProductID())
-                    .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm ID: " + item.getProductID()));
+            Product product = item.getProduct();
 
             int quantityToDeduct = item.getQuantity() != null ? item.getQuantity() : 0;
             if (quantityToDeduct <= 0) {
@@ -254,27 +271,48 @@ public class OrderService {
             }
 
             if (product.getStock() < quantityToDeduct) {
-                throw new RuntimeException("Sản phẩm " + product.getName() + " không đủ tồn kho để hoàn tất đơn hàng.");
+                throw new RuntimeException("Sản phẩm '" + product.getName() + "' không đủ tồn kho để hoàn tất đơn hàng.");
             }
 
             product.setStock(product.getStock() - quantityToDeduct);
-            productRepo.save(product);
+            productRepository.save(product);
         }
     }
 
+
     @Transactional
     public void cancelOrderById(Integer orderId) {
-        Order order = orderRepo.findById(orderId)
+        Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng!"));
-
 
         if (!"pending".equalsIgnoreCase(order.getStatus())) {
             throw new RuntimeException("Chỉ đơn hàng ở trạng thái 'Chờ xử lý' mới có thể hủy.");
         }
 
+        List<OrderItems> items = order.getOrderItems();
 
+        for (OrderItems item : items) {
+
+            if (item.getProduct() != null) {
+                Product product = item.getProduct();
+                int restoredQuantity = product.getStock() + item.getQuantity();
+                product.setStock(restoredQuantity);
+
+                productRepository.save(product);
+            }
+
+            if (item.getPet() != null) {
+                Pets pet = item.getPet();
+
+                pet.setOwner(null);
+                pet.setIsAvailable(true);
+
+                petRepository.save(pet);
+            }
+        }
+
+        // Đổi trạng thái đơn hàng thành đã hủy
         order.setStatus("canceled");
-        orderRepo.save(order);
-
+        orderRepository.save(order);
     }
 }

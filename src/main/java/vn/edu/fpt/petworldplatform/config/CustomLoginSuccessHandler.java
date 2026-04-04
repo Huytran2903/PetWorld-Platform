@@ -10,7 +10,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.Staff;
-import vn.edu.fpt.petworldplatform.repository.CustomerRepo;
+import vn.edu.fpt.petworldplatform.repository.CustomerRepository;
 import vn.edu.fpt.petworldplatform.repository.StaffRepository;
 
 import java.io.IOException;
@@ -19,7 +19,7 @@ import java.io.IOException;
 public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
 
     @Autowired
-    private CustomerRepo customerRepo;
+    private CustomerRepository customerRepository;
 
     @Autowired
     private StaffRepository staffRepo;
@@ -37,7 +37,7 @@ public class CustomLoginSuccessHandler implements AuthenticationSuccessHandler {
             if (cus.getFailedAttempts() != null && cus.getFailedAttempts() > 0) {
                 cus.setFailedAttempts(0);
                 cus.setLockedUntil(null);
-                customerRepo.save(cus);
+                customerRepository.save(cus);
             }
         } else if (account instanceof Staff) {
             Staff stf = (Staff) account;

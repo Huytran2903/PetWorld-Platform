@@ -9,8 +9,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.fpt.petworldplatform.entity.*;
-import vn.edu.fpt.petworldplatform.repository.PetRepo;
-import vn.edu.fpt.petworldplatform.repository.ProductRepo;
+import vn.edu.fpt.petworldplatform.repository.PetRepository;
+import vn.edu.fpt.petworldplatform.repository.ProductRepository;
 import vn.edu.fpt.petworldplatform.service.*;
 //import vn.edu.fpt.petworldplatform.service.PetService;
 
@@ -28,10 +28,10 @@ public class ProductController {
 
 
     @Autowired
-    private ProductRepo productRepo;
+    private ProductRepository productRepository;
 
     @Autowired
-    private PetRepo petRepo;
+    private PetRepository petRepository;
 
     //Product List
     @GetMapping("/products")

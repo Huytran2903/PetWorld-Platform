@@ -5,7 +5,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.fpt.petworldplatform.entity.Pets;
-import vn.edu.fpt.petworldplatform.repository.PetRepo;
+import vn.edu.fpt.petworldplatform.repository.PetRepository;
 
 import java.util.List;
 
@@ -13,7 +13,7 @@ import java.util.List;
 public class PetAgeSchedulerService {
 
     @Autowired
-    private PetRepo petRepository;
+    private PetRepository petRepository;
 
 
     @Scheduled(cron = "0 0 0 1 * ?")

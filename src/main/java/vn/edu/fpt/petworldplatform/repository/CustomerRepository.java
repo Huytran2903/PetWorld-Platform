@@ -11,7 +11,7 @@ import vn.edu.fpt.petworldplatform.entity.Customer;
 import java.util.Optional;
 
 @Repository
-public interface CustomerRepo extends JpaRepository<Customer, Integer> {
+public interface CustomerRepository extends JpaRepository<Customer, Integer> {
     Optional<Customer> findByUsername(String username);
 
     boolean existsByEmail(String email);
@@ -28,5 +28,4 @@ public interface CustomerRepo extends JpaRepository<Customer, Integer> {
 
     long countByIsActiveTrue();
 
-    boolean existsByUsername(String username);
 }

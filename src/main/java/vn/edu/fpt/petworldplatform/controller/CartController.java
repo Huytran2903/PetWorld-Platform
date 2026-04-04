@@ -12,10 +12,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.petworldplatform.entity.*;
-import vn.edu.fpt.petworldplatform.repository.OrderRepo;
+import vn.edu.fpt.petworldplatform.repository.OrderRepository;
 import vn.edu.fpt.petworldplatform.repository.PaymentRepository;
-import vn.edu.fpt.petworldplatform.repository.PetRepo;
-import vn.edu.fpt.petworldplatform.repository.ProductRepo;
+import vn.edu.fpt.petworldplatform.repository.PetRepository;
+import vn.edu.fpt.petworldplatform.repository.ProductRepository;
 import vn.edu.fpt.petworldplatform.service.CartService;
 import vn.edu.fpt.petworldplatform.service.CustomerService;
 import vn.edu.fpt.petworldplatform.service.MomoService;
@@ -45,16 +45,16 @@ public class CartController {
     private NotificationService notificationService;
 
     @Autowired
-    private ProductRepo productRepo;
+    private ProductRepository productRepository;
 
     @Autowired
-    private OrderRepo orderRepo;
+    private OrderRepository orderRepository;
 
     @Autowired
     private PaymentRepository paymentRepository;
 
     @Autowired
-    private PetRepo petRepo;
+    private PetRepository petRepository;
 
     @GetMapping("/cart/add-pet/{id}")
     public String addPetToCart(@PathVariable("id") Integer id,
@@ -72,7 +72,7 @@ public class CartController {
         }
 
 
-        Pets pet = petRepo.findById(id)
+        Pets pet = petRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Pet not found with ID: " + id));
 
 
@@ -99,7 +99,7 @@ public class CartController {
             return "redirect:/login?error=account_not_found";
         }
 
-        Product product = productRepo.findById(id)
+        Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found with ID: " + id));
 
         cartService.addToCart(customerId, null, product, qty);
@@ -177,7 +177,7 @@ public class CartController {
 
         if (tempOrder != null && tempOrder.getOrderID() != null) {
 
-            Order realOrder = orderRepo.findById(tempOrder.getOrderID()).orElse(tempOrder);
+            Order realOrder = orderRepository.findById(tempOrder.getOrderID()).orElse(tempOrder);
 
             model.addAttribute("order", realOrder);
         }
@@ -457,7 +457,7 @@ public class CartController {
             Integer customerId = getCustomerIdFromAuth(authentication);
 
             //user a hủy đơn của user b
-            Order order = orderRepo.findById(orderId)
+            Order order = orderRepository.findById(orderId)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng!"));
 
             if (!order.getCustomer().getCustomerId().equals(customerId)) {

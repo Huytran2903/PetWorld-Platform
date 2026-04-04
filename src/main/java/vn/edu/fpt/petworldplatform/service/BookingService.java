@@ -13,9 +13,9 @@ import vn.edu.fpt.petworldplatform.entity.PetVaccinations;
 import vn.edu.fpt.petworldplatform.entity.ServiceItem;
 import vn.edu.fpt.petworldplatform.repository.AppointmentRepository;
 import vn.edu.fpt.petworldplatform.repository.AppointmentServiceLineRepository;
-import vn.edu.fpt.petworldplatform.repository.CustomerRepo;
+import vn.edu.fpt.petworldplatform.repository.CustomerRepository;
 import vn.edu.fpt.petworldplatform.repository.NotificationRepository;
-import vn.edu.fpt.petworldplatform.repository.PetRepo;
+import vn.edu.fpt.petworldplatform.repository.PetRepository;
 import vn.edu.fpt.petworldplatform.repository.PetVaccinationRepository;
 import vn.edu.fpt.petworldplatform.repository.ServiceItemRepository;
 
@@ -44,14 +44,14 @@ public class BookingService {
 
     private final AppointmentRepository appointmentRepository;
     private final AppointmentServiceLineRepository appointmentServiceLineRepository;
-    private final CustomerRepo customerRepo;
+    private final CustomerRepository customerRepository;
     private final NotificationRepository notificationRepository;
-    private final PetRepo petRepo;
+    private final PetRepository petRepository;
     private final ServiceItemRepository serviceItemRepository;
     private final PetVaccinationRepository petVaccinationRepository;
 
     public List<Pets> findPetsByCustomerId(Integer customerId) {
-        return petRepo.findByOwner_CustomerId(customerId);
+        return petRepository.findByOwner_CustomerId(customerId);
     }
 
     public List<ServiceItem> findActiveServices() {
@@ -150,9 +150,9 @@ public class BookingService {
             throw new IllegalArgumentException("New time slot overlaps with an existing booking.");
         }
 
-        Customer customer = customerRepo.findById(customerId)
+        Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new IllegalArgumentException("Customer not found."));
-        Pets pet = petRepo.findById(petId)
+        Pets pet = petRepository.findById(petId)
                 .orElseThrow(() -> new IllegalArgumentException("Pet not found."));
 
         Appointment appointment = Appointment.builder()

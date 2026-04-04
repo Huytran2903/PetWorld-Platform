@@ -7,7 +7,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-
     <link rel="stylesheet" href="/css/manage-order.css">
     <link rel="stylesheet" th:href="@{/css/sidebar-admin.css}">
 
@@ -19,51 +18,79 @@
             overflow-y: auto;
         }
 
-        /* Status Colors */
-        .status-pending { background-color: #fff3cd !important; color: #856404 !important; }
-        .status-paid { background-color: #cce5ff !important; color: #004085 !important; }
-        .status-processing { background-color: #e2d9f3 !important; color: #593196 !important; }
-        .status-shipped { background-color: #d1ecf1 !important; color: #0c5460 !important; }
-        .status-done { background-color: #d4edda !important; color: #155724 !important; }
-        .status-canceled { background-color: #f8d7da !important; color: #721c24 !important; }
-        .status-refunded { background-color: #e2e3e5 !important; color: #383d41 !important; }
+        .status-pending {
+            background-color: #fff3cd !important;
+            color: #856404 !important;
+        }
+
+        .status-paid {
+            background-color: #cce5ff !important;
+            color: #004085 !important;
+        }
+
+        .status-processing {
+            background-color: #e2d9f3 !important;
+            color: #593196 !important;
+        }
+
+        .status-shipped {
+            background-color: #d1ecf1 !important;
+            color: #0c5460 !important;
+        }
+
+        .status-done {
+            background-color: #d4edda !important;
+            color: #155724 !important;
+        }
+
+        .status-canceled {
+            background-color: #f8d7da !important;
+            color: #721c24 !important;
+        }
+
+        .status-refunded {
+            background-color: #e2e3e5 !important;
+            color: #383d41 !important;
+        }
 
         .status-select {
             border-radius: 50px;
             padding: 5px 15px;
             text-align: center;
-            font-size: 0.875rem;
+            font-size: 0.825rem;
             cursor: pointer;
-            width: 130px;
+            width: 120px;
             appearance: none;
-            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23333%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg...");
             background-repeat: no-repeat;
-            background-position: right .7rem top 50%;
-            background-size: .65rem auto;
+            background-position: right .5rem top 50%;
+            background-size: .5rem auto;
         }
 
         .custom-table th {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
             color: #6c757d;
             border-bottom: 2px solid #eee;
         }
 
-        .custom-table td { vertical-align: middle; border-bottom: 1px solid #f8f9fa; }
-        .modal-content { border-radius: 20px; border: none; }
-        .text-price { color: #d63384; font-size: 1.1rem; font-weight: 700; }
-
-        .btn-action-eye {
-            width: 35px;
-            height: 35px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: all 0.2s;
+        .item-thumb {
+            width: 45px;
+            height: 45px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #eee;
         }
-        .btn-action-eye:hover { background-color: #FFC107; color: black; }
+
+        .text-price {
+            color: #d63384;
+            font-weight: 700;
+        }
+
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+        }
     </style>
 </head>
 <body class="bg-light m-0 p-0 overflow-hidden">
@@ -72,262 +99,203 @@
     <div th:replace="~{fragments/sidebar-admin :: aside(activePage='orders')}"></div>
 
     <div class="flex-grow-1 p-4 p-md-5 main-content">
-        <div class="mb-4 p-4 rounded-4 d-flex justify-content-between align-items-center shadow-sm"
-             style="background-color: #FFF3E6; border: 1px solid #FFE0B2;">
+        <div class="mb-4 p-4 rounded-4 d-flex justify-content-between align-items-center shadow-sm bg-white border">
             <div class="d-flex align-items-center">
-                <div class="bg-white p-3 rounded-4 shadow-sm me-4 d-flex align-items-center justify-content-center"
-                     style="width: 60px; height: 60px;">
-                    <i class="bi bi-box-seam text-warning" style="font-size: 1.8rem;"></i>
+                <div class="bg-warning bg-opacity-10 p-3 rounded-4 me-3">
+                    <i class="bi bi-bag-check-fill text-warning fs-3"></i>
                 </div>
                 <div>
-                    <h2 class="fw-bold mb-1 text-dark">Orders Management</h2>
-                    <p class="text-muted mb-0">Manage customer orders and transactions.</p>
+                    <h2 class="fw-bold mb-0 text-dark">Orders Management</h2>
+                    <p class="text-muted mb-0 small">Track and update all customer transactions.</p>
                 </div>
             </div>
         </div>
 
         <div class="card border-0 shadow-sm rounded-4 w-100">
-            <div class="card-body p-4 p-lg-5">
+            <div class="card-body p-4">
 
-                <form th:action="@{/admin/manage-order}" method="get" class="row g-3 mb-5 align-items-end p-4 rounded-4"
-                      style="background-color: #FAFAFA; border: 1px solid #EAEAEA;">
-                    <div class="col-md-3">
-                        <label class="form-label small fw-bold text-muted text-uppercase">From Date</label>
+                <form th:action="@{/admin/manage-order}" method="get"
+                      class="row g-3 mb-4 p-3 rounded-4 bg-light border">
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold">From</label>
                         <input type="date" id="startDate" name="startDate" th:value="${startDate}"
-                               class="form-control rounded-pill shadow-none px-3 border-light-subtle">
+                               class="form-control form-control-sm rounded-pill">
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label small fw-bold text-muted text-uppercase">To Date</label>
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold">To</label>
                         <input type="date" id="endDate" name="endDate" th:value="${endDate}"
-                               class="form-control rounded-pill shadow-none px-3 border-light-subtle">
+                               class="form-control form-control-sm rounded-pill">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label small fw-bold text-muted text-uppercase">Status</label>
-                        <select name="statusFilter" class="form-select rounded-pill shadow-none px-3 border-light-subtle text-muted">
-                            <option value="" th:selected="${statusFilter == null || statusFilter == ''}">All Statuses</option>
+                        <label class="form-label small fw-bold">Status</label>
+                        <select name="statusFilter" class="form-select form-select-sm rounded-pill">
+                            <option value="">All Statuses</option>
                             <option value="pending" th:selected="${statusFilter == 'pending'}">Pending</option>
                             <option value="paid" th:selected="${statusFilter == 'paid'}">Paid</option>
-                            <option value="processing" th:selected="${statusFilter == 'processing'}">Processing</option>
-                            <option value="shipped" th:selected="${statusFilter == 'shipped'}">Shipped</option>
                             <option value="done" th:selected="${statusFilter == 'done'}">Done</option>
                             <option value="canceled" th:selected="${statusFilter == 'canceled'}">Canceled</option>
-                            <option value="refunded" th:selected="${statusFilter == 'refunded'}">Refunded</option>
                         </select>
                     </div>
-                    <div class="col-md-3 d-flex gap-2">
-                        <button type="submit" class="btn rounded-pill px-4 fw-bold w-100 text-dark shadow-sm"
-                                style="background-color: #FFC107; border: none;">
-                            <i class="bi bi-filter me-1"></i> Apply Filters
+                    <div class="col-md-5 d-flex gap-2 align-items-end">
+                        <button type="submit" class="btn btn-warning btn-sm rounded-pill px-4 fw-bold w-100">Filter
                         </button>
-                        <a th:href="@{/admin/manage-order}" class="btn bg-white border border-light-subtle rounded-pill px-3 shadow-sm text-muted">
-                            <i class="bi bi-arrow-clockwise"></i>
-                        </a>
+                        <a th:href="@{/admin/manage-order}"
+                           class="btn btn-outline-secondary btn-sm rounded-pill px-3"><i
+                                class="bi bi-arrow-clockwise"></i></a>
                     </div>
                 </form>
 
-                <div class="table-responsive w-100">
-                    <table class="table custom-table table-hover align-middle mb-0 w-100">
+                <div class="table-responsive">
+                    <table class="table custom-table table-hover align-middle mb-0">
                         <thead>
                         <tr>
-                            <th class="py-3 ps-2">ORDER ID</th>
-                            <th class="py-3">CUSTOMER NAME</th>
-                            <th class="py-3">ORDER DATE</th>
-                            <th class="py-3">STATUS</th>
-                            <th class="py-3 text-end pe-4">TOTAL AMOUNT</th>
-                            <th class="py-3 text-center">ACTIONS</th>
+                            <th class="py-3 ps-3">ORDER INFO</th>
+                            <th class="py-3">ITEMS</th>
+                            <th class="py-3">CUSTOMER</th>
+                            <th class="py-3 text-center">STATUS</th>
+                            <th class="py-3 text-end">TOTAL</th>
+                            <th class="py-3 text-center">ACTION</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <th:block th:each="o : ${ord}">
-                            <tr>
-                                <td class="fw-bold text-dark ps-2">
-                                    <a href="javascript:void(0)" class="text-decoration-none text-primary"
-                                       data-bs-toggle="modal" th:data-bs-target="'#orderModal-' + ${o.orderID}"
-                                       th:text="${o.orderCode != null ? o.orderCode : '#' + o.orderID}"></a>
-                                </td>
-                                <td class="fw-bold text-dark" th:text="${o.shipName}">Alice Smith</td>
-                                <td class="text-muted" th:text="${#temporals.format(o.createdAt, 'MMM dd, yyyy')}"></td>
-                                <td>
-                                    <form th:action="@{/admin/orders/update-status}" method="post" class="m-0">
-                                        <input type="hidden" name="orderID" th:value="${o.orderID}">
-                                        <select name="status" class="status-select fw-semibold"
-                                                th:classappend="'status-' + ${o.status}"
-                                                onchange="this.form.submit()"
-                                                th:disabled="${o.status == 'done' or o.status == 'canceled'}">
-                                            <option value="pending" th:selected="${o.status == 'pending'}" th:if="${o.status != 'paid' and o.status != 'shipped'}">Pending</option>
-                                            <option value="paid" th:selected="${o.status == 'paid'}">Paid</option>
-                                            <option value="processing" th:selected="${o.status == 'processing'}">Processing</option>
-                                            <option value="shipped" th:selected="${o.status == 'shipped'}">Shipped</option>
-                                            <option value="done" th:selected="${o.status == 'done'}">Done</option>
-                                            <option value="canceled" th:selected="${o.status == 'canceled'}" th:if="${o.status != 'paid' and o.status != 'shipped'}">Canceled</option>
-                                            <option value="refunded" th:selected="${o.status == 'refunded'}">Refunded</option>
-                                        </select>
-                                    </form>
-                                </td>
-                                <td class="text-dark fw-bold text-end pe-4"
-                                    th:text="${#numbers.formatDecimal(o.totalAmount, 0, 'POINT', 0, 'COMMA')} + ' ₫'"></td>
-                                <td class="text-center">
-                                    <button class="btn btn-light border-0 shadow-sm btn-action-eye"
-                                            data-bs-toggle="modal" th:data-bs-target="'#orderModal-' + ${o.orderID}">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                </td>
-                            </tr>
+                        <tr th:each="o : ${ord}">
+                            <td class="ps-3">
+                                <div class="fw-bold text-primary mb-1" th:text="${o.orderCode}"></div>
+                                <div class="text-muted small"
+                                     th:text="${#temporals.format(o.createdAt, 'dd/MM/yyyy HH:mm')}"></div>
+                            </td>
 
-                            <div class="modal fade" th:id="'orderModal-' + ${o.orderID}" tabindex="-1">
-                                <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-                                    <div class="modal-content shadow-lg">
-                                        <div class="modal-header border-bottom-0 p-4 pb-0">
-                                            <div>
-                                                <h5 class="modal-title fw-bold text-dark" th:text="${o.orderCode != null ? o.orderCode : 'Order #' + o.orderID}"></h5>
-                                                <small class="text-muted" th:text="'Order date: ' + ${#temporals.format(o.createdAt, 'HH:mm dd/MM/yyyy')}"></small>
-                                            </div>
-                                            <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+                            <td>
+                                <div class="d-flex flex-column gap-2">
+                                    <div th:each="item, iterStat : ${o.orderItems}" th:if="${iterStat.index < 2}"
+                                         class="d-flex align-items-center gap-2">
+                                        <div class="flex-shrink-0 border rounded bg-white d-flex align-items-center justify-content-center"
+                                             style="width: 40px; height: 40px; overflow: hidden;">
+                                            <img th:if="${item.imageUrl != null and !item.imageUrl.isEmpty()}"
+                                                 th:src="@{${item.imageUrl}}" class="w-100 h-100 object-fit-cover">
+                                            <i th:unless="${item.imageUrl != null and !item.imageUrl.isEmpty()}"
+                                               class="bi bi-box-seam text-muted"></i>
                                         </div>
-                                        <div class="modal-body p-4">
-                                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                                <h6 class="fw-bold mb-0">Order Summary</h6>
-                                                <span class="badge rounded-pill px-3 py-2 text-uppercase" th:classappend="'status-' + ${o.status}" th:text="${o.status}"></span>
-                                            </div>
-                                            <div class="list-group list-group-flush border rounded-4 overflow-hidden mb-4">
-                                                <div class="list-group-item p-3" th:each="item : ${o.orderItems}">
-                                                    <div class="d-flex justify-content-between align-items-center">
-                                                        <div class="d-flex gap-3 align-items-center">
-                                                            <div class="bg-light rounded p-2">
-                                                                <i class="bi bi-tencent-qq text-warning" th:if="${item.petID != null}"></i>
-                                                                <i class="bi bi-box-seam text-secondary" th:if="${item.petID == null}"></i>
-                                                            </div>
-                                                            <div>
-                                                                <div class="fw-bold mb-0" th:text="${item.itemName}">Item Name</div>
-                                                                <small class="text-muted">Qty: [[${item.quantity}]]</small>
-                                                            </div>
-                                                        </div>
-                                                        <div class="fw-bold" th:text="${#numbers.formatDecimal(item.unitPrice * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' đ'"></div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="row g-3">
-                                                <div class="col-md-6">
-                                                    <div class="p-3 rounded-4 h-100" style="background-color: #f8f9fa; border: 1px solid #eee;">
-                                                        <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-truck me-2 text-warning"></i>Shipping Info</h6>
-                                                        <div class="small">
-                                                            <div class="fw-bold mb-1" th:text="${o.shipName}">Name</div>
-                                                            <div class="mb-1 text-muted" th:text="${o.shipPhone}">Phone</div>
-                                                            <div class="text-muted" th:text="${o.shipAddress}">Address</div>
-                                                            <hr class="my-2">
-                                                            <div class="text-muted">Note: <span th:text="${o.note != null && !o.note.isEmpty() ? o.note : 'None'}"></span></div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <div class="p-3 rounded-4 h-100" style="background-color: #f8f9fa; border: 1px solid #eee;">
-                                                        <div class="d-flex justify-content-between mb-2 small">
-                                                            <span class="text-muted">Subtotal</span>
-                                                            <span th:text="${#numbers.formatDecimal(o.subtotal, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
-                                                        </div>
-                                                        <div class="d-flex justify-content-between mb-2 small">
-                                                            <span class="text-muted">Shipping Fee</span>
-                                                            <span th:text="${#numbers.formatDecimal(o.shippingFee, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
-                                                        </div>
-                                                        <hr class="my-2">
-                                                        <div class="d-flex justify-content-between fw-bold fs-5">
-                                                            <span>Total</span>
-                                                            <span class="text-price" th:text="${#numbers.formatDecimal(o.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer border-top-0 px-4 pb-4">
-                                            <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
-                                        </div>
+                                        <div class="small text-truncate" style="max-width: 150px;"
+                                             th:text="${item.itemName}"></div>
+                                    </div>
+                                    <div th:if="${#lists.size(o.orderItems) > 2}" class="text-muted"
+                                         style="font-size: 0.7rem;">
+                                        + <span th:text="${#lists.size(o.orderItems) - 2}"></span> more items...
                                     </div>
                                 </div>
-                            </div>
-                        </th:block>
+                            </td>
 
-                        <tr th:if="${ord.isEmpty()}">
-                            <td colspan="6" class="text-center py-5">
-                                <i class="bi bi-search text-muted fs-1 d-block mb-3"></i>
-                                <h5 class="fw-bold text-dark mb-1">No orders found</h5>
+                            <td>
+                                <div class="fw-bold" th:text="${o.shipName}"></div>
+                                <div class="text-muted small" th:text="${o.shipPhone}"></div>
+                            </td>
+                            <td class="text-center">
+                                <form th:action="@{/admin/orders/update-status}" method="post">
+                                    <input type="hidden" name="orderID" th:value="${o.orderID}">
+                                    <select name="status" class="status-select fw-bold"
+                                            th:classappend="'status-' + ${o.status}" onchange="this.form.submit()"
+                                            th:disabled="${o.status == 'done' or o.status == 'canceled'}">
+                                        <option value="pending" th:selected="${o.status == 'pending'}">Pending</option>
+                                        <option value="paid" th:selected="${o.status == 'paid'}">Paid</option>
+                                        <option value="processing" th:selected="${o.status == 'processing'}">
+                                            Processing
+                                        </option>
+                                        <option value="shipped" th:selected="${o.status == 'shipped'}">Shipped</option>
+                                        <option value="done" th:selected="${o.status == 'done'}">Done</option>
+                                        <option value="canceled" th:selected="${o.status == 'canceled'}">Canceled
+                                        </option>
+                                    </select>
+                                </form>
+                            </td>
+                            <td class="text-end fw-bold text-price pe-3"
+                                th:text="${#numbers.formatDecimal(o.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                            <td class="text-center">
+                                <button class="btn btn-light btn-sm border shadow-sm rounded-circle"
+                                        data-bs-toggle="modal" th:data-bs-target="'#orderModal-' + ${o.orderID}">
+                                    <i class="bi bi-eye-fill"></i>
+                                </button>
                             </td>
                         </tr>
                         </tbody>
                     </table>
                 </div>
 
-                <nav th:if="${ord.totalPages > 1}" class="mt-5">
-                    <ul class="pagination justify-content-center mb-0 gap-2">
-                        <li class="page-item" th:classappend="${ord.number == 0} ? 'disabled'">
-                            <a class="page-link rounded-3 border-0 shadow-sm text-dark px-3"
-                               th:href="@{/admin/manage-order(page=${ord.number - 1}, startDate=${startDate}, endDate=${endDate}, statusFilter=${statusFilter})}">Previous</a>
-                        </li>
-                        <li class="page-item" th:each="i : ${#numbers.sequence(0, ord.totalPages - 1)}" th:classappend="${i == ord.number} ? 'active'">
-                            <a class="page-link rounded-3 border-0 shadow-sm px-3 fw-bold"
-                               th:style="${i == ord.number ? 'background-color: #FFC107; color: #000;' : 'color: #333;'}"
-                               th:href="@{/admin/manage-order(page=${i}, startDate=${startDate}, endDate=${endDate}, statusFilter=${statusFilter})}" th:text="${i + 1}"></a>
-                        </li>
-                        <li class="page-item" th:classappend="${ord.number == ord.totalPages - 1} ? 'disabled'">
-                            <a class="page-link rounded-3 border-0 shadow-sm text-dark px-3"
-                               th:href="@{/admin/manage-order(page=${ord.number + 1}, startDate=${startDate}, endDate=${endDate}, statusFilter=${statusFilter})}">Next</a>
-                        </li>
-                    </ul>
+                <nav th:if="${ord.totalPages > 1}" class="mt-4">
                 </nav>
             </div>
         </div>
     </div>
 </div>
 
+<th:block th:each="o : ${ord}">
+    <div class="modal fade" th:id="'orderModal-' + ${o.orderID}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content shadow-lg">
+                <div class="modal-header border-0 p-4 pb-0">
+                    <h5 class="fw-bold">Order Details: <span class="text-primary" th:text="${o.orderCode}"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="list-group list-group-flush border rounded-4 overflow-hidden mb-4">
+                        <div class="list-group-item p-3" th:each="item : ${o.orderItems}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex gap-3 align-items-center">
+                                    <div class="border rounded bg-light d-flex align-items-center justify-content-center"
+                                         style="width: 55px; height: 55px; overflow: hidden;">
+                                        <img th:if="${item.imageUrl != null and !item.imageUrl.isEmpty()}"
+                                             th:src="@{${item.imageUrl}}" class="w-100 h-100 object-fit-cover">
+                                        <i th:unless="${item.imageUrl != null and !item.imageUrl.isEmpty()}"
+                                           class="bi bi-box-seam fs-4 text-muted"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark" th:text="${item.itemName}"></div>
+                                        <small class="text-muted">Quantity: [[${item.quantity}]] | Category: <span
+                                                th:text="${item.pet != null ? 'Pet' : 'Product'}"></span></small>
+                                    </div>
+                                </div>
+                                <div class="fw-bold text-price"
+                                     th:text="${#numbers.formatDecimal(item.unitPrice * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' đ'"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-4 bg-light h-100 border text-dark">
+                                <h6 class="fw-bold mb-2"><i class="bi bi-truck me-2"></i>Shipping Info</h6>
+                                <div class="small">
+                                    <div class="fw-bold" th:text="${o.shipName}"></div>
+                                    <div th:text="${o.shipPhone}"></div>
+                                    <div class="text-muted" th:text="${o.shipAddress}"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-4 bg-light border text-dark">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span>Subtotal:</span>
+                                    <span th:text="${#numbers.formatDecimal(o.subtotal, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                                </div>
+                                <div class="d-flex justify-content-between small mb-2">
+                                    <span>Shipping:</span>
+                                    <span th:text="${#numbers.formatDecimal(o.shippingFee, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                                </div>
+                                <hr class="my-2">
+                                <div class="d-flex justify-content-between fw-bold fs-5">
+                                    <span>Total:</span>
+                                    <span class="text-price"
+                                          th:text="${#numbers.formatDecimal(o.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const startDateInput = document.getElementById('startDate');
-        const endDateInput = document.getElementById('endDate');
-
-
-        const today = new Date().toISOString().split('T')[0];
-
-        function updateDateConstraints() {
-            const startVal = startDateInput.value;
-            const endVal = endDateInput.value;
-
-            //Chặn cả 2 không cho chọn tương lai
-            startDateInput.setAttribute('max', today);
-            endDateInput.setAttribute('max', today);
-
-            //To Date không được nhỏ hơn From Date
-            if (startVal) {
-                endDateInput.setAttribute('min', startVal);
-            } else {
-                endDateInput.removeAttribute('min');
-            }
-
-            //From Date không được lớn hơn To Date
-            // Đồng thời From Date vẫn phải chịu sự chi phối của ngày "Today"
-            if (endVal) {
-                // Giới hạn max của From Date là cái nào nhỏ hơn giữa (To Date) và (Today)
-                const limitForStart = endVal < today ? endVal : today;
-                startDateInput.setAttribute('max', limitForStart);
-            }
-        }
-
-        // Khởi tạo ràng buộc khi trang vừa load
-        updateDateConstraints();
-
-        // Lắng nghe sự kiện thay đổi
-        startDateInput.addEventListener('change', updateDateConstraints);
-        endDateInput.addEventListener('change', updateDateConstraints);
-
-        // Logic đổi màu status select (Giữ nguyên của bạn)
-        const statusSelects = document.querySelectorAll('.status-select');
-        statusSelects.forEach(select => {
-            select.addEventListener('change', function () {
-                this.classList.remove('status-pending', 'status-processing', 'status-shipped', 'status-paid', 'status-done', 'status-canceled', 'status-refunded');
-                this.classList.add('status-' + this.value);
-            });
-        });
-    });
-</script>
 </body>
 </html>

@@ -83,6 +83,11 @@ public class Product {
     @ToString.Exclude
     private List<CartItem> cartItems = new ArrayList<>();
 
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private List<OrderItems> orderItems;
+
     // Tự động gán thời gian khi tạo mới hoặc cập nhật
     @PrePersist
     protected void onCreate() {

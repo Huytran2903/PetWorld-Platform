@@ -12,7 +12,7 @@ import vn.edu.fpt.petworldplatform.entity.AccessControl;
 import vn.edu.fpt.petworldplatform.entity.Customer;
 import vn.edu.fpt.petworldplatform.entity.Staff;
 import vn.edu.fpt.petworldplatform.repository.AccessControlRepository;
-import vn.edu.fpt.petworldplatform.repository.CustomerRepo;
+import vn.edu.fpt.petworldplatform.repository.CustomerRepository;
 import vn.edu.fpt.petworldplatform.repository.StaffRepository;
 import vn.edu.fpt.petworldplatform.config.CustomUserDetails;
 
@@ -27,7 +27,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     private StaffRepository staffRepo;
 
     @Autowired
-    private CustomerRepo customerRepo;
+    private CustomerRepository customerRepository;
 
     @Autowired
     private AccessControlRepository accessControlRepo;
@@ -35,7 +35,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        Optional<Customer> customerOpt = customerRepo.findByUsername(username);
+        Optional<Customer> customerOpt = customerRepository.findByUsername(username);
         if (customerOpt.isPresent()) {
             Customer customer = customerOpt.get();
             List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_CUSTOMER"));

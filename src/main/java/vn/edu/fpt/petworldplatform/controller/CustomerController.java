@@ -9,15 +9,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import vn.edu.fpt.petworldplatform.config.CustomUserDetails;
 import vn.edu.fpt.petworldplatform.dto.PetCreateDTO;
 import vn.edu.fpt.petworldplatform.dto.ProfileFormDTO;
 import vn.edu.fpt.petworldplatform.entity.Appointment;
@@ -30,20 +27,15 @@ import vn.edu.fpt.petworldplatform.repository.AppointmentSummaryRepository;
 import vn.edu.fpt.petworldplatform.repository.PaymentRepository;
 import vn.edu.fpt.petworldplatform.repository.PetVaccinationRepository;
 import vn.edu.fpt.petworldplatform.entity.*;
-import vn.edu.fpt.petworldplatform.repository.PetRepo;
+import vn.edu.fpt.petworldplatform.repository.PetRepository;
 import vn.edu.fpt.petworldplatform.service.*;
 import vn.edu.fpt.petworldplatform.util.SecuritySupport;
 
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.Set;
 
@@ -576,7 +568,7 @@ public class CustomerController {
     }
 
     @Autowired
-    private PetRepo petRepo;
+    private PetRepository petRepository;
 
     @GetMapping("/customer/pet/my-pets")
     public String showMyPets(HttpSession session,
@@ -612,14 +604,14 @@ public class CustomerController {
         boolean hasSearch = !normalizedSearch.isEmpty();
 
         if (petTypeForQuery != null && hasSearch) {
-            petPage = petRepo.findByOwner_CustomerIdAndPetTypeAndNameContainingIgnoreCase(
+            petPage = petRepository.findByOwner_CustomerIdAndPetTypeAndNameContainingIgnoreCase(
                     customer.getCustomerId(), petTypeForQuery, normalizedSearch, pageable);
         } else if (petTypeForQuery != null) {
-            petPage = petRepo.findByOwner_CustomerIdAndPetType(customer.getCustomerId(), petTypeForQuery, pageable);
+            petPage = petRepository.findByOwner_CustomerIdAndPetType(customer.getCustomerId(), petTypeForQuery, pageable);
         } else if (hasSearch) {
-            petPage = petRepo.findByOwner_CustomerIdAndNameContainingIgnoreCase(customer.getCustomerId(), normalizedSearch, pageable);
+            petPage = petRepository.findByOwner_CustomerIdAndNameContainingIgnoreCase(customer.getCustomerId(), normalizedSearch, pageable);
         } else {
-            petPage = petRepo.findByOwner_CustomerId(customer.getCustomerId(), pageable);
+            petPage = petRepository.findByOwner_CustomerId(customer.getCustomerId(), pageable);
         }
 
         int totalPages = petPage.getTotalPages();

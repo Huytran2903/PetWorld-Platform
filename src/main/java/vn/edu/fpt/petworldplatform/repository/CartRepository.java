@@ -7,7 +7,7 @@ import vn.edu.fpt.petworldplatform.entity.Carts;
 import java.util.Optional;
 
 @Repository
-public interface CartRepo extends JpaRepository<Carts, Integer> {
+public interface CartRepository extends JpaRepository<Carts, Integer> {
     Optional<Carts> findByCustomerId(Integer customerId);
 
     void deleteByCustomerId(Integer customerId);

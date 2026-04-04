@@ -8,17 +8,15 @@ import vn.edu.fpt.petworldplatform.dto.RolePermissionDTO;
 import vn.edu.fpt.petworldplatform.entity.AccessControl;
 import vn.edu.fpt.petworldplatform.entity.Role;
 import vn.edu.fpt.petworldplatform.repository.AccessControlRepository;
-import vn.edu.fpt.petworldplatform.repository.RoleRepo;
+import vn.edu.fpt.petworldplatform.repository.RoleRepository;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class RoleService {
     @Autowired
-    private RoleRepo roleRepo;
+    private RoleRepository roleRepository;
 
     @Autowired
     private AccessControlRepository accessRepo;
@@ -45,12 +43,12 @@ public class RoleService {
     );
 
     public List<Role> getAllRoles() {
-        return roleRepo.findAll();
+        return roleRepository.findAll();
     }
 
     public RolePermissionDTO getRolePermissions(Integer roleId) {
 
-        Role role = roleRepo.findById(roleId)
+        Role role = roleRepository.findById(roleId)
                 .orElseThrow(() -> new RuntimeException("Role not found with ID: " + roleId));
 
         List<AccessControl> existingPermissions = accessRepo.findByRoleId(roleId);

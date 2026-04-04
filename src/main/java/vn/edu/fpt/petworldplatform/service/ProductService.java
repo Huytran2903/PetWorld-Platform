@@ -5,7 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import vn.edu.fpt.petworldplatform.entity.Product;
-import vn.edu.fpt.petworldplatform.repository.ProductRepo;
+import vn.edu.fpt.petworldplatform.repository.ProductRepository;
 
 import java.util.List;
 
@@ -13,40 +13,40 @@ import java.util.List;
 public class ProductService {
 
     @Autowired
-    private ProductRepo productRepo;
+    private ProductRepository productRepository;
 
 
     public Page<Product> getAllProducts(Pageable pageable) {
-        return productRepo.findByIsActiveTrue(pageable);
+        return productRepository.findByIsActiveTrue(pageable);
     }
 
     public Product findProductById(Integer id) {
-        return productRepo.findById(id).get();
+        return productRepository.findById(id).get();
     }
 
     public void saveProduct(Product product) {
-        productRepo.save(product);
+        productRepository.save(product);
     }
 
     public void deleteById(Integer id) {
-        productRepo.deleteById(id);
+        productRepository.deleteById(id);
     }
 
     //search
     public Page<Product> searchProductsByName(String keyword, Pageable pageable) {
-        return productRepo.searchAllByNameContainingIgnoreCase(keyword, pageable);
+        return productRepository.searchAllByNameContainingIgnoreCase(keyword, pageable);
     }
 
     public List<Product> getRandomProducts(int limit) {
-        return productRepo.findRandomProducts(limit);
+        return productRepository.findRandomProducts(limit);
     }
 
     public Page<Product> getProductsByCategory(Integer categoryId, Pageable pageable) {
-        return productRepo.findByCategory_CategoryIDAndIsActiveTrue(categoryId, pageable);
+        return productRepository.findByCategory_CategoryIDAndIsActiveTrue(categoryId, pageable);
     }
 
     public Page<Product> searchProductsByNameAndCategory(String keyword, Integer categoryId, Pageable pageable) {
-        return productRepo.searchAllByNameContainingIgnoreCaseAndCategory_CategoryIDAndIsActiveTrue(keyword, categoryId, pageable);
+        return productRepository.searchAllByNameContainingIgnoreCaseAndCategory_CategoryIDAndIsActiveTrue(keyword, categoryId, pageable);
     }
 
 

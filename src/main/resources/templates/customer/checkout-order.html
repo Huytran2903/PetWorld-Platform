@@ -3,102 +3,125 @@
       th:replace="~{layouts/layout-public :: layout(~{::content}, ~{::headExtras}, ~{::pageScripts})}"
       th:with="activePage='', pageTitle='Order Checkout'">
 <th:block th:fragment="headExtras">
-    <link rel="stylesheet" th:href="@{/css/checkout-order.css}" />
+    <link rel="stylesheet" th:href="@{/css/checkout-order.css}"/>
 </th:block>
 <div th:fragment="content">
-<div class="app-wrapper" th:if="${order != null}">
+    <div class="app-wrapper" th:if="${order != null}">
 
-    <main class="container my-5">
-        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show shadow-sm" style="border-radius: 15px;" role="alert">
-            <i class="bi bi-check-circle-fill me-2"></i>
-            <span th:text="${successMessage}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-
-        <div class="text-center mb-5">
-            <div class="success-icon mb-3 mx-auto shadow-sm">
-                <svg width="40" height="40" fill="#198754" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg>
+        <main class="container my-5">
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show shadow-sm"
+                 style="border-radius: 15px;" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-            <h2 class="fw-bold">Order Completed Successfully!</h2>
-            <p class="text-muted" th:text="'Order #' + ${order.orderCode} + ' • ' + ${#temporals.format(order.createdAt, 'HH:mm:ss dd/MM/yyyy')}"></p>
-        </div>
 
-        <div class="row g-4">
-            <div class="col-lg-8">
-                <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-white py-3 fw-bold">Order Items</div>
-                    <div class="card-body">
-                        <div th:if="${order.orderItems != null}" th:each="item : ${order.orderItems}" class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-                            <div>
-                                <h6 class="mb-1">
-                                    <span th:text="${item.itemName}">Item Name</span>
-                                    <span class="badge bg-light text-dark border ms-1" th:text="${item.petID != null ? 'Pet' : 'Product'}">Type</span>
-                                </h6>
-                                <small class="text-muted" th:text="${#numbers.formatCurrency(item.unitPrice)} + ' × ' + ${item.quantity}">$0.00 × 1</small>
-                            </div>
-                            <span class="fw-bold" th:text="${#numbers.formatCurrency(item.unitPrice.multiply(new java.math.BigDecimal(item.quantity)))}">$0.00</span>
-                        </div>
-                        <div th:if="${order.orderItems == null || order.orderItems.isEmpty()}" class="text-muted text-center py-2">
-                            <small>Item details are being processed.</small>
-                        </div>
-                    </div>
+            <div class="text-center mb-5">
+                <div class="success-icon mb-3 mx-auto shadow-sm">
+                    <svg width="40" height="40" fill="#198754" viewBox="0 0 16 16">
+                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                    </svg>
                 </div>
+                <h2 class="fw-bold">Order Completed Successfully!</h2>
+                <p class="text-muted"
+                   th:text="'Order #' + ${order.orderCode} + ' • ' + ${#temporals.format(order.createdAt, 'HH:mm:ss dd/MM/yyyy')}"></p>
+            </div>
 
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-header bg-white py-3 fw-bold">Shipping Information</div>
-                            <div class="card-body">
-                                <p class="mb-1 fw-bold" th:text="${order.shipName}">Customer Name</p>
-                                <p class="mb-1 text-muted small" th:text="${order.shipPhone}">(000) 000-0000</p>
-                                <p class="mb-0 text-muted small" th:text="${order.shipAddress}">Shipping Address</p>
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm mb-4">
+                        <div class="card-header bg-white py-3 fw-bold">Order Items</div>
+                        <div class="card-body">
+                            <div th:if="${order.orderItems != null}" th:each="item : ${order.orderItems}"
+                                 class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-light rounded p-2 border"
+                                         style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-tencent-qq text-warning" th:if="${item.pet != null}"></i>
+                                        <i class="bi bi-box-seam text-secondary" th:if="${item.pet == null}"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">
+                                            <span class="fw-bold" th:text="${item.itemName}">Item Name</span>
+                                            <span class="badge bg-light text-dark border ms-1"
+                                                  th:text="${item.pet != null ? 'Pet' : 'Product'}"
+                                                  style="font-size: 0.7rem;">Type</span>
+                                        </h6>
+                                        <small class="text-muted">
+                                            <span th:text="${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                                            <span th:text="' × ' + ${item.quantity}"> × 1</span>
+                                        </small>
+                                    </div>
+                                </div>
+                                <span class="fw-bold text-dark"
+                                      th:text="${#numbers.formatDecimal(item.unitPrice * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' đ'">$0.00</span>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card border-0 shadow-sm h-100">
-                            <div class="card-header bg-white py-3 fw-bold">Order Status</div>
-                            <div class="card-body">
-                                <span class="badge bg-secondary-subtle text-dark px-3 py-2 mb-2 text-uppercase" th:text="${order.status}">PENDING</span>
-                                <p class="mb-0 text-muted small" th:if="${order.status == 'pending'}">● Waiting for processing/payment</p>
-                                <p class="mb-0 text-success small" th:if="${order.status == 'paid'}">● Paid successfully</p>
+                            <div th:if="${order.orderItems == null || order.orderItems.isEmpty()}"
+                                 class="text-muted text-center py-2">
+                                <small>Item details are being processed.</small>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <div class="col-lg-4">
-                <div class="card border-0 shadow-sm mb-4 bg-white">
-                    <div class="card-header bg-white py-3 fw-bold">Order Summary</div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Subtotal</span>
-                            <span th:text="${order.subtotal != null ? #numbers.formatCurrency(order.subtotal) : '0 ₫'}">$0.00</span>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white py-3 fw-bold">Shipping Information</div>
+                                <div class="card-body">
+                                    <p class="mb-1 fw-bold" th:text="${order.shipName}">Customer Name</p>
+                                    <p class="mb-1 text-muted small" th:text="${order.shipPhone}">(000) 000-0000</p>
+                                    <p class="mb-0 text-muted small" th:text="${order.shipAddress}">Shipping Address</p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="d-flex justify-content-between mb-3 text-muted">
-                            <span>Tax (5%)</span>
-                            <span th:text="${order.totalAmount != null && order.subtotal != null ? #numbers.formatCurrency(order.totalAmount.subtract(order.subtotal)) : '0 ₫'}">$0.00</span>
-                        </div>
-                        <hr>
-                        <div class="d-flex justify-content-between fw-bold fs-5">
-                            <span>Total</span>
-                            <span class="text-primary" th:text="${order.totalAmount != null ? #numbers.formatCurrency(order.totalAmount) : '0 ₫'}">$0.00</span>
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-header bg-white py-3 fw-bold">Order Status</div>
+                                <div class="card-body">
+                                    <span class="badge bg-secondary-subtle text-dark px-3 py-2 mb-2 text-uppercase"
+                                          th:text="${order.status}">PENDING</span>
+                                    <p class="mb-0 text-muted small" th:if="${order.status == 'pending'}">● Waiting for
+                                        processing/payment</p>
+                                    <p class="mb-0 text-success small" th:if="${order.status == 'paid'}">● Paid
+                                        successfully</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="card border-0 shadow-sm border-dark border-top-0">
-                    <div class="card-header bg-white py-3 fw-bold">Next Actions</div>
-                    <div class="card-body d-grid gap-2">
-                        <a th:href="@{/products}" class="btn btn-dark w-100 py-2">Continue Shopping</a>
-                        <a th:href="@{/}" class="btn btn-light border w-100 py-2">Back to home</a>
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm mb-4 bg-white">
+                        <div class="card-header bg-white py-3 fw-bold">Order Summary</div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal</span>
+                                <span th:text="${order.subtotal != null ? #numbers.formatCurrency(order.subtotal) : '0 ₫'}">$0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3 text-muted">
+                                <span>Tax (5%)</span>
+                                <span th:text="${order.totalAmount != null && order.subtotal != null ? #numbers.formatCurrency(order.totalAmount.subtract(order.subtotal)) : '0 ₫'}">$0.00</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between fw-bold fs-5">
+                                <span>Total</span>
+                                <span class="text-primary"
+                                      th:text="${order.totalAmount != null ? #numbers.formatCurrency(order.totalAmount) : '0 ₫'}">$0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card border-0 shadow-sm border-dark border-top-0">
+                        <div class="card-header bg-white py-3 fw-bold">Next Actions</div>
+                        <div class="card-body d-grid gap-2">
+                            <a th:href="@{/products}" class="btn btn-dark w-100 py-2">Continue Shopping</a>
+                            <a th:href="@{/}" class="btn btn-light border w-100 py-2">Back to home</a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </main>
-</div>
+        </main>
+    </div>
 </div>
 <th:block th:fragment="pageScripts"></th:block>
 </html>

@@ -9,7 +9,7 @@ import vn.edu.fpt.petworldplatform.entity.Product;
 
 import java.util.List;
 
-public interface ProductRepo extends JpaRepository<Product, Integer> {
+public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     boolean existsByCategory_CategoryID(Integer categoryID);
 
