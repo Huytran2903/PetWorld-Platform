@@ -64,15 +64,15 @@
             </div>
 
             <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-                <form th:action="@{/admin/statistics/pets}" method="get" class="flex flex-wrap gap-4 items-end">
+                <form id="petStatsFilterForm" th:action="@{/admin/statistics/pets}" method="get" class="flex flex-wrap gap-4 items-end">
                     <div class="flex-1 min-w-0">
                         <label class="block text-sm font-bold text-gray-700 mb-2">Start Date</label>
-                        <input type="date" name="startDate" th:value="${startDate}"
+                        <input id="startDate" type="date" name="startDate" th:value="${startDate}" th:attr="max=${today}"
                                class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-orange-500 outline-none">
                     </div>
                     <div class="flex-1 min-w-0">
                         <label class="block text-sm font-bold text-gray-700 mb-2">End Date</label>
-                        <input type="date" name="endDate" th:value="${endDate}"
+                        <input id="endDate" type="date" name="endDate" th:value="${endDate}"
                                class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-orange-500 outline-none">
                     </div>
                     <button type="submit"
@@ -310,5 +310,72 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:inline="javascript">
+    (function () {
+        const form = document.getElementById('petStatsFilterForm');
+        const startInput = document.getElementById('startDate');
+        const endInput = document.getElementById('endDate');
+        const today = /*[[${today}]]*/ '';
+
+        if (!form || !startInput || !endInput || !today) {
+            return;
+        }
+
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return year + '-' + month + '-' + day;
+        }
+
+        function addDays(isoDate, days) {
+            const date = new Date(isoDate + 'T00:00:00');
+            date.setDate(date.getDate() + days);
+            return formatDate(date);
+        }
+
+        function updateDateConstraints() {
+            startInput.max = today;
+
+            if (startInput.value) {
+                endInput.min = addDays(startInput.value, 1);
+            } else {
+                endInput.removeAttribute('min');
+            }
+        }
+
+        startInput.addEventListener('change', function () {
+            startInput.setCustomValidity('');
+            endInput.setCustomValidity('');
+            updateDateConstraints();
+        });
+
+        endInput.addEventListener('change', function () {
+            startInput.setCustomValidity('');
+            endInput.setCustomValidity('');
+            updateDateConstraints();
+        });
+
+        form.addEventListener('submit', function (event) {
+            startInput.setCustomValidity('');
+            endInput.setCustomValidity('');
+
+            if (startInput.value && startInput.value > today) {
+                startInput.setCustomValidity('Start date cannot be in the future.');
+                startInput.reportValidity();
+                event.preventDefault();
+                return;
+            }
+
+            if (startInput.value && endInput.value && startInput.value >= endInput.value) {
+                endInput.setCustomValidity('End date must be later than start date.');
+                endInput.reportValidity();
+                event.preventDefault();
+            }
+        });
+
+        updateDateConstraints();
+    })();
+</script>
 </body>
 </html>

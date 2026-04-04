@@ -14,6 +14,7 @@ import vn.edu.fpt.petworldplatform.repository.AppointmentServiceLineRepository;
 import vn.edu.fpt.petworldplatform.repository.FeedbackRepository;
 import vn.edu.fpt.petworldplatform.repository.ServiceItemRepository;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -21,13 +22,40 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FeedbackService {
 
+    private static final int GENERAL_FEEDBACK_COOLDOWN_MINUTES = 10;
+
     private final FeedbackRepository feedbackRepository;
     private final AppointmentRepository appointmentRepository;
     private final AppointmentServiceLineRepository appointmentServiceLineRepository;
     private final ServiceItemRepository serviceItemRepository;
     private final NotificationService notificationService;
 
+    public void validateGeneralFeedbackCooldown(Customer loggedInCustomer) {
+        if (loggedInCustomer == null || loggedInCustomer.getCustomerId() == null) {
+            throw new RuntimeException("Please login to submit feedback.");
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+        feedbackRepository.findTopByCustomer_CustomerIdAndTypeOrderByCreatedAtDesc(
+                        loggedInCustomer.getCustomerId(), "general")
+                .ifPresent(lastFeedback -> {
+                    if (lastFeedback.getCreatedAt() == null) {
+                        return;
+                    }
+
+                    LocalDateTime nextAllowedAt = lastFeedback.getCreatedAt().plusMinutes(GENERAL_FEEDBACK_COOLDOWN_MINUTES);
+                    if (now.isBefore(nextAllowedAt)) {
+                        long remainingSeconds = Duration.between(now, nextAllowedAt).getSeconds();
+                        long remainingMinutes = Math.max(1, (remainingSeconds + 59) / 60);
+                        throw new IllegalStateException(
+                            "You just submitted feedback. Please wait " + remainingMinutes + " more minute(s) before submitting again.");
+                    }
+                });
+    }
+
     public Feedback submitGeneralFeedback(GeneralFeedbackDTO feedbackDTO, Customer loggedInCustomer) {
+        validateGeneralFeedbackCooldown(loggedInCustomer);
+
         Feedback feedback = Feedback.builder()
                 .type("general")
                 .subject(feedbackDTO.getSubject())
@@ -43,16 +71,29 @@ public class FeedbackService {
 
         feedback.setCustomer(loggedInCustomer);
 
-        String inputEmail = feedbackDTO.getEmail() != null ? feedbackDTO.getEmail().trim() : "";
-        String inputPhone = feedbackDTO.getPhoneNumber() != null ? feedbackDTO.getPhoneNumber().trim() : "";
-
-        String resolvedEmail = !inputEmail.isBlank() ? inputEmail : loggedInCustomer.getEmail();
-        String resolvedPhone = !inputPhone.isBlank() ? inputPhone : loggedInCustomer.getPhone();
+        String resolvedEmail = resolvePreferredValue(feedbackDTO.getEmail(), loggedInCustomer.getEmail());
+        String resolvedPhone = resolvePreferredValue(feedbackDTO.getPhoneNumber(), loggedInCustomer.getPhone());
 
         feedback.setEmail(resolvedEmail);
         feedback.setPhoneNumber(resolvedPhone);
 
         return feedbackRepository.save(feedback);
+    }
+
+    private String resolvePreferredValue(String userInputValue, String fallbackProfileValue) {
+        String normalizedUserInput = normalize(userInputValue);
+        if (normalizedUserInput != null) {
+            return normalizedUserInput;
+        }
+        return normalize(fallbackProfileValue);
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     /**

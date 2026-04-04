@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +22,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 
 @Controller
@@ -32,6 +37,54 @@ public class ServiceReviewController {
     private final FeedbackService feedbackService;
 
     private static final String UPLOAD_DIR = "uploads/feedback-images/";
+    private static final int MAX_IMAGES = 5;
+    private static final long MAX_IMAGE_SIZE_BYTES = 5L * 1024 * 1024;
+    private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
+            "image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"
+    );
+    private static final Set<String> ALLOWED_EXTENSIONS = new HashSet<>(Arrays.asList(
+            "jpg", "jpeg", "png", "webp", "gif"
+    ));
+
+    private void validateImageUploads(MultipartFile[] imageFiles) {
+        long nonEmptyFileCount = Arrays.stream(imageFiles)
+                .filter(file -> file != null && !file.isEmpty())
+                .count();
+
+        if (nonEmptyFileCount > MAX_IMAGES) {
+            throw new IllegalArgumentException("You can upload up to 5 images only.");
+        }
+
+        for (MultipartFile file : imageFiles) {
+            if (file == null || file.isEmpty()) {
+                continue;
+            }
+            validateSingleImage(file);
+        }
+    }
+
+    private void validateSingleImage(MultipartFile file) {
+        String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
+        int dotIndex = originalFilename.lastIndexOf('.');
+
+        if (dotIndex < 0 || dotIndex == originalFilename.length() - 1) {
+            throw new IllegalArgumentException("Only image files (JPG, JPEG, PNG, WEBP, GIF) are allowed.");
+        }
+
+        String extension = originalFilename.substring(dotIndex + 1).toLowerCase(Locale.ROOT);
+        if (!ALLOWED_EXTENSIONS.contains(extension)) {
+            throw new IllegalArgumentException("Only image files (JPG, JPEG, PNG, WEBP, GIF) are allowed.");
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase(Locale.ROOT))) {
+            throw new IllegalArgumentException("Only image files (JPG, JPEG, PNG, WEBP, GIF) are allowed.");
+        }
+
+        if (file.getSize() > MAX_IMAGE_SIZE_BYTES) {
+            throw new IllegalArgumentException("Each image must be 5MB or smaller.");
+        }
+    }
 
     /**
      * GET /customer/appointments/{id}/review — Show the service review form.
@@ -178,7 +231,12 @@ public class ServiceReviewController {
 
             feedbackService.submitServiceReview(reviewDTO, id, customer);
 
-            redirectAttributes.addFlashAttribute("message", "Your review has been submitted successfully. Thank you!");
+            String successMessage = "Your review has been submitted successfully. Thank you!";
+            if (reviewDTO.getRating() != null && reviewDTO.getRating() >= 1 && reviewDTO.getRating() <= 3) {
+                successMessage = "Your review has been submitted successfully. Thank you! We are truly sorry that your experience did not fully meet expectations. Your feedback is valuable, and we will work harder to improve our service.";
+            }
+
+            redirectAttributes.addFlashAttribute("message", successMessage);
             return "redirect:/customer/appointments";
 
         } catch (IllegalArgumentException e) {
@@ -203,6 +261,7 @@ public class ServiceReviewController {
 
     private String processImageUploads(MultipartFile[] imageFiles) throws IOException {
         List<String> imageUrls = new ArrayList<>();
+        validateImageUploads(imageFiles);
         Path uploadPath = Paths.get(UPLOAD_DIR);
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
@@ -210,7 +269,7 @@ public class ServiceReviewController {
 
         for (MultipartFile file : imageFiles) {
             if (file != null && !file.isEmpty()) {
-                String originalFilename = file.getOriginalFilename();
+                String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
                 if (originalFilename == null || !originalFilename.contains(".")) {
                     continue;
                 }

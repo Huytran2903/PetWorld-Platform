@@ -34,7 +34,16 @@
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-1">Update Photo</label>
-                        <input type="file" name="imageFile" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100" onchange="previewImage(this)">
+                        <input id="imageFileInput" type="file" name="imageFile" class="hidden" accept="image/*"
+                               onchange="handlePetUpdateImageChange(this)">
+                        <div class="flex items-center gap-3">
+                            <label for="imageFileInput"
+                                   class="inline-flex items-center px-4 py-2 rounded-full bg-orange-50 text-orange-700 hover:bg-orange-100 font-semibold text-sm cursor-pointer transition">
+                                Choose File
+                            </label>
+                            <span id="petFileName" class="text-sm text-gray-500">No file selected</span>
+                        </div>
+                        <p id="petImageError" class="mt-2 text-sm text-red-600 hidden"></p>
                     </div>
                 </div>
 
@@ -131,6 +140,56 @@
                 el.addEventListener('input', function () { el.setCustomValidity(''); });
             });
         })();
+
+        function updatePetFileName(input) {
+            var fileNameLabel = document.getElementById('petFileName');
+            if (!fileNameLabel) {
+                return;
+            }
+            if (input.files && input.files.length > 0) {
+                fileNameLabel.textContent = input.files[0].name;
+                fileNameLabel.classList.remove('text-gray-500');
+                fileNameLabel.classList.add('text-gray-700');
+            } else {
+                fileNameLabel.textContent = 'No file selected';
+                fileNameLabel.classList.remove('text-gray-700');
+                fileNameLabel.classList.add('text-gray-500');
+            }
+        }
+
+        function handlePetUpdateImageChange(input) {
+            var errorEl = document.getElementById('petImageError');
+            if (!input.files || !input.files[0]) {
+                updatePetFileName(input);
+                if (errorEl) {
+                    errorEl.textContent = '';
+                    errorEl.classList.add('hidden');
+                }
+                return;
+            }
+
+            var file = input.files[0];
+            var fileName = (file.name || '').toLowerCase();
+            var hasAllowedExtension = /\.(jpg|jpeg|png|webp|gif)$/.test(fileName);
+            var isImageMime = !file.type || file.type.startsWith('image/');
+
+            if (!hasAllowedExtension || !isImageMime) {
+                input.value = '';
+                updatePetFileName(input);
+                if (errorEl) {
+                    errorEl.textContent = 'Only image files (JPG, JPEG, PNG, WEBP, GIF) are allowed.';
+                    errorEl.classList.remove('hidden');
+                }
+                return;
+            }
+
+            if (errorEl) {
+                errorEl.textContent = '';
+                errorEl.classList.add('hidden');
+            }
+            previewImage(input);
+            updatePetFileName(input);
+        }
     </script>
 </section>
 </html>

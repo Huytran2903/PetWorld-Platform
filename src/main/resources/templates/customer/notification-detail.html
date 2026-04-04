@@ -1,11 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/layout_user :: layout(~{::section})}">
-<head>
-    <title>Notification Detail</title>
-</head>
-<body>
-<section>
+      th:replace="~{layouts/layout-public :: layout(~{::content}, ~{::headExtras}, ~{::pageScripts})}"
+      th:with="activePage='', pageTitle='Notification Detail'">
+<th:block th:fragment="headExtras">
     <style>
         .detail-wrap {
             max-width: 860px;
@@ -62,7 +59,8 @@
             text-transform: none;
         }
     </style>
-
+</th:block>
+<div th:fragment="content">
     <div class="detail-wrap">
         <a class="btn btn-sm btn-outline-secondary mb-3" th:href="@{/customer/notifications}">
             <i class="fas fa-arrow-left"></i>
@@ -99,6 +97,6 @@
             </div>
         </div>
     </div>
-</section>
-</body>
+</div>
+<th:block th:fragment="pageScripts"></th:block>
 </html>

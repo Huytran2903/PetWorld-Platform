@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-    layout:decorate="~{fragments/layout_user}">
-<head>
-    <title>Appointment Detail</title>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/layout-public :: layout(~{::content}, ~{::headExtras}, ~{::pageScripts})}"
+      th:with="activePage='history', pageTitle='Appointment Detail'">
+<th:block th:fragment="headExtras">
     <link rel="stylesheet" th:href="@{/css/appointment-history.css}" />
     <style>
         .health-report {
@@ -73,9 +73,9 @@
             border: 1px solid var(--border);
         }
     </style>
-</head>
-<body>
-    <main layout:fragment="content" class="container">
+</th:block>
+<div th:fragment="content">
+    <main class="container">
         <div th:if="${message}" class="alert alert-success" role="alert" th:text="${message}"></div>
         <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}"></div>
 
@@ -112,7 +112,7 @@
                                   class="badge bg-warning text-dark ms-2">Unpaid</span>
                         </p>
                         <p><strong>Date:</strong> <span
-                                th:text="${#temporals.format(appointment.appointmentDate, 'dd/MM/yyyy')}">01/01/2026</span>
+                                th:text="${#temporals.format(appointment.appointmentDate, 'dd/MM/yyyy HH:mm')}">01/01/2026</span>
                         </p>
                         <p><strong>Pet Name:</strong> <span
                                 th:text="${appointment.pet != null ? appointment.pet.name : 'N/A'}">Pet Name</span></p>
@@ -126,7 +126,7 @@
                         </p>
                         <p th:if="${appointment.previousAppointmentDate}">
                             <strong>Previous Date:</strong> <span
-                                th:text="${#temporals.format(appointment.previousAppointmentDate, 'dd/MM/yyyy')}">—</span>
+                                th:text="${#temporals.format(appointment.previousAppointmentDate, 'dd/MM/yyyy HH:mm')}">—</span>
                         </p>
                     </div>
                 </div>
@@ -385,6 +385,9 @@
             }
         </style>
 
+    </main>
+</div>
+<th:block th:fragment="pageScripts">
         <script>
             function openPaymentMethodModal(apptId) {
                 const modal = document.getElementById('paymentMethodModal');
@@ -409,6 +412,5 @@
                 }
             });
         </script>
-    </main>
-</body>
+</th:block>
 </html>

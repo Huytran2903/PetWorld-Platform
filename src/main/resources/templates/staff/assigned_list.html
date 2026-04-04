@@ -48,7 +48,7 @@
                             <tbody>
                             <tr th:each="app : ${appointments}">
                                 <td class="code" th:text="${app.appointmentCode}">APP-Code</td>
-                                <td th:text="${#temporals.format(app.appointmentDate, 'dd/MM/yyyy')}">Date</td>
+                                <td th:text="${#temporals.format(app.appointmentDate, 'dd/MM/yyyy HH:mm')}">Date</td>
                                 <td th:text="${app.pet.name} + ' (' + ${app.pet.petType} + ')'">Pet</td>
                                 <td th:text="${app.customer.fullName}">Customer</td>
                                 <td>

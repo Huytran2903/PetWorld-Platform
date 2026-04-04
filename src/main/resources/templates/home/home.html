@@ -1,203 +1,184 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Pet World - Home</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/layout-public :: layout(~{::content}, ~{::headExtras}, ~{::pageScripts})}"
+      th:with="activePage='home', pageTitle='Pet World - Home'">
+<th:block th:fragment="headExtras">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css"/>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-
     <link rel="stylesheet" th:href="@{/css/home.css}"/>
     <link rel="stylesheet" th:href="@{/css/vendor.css}">
+</th:block>
+<div th:fragment="content">
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+        <defs>
+            <symbol id="arrow-right" viewBox="0 0 24 24">
+                <path fill="currentColor"
+                      d="M17.92 11.62a1 1 0 0 0-.21-.33l-5-5a1 1 0 0 0-1.42 1.42l3.3 3.29H7a1 1 0 0 0 0 2h7.59l-3.3 3.29a1 1 0 0 0 0 1.42a1 1 0 0 0 1.42 0l5-5a1 1 0 0 0 .21-.33a1 1 0 0 0 0-.76Z"/>
+            </symbol>
+        </defs>
+    </svg>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Prata&display=swap"
-          rel="stylesheet">
-</head>
-<body>
-
-<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
-    <defs>
-        <symbol id="arrow-right" viewBox="0 0 24 24">
-            <path fill="currentColor"
-                  d="M17.92 11.62a1 1 0 0 0-.21-.33l-5-5a1 1 0 0 0-1.42 1.42l3.3 3.29H7a1 1 0 0 0 0 2h7.59l-3.3 3.29a1 1 0 0 0 0 1.42a1 1 0 0 0 1.42 0l5-5a1 1 0 0 0 .21-.33a1 1 0 0 0 0-.76Z"/>
-        </symbol>
-    </defs>
-</svg>
-
-<div class="preloader-wrapper">
-    <div class="preloader"></div>
-</div>
-
-<div th:replace="~{fragments/header-customer :: header(activePage='home')}"></div>
-
-<section id="banner" style="background: #F9F3EC ;">
-    <div class="container">
-        <div class="swiper main-swiper">
-            <div class="swiper-wrapper">
-                <div class="swiper-slide py-5">
-                    <div class="row banner-content align-items-center">
-
-                        <div class="content-wrapper col-md-7 p-5 mb-5">
-
-                            <div class="secondary-font text-primary text-uppercase mb-4 fw-bold"
-                                 th:text="${globalConfigs != null and globalConfigs['DISCOUNT_BANNER'] != null ? globalConfigs['DISCOUNT_BANNER'] : 'SAVE 10 - 20 % OFF'}">
-                                Save 10 - 20 % off
-                            </div>
-
-                            <h2 class="banner-title display-1 fw-normal mb-4"
-                                th:utext="${globalConfigs != null and globalConfigs['HERO_TITLE'] != null ? globalConfigs['HERO_TITLE'] : 'Best destination for <span class=''text-primary''>your pets</span>'}">
-                                Best destination for <span class="text-primary">your pets</span>
-                            </h2>
-
-                            <div class="d-flex flex-wrap gap-3">
-                                <a th:href="@{/appointment/booking}"
-                                   class="btn btn-primary btn-lg text-uppercase fs-6 rounded-1">Book Service
-                                    Appointment</a>
-                                <a th:href="@{/products}"
-                                   class="btn btn-outline-dark btn-lg text-uppercase fs-6 rounded-1">Shop Now</a>
-                            </div>
-                        </div>
-
-                        <div class="img-wrapper col-md-5 text-center">
-                            <img th:src="@{/images/banner-img.png}" class="img-fluid" alt="Banner">
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-            <div class="swiper-pagination mb-5"></div>
-        </div>
+    <div class="preloader-wrapper">
+        <div class="preloader"></div>
     </div>
-</section>
 
-<section id="clothing" class="my-5 overflow-hidden">
-    <div class="container pb-5">
-        <div class="section-header d-md-flex justify-content-between align-items-center mb-5">
-            <h2 class="display-3 fw-normal">Products</h2>
-            <a th:href="@{/products}" class="btn btn-outline-dark btn-lg text-uppercase fs-6 rounded-1">Explore
-                More</a>
-        </div>
-        <div class="row g-4 mb-5">
+    <section id="banner" style="background: #F9F3EC ;">
+        <div class="container">
+            <div class="swiper main-swiper">
+                <div class="swiper-wrapper">
+                    <div class="swiper-slide py-5">
+                        <div class="row banner-content align-items-center">
 
-            <div class="col-6 col-md-4 col-lg-3" th:each="p : ${products}" th:if="${p.isActive} == true">
+                            <div class="content-wrapper col-md-7 p-5 mb-5">
 
-                <div class="pw-card h-100 shadow-sm border rounded-3 p-2 d-flex flex-column">
-
-                    <div class="pw-img-box" style="height: 200px; overflow: hidden;">
-                        <a th:href="@{'/product/detail/' + ${p.productId}}">
-                            <img th:src="${p.imageUrl != null and !p.imageUrl.isEmpty() ? p.imageUrl : '/images/default-product.png'}"
-                                 alt="Product Image" class="img-fluid w-100 h-100" style="object-fit: cover;">
-                        </a>
-                    </div>
-
-                    <div class="pw-card-body mt-2 d-flex flex-column flex-grow-1">
-
-                        <p class="pw-product-name mb-2"
-                           style="font-size: 0.9rem; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; min-height: 2.8em;">
-                            <i class="bi bi-patch-check-fill text-primary me-1"></i>
-                            <span th:text="${p.name}">Product Name</span>
-                        </p>
-
-                        <div class="pw-price-row mb-2">
-                            <div th:if="${p.discountPercent != null and p.discountPercent > 0}">
-                                <div class="d-flex align-items-center gap-2">
-                            <span class="pw-price fw-bold" style="color: #FFB25B; font-size: 1rem;"
-                                  th:text="${#numbers.formatDecimal(p.salePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
-                                    <span class="badge bg-danger text-white rounded-pill"
-                                          style="font-size: 0.65rem;"
-                                          th:text="'-' + ${p.discountPercent} + '%'"></span>
+                                <div class="secondary-font text-primary text-uppercase mb-4 fw-bold"
+                                     th:text="${globalConfigs != null and globalConfigs['DISCOUNT_BANNER'] != null ? globalConfigs['DISCOUNT_BANNER'] : 'SAVE 10 - 20 % OFF'}">
+                                    Save 10 - 20 % off
                                 </div>
-                                <del class="text-muted" style="font-size: 0.75rem;"
-                                     th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></del>
+
+                                <h2 class="banner-title display-1 fw-normal mb-4"
+                                    th:utext="${globalConfigs != null and globalConfigs['HERO_TITLE'] != null ? globalConfigs['HERO_TITLE'] : 'Best destination for <span class=''text-primary''>your pets</span>'}">
+                                    Best destination for <span class="text-primary">your pets</span>
+                                </h2>
+
+                                <div class="d-flex flex-wrap gap-3">
+                                    <a th:href="@{/appointment/booking}"
+                                       class="btn btn-primary btn-lg text-uppercase fs-6 rounded-1">Book Service
+                                        Appointment</a>
+                                    <a th:href="@{/products}"
+                                       class="btn btn-outline-dark btn-lg text-uppercase fs-6 rounded-1">Shop Now</a>
+                                </div>
                             </div>
 
-                            <div th:unless="${p.discountPercent != null and p.discountPercent > 0}">
-                        <span class="pw-price fw-bold text-dark" style="font-size: 1rem;"
-                              th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
-                                <div style="height: 0.75rem; margin-top: 2px;"></div>
+                            <div class="img-wrapper col-md-5 text-center">
+                                <img th:src="@{/images/banner-img.png}" class="img-fluid" alt="Banner">
                             </div>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="swiper-pagination mb-5"></div>
+            </div>
+        </div>
+    </section>
+
+    <section id="clothing" class="my-5 overflow-hidden">
+        <div class="container pb-5">
+            <div class="section-header d-md-flex justify-content-between align-items-center mb-5">
+                <h2 class="display-3 fw-normal">Products</h2>
+                <a th:href="@{/products}" class="btn btn-outline-dark btn-lg text-uppercase fs-6 rounded-1">Explore
+                    More</a>
+            </div>
+            <div class="row g-4 mb-5">
+
+                <div class="col-6 col-md-4 col-lg-3" th:each="p : ${products}" th:if="${p.isActive} == true">
+
+                    <div class="pw-card h-100 shadow-sm border rounded-3 p-2 d-flex flex-column">
+
+                        <div class="pw-img-box" style="height: 200px; overflow: hidden;">
+                            <a th:href="@{'/product/detail/' + ${p.productId}}">
+                                <img th:src="${p.imageUrl != null and !p.imageUrl.isEmpty() ? p.imageUrl : '/images/default-product.png'}"
+                                     alt="Product Image" class="img-fluid w-100 h-100" style="object-fit: cover;">
+                            </a>
                         </div>
 
-                        <div class="d-flex flex-column gap-2 mt-auto">
-                            <div class="pw-stock-info" style="font-size: 0.7rem;">
-                                <i class="bi bi-box-seam"></i>
-                                <span th:if="${p.stock > 0}">Stock: <strong th:text="${p.stock}">6</strong></span>
-                                <span th:unless="${p.stock > 0}" class="text-danger">Sold out</span>
+                        <div class="pw-card-body mt-2 d-flex flex-column flex-grow-1">
+
+                            <p class="pw-product-name mb-2"
+                               style="font-size: 0.9rem; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.4; min-height: 2.8em;">
+                                <i class="bi bi-patch-check-fill text-primary me-1"></i>
+                                <span th:text="${p.name}">Product Name</span>
+                            </p>
+
+                            <div class="pw-price-row mb-2">
+                                <div th:if="${p.discountPercent != null and p.discountPercent > 0}">
+                                    <div class="d-flex align-items-center gap-2">
+                                <span class="pw-price fw-bold" style="color: #FFB25B; font-size: 1rem;"
+                                      th:text="${#numbers.formatDecimal(p.salePrice, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                                        <span class="badge bg-danger text-white rounded-pill"
+                                              style="font-size: 0.65rem;"
+                                              th:text="'-' + ${p.discountPercent} + '%'"></span>
+                                    </div>
+                                    <del class="text-muted" style="font-size: 0.75rem;"
+                                         th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></del>
+                                </div>
+
+                                <div th:unless="${p.discountPercent != null and p.discountPercent > 0}">
+                            <span class="pw-price fw-bold text-dark" style="font-size: 1rem;"
+                                  th:text="${#numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT')} + ' đ'"></span>
+                                    <div style="height: 0.75rem; margin-top: 2px;"></div>
+                                </div>
                             </div>
 
-                            <div class="pw-action-buttons d-flex gap-1">
-                                <a th:if="${p.stock > 0}" th:href="@{'/cart/add-product/' + ${p.productId}}"
-                                   class="btn btn-sm p-1 flex-fill"
-                                   style="background-color: #FFA54F; color: white; font-size: 0.7rem;">
-                                    <i class="bi bi-cart-plus"></i> ADD
-                                </a>
-                                <a th:href="@{'/product/detail/' + ${p.productId}}"
-                                   class="btn btn-sm btn-outline-secondary p-1 flex-fill"
-                                   style="font-size: 0.7rem;">
-                                    <i class="bi bi-eye"></i> Detail
-                                </a>
+                            <div class="d-flex flex-column gap-2 mt-auto">
+                                <div class="pw-stock-info" style="font-size: 0.7rem;">
+                                    <i class="bi bi-box-seam"></i>
+                                    <span th:if="${p.stock > 0}">Stock: <strong th:text="${p.stock}">6</strong></span>
+                                    <span th:unless="${p.stock > 0}" class="text-danger">Sold out</span>
+                                </div>
+
+                                <div class="pw-action-buttons d-flex gap-1">
+                                    <a th:if="${p.stock > 0}" th:href="@{'/cart/add-product/' + ${p.productId}}"
+                                       class="btn btn-sm p-1 flex-fill"
+                                       style="background-color: #FFA54F; color: white; font-size: 0.7rem;">
+                                        <i class="bi bi-cart-plus"></i> ADD
+                                    </a>
+                                    <a th:href="@{'/product/detail/' + ${p.productId}}"
+                                       class="btn btn-sm btn-outline-secondary p-1 flex-fill"
+                                       style="font-size: 0.7rem;">
+                                        <i class="bi bi-eye"></i> Detail
+                                    </a>
+                                </div>
                             </div>
+
                         </div>
+                    </div>
+                </div>
+            </div>
 
+
+        </div>
+    </section>
+
+    <section id="services-circle" class="my-5 py-5 overflow-hidden" style="background-color: #fdfdfd;">
+        <div class="container text-center">
+            <h2 class="display-5 mb-5">Our Professional Services</h2>
+            <div class="row align-items-center">
+                <div class="col-lg-4">
+                    <div class="service-item d-flex align-items-center justify-content-lg-end mb-5 text-lg-end flex-column-reverse flex-lg-row">
+                        <div class="me-lg-4 mt-3 mt-lg-0">
+                            <h5 class="fw-bold">Vaccination</h5>
+                            <p class="small text-muted">High-quality vaccines and safe procedures.</p>
+                        </div>
+                        <div class="service-icon-box"
+                             style="background: #FFA54F; color: white; padding: 15px; border-radius: 50%;">
+                            <iconify-icon icon="mdi:needle" class="fs-3"></iconify-icon>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <img th:src="@{/images/logo-petshop.png}" alt="Logo" class="img-fluid mb-3" style="max-height: 150px;">
+                    <h2 style="color: #FFA54F; font-family: 'Prata', serif;">Pet World</h2>
+                </div>
+                <div class="col-lg-4">
+                    <div class="service-item d-flex align-items-center justify-content-lg-start mb-5 text-lg-start flex-column flex-lg-row">
+                        <div class="service-icon-box"
+                             style="background: #FFA54F; color: white; padding: 15px; border-radius: 50%;">
+                            <iconify-icon icon="mdi:sparkles" class="fs-3"></iconify-icon>
+                        </div>
+                        <div class="ms-lg-4 mt-3 mt-lg-0">
+                            <h5 class="fw-bold">Spa & Grooming</h5>
+                            <p class="small text-muted">Professional bathing and grooming.</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-
-
-    </div>
-</section>
-
-<section id="services-circle" class="my-5 py-5 overflow-hidden" style="background-color: #fdfdfd;">
-    <div class="container text-center">
-        <h2 class="display-5 mb-5">Our Professional Services</h2>
-        <div class="row align-items-center">
-            <div class="col-lg-4">
-                <div class="service-item d-flex align-items-center justify-content-lg-end mb-5 text-lg-end flex-column-reverse flex-lg-row">
-                    <div class="me-lg-4 mt-3 mt-lg-0">
-                        <h5 class="fw-bold">Vaccination</h5>
-                        <p class="small text-muted">High-quality vaccines and safe procedures.</p>
-                    </div>
-                    <div class="service-icon-box"
-                         style="background: #FFA54F; color: white; padding: 15px; border-radius: 50%;">
-                        <iconify-icon icon="mdi:needle" class="fs-3"></iconify-icon>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4">
-                <img th:src="@{/images/logo-petshop.png}" alt="Logo" class="img-fluid mb-3" style="max-height: 150px;">
-                <h2 style="color: #FFA54F; font-family: 'Prata', serif;">Pet World</h2>
-            </div>
-            <div class="col-lg-4">
-                <div class="service-item d-flex align-items-center justify-content-lg-start mb-5 text-lg-start flex-column flex-lg-row">
-                    <div class="service-icon-box"
-                         style="background: #FFA54F; color: white; padding: 15px; border-radius: 50%;">
-                        <iconify-icon icon="mdi:sparkles" class="fs-3"></iconify-icon>
-                    </div>
-                    <div class="ms-lg-4 mt-3 mt-lg-0">
-                        <h5 class="fw-bold">Spa & Grooming</h5>
-                        <p class="small text-muted">Professional bathing and grooming.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<div th:replace="~{fragments/footer :: footer}"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
-<script th:src="@{/js/plugins.js}"></script>
-<script th:src="@{/js/script.js}"></script>
-<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-
-</body>
+    </section>
+</div>
+<th:block th:fragment="pageScripts">
+    <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script th:src="@{/js/plugins.js}"></script>
+    <script th:src="@{/js/script.js}"></script>
+</th:block>
 </html>

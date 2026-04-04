@@ -879,16 +879,27 @@ public class AdminController {
 
         LocalDate defaultStart = LocalDate.of(2020, 1, 1);
         LocalDate defaultEnd = LocalDate.now();
+        String normalizedStartInput = startDate != null ? startDate.trim() : "";
+        String normalizedEndInput = endDate != null ? endDate.trim() : "";
         LocalDate start;
         LocalDate end;
 
         try {
-            start = (startDate != null && !startDate.isBlank()) ? LocalDate.parse(startDate.trim()) : defaultStart;
-            end = (endDate != null && !endDate.isBlank()) ? LocalDate.parse(endDate.trim()) : defaultEnd;
-            if (start.isAfter(end)) {
-                model.addAttribute("error", "Start date must be earlier than or equal to end date.");
+            LocalDate parsedStart = !normalizedStartInput.isBlank() ? LocalDate.parse(normalizedStartInput) : null;
+            LocalDate parsedEnd = !normalizedEndInput.isBlank() ? LocalDate.parse(normalizedEndInput) : null;
+
+            if (parsedStart != null && parsedStart.isAfter(defaultEnd)) {
+                model.addAttribute("error", "Start date cannot be in the future.");
                 start = defaultStart;
                 end = defaultEnd;
+            } else {
+                start = parsedStart != null ? parsedStart : defaultStart;
+                end = parsedEnd != null ? parsedEnd : defaultEnd;
+                if (!start.isBefore(end)) {
+                    model.addAttribute("error", "Start date must be earlier than end date.");
+                    start = defaultStart;
+                    end = defaultEnd;
+                }
             }
         } catch (DateTimeParseException e) {
             model.addAttribute("error", "Invalid date format. Please use the date picker and try again.");
@@ -899,8 +910,9 @@ public class AdminController {
         PetStatisticsDTO statistics = petService.getPetStatistics(start, end);
 
         model.addAttribute("statistics", statistics);
-        model.addAttribute("startDate", start.toString());
-        model.addAttribute("endDate", end.toString());
+        model.addAttribute("startDate", normalizedStartInput);
+        model.addAttribute("endDate", normalizedEndInput);
+        model.addAttribute("today", defaultEnd.toString());
 
         return "admin/statistics/pet-report";
     }
@@ -911,13 +923,17 @@ public class AdminController {
             @RequestParam(value = "startDate", required = false) String startDate,
             @RequestParam(value = "endDate", required = false) String endDate) {
 
+        LocalDate today = LocalDate.now();
         LocalDate start;
         LocalDate end;
         try {
             start = (startDate != null && !startDate.isBlank()) ? LocalDate.parse(startDate.trim()) : LocalDate.of(2020, 1, 1);
-            end = (endDate != null && !endDate.isBlank()) ? LocalDate.parse(endDate.trim()) : LocalDate.now();
-            if (start.isAfter(end)) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Start date must be earlier than or equal to end date.");
+            end = (endDate != null && !endDate.isBlank()) ? LocalDate.parse(endDate.trim()) : today;
+            if (start.isAfter(today)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Start date cannot be in the future.");
+            }
+            if (!start.isBefore(end)) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Start date must be earlier than end date.");
             }
         } catch (DateTimeParseException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid date format. Please use yyyy-MM-dd.");

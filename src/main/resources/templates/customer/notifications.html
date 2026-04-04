@@ -1,11 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/layout_user :: layout(~{::section})}">
-<head>
-    <title>My Notifications</title>
-</head>
-<body>
-<section>
+      th:replace="~{layouts/layout-public :: layout(~{::content}, ~{::headExtras}, ~{::pageScripts})}"
+      th:with="activePage='', pageTitle='My Notifications'">
+<th:block th:fragment="headExtras">
     <style>
         .noti-wrap {
             max-width: 980px;
@@ -98,7 +95,8 @@
             font-weight: 700;
         }
     </style>
-
+</th:block>
+<div th:fragment="content">
     <div class="noti-wrap">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="mb-0" style="font-weight:800; color:#1f2937;">
@@ -165,6 +163,6 @@
             </a>
         </div>
     </div>
-</section>
-</body>
+</div>
+<th:block th:fragment="pageScripts"></th:block>
 </html>

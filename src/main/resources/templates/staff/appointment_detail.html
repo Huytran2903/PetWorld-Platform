@@ -132,7 +132,7 @@
                                 >
                                     pending
                                 </span>
-                                <span th:if="${appointmentPaymentPaid}" class="badge bg-success ms-2">Đã thanh toán</span>
+                                <span th:if="${appointmentPaymentPaid}" class="badge bg-success ms-2">Paid</span>
                                 <span th:if="${!appointmentPaymentPaid and appointment.status != null and appointment.status.toLowerCase() == 'done'}"
                                       class="badge bg-warning text-dark ms-2">Not paid</span>
                             </div>
@@ -140,7 +140,7 @@
 
                         <div class="detail-item">
                             <div class="k">Date & time</div>
-                            <div class="v" th:text="${#temporals.format(appointment.appointmentDate, 'dd/MM/yyyy')}">
+                            <div class="v" th:text="${#temporals.format(appointment.appointmentDate, 'dd/MM/yyyy HH:mm')}">
                                 07-01-2026 21:00
                             </div>
                         </div>
@@ -201,9 +201,9 @@
 
                                     <td
                                         class="ta-right"
-                                        th:text="${#numbers.formatDecimal(item.price * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' đ'"
+                                        th:text="${#numbers.formatDecimal(item.price * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' VND'"
                                     >
-                                        100,000 đ
+                                        100,000 VND
                                     </td>
 
                                     <td class="ta-right">
@@ -570,11 +570,11 @@
 
                                         // Weight: must be > 0 and <= 300
                                         if (wValRaw === '' || isNaN(Number(wValRaw))) {
-                                            weightEl.setCustomValidity('Vui lòng nhập cân nặng hợp lệ.');
+                                            weightEl.setCustomValidity('Please enter a valid weight.');
                                         } else {
                                             const w = Number(wValRaw);
                                             if (!(w > 0 && w <= 300)) {
-                                                weightEl.setCustomValidity('Cân nặng phải lớn hơn 0 và không quá 300 kg.');
+                                                weightEl.setCustomValidity('Weight must be greater than 0 and at most 300 kg.');
                                             } else {
                                                 weightEl.setCustomValidity('');
                                             }
@@ -582,11 +582,11 @@
 
                                         // Temperature: must be between 30 and 45 (inclusive)
                                         if (tValRaw === '' || isNaN(Number(tValRaw))) {
-                                            tempEl.setCustomValidity('Vui lòng nhập nhiệt độ hợp lệ.');
+                                            tempEl.setCustomValidity('Please enter a valid temperature.');
                                         } else {
                                             const t = Number(tValRaw);
                                             if (!(t >= 30 && t <= 45)) {
-                                                tempEl.setCustomValidity('Nhiệt độ phải từ 30 đến 45 C.');
+                                                tempEl.setCustomValidity('Temperature must be between 30 °C and 45 °C.');
                                             } else {
                                                 tempEl.setCustomValidity('');
                                             }

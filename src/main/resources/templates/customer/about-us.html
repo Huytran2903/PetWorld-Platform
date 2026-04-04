@@ -1,15 +1,8 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>About Us - Pet World</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&family=Prata&display=swap"
-          rel="stylesheet">
-
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layouts/layout-public :: layout(~{::content}, ~{::headExtras}, ~{::pageScripts})}"
+      th:with="activePage='aboutUs', pageTitle='About Us - Pet World'">
+<th:block th:fragment="headExtras">
     <link rel="stylesheet" th:href="@{/css/vendor.css}">
     <style>
         .about-hero-section {
@@ -54,142 +47,136 @@
             border: 5px solid #FFE6CC;
         }
     </style>
-</head>
-<body>
+</th:block>
+<div th:fragment="content">
 
-<div class="preloader-wrapper">
-    <div class="preloader"></div>
+    <div class="preloader-wrapper">
+        <div class="preloader"></div>
+    </div>
+
+    <main>
+
+        <section class="about-hero-section">
+            <div class="container text-center">
+                <h1 class="about-title display-3 fw-normal mb-3">About Us</h1>
+                <p class="lead text-muted mx-auto" style="max-width: 700px;"
+                   th:text="${globalConfigs != null and globalConfigs['ABOUT_SUBTITLE'] != null ? globalConfigs['ABOUT_SUBTITLE'] : 'Your Trusted Partner in Pet Care, Wellness & Happiness.'}">
+                    Your Trusted Partner in Pet Care, Wellness & Happiness.
+                </p>
+            </div>
+        </section>
+
+        <section class="my-5 py-5">
+            <div class="container">
+                <div class="row align-items-center g-5">
+                    <div class="col-lg-6">
+                        <img th:src="@{/images/blog3.jpg}" alt="Pet World Story"
+                             class="img-fluid w-100 rounded-3 shadow"
+                             style="object-fit: cover; min-height: 400px;">
+                    </div>
+                    <div class="col-lg-6">
+                        <h2 class="display-5 mb-4" style="color: #333;">Our Story & Mission</h2>
+
+                        <h5 class="fw-bold" style="color: #FFA54F;">Our Story</h5>
+                        <p class="text-muted mb-4" style="line-height: 1.8;"
+                           th:utext="${globalConfigs != null and globalConfigs['ABOUT_STORY'] != null ? globalConfigs['ABOUT_STORY'] : 'Born from a deep love for all creatures, Pet World started as a small dream to provide the best possible care. Over the years, we have grown into a community of passionate pet lovers dedicated to enhancing the lives of our furry friends and their families.'}">
+                        </p>
+
+                        <h5 class="fw-bold" style="color: #FFA54F;">Our Mission</h5>
+                        <p class="text-muted" style="line-height: 1.8;"
+                           th:utext="${globalConfigs != null and globalConfigs['ABOUT_MISSION'] != null ? globalConfigs['ABOUT_MISSION'] : 'To ensure every pet leads a healthy, happy, and loved life by providing exceptional veterinary services, grooming, products, and a loving environment. We strive to be the most trusted name in pet care.'}">
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="my-5 py-5" style="background-color: #FDFDFD;">
+            <div class="container">
+                <h2 class="display-5 text-center mb-5" style="color: #333;">Why Choose Pet World?</h2>
+
+                <div class="row g-4 text-center">
+
+                    <div class="col-md-4">
+                        <div class="value-card card h-100 p-4 shadow-sm">
+                            <div class="mission-icon-box">
+                                <iconify-icon icon="mdi:certificate-outline" class="fs-1"></iconify-icon>
+                            </div>
+                            <h4 class="fw-bold mb-3" style="color: #FFA54F;">Expert Care</h4>
+                            <p class="text-muted small mb-0"
+                               th:text="${globalConfigs != null and globalConfigs['VALUE_CARE_DESC'] != null ? globalConfigs['VALUE_CARE_DESC'] : 'Our team of experienced vets and groomers are certified professionals passionate about animal well-being.'}">
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="value-card card h-100 p-4 shadow-sm">
+                            <div class="mission-icon-box">
+                                <iconify-icon icon="mdi:hospital-building" class="fs-1"></iconify-icon>
+                            </div>
+                            <h4 class="fw-bold mb-3" style="color: #FFA54F;">Modern Facilities</h4>
+                            <p class="text-muted small mb-0"
+                               th:text="${globalConfigs != null and globalConfigs['VALUE_FACILITY_DESC'] != null ? globalConfigs['VALUE_FACILITY_DESC'] : 'We equipped with state-of-the-art veterinary and grooming facilities to ensure safe and comfortable treatment.'}">
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="value-card card h-100 p-4 shadow-sm">
+                            <div class="mission-icon-box">
+                                <iconify-icon icon="mdi:heart-outline" class="fs-1"></iconify-icon>
+                            </div>
+                            <h4 class="fw-bold mb-3" style="color: #FFA54F;">Loving Environment</h4>
+                            <p class="text-muted small mb-0"
+                               th:text="${globalConfigs != null and globalConfigs['VALUE_LOVE_DESC'] != null ? globalConfigs['VALUE_LOVE_DESC'] : 'We treat every pet like our own, with love, compassion, and the highest standard of care.'}">
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section class="my-5 py-5">
+            <div class="container text-center">
+                <h2 class="display-5 mb-5" style="color: #333;">Meet Our Passionate Team</h2>
+
+                <div class="row g-4 justify-content-center row-cols-2 row-cols-sm-3 row-cols-md-5">
+
+                    <div class="col text-center">
+                        <i class="bi bi-person-circle mb-3 d-block" style="font-size: 80px; color: #FFE6CC;"></i>
+                        <h5 class="fw-bold mb-1" style="color: #FFA54F;">Phan Tuấn Thành</h5>
+                    </div>
+
+                    <div class="col text-center">
+                        <i class="bi bi-person-circle mb-3 d-block" style="font-size: 80px; color: #FFE6CC;"></i>
+                        <h5 class="fw-bold mb-1" style="color: #FFA54F;">Tô Phi Oanh</h5>
+                    </div>
+
+                    <div class="col text-center">
+                        <i class="bi bi-person-circle mb-3 d-block" style="font-size: 80px; color: #FFE6CC;"></i>
+                        <h5 class="fw-bold mb-1" style="color: #FFA54F;">Trần Phan Nhật Huy</h5>
+                    </div>
+
+                    <div class="col text-center">
+                        <i class="bi bi-person-circle mb-3 d-block" style="font-size: 80px; color: #FFE6CC;"></i>
+                        <h5 class="fw-bold mb-1" style="color: #FFA54F;">Lâm Thoại Thanh</h5>
+                    </div>
+
+                    <div class="col text-center">
+                        <i class="bi bi-person-circle mb-3 d-block" style="font-size: 80px; color: #FFE6CC;"></i>
+                        <h5 class="fw-bold mb-1" style="color: #FFA54F;">Trần Quốc Thái</h5>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
 </div>
-
-<div th:replace="~{fragments/header-customer :: header(activePage='aboutUs')}"></div>
-
-<main>
-
-    <section class="about-hero-section">
-        <div class="container text-center">
-            <h1 class="about-title display-3 fw-normal mb-3">About Us</h1>
-            <p class="lead text-muted mx-auto" style="max-width: 700px;"
-               th:text="${globalConfigs != null and globalConfigs['ABOUT_SUBTITLE'] != null ? globalConfigs['ABOUT_SUBTITLE'] : 'Your Trusted Partner in Pet Care, Wellness & Happiness.'}">
-                Your Trusted Partner in Pet Care, Wellness & Happiness.
-            </p>
-        </div>
-    </section>
-
-    <section class="my-5 py-5">
-        <div class="container">
-            <div class="row align-items-center g-5">
-                <div class="col-lg-6">
-                    <img th:src="@{/images/blog3.jpg}" alt="Pet World Story"
-                         class="img-fluid w-100 rounded-3 shadow"
-                         style="object-fit: cover; min-height: 400px;">
-                </div>
-                <div class="col-lg-6">
-                    <h2 class="display-5 mb-4" style="color: #333;">Our Story & Mission</h2>
-
-                    <h5 class="fw-bold" style="color: #FFA54F;">Our Story</h5>
-                    <p class="text-muted mb-4" style="line-height: 1.8;"
-                       th:utext="${globalConfigs != null and globalConfigs['ABOUT_STORY'] != null ? globalConfigs['ABOUT_STORY'] : 'Born from a deep love for all creatures, Pet World started as a small dream to provide the best possible care. Over the years, we have grown into a community of passionate pet lovers dedicated to enhancing the lives of our furry friends and their families.'}">
-                    </p>
-
-                    <h5 class="fw-bold" style="color: #FFA54F;">Our Mission</h5>
-                    <p class="text-muted" style="line-height: 1.8;"
-                       th:utext="${globalConfigs != null and globalConfigs['ABOUT_MISSION'] != null ? globalConfigs['ABOUT_MISSION'] : 'To ensure every pet leads a healthy, happy, and loved life by providing exceptional veterinary services, grooming, products, and a loving environment. We strive to be the most trusted name in pet care.'}">
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="my-5 py-5" style="background-color: #FDFDFD;">
-        <div class="container">
-            <h2 class="display-5 text-center mb-5" style="color: #333;">Why Choose Pet World?</h2>
-
-            <div class="row g-4 text-center">
-
-                <div class="col-md-4">
-                    <div class="value-card card h-100 p-4 shadow-sm">
-                        <div class="mission-icon-box">
-                            <iconify-icon icon="mdi:certificate-outline" class="fs-1"></iconify-icon>
-                        </div>
-                        <h4 class="fw-bold mb-3" style="color: #FFA54F;">Expert Care</h4>
-                        <p class="text-muted small mb-0"
-                           th:text="${globalConfigs != null and globalConfigs['VALUE_CARE_DESC'] != null ? globalConfigs['VALUE_CARE_DESC'] : 'Our team of experienced vets and groomers are certified professionals passionate about animal well-being.'}">
-                        </p>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="value-card card h-100 p-4 shadow-sm">
-                        <div class="mission-icon-box">
-                            <iconify-icon icon="mdi:hospital-building" class="fs-1"></iconify-icon>
-                        </div>
-                        <h4 class="fw-bold mb-3" style="color: #FFA54F;">Modern Facilities</h4>
-                        <p class="text-muted small mb-0"
-                           th:text="${globalConfigs != null and globalConfigs['VALUE_FACILITY_DESC'] != null ? globalConfigs['VALUE_FACILITY_DESC'] : 'We equipped with state-of-the-art veterinary and grooming facilities to ensure safe and comfortable treatment.'}">
-                        </p>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="value-card card h-100 p-4 shadow-sm">
-                        <div class="mission-icon-box">
-                            <iconify-icon icon="mdi:heart-outline" class="fs-1"></iconify-icon>
-                        </div>
-                        <h4 class="fw-bold mb-3" style="color: #FFA54F;">Loving Environment</h4>
-                        <p class="text-muted small mb-0"
-                           th:text="${globalConfigs != null and globalConfigs['VALUE_LOVE_DESC'] != null ? globalConfigs['VALUE_LOVE_DESC'] : 'We treat every pet like our own, with love, compassion, and the highest standard of care.'}">
-                        </p>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </section>
-
-    <section class="my-5 py-5">
-        <div class="container text-center">
-            <h2 class="display-5 mb-5" style="color: #333;">Meet Our Passionate Team</h2>
-
-            <div class="row g-4 justify-content-center row-cols-2 row-cols-sm-3 row-cols-md-5">
-
-                <div class="col text-center">
-                    <i class="bi bi-person-circle mb-3 d-block" style="font-size: 80px; color: #FFE6CC;"></i>
-                    <h5 class="fw-bold mb-1" style="color: #FFA54F;">Phan Tuấn Thành</h5>
-                </div>
-
-                <div class="col text-center">
-                    <i class="bi bi-person-circle mb-3 d-block" style="font-size: 80px; color: #FFE6CC;"></i>
-                    <h5 class="fw-bold mb-1" style="color: #FFA54F;">Tô Phi Oanh</h5>
-                </div>
-
-                <div class="col text-center">
-                    <i class="bi bi-person-circle mb-3 d-block" style="font-size: 80px; color: #FFE6CC;"></i>
-                    <h5 class="fw-bold mb-1" style="color: #FFA54F;">Trần Phan Nhật Huy</h5>
-                </div>
-
-                <div class="col text-center">
-                    <i class="bi bi-person-circle mb-3 d-block" style="font-size: 80px; color: #FFE6CC;"></i>
-                    <h5 class="fw-bold mb-1" style="color: #FFA54F;">Lâm Thoại Thanh</h5>
-                </div>
-
-                <div class="col text-center">
-                    <i class="bi bi-person-circle mb-3 d-block" style="font-size: 80px; color: #FFE6CC;"></i>
-                    <h5 class="fw-bold mb-1" style="color: #FFA54F;">Trần Quốc Thái</h5>
-                </div>
-
-            </div>
-        </div>
-    </section>
-
-</main>
-
-<div th:replace="~{fragments/footer :: footer}"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
-<script th:src="@{/js/plugins.js}"></script>
-<script th:src="@{/js/script.js}"></script>
-<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-
-</body>
+<th:block th:fragment="pageScripts">
+    <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script th:src="@{/js/plugins.js}"></script>
+    <script th:src="@{/js/script.js}"></script>
+</th:block>
 </html>
