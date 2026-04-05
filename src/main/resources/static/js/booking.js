@@ -1,14 +1,20 @@
 document.addEventListener("DOMContentLoaded", function() {
     const LEAD_HOURS = 2;
     const MAX_ADVANCE_DAYS = 30;
+    /** Match BookingService: OPEN_TIME / CLOSE_TIME (end must be on or before 20:00 same day unless boarding crosses midnight). */
+    const CLOSE_MINUTES_OF_DAY = 20 * 60;
     const form = document.getElementById("bookForm");
     const sumServices = document.getElementById("sumServices");
     const sumDuration = document.getElementById("sumDuration");
     const sumTotal = document.getElementById("sumTotal");
+    const summaryEmptyState = document.getElementById("summaryEmptyState");
+    const summaryMetrics = document.getElementById("summaryMetrics");
+    const bookingSummaryAside = document.getElementById("bookingSummaryAside");
     const petSelect = document.getElementById("petId");
     const appointmentDateInput = document.getElementById("appointmentDate");
     const petErrorEl = document.getElementById("booking-pet-error");
     const dateTimeErrorEl = document.getElementById("booking-datetime-error");
+    const servicesErrorEl = document.getElementById("booking-services-error");
 
     function clearBookingFieldErrors() {
         [petSelect, appointmentDateInput].forEach((el) => el?.classList.remove("booking-input-invalid"));
@@ -20,26 +26,222 @@ document.addEventListener("DOMContentLoaded", function() {
             dateTimeErrorEl.textContent = "";
             dateTimeErrorEl.classList.remove("is-visible");
         }
+        if (servicesErrorEl) {
+            servicesErrorEl.textContent = "";
+            servicesErrorEl.classList.remove("is-visible");
+        }
     }
 
-    function showPetError(message) {
-        if (petErrorEl) {
-            petErrorEl.textContent = message;
-            petErrorEl.classList.add("is-visible");
-        }
-        petSelect?.classList.add("booking-input-invalid");
-        petSelect?.focus();
-        petSelect?.scrollIntoView({ behavior: "smooth", block: "center" });
+    function hideBookingIssuesDialog() {
+        const el = document.getElementById("booking-issues-modal");
+        if (!el) return;
+        el.classList.remove("is-open");
+        document.body.classList.remove("booking-modal-open");
+        document.removeEventListener("keydown", onBookingIssuesEscape);
     }
 
-    function showDateTimeError(message) {
-        if (dateTimeErrorEl) {
-            dateTimeErrorEl.textContent = message;
-            dateTimeErrorEl.classList.add("is-visible");
+    function onBookingIssuesEscape(ev) {
+        if (ev.key === "Escape") hideBookingIssuesDialog();
+    }
+
+    const BOOKING_ALERT_ICON_SVG =
+        '<svg class="booking-alert-icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+        '<path d="M12 9v4M12 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+        '<path d="M10.3 3.6h3.4l7.8 13.5a1.6 1.6 0 0 1-1.4 2.4H4.9a1.6 1.6 0 0 1-1.4-2.4L10.3 3.6z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>' +
+        "</svg>";
+
+    /**
+     * Polished alert dialog for validation / vaccine messages (English copy matches server).
+     */
+    function showBookingIssuesDialog(title, messages) {
+        const list = (Array.isArray(messages) ? messages : [messages])
+            .map((m) => String(m || "").trim())
+            .filter(Boolean);
+        if (!list.length) return;
+
+        let backdrop = document.getElementById("booking-issues-modal");
+        if (!backdrop) {
+            backdrop = document.createElement("div");
+            backdrop.id = "booking-issues-modal";
+            backdrop.className = "booking-modal-backdrop booking-alert-overlay";
+            backdrop.setAttribute("role", "alertdialog");
+            backdrop.setAttribute("aria-modal", "true");
+            backdrop.setAttribute("aria-labelledby", "booking-issues-modal-title");
+
+            const panel = document.createElement("div");
+            panel.className = "booking-alert-dialog";
+
+            const header = document.createElement("header");
+            header.className = "booking-alert-header";
+
+            const iconWrap = document.createElement("div");
+            iconWrap.className = "booking-alert-icon-ring";
+            iconWrap.setAttribute("aria-hidden", "true");
+            iconWrap.innerHTML = BOOKING_ALERT_ICON_SVG;
+
+            const titleEl = document.createElement("h2");
+            titleEl.id = "booking-issues-modal-title";
+            titleEl.className = "booking-alert-title";
+
+            const titleTextWrap = document.createElement("div");
+            titleTextWrap.className = "booking-alert-title-wrap";
+            titleTextWrap.appendChild(titleEl);
+
+            header.appendChild(iconWrap);
+            header.appendChild(titleTextWrap);
+
+            const body = document.createElement("div");
+            body.className = "booking-alert-body";
+            body.id = "booking-issues-modal-body";
+
+            const lead = document.createElement("p");
+            lead.className = "booking-alert-lead";
+            lead.id = "booking-issues-modal-lead";
+
+            const ul = document.createElement("ul");
+            ul.className = "booking-alert-list";
+            ul.id = "booking-issues-modal-list";
+
+            body.appendChild(lead);
+            body.appendChild(ul);
+
+            const footer = document.createElement("footer");
+            footer.className = "booking-alert-footer";
+
+            const okBtn = document.createElement("button");
+            okBtn.type = "button";
+            okBtn.className = "booking-alert-btn booking-alert-btn--primary";
+            okBtn.textContent = "OK";
+
+            footer.appendChild(okBtn);
+            panel.appendChild(header);
+            panel.appendChild(body);
+            panel.appendChild(footer);
+            backdrop.appendChild(panel);
+            document.body.appendChild(backdrop);
+
+            okBtn.addEventListener("click", hideBookingIssuesDialog);
+            backdrop.addEventListener("click", (e) => {
+                if (e.target === backdrop) hideBookingIssuesDialog();
+            });
+            panel.addEventListener("click", (e) => e.stopPropagation());
         }
-        appointmentDateInput?.classList.add("booking-input-invalid");
-        appointmentDateInput?.focus();
-        appointmentDateInput?.scrollIntoView({ behavior: "smooth", block: "center" });
+
+        const titleHeading = backdrop.querySelector("#booking-issues-modal-title");
+        if (titleHeading) titleHeading.textContent = title || "Cannot complete booking";
+
+        const leadEl = backdrop.querySelector("#booking-issues-modal-lead");
+        if (leadEl) {
+            leadEl.textContent =
+                list.length === 1
+                    ? "The following issue needs your attention:"
+                    : `Please fix the following ${list.length} issues:`;
+        }
+
+        const listEl = backdrop.querySelector("#booking-issues-modal-list");
+        if (listEl) {
+            listEl.innerHTML = "";
+            list.forEach((text) => {
+                const li = document.createElement("li");
+                li.className = "booking-alert-list-item";
+                li.textContent = text;
+                listEl.appendChild(li);
+            });
+        }
+
+        backdrop.classList.add("is-open");
+        document.body.classList.add("booking-modal-open");
+        document.removeEventListener("keydown", onBookingIssuesEscape);
+        document.addEventListener("keydown", onBookingIssuesEscape);
+        backdrop.querySelector(".booking-alert-btn--primary")?.focus();
+    }
+
+    /**
+     * Validation order: pet → date/time (all applicable rules) → services → boarding rules → duration / closing.
+     */
+    function collectOrderedBookingIssues() {
+        const items = [];
+
+        if (!(petSelect?.value || "").trim()) {
+            items.push({ field: "pet", message: "Please select your pet." });
+        }
+
+        const dateVal = (appointmentDateInput?.value || "").trim();
+        if (!dateVal) {
+            items.push({ field: "datetime", message: "Please choose an appointment date and time." });
+        } else {
+            const selected = new Date(appointmentDateInput.value);
+            if (Number.isNaN(selected.getTime())) {
+                items.push({ field: "datetime", message: "Please enter a valid date and time." });
+            } else {
+                const now = new Date();
+                now.setSeconds(0, 0);
+                selected.setSeconds(0, 0);
+                if (selected < now) {
+                    items.push({ field: "datetime", message: "The selected date and time cannot be in the past." });
+                }
+                const minDate = new Date(now.getTime() + LEAD_HOURS * 60 * 60 * 1000);
+                const maxDate = new Date(now.getTime() + MAX_ADVANCE_DAYS * 24 * 60 * 60 * 1000);
+                if (selected < minDate) {
+                    items.push({ field: "datetime", message: "Booking must be at least 2 hours in advance." });
+                }
+                if (selected > maxDate) {
+                    items.push({ field: "datetime", message: "Booking can only be made up to 30 days in advance." });
+                }
+                const minutesOfDay = selected.getHours() * 60 + selected.getMinutes();
+                if (minutesOfDay < 8 * 60 || minutesOfDay >= 20 * 60) {
+                    items.push({ field: "datetime", message: "Selected time is outside operating hours (08:00 – 20:00)." });
+                }
+            }
+        }
+
+        if (!form.querySelector("input[name='mainServices']:checked")) {
+            items.push({ field: "services", message: "Please select at least one service." });
+        }
+
+        const counts = getCheckedServiceLineCounts();
+        if (counts.boarding > 0 && counts.nonBoarding > 0) {
+            items.push({
+                field: "services",
+                message:
+                    "Boarding cannot be combined with other services in one appointment. Book boarding separately, or uncheck boarding / other services.",
+            });
+        }
+        if (counts.boarding > 1) {
+            items.push({ field: "services", message: "Please select only one boarding package per appointment." });
+        }
+
+        const boardingRulesInvalid = (counts.boarding > 0 && counts.nonBoarding > 0) || counts.boarding > 1;
+        const dateVal2 = (appointmentDateInput?.value || "").trim();
+        const start = dateVal2 ? new Date(appointmentDateInput.value) : null;
+        if (!boardingRulesInvalid && start && !Number.isNaN(start.getTime())) {
+            const { totalMinutes, allowMultiDayStay } = getBookingSelectionTotals();
+            if (totalMinutes > 0) {
+                const fit = durationFitsOperatingHours(start, totalMinutes, allowMultiDayStay);
+                if (!fit.ok) {
+                    items.push({ field: "datetime", message: fit.message });
+                }
+            }
+        }
+
+        return items;
+    }
+
+    function focusFirstBookingIssue(items) {
+        if (!items || !items.length) return;
+        clearBookingFieldErrors();
+        const f = items[0].field;
+        if (f === "pet") {
+            petSelect?.classList.add("booking-input-invalid");
+            petSelect?.focus();
+            petSelect?.scrollIntoView({ behavior: "smooth", block: "center" });
+        } else if (f === "datetime") {
+            appointmentDateInput?.classList.add("booking-input-invalid");
+            appointmentDateInput?.focus();
+            appointmentDateInput?.scrollIntoView({ behavior: "smooth", block: "center" });
+        } else if (f === "services") {
+            form.querySelector(".section")?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
     }
 
     /** Latest eligibility locks by service name (lowercase) — used to block race if user clicks before UI updates */
@@ -128,22 +330,9 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     function setEligibilityBanner(message) {
-        const existing = document.getElementById("vaccine-eligibility-banner");
-        if (!message || !String(message).trim()) {
-            if (existing) existing.remove();
-            return;
-        }
-        let el = existing;
-        if (!el) {
-            el = document.createElement("div");
-            el.id = "vaccine-eligibility-banner";
-            el.className = "booking-flash booking-flash--warn";
-            el.setAttribute("role", "alert");
-            const grid = form.querySelector(".grid");
-            if (grid) grid.after(el);
-            else form.prepend(el);
-        }
-        el.textContent = message.trim();
+        const t = message != null ? String(message).trim() : "";
+        if (!t) return;
+        showBookingIssuesDialog("Vaccine eligibility", [t]);
     }
 
     function getEffectiveDateISO() {
@@ -168,6 +357,95 @@ document.addEventListener("DOMContentLoaded", function() {
         const maxDate = new Date(now.getTime() + MAX_ADVANCE_DAYS * 24 * 60 * 60 * 1000);
         appointmentDateInput.min = toDateTimeLocalValue(minDate);
         appointmentDateInput.max = toDateTimeLocalValue(maxDate);
+    }
+
+    function isBoardingServiceInput(inp) {
+        const raw = inp.getAttribute("data-duration");
+        let duration = 30;
+        if (raw != null && String(raw).trim() !== "") {
+            const n = parseFloat(raw);
+            duration = Number.isFinite(n) ? n : 30;
+        }
+        const typeName = (inp.getAttribute("data-type") || "").trim().toLowerCase();
+        return typeName === "boarding" || duration >= 1440;
+    }
+
+    function getCheckedServiceLineCounts() {
+        let boarding = 0;
+        let nonBoarding = 0;
+        form.querySelectorAll("input[name='mainServices']").forEach(inp => {
+            if (!inp.checked) return;
+            if (isBoardingServiceInput(inp)) boarding++;
+            else nonBoarding++;
+        });
+        return { boarding, nonBoarding };
+    }
+
+    /**
+     * Mirrors BookingService line totals: duration null/empty -> 30 min.
+     * allowMultiDayStay = boarding-only selection (exactly one boarding line after combo rules).
+     */
+    function getBookingSelectionTotals() {
+        const inputs = form.querySelectorAll("input[name='mainServices']");
+        const qtyInput = document.getElementById("boardingQty");
+        const hasBoardingQtyBlock = !!document.getElementById("boardingQtyBlock");
+        let qty = 1;
+        if (qtyInput) qty = parseInt(qtyInput.value, 10) || 1;
+
+        let total = 0;
+        let totalMinutes = 0;
+        const names = [];
+        const { boarding, nonBoarding } = getCheckedServiceLineCounts();
+        const allowMultiDayStay = boarding > 0 && nonBoarding === 0;
+
+        inputs.forEach(inp => {
+            if (!inp.checked) return;
+            const price = parseFloat(inp.getAttribute("data-price")) || 0;
+            const raw = inp.getAttribute("data-duration");
+            let duration = 30;
+            if (raw != null && String(raw).trim() !== "") {
+                const n = parseFloat(raw);
+                duration = Number.isFinite(n) ? n : 30;
+            }
+
+            if (hasBoardingQtyBlock) {
+                total += price * qty;
+                totalMinutes += duration * qty;
+            } else {
+                total += price;
+                totalMinutes += duration;
+            }
+            names.push(inp.getAttribute("data-name"));
+        });
+
+        return { total, totalMinutes, allowMultiDayStay, names, boarding, nonBoarding };
+    }
+
+    /**
+     * Aligns with BookingService.validateOperatingHoursRange (same-day end after 20:00; cross-midnight only for boarding-only).
+     */
+    function durationFitsOperatingHours(start, totalMinutes, allowMultiDayStay) {
+        if (!totalMinutes || totalMinutes <= 0) {
+            return { ok: true };
+        }
+        const end = new Date(start.getTime() + totalMinutes * 60 * 1000);
+        if (start.toDateString() !== end.toDateString()) {
+            if (!allowMultiDayStay) {
+                return {
+                    ok: false,
+                    message: "These services would run past midnight. Non-boarding visits must finish the same day — shorten the package or split the booking.",
+                };
+            }
+            return { ok: true };
+        }
+        const endMod = end.getHours() * 60 + end.getMinutes();
+        if (endMod > CLOSE_MINUTES_OF_DAY) {
+            return {
+                ok: false,
+                message: "Selected services would end after closing time (20:00). Pick an earlier start time or fewer services.",
+            };
+        }
+        return { ok: true };
     }
 
     function clearVaccineLockUi(inp) {
@@ -284,57 +562,37 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Hàm tính toán
     function calculateTotal() {
-        // Lấy tất cả input dịch vụ đang được checked
-        const inputs = form.querySelectorAll("input[name='mainServices']");
-        let selectedInputs = [];
-        inputs.forEach(inp => {
-            if (inp.checked) selectedInputs.push(inp);
-        });
+        const { total, totalMinutes: totalDuration, names } = getBookingSelectionTotals();
+        const hasSelection = names.length > 0;
 
-        // Xử lý số lượng (nếu là boarding)
-        const qtyInput = document.getElementById("boardingQty");
-        let qty = 1;
-        if (qtyInput) {
-            qty = parseInt(qtyInput.value) || 1;
+        if (bookingSummaryAside) {
+            bookingSummaryAside.dataset.empty = hasSelection ? "false" : "true";
+        }
+        if (summaryEmptyState) {
+            summaryEmptyState.hidden = hasSelection;
+        }
+        if (summaryMetrics) {
+            summaryMetrics.hidden = !hasSelection;
         }
 
-        let total = 0;
-        let totalDuration = 0;
-        let names = [];
+        if (sumServices) {
+            sumServices.textContent = hasSelection ? names.join(", ") : "";
+        }
+        if (sumTotal) {
+            sumTotal.textContent = hasSelection ? formatVND(total) : "";
+        }
 
-        selectedInputs.forEach(inp => {
-            const price = parseFloat(inp.getAttribute("data-price")) || 0;
-            const duration = parseFloat(inp.getAttribute("data-duration")) || 0;
-            const name = inp.getAttribute("data-name");
-
-            // Nếu là boarding, giá nhân theo số lượng ngày/giờ
-            // Nếu không (spa/vaccine), giá là cố định 1 lần
-            // (Logic này tùy thuộc rule kinh doanh của bạn, ở đây giả sử boarding nhân theo qty)
-            if(document.getElementById("boardingQtyBlock")) {
-                total += price * qty;
-                totalDuration += duration * qty;
+        if (sumDuration) {
+            if (totalDuration > 0) {
+                const hours = Math.floor(totalDuration / 60);
+                const minutes = totalDuration % 60;
+                let timeStr = "";
+                if (hours > 0) timeStr += `${hours} ${hours === 1 ? "hour" : "hours"} `;
+                if (minutes > 0) timeStr += `${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
+                sumDuration.textContent = timeStr.trim();
             } else {
-                total += price;
-                totalDuration += duration;
+                sumDuration.textContent = "";
             }
-
-            names.push(name);
-        });
-
-        // Cập nhật UI
-        sumServices.textContent = names.length > 0 ? names.join(", ") : "—";
-        sumTotal.textContent = names.length > 0 ? formatVND(total) : "—";
-
-        // Format duration (minutes -> hours/minutes, English)
-        if (totalDuration > 0) {
-            const hours = Math.floor(totalDuration / 60);
-            const minutes = totalDuration % 60;
-            let timeStr = "";
-            if (hours > 0) timeStr += `${hours} ${hours === 1 ? "hour" : "hours"} `;
-            if (minutes > 0) timeStr += `${minutes} ${minutes === 1 ? "minute" : "minutes"}`;
-            sumDuration.textContent = timeStr.trim();
-        } else {
-            sumDuration.textContent = "—";
         }
     }
 
@@ -387,61 +645,18 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Xử lý trước khi submit (nếu cần gộp note)
     form.addEventListener("submit", (e) => {
+        const issues = collectOrderedBookingIssues();
+        if (issues.length) {
+            e.preventDefault();
+            showBookingIssuesDialog(
+                "Cannot complete booking",
+                issues.map((i) => i.message)
+            );
+            focusFirstBookingIssue(issues);
+            return;
+        }
+
         clearBookingFieldErrors();
-
-        const petIdVal = (petSelect?.value || "").trim();
-        if (!petIdVal) {
-            e.preventDefault();
-            showPetError("Please select your pet.");
-            return;
-        }
-
-        const dateVal = (appointmentDateInput?.value || "").trim();
-        if (!dateVal) {
-            e.preventDefault();
-            showDateTimeError("Please choose an appointment date and time.");
-            return;
-        }
-
-        const selected = new Date(appointmentDateInput.value);
-        if (Number.isNaN(selected.getTime())) {
-            e.preventDefault();
-            showDateTimeError("Please enter a valid date and time.");
-            return;
-        }
-
-        const now = new Date();
-        // Align to minute precision to avoid failing boundary cases by a few seconds.
-        now.setSeconds(0, 0);
-        selected.setSeconds(0, 0);
-        if (selected < now) {
-            e.preventDefault();
-            showDateTimeError("The selected date and time cannot be in the past.");
-            return;
-        }
-        const minDate = new Date(now.getTime() + LEAD_HOURS * 60 * 60 * 1000);
-        const maxDate = new Date(now.getTime() + MAX_ADVANCE_DAYS * 24 * 60 * 60 * 1000);
-        if (selected < minDate) {
-            e.preventDefault();
-            showDateTimeError("Booking must be at least 2 hours in advance.");
-            return;
-        }
-        if (selected > maxDate) {
-            e.preventDefault();
-            showDateTimeError("Booking can only be made up to 30 days in advance.");
-            return;
-        }
-
-        const hour = selected.getHours();
-        const minute = selected.getMinutes();
-        const minutesOfDay = hour * 60 + minute;
-        const openMinutes = 8 * 60;
-        const closeMinutes = 20 * 60;
-        if (minutesOfDay < openMinutes || minutesOfDay >= closeMinutes) {
-            e.preventDefault();
-            showDateTimeError("Selected time is outside operating hours (08:00 – 20:00).");
-            return;
-        }
 
         const boardingHint = document.getElementById("boardingHint");
         const note = document.getElementById("note");

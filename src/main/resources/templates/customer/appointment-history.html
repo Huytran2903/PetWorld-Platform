@@ -157,9 +157,9 @@
                                     </span>
                                 </p>
 
-                                <p th:if="${appt.cancellationReason}">
+                                <p th:if="${appt.status != null and appt.status.toLowerCase() == 'canceled'}">
                                     <strong>Cancellation Reason:</strong>
-                                    <span th:text="${appt.cancellationReason}">—</span>
+                                    <span th:text="${appt.cancellationReason != null and !#strings.isEmpty(#strings.trim(appt.cancellationReason))} ? ${appt.cancellationReason} : '—'">—</span>
                                 </p>
 
                                 <p th:if="${appt.previousAppointmentDate}">
@@ -179,7 +179,6 @@
                                         <thead>
                                             <tr>
                                                 <th>Service</th>
-                                                <th>Type</th>
                                                 <th>Status</th>
                                                 <th>Staff</th>
                                                 <th>Duration</th>
@@ -194,15 +193,6 @@
                                                     <div class="svc-name" th:text="${line.service.name}">
                                                         Service Name
                                                     </div>
-                                                </td>
-
-                                                <td>
-                                                    <span
-                                                        class="badge badge-outline"
-                                                        th:text="${line.service.serviceType != null ? line.service.serviceType.name : '-'}"
-                                                    >
-                                                        TYPE
-                                                    </span>
                                                 </td>
 
                                                 <td>
@@ -272,7 +262,7 @@
                                             </tr>
                                             <tr class="services-total-row"
                                                 th:with="rowTotal=${appointmentTotalAmountByAppointmentId != null ? appointmentTotalAmountByAppointmentId.get(appt.id) : null}">
-                                                <td colspan="5" class="text-end fw-bold">Total</td>
+                                                <td colspan="4" class="text-end fw-bold">Total</td>
                                                 <td class="text-end fw-bold"
                                                     th:text="${rowTotal != null ? #numbers.formatDecimal(rowTotal, 0, 'COMMA', 0, 'POINT') + ' VND' : '0 VND'}">
                                                     0 VND
@@ -531,7 +521,7 @@
 
         <script th:inline="javascript">
             function openCancelModal(id) {
-                document.getElementById('cancelModal').style.display = 'block';
+                document.getElementById('cancelModal').style.display = 'flex';
                 const form = document.querySelector('#cancelModal form');
                 form.action = '/customer/appointments/' + id + '/cancel';
             }
@@ -544,7 +534,7 @@
                 const id = btn.getAttribute('data-id');
                 const currentDateTime = btn.getAttribute('data-datetime');
 
-                document.getElementById('rescheduleModal').style.display = 'block';
+                document.getElementById('rescheduleModal').style.display = 'flex';
 
                 const form = document.querySelector('#rescheduleModal form');
                 form.action = '/customer/appointments/' + id + '/reschedule';
@@ -564,7 +554,7 @@
                     form.action = '/customer/appointments/' + apptId + '/pay';
                 }
                 if (modal) {
-                    modal.style.display = 'block';
+                    modal.style.display = 'flex';
                 }
             }
 
@@ -619,7 +609,7 @@
                 document.getElementById('reviewForm').action = '/customer/feedback/' + feedbackId + '/update';
                 const m = document.getElementById('reviewModal');
                 if (m) {
-                    m.style.setProperty('display', 'block', 'important');
+                    m.style.setProperty('display', 'flex', 'important');
                 }
             }
 

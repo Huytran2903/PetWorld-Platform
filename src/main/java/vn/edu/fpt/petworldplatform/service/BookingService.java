@@ -42,6 +42,14 @@ public class BookingService {
     private static final LocalTime OPEN_TIME = LocalTime.of(8, 0);
     private static final LocalTime CLOSE_TIME = LocalTime.of(20, 0);
 
+    /** Limit book-then-cancel spam: max cancellations per customer in rolling windows */
+    private static final int MAX_CUSTOMER_CANCELLATIONS_PER_24_HOURS = 5;
+    private static final int MAX_CUSTOMER_CANCELLATIONS_PER_7_DAYS = 12;
+
+    /** Limit repeated no-show (book but never arrive, without canceling) */
+    private static final int MAX_CUSTOMER_NO_SHOWS_PER_30_DAYS = 2;
+    private static final int MAX_CUSTOMER_NO_SHOWS_PER_90_DAYS = 5;
+
     private final AppointmentRepository appointmentRepository;
     private final AppointmentServiceLineRepository appointmentServiceLineRepository;
     private final CustomerRepository customerRepository;
@@ -129,31 +137,34 @@ public class BookingService {
         
         List<ServiceItem> services = serviceItemRepository.findAllById(serviceIds);
         validateVaccineEligibilityOrThrow(petId, appointmentDate.toLocalDate(), services);
+        validateActiveServiceSelectionOrThrow(services);
+
         int totalDuration = 0;
-        boolean hasBoarding = false;
-        
+        boolean allowCrossDayStay = isBoardingOnlySelection(services);
+
         for (ServiceItem svc : services) {
             if (Boolean.TRUE.equals(svc.getIsActive())) {
                 totalDuration += (svc.getDurationMinutes() != null ? svc.getDurationMinutes() : 30);
-                String typeName = svc.getServiceType() != null ? svc.getServiceType().getName() : null;
-                if ("boarding".equalsIgnoreCase(typeName) || (svc.getDurationMinutes() != null && svc.getDurationMinutes() >= 1440)) {
-                    hasBoarding = true;
-                }
             }
         }
 
         LocalDateTime endTime = appointmentDate.plusMinutes(totalDuration);
-        validateOperatingHoursRange(appointmentDate, endTime, hasBoarding);
+        validateOperatingHoursRange(appointmentDate, endTime, allowCrossDayStay);
 
-        // Check overlap for new appointment
+        Pets pet = petRepository.findByIdWithOwnerForUpdate(petId)
+                .orElseThrow(() -> new IllegalArgumentException("Pet not found."));
+        if (pet.getOwner() == null || !customerId.equals(pet.getOwner().getCustomerId())) {
+            throw new IllegalArgumentException("Pet not found.");
+        }
+
         if (appointmentRepository.countOverlappingAppointments(petId, -1, appointmentDate, endTime) > 0) {
             throw new IllegalArgumentException("New time slot overlaps with an existing booking.");
         }
 
+        assertCustomerNoShowWithinLimits(customerId);
+
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new IllegalArgumentException("Customer not found."));
-        Pets pet = petRepository.findById(petId)
-                .orElseThrow(() -> new IllegalArgumentException("Pet not found."));
 
         Appointment appointment = Appointment.builder()
                 .appointmentCode(code)
@@ -223,6 +234,60 @@ public class BookingService {
         if (svc == null || svc.getServiceType() == null || svc.getServiceType().getName() == null) return false;
         String type = svc.getServiceType().getName().trim().toLowerCase(Locale.ROOT);
         return "vaccine".equals(type) || "vaccination".equals(type);
+    }
+
+    /** Boarding / long-stay by type or duration (used when reading existing lines; does not require active). */
+    private boolean isBoardingServiceItem(ServiceItem svc) {
+        if (svc == null) return false;
+        String typeName = svc.getServiceType() != null ? svc.getServiceType().getName() : null;
+        if ("boarding".equalsIgnoreCase(typeName)) return true;
+        Integer d = svc.getDurationMinutes();
+        return d != null && d >= 1440;
+    }
+
+    /** Active catalog item and boarding/long-stay — for new bookings only. */
+    private boolean isBoardingService(ServiceItem svc) {
+        return Boolean.TRUE.equals(svc != null ? svc.getIsActive() : null) && isBoardingServiceItem(svc);
+    }
+
+    /**
+     * Boarding is an overnight/multi-day stay and cannot be mixed with same-day services in one appointment.
+     * At most one boarding package per booking.
+     */
+    private void validateActiveServiceSelectionOrThrow(List<ServiceItem> services) {
+        if (services == null || services.isEmpty()) {
+            throw new IllegalArgumentException("No services selected.");
+        }
+        int boarding = 0;
+        int nonBoarding = 0;
+        for (ServiceItem svc : services) {
+            if (svc == null || !Boolean.TRUE.equals(svc.getIsActive())) continue;
+            if (isBoardingService(svc)) boarding++;
+            else nonBoarding++;
+        }
+        if (boarding + nonBoarding == 0) {
+            throw new IllegalArgumentException("No valid active services selected.");
+        }
+        if (boarding > 0 && nonBoarding > 0) {
+            throw new IllegalArgumentException(
+                    "Boarding cannot be combined with other services in one appointment. Please book boarding separately.");
+        }
+        if (boarding > 1) {
+            throw new IllegalArgumentException("Please select only one boarding package per appointment.");
+        }
+    }
+
+    /** True when every active line is a boarding package (so the slot may span multiple days). */
+    private boolean isBoardingOnlySelection(List<ServiceItem> services) {
+        if (services == null) return false;
+        int boarding = 0;
+        int nonBoarding = 0;
+        for (ServiceItem svc : services) {
+            if (svc == null || !Boolean.TRUE.equals(svc.getIsActive())) continue;
+            if (isBoardingService(svc)) boarding++;
+            else nonBoarding++;
+        }
+        return boarding > 0 && nonBoarding == 0;
     }
 
     private String generateAppointmentCode() {
@@ -314,13 +379,58 @@ public class BookingService {
         return Optional.empty();
     }
 
+    /**
+     * Limits repeated book-then-cancel behavior. Uses {@code CanceledAt} only (legacy cancels without it are not counted).
+     */
+    private void assertCustomerCancellationWithinLimits(Integer customerId) {
+        if (customerId == null) {
+            return;
+        }
+        LocalDateTime now = LocalDateTime.now();
+        long in24h = appointmentRepository.countCustomerCancellationsSince(customerId, now.minusHours(24));
+        if (in24h >= MAX_CUSTOMER_CANCELLATIONS_PER_24_HOURS) {
+            throw new IllegalArgumentException(
+                    "You have canceled too many appointments in the last 24 hours. Please try again later or contact support.");
+        }
+        long in7d = appointmentRepository.countCustomerCancellationsSince(customerId, now.minusDays(7));
+        if (in7d >= MAX_CUSTOMER_CANCELLATIONS_PER_7_DAYS) {
+            throw new IllegalArgumentException(
+                    "You have reached the weekly cancellation limit. Please contact support if you need assistance.");
+        }
+    }
+
+    /**
+     * Blocks chronic no-show behavior (customer keeps booking but does not attend and does not cancel).
+     */
+    private void assertCustomerNoShowWithinLimits(Integer customerId) {
+        if (customerId == null) {
+            return;
+        }
+        LocalDateTime now = LocalDateTime.now();
+        long in30d = appointmentRepository.countCustomerNoShowsSince(customerId, now.minusDays(30));
+        if (in30d >= MAX_CUSTOMER_NO_SHOWS_PER_30_DAYS) {
+            throw new IllegalArgumentException(
+                    "Too many missed appointments (no-show) in the last 30 days. Please contact support to book again.");
+        }
+        long in90d = appointmentRepository.countCustomerNoShowsSince(customerId, now.minusDays(90));
+        if (in90d >= MAX_CUSTOMER_NO_SHOWS_PER_90_DAYS) {
+            throw new IllegalArgumentException(
+                    "Too many missed appointments (no-show) in the last 90 days. Please contact support to book again.");
+        }
+    }
+
     @Transactional
     public void cancelAppointment(Integer appointmentId, Integer customerId, String reason) {
         Optional<String> err = canCancelOrReschedule(appointmentId, customerId);
         if (err.isPresent()) throw new IllegalArgumentException(err.get());
+        assertCustomerCancellationWithinLimits(customerId);
+        String trimmedReason = (reason != null && !reason.isBlank()) ? reason.trim() : "";
+        if (trimmedReason.isEmpty()) {
+            throw new IllegalArgumentException("Cancellation reason is required.");
+        }
         Appointment a = findAppointmentByIdAndCustomerId(appointmentId, customerId).orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
         a.setStatus("canceled");
-        a.setCancellationReason(reason);
+        a.setCancellationReason(trimmedReason);
         a.setCanceledAt(LocalDateTime.now());
         a.setUpdatedAt(LocalDateTime.now());
         appointmentRepository.save(a);
@@ -349,25 +459,35 @@ public class BookingService {
         // 1) Compute totalDurationMinutes
         List<AppointmentServiceLine> lines = appointmentServiceLineRepository.findByAppointment_Id(appointmentId);
         int totalMinutes = computeAppointmentDurationMinutes(lines);
-        boolean hasBoarding = lines.stream().anyMatch(l -> {
-            ServiceItem s = l.getService();
-            if (s == null) return false;
-            String tn = s.getServiceType() != null ? s.getServiceType().getName() : null;
-            return "boarding".equalsIgnoreCase(tn)
-                    || (s.getDurationMinutes() != null && s.getDurationMinutes() >= 1440);
-        });
+        boolean allowCrossDayStay = !lines.isEmpty()
+                && lines.stream().allMatch(l -> isBoardingServiceItem(l.getService()));
 
         // 2) Define newEnd
         LocalDateTime newEnd = newStart.plusMinutes(totalMinutes);
 
         // 3) Validate operating hours and duration fit
-        validateOperatingHoursRange(newStart, newEnd, hasBoarding);
+        validateOperatingHoursRange(newStart, newEnd, allowCrossDayStay);
 
         // 4) Lead time check (reusing existing method logic but for newStart)
         Optional<String> leadTimeErr = validateAppointmentDateTime(newStart);
         if (leadTimeErr.isPresent()) {
             throw new IllegalArgumentException("New time violates operating hours / lead time.");
         }
+
+        petRepository.findByIdWithOwnerForUpdate(a.getPetId())
+                .orElseThrow(() -> new IllegalArgumentException("Pet not found."));
+
+        a = findAppointmentByIdAndCustomerId(appointmentId, customerId)
+                .orElseThrow(() -> new IllegalArgumentException("Appointment not found"));
+        Optional<String> errAfterLock = canReschedule(appointmentId, customerId);
+        if (errAfterLock.isPresent()) {
+            if (errAfterLock.get().contains("within 1 hour")) {
+                throw new IllegalArgumentException("Cannot reschedule within 1 hour of the appointment.");
+            }
+            throw new IllegalArgumentException(errAfterLock.get());
+        }
+
+        assertCustomerNoShowWithinLimits(customerId);
 
         // 5) Prevent overlaps
         if (appointmentRepository.countOverlappingAppointments(a.getPetId(), a.getId(), newStart, newEnd) > 0) {

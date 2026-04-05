@@ -715,11 +715,18 @@ public class CustomerController {
     }
 
     @GetMapping("/customer/pet/pet-detail")
-    public String showPetDetail(@RequestParam("id") Integer id, Model model, HttpSession session) {
+    public String showPetDetail(@RequestParam("id") Integer id, Model model, HttpSession session,
+                                RedirectAttributes redirectAttributes) {
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
         if (customer == null) return "redirect:/login";
 
-        Pets pet = petService.getPetById(id);
+        Pets pet;
+        try {
+            pet = petService.getPetById(id);
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/customer/pet/my-pets";
+        }
 
         if (!pet.getOwner().getCustomerId().equals(customer.getCustomerId())) {
             return "redirect:/access-denied";
@@ -740,8 +747,8 @@ public class CustomerController {
         Pets pet;
         try {
             pet = petService.getPetById(id);
-        } catch (RuntimeException e) {
-            redirectAttributes.addFlashAttribute("error", "Pet not found.");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/customer/pet/my-pets";
         }
 
@@ -775,8 +782,8 @@ public class CustomerController {
         Pets existingPet;
         try {
             existingPet = petService.getPetById(petId);
-        } catch (RuntimeException e) {
-            redirectAttributes.addFlashAttribute("error", "Pet not found.");
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/customer/pet/my-pets";
         }
 
@@ -826,12 +833,19 @@ public class CustomerController {
     }
 
     @GetMapping("/customer/pet/pet-history")
-    public String showPetHistory(@RequestParam("id") Integer id, Model model, HttpSession session) {
+    public String showPetHistory(@RequestParam("id") Integer id, Model model, HttpSession session,
+                                 RedirectAttributes redirectAttributes) {
         Customer customer = (Customer) session.getAttribute("loggedInAccount");
         if (customer == null) return "redirect:/login";
 
-        Pets pet = petService.getPetById(id);
-        if (pet == null || pet.getOwner() == null) {
+        Pets pet;
+        try {
+            pet = petService.getPetById(id);
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/customer/pet/my-pets";
+        }
+        if (pet.getOwner() == null) {
             return "redirect:/customer/pet/my-pets";
         }
 

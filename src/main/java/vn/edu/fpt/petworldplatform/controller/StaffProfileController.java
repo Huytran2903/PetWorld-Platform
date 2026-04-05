@@ -62,6 +62,7 @@ public class StaffProfileController {
         }
 
         model.addAttribute("staff", staff);
+        addStaffProfileLayoutAttrs(model);
         return "staff/profile";
     }
 
@@ -82,6 +83,7 @@ public class StaffProfileController {
             model.addAttribute("passwordForm", new ChangePasswordForm());
             // Dùng model attribute cho staff
             model.addAttribute("staff", staff);
+            addStaffProfileLayoutAttrs(model);
             return "staff/profile"; // Spring tự bind profileForm + errors vào model
         }
 
@@ -118,5 +120,10 @@ public class StaffProfileController {
         }
 
         return "redirect:/staff/profile";
+    }
+
+    private static void addStaffProfileLayoutAttrs(Model model) {
+        model.addAttribute("activePage", "profile");
+        model.addAttribute("pageTitle", "Staff Profile - PetShop");
     }
 }

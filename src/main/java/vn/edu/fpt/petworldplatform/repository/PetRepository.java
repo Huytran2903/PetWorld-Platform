@@ -1,16 +1,26 @@
 package vn.edu.fpt.petworldplatform.repository;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import vn.edu.fpt.petworldplatform.entity.Pets;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface PetRepository extends JpaRepository<Pets, Integer> {
+
+    /**
+     * Serialize booking/reschedule per pet to avoid two transactions both passing overlap check (race).
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Pets p JOIN FETCH p.owner WHERE p.petID = :id")
+    Optional<Pets> findByIdWithOwnerForUpdate(@Param("id") Integer id);
 
     List<Pets> findByNameContaining(String name);
     List<Pets> findByOwner_CustomerId(Integer customerId);

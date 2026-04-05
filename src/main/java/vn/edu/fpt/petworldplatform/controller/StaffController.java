@@ -113,7 +113,8 @@ public class StaffController {
     public String viewAppointmentDetail(@RequestParam Integer id,
                                         Principal principal,
                                         HttpSession session,
-                                        Model model) {
+                                        Model model,
+                                        RedirectAttributes redirectAttributes) {
         Staff staff = resolveCurrentStaff(principal, session);
         if (staff == null) {
             return "redirect:/login?error=no_staff_context";
@@ -121,9 +122,19 @@ public class StaffController {
 
         session.setAttribute("currentStaffId", staff.getStaffId());
 
-        Appointment appointment = assignedAppointmentService.getAppointmentDetail(staff.getStaffId(), id);
+        final Appointment appointment;
+        try {
+            appointment = assignedAppointmentService.getAppointmentDetail(staff.getStaffId(), id);
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("error",
+                    e.getMessage() != null ? e.getMessage() : "Unable to open this appointment.");
+            return "redirect:/staff/assigned_list";
+        }
         model.addAttribute("appointment", appointment);
         model.addAttribute("currentStaffId", staff.getStaffId());
+        model.addAttribute("canReportNoShow", assignedAppointmentService.isNoShowReportAllowed(appointment));
+        model.addAttribute("noShowReportEarliest",
+                assignedAppointmentService.getEarliestNoShowReportTime(appointment).orElse(null));
 
         boolean isManager = appointment.getStaffId() != null && appointment.getStaffId().equals(staff.getStaffId());
 

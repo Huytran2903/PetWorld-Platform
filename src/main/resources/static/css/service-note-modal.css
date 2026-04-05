@@ -1,0 +1,300 @@
+/**
+ * Service Note modal — shared by staff (:target) and admin (Bootstrap).
+ * Scoped under .svc-note-modal on .modal-content
+ */
+:root {
+    --sn-navy: #143a66;
+    --sn-navy-soft: #1e4976;
+    --sn-text: #132238;
+    --sn-muted: #64748b;
+    --sn-muted-light: #94a3b8;
+    --sn-border: #e2e8f0;
+    --sn-surface: #f8fafc;
+    --sn-accent: #e8913a;
+    --sn-accent-pale: #fff7ed;
+    --sn-radius: 14px;
+    --sn-radius-sm: 10px;
+    --sn-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
+}
+
+/* Staff page: slightly narrower dialog */
+.modal-dialog.modal-dialog--svc-note {
+    max-width: min(640px, 94vw);
+    margin: 48px auto;
+}
+
+.modal-content.svc-note-modal {
+    border: none;
+    border-radius: var(--sn-radius);
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25), var(--sn-shadow);
+    overflow: hidden;
+    background: #fff;
+}
+
+.modal .modal-content.svc-note-modal {
+    border-radius: var(--sn-radius);
+}
+
+/* Header */
+.svc-note-modal__header,
+.modal-content.svc-note-modal .modal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 20px 16px;
+    border-bottom: 1px solid var(--sn-border);
+    background: linear-gradient(180deg, #fff 0%, var(--sn-surface) 100%);
+}
+
+.svc-note-modal__head-text {
+    min-width: 0;
+    flex: 1;
+}
+
+.svc-note-modal__title {
+    margin: 0 0 4px;
+    font-size: 1.125rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    color: var(--sn-navy);
+}
+
+.svc-note-modal__subtitle {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--sn-muted);
+    line-height: 1.45;
+    word-break: break-word;
+}
+
+/* Close control (staff <a>, admin <button>) */
+.svc-note-modal__close.btn-close,
+.modal-content.svc-note-modal .btn-close {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    margin: -6px -8px 0 0;
+    padding: 0;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    opacity: 0.55;
+    cursor: pointer;
+    transition:
+        opacity 0.15s ease,
+        background 0.15s ease,
+        transform 0.15s ease;
+}
+
+.svc-note-modal__close.btn-close:hover,
+.modal-content.svc-note-modal .btn-close:hover {
+    opacity: 1;
+    background: rgba(15, 23, 42, 0.06);
+}
+
+.svc-note-modal__close.btn-close:active,
+.modal-content.svc-note-modal .btn-close:active {
+    transform: scale(0.96);
+}
+
+/* Staff: anchor close uses CSS-drawn X in appointment_detail.css — recenter for larger hit area */
+.modal .modal-content.svc-note-modal a.btn-close.svc-note-modal__close::before,
+.modal .modal-content.svc-note-modal a.btn-close.svc-note-modal__close::after {
+    top: 19px;
+    left: 11px;
+    right: 11px;
+}
+
+/* Admin: Bootstrap button.btn-close — larger tap target, keep default icon */
+.modal-content.svc-note-modal button.btn-close {
+    width: 2.5rem;
+    height: 2.5rem;
+    background-size: 1rem;
+}
+
+/* Body */
+.svc-note-modal__body,
+.modal-content.svc-note-modal .modal-body {
+    padding: 18px 20px 22px;
+    background: #fff;
+}
+
+.svc-note-modal__section {
+    margin-bottom: 20px;
+}
+
+.svc-note-modal__section:last-child {
+    margin-bottom: 0;
+}
+
+.svc-note-modal__section-label {
+    margin: 0 0 10px;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--sn-muted);
+}
+
+/* Note card (filled) */
+.svc-note-modal__note-card {
+    padding: 14px 16px;
+    border-radius: var(--sn-radius-sm);
+    border: 1px solid var(--sn-border);
+    background: var(--sn-surface);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.svc-note-modal__note-text {
+    margin: 0;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--sn-text);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.svc-note-modal__note-text--sm {
+    font-size: 0.875rem;
+    line-height: 1.55;
+}
+
+/* Empty states */
+.svc-note-modal__empty {
+    padding: 16px 18px;
+    border-radius: var(--sn-radius-sm);
+    border: 1px dashed #cbd5e1;
+    background: linear-gradient(180deg, #fafbfc 0%, #f8fafc 100%);
+    text-align: center;
+}
+
+.svc-note-modal__empty--inline {
+    padding: 12px 14px;
+    text-align: left;
+    margin-top: 12px;
+}
+
+.svc-note-modal__empty-text {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--sn-muted);
+}
+
+.svc-note-modal__empty-hint {
+    margin: 6px 0 0;
+    font-size: 0.8125rem;
+    color: var(--sn-muted-light);
+    line-height: 1.5;
+}
+
+/* Vaccination / info card */
+.svc-note-modal__info-card {
+    padding: 14px 16px 16px;
+    border-radius: var(--sn-radius-sm);
+    border: 1px solid var(--sn-border);
+    background: #fff;
+    box-shadow: var(--sn-shadow);
+}
+
+.svc-note-modal__info-card--accent {
+    border-left: 4px solid var(--sn-accent);
+    background: linear-gradient(90deg, var(--sn-accent-pale) 0%, #fff 28%);
+}
+
+.svc-note-modal__dl {
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 12px 16px;
+}
+
+.svc-note-modal__dl-pair {
+    display: grid;
+    gap: 4px;
+}
+
+.svc-note-modal__dl-pair dt {
+    margin: 0;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--sn-muted-light);
+}
+
+.svc-note-modal__dl-pair dd {
+    margin: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--sn-text);
+    line-height: 1.45;
+    word-break: break-word;
+}
+
+.svc-note-modal__sub-block {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--sn-border);
+}
+
+.svc-note-modal__sub-label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--sn-muted-light);
+}
+
+/* Media */
+.svc-note-modal__media {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.svc-note-modal__figure {
+    margin: 0;
+    border-radius: var(--sn-radius-sm);
+    overflow: hidden;
+    border: 1px solid var(--sn-border);
+    background: #f1f5f9;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+.svc-note-modal__figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: min(72vh, 880px);
+    object-fit: contain;
+    object-position: center;
+    vertical-align: middle;
+}
+
+/* Admin extra-wide dialog: allow taller image */
+.modal-dialog.service-note-modal .svc-note-modal__figure img {
+    max-height: min(82vh, 960px);
+}
+
+@media (max-width: 576px) {
+    .svc-note-modal__header,
+    .modal-content.svc-note-modal .modal-header {
+        padding: 14px 16px 12px;
+    }
+
+    .svc-note-modal__body,
+    .modal-content.svc-note-modal .modal-body {
+        padding: 14px 16px 18px;
+    }
+
+    .svc-note-modal__title {
+        font-size: 1.05rem;
+    }
+}

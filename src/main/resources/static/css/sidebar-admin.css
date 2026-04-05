@@ -4,24 +4,33 @@
     --sb-hover: rgba(255, 255, 255, 0.15);
     --sb-active: rgba(255, 255, 255, 0.25);
     --sb-text: #ffffff;
+    --sb-width: 280px;
 }
 
-/* Sidebar Container */
+/* Sidebar: fixed outer width on all pages (box-model, flex parent, scrollbar) */
 .sidebar-container {
-    width: 280px;
+    box-sizing: border-box;
+    flex: 0 0 var(--sb-width);
+    width: var(--sb-width);
+    min-width: var(--sb-width);
+    max-width: var(--sb-width);
     height: 100vh;
-    overflow-y: auto;
+    overflow-y: scroll;
+    overflow-x: hidden;
     position: sticky;
     top: 0;
     left: 0;
-    background-color: var(--sb-orange); /* Màu cam chủ đạo */
+    background-color: var(--sb-orange);
     flex-shrink: 0;
+    flex-grow: 0;
     font-family: 'Montserrat', sans-serif !important;
     padding: 32px 16px;
     z-index: 1000;
     display: flex;
     flex-direction: column;
+    align-items: stretch;
     box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
+    scrollbar-gutter: stable;
 }
 
 .sidebar-container::-webkit-scrollbar {
@@ -41,9 +50,33 @@
     width: 100%;
 }
 
-/* Logo Section */
+/* Nav column — không phụ thuộc Bootstrap */
+.sidebar-container > nav {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100%;
+    min-width: 0;
+    flex: 1 1 auto;
+    align-items: stretch;
+    gap: 0.25rem;
+}
+
+.sidebar-container > nav > hr {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    flex-shrink: 0;
+}
+
+/* Logo */
 .sidebar-header {
     padding-left: 12px;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
 }
 
 .logo-text {
@@ -54,39 +87,153 @@
 }
 
 .logo-dot {
-    color: #262633; /* Dấu chấm màu tối tạo điểm nhấn */
+    color: #262633;
     font-size: 24px;
     font-weight: 700;
 }
 
-/* Navigation Links */
+/* Navigation links — cùng width, padding, box-sizing; không transform (tránh lệch / overflow) */
 .nav-link-custom {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
     text-decoration: none;
     color: var(--sb-text) !important;
     font-family: 'Montserrat', sans-serif !important;
-    font-size: 16px;
-    font-weight: 500;
-    padding: 12px 16px;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.35;
+    padding: 10px 12px;
     border-radius: 8px;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
+    border: 1px solid transparent;
     margin-bottom: 4px;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    gap: 0;
+    overflow: hidden;
+    text-align: left;
+    white-space: nowrap;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease;
 }
 
 .nav-link-custom:hover {
     background-color: var(--sb-hover);
-    transform: translateX(5px);
+    border-color: rgba(255, 255, 255, 0.08);
 }
 
-/* Trạng thái Active từ Thymeleaf */
+/* Active: chỉ đổi nền/viền — giữ font-weight 600 để không giật chiều ngang */
 .active-state {
     background-color: var(--sb-active) !important;
-    font-weight: 700;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    font-weight: 600 !important;
+    box-shadow: none !important;
 }
 
-/* Icon Placeholder inside Sidebar */
+/* Icon chính (đầu tiên): kích thước cố định, không co */
+.nav-link-custom > i:first-child {
+    flex: 0 0 1.35rem !important;
+    width: 1.35rem !important;
+    min-width: 1.35rem !important;
+    height: 1.35rem !important;
+    margin-right: 12px !important;
+    margin-left: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.1rem !important;
+    color: white !important;
+}
+
+/* Icon phụ (vd. external link): đẩy phải, không làm rộng sidebar */
+.nav-link-custom > i:last-child:not(:only-child) {
+    flex: 0 0 auto !important;
+    margin-left: auto !important;
+    margin-right: 0 !important;
+    font-size: 0.8rem !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Text / nhãn: co + ellipsis khi có span */
+.nav-link-custom > span:not(.visually-hidden),
+.nav-link-custom > .nav-link-custom__label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Khối con (Service Manager): không vượt width */
+.nav-link-custom > div {
+    min-width: 0;
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+
+.nav-link-custom > div > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.nav-link-custom > div > i:first-child {
+    flex: 0 0 1.35rem !important;
+    width: 1.35rem !important;
+    min-width: 1.35rem !important;
+    margin-right: 12px !important;
+}
+
+/* Hàng có chevron (admin Service Manager) */
+a.nav-link-custom[href='#serviceSubmenu'],
+a.nav-link-custom[aria-controls='serviceSubmenu'] {
+    justify-content: space-between !important;
+}
+
+a.nav-link-custom[href='#serviceSubmenu'] > div,
+a.nav-link-custom[aria-controls='serviceSubmenu'] > div {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+a.nav-link-custom[href='#serviceSubmenu'] > i:last-child,
+a.nav-link-custom[aria-controls='serviceSubmenu'] > i:last-child {
+    flex: 0 0 auto !important;
+    margin-left: 8px !important;
+}
+
+/* Admin submenu */
+.sidebar-container .collapse {
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+}
+
+.sidebar-container .collapse .nav {
+    width: 100%;
+    min-width: 0;
+    margin-left: 0.5rem !important;
+    padding-left: 0.75rem !important;
+    border-left: 2px solid rgba(255, 255, 255, 0.3);
+    box-sizing: border-box;
+}
+
+.sidebar-container .collapse .nav-link {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Icon legacy block */
 .icon-box {
     width: 24px;
     height: 24px;
@@ -96,12 +243,96 @@
 }
 
 .icon-placeholder {
-    background-color: #ffffff; /* Icon màu trắng trên nền cam */
+    background-color: #ffffff;
     border-radius: 2px;
 }
 
+/* Hủy margin Bootstrap trùng — đã cố định ở trên */
 .nav-link-custom i {
-    font-size: 1.2rem;
     color: white !important;
-    margin-right: 15px;
+}
+
+/* Staff shell: cột chính co đúng cạnh sidebar cố định */
+.staff-wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+    min-width: 0;
+}
+
+.staff-wrapper > .sidebar-container {
+    flex: 0 0 var(--sb-width);
+}
+
+.staff-wrapper > .staff-content {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+/* Trang staff dùng .staff-page-shell (không qua staff_layout) */
+.staff-page-shell {
+    display: flex;
+    width: 100%;
+    min-height: 100vh;
+    align-items: stretch;
+    min-width: 0;
+}
+
+.staff-page-shell > .sidebar-container {
+    flex: 0 0 var(--sb-width);
+}
+
+.staff-page-shell > .main-content {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+/* Admin layout: sidebar width khớp staff */
+.admin-wrapper {
+    min-width: 0;
+}
+
+.admin-wrapper > .sidebar-container {
+    flex: 0 0 var(--sb-width);
+}
+
+.admin-wrapper > .admin-main-content {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+/*
+ * Trang staff có <style> nội tuyến sau link sidebar-admin.css thường đặt
+ * .staff-page-shell { align-items: flex-start } — cùng độ ưu tiên nhưng sau nên thắng.
+ * html body … có specificity cao hơn để giữ sidebar cố định 280px trên mọi route.
+ */
+html body .staff-page-shell {
+    align-items: stretch;
+    min-width: 0;
+}
+
+html body .staff-page-shell > .sidebar-container {
+    flex: 0 0 var(--sb-width);
+    width: var(--sb-width);
+    min-width: var(--sb-width);
+    max-width: var(--sb-width);
+    box-sizing: border-box;
+}
+
+html body .staff-page-shell > .main-content {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+html body .staff-wrapper {
+    align-items: stretch;
+    min-width: 0;
+}
+
+html body .staff-wrapper > .sidebar-container {
+    flex: 0 0 var(--sb-width);
+    width: var(--sb-width);
+    min-width: var(--sb-width);
+    max-width: var(--sb-width);
+    box-sizing: border-box;
 }

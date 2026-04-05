@@ -21,7 +21,8 @@ public class ProductService {
     }
 
     public Product findProductById(Integer id) {
-        return productRepository.findById(id).get();
+        return productRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found."));
     }
 
     public void saveProduct(Product product) {

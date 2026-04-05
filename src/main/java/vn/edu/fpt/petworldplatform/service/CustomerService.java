@@ -231,6 +231,10 @@ public class CustomerService {
     }
 
     public Customer getCustomerById(Integer id) {
-        return customerRepository.findById(id).get();
+        if (id == null) {
+            throw new IllegalArgumentException("Customer not found.");
+        }
+        return customerRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Customer not found."));
     }
 }

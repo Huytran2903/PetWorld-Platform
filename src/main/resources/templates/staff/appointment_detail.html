@@ -3,6 +3,7 @@
 <th:block th:replace="~{fragments/staff_layout :: layout(~{::detail_content})}">
     <div th:fragment="detail_content">
         <link rel="stylesheet" th:href="@{/css/appointment_detail.css}" />
+        <link rel="stylesheet" th:href="@{/css/service-note-modal.css}" />
 
         <style>
             .health-report {
@@ -239,60 +240,96 @@
                         tabindex="-1"
                         aria-hidden="true"
                     >
-                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">
-                                        Service Note -
-                                        <span th:text="${item.service.name}">Service</span>
-                                    </h5>
+                        <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog--svc-note">
+                            <div class="modal-content svc-note-modal">
+                                <div class="modal-header svc-note-modal__header">
+                                    <div class="svc-note-modal__head-text">
+                                        <h2 class="svc-note-modal__title">Service Note</h2>
+                                        <p class="svc-note-modal__subtitle" th:text="${item.service != null ? item.service.name : 'Service'}">General Health Check-up</p>
+                                    </div>
                                     <a
                                         href="#"
-                                        class="btn-close"
+                                        class="btn-close svc-note-modal__close"
                                         aria-label="Close"
                                     ></a>
                                 </div>
 
-                                <div class="modal-body">
-                                    <div class="health-notes" style="padding: 0;">
-                                        <div class="block">
-                                            <strong>Note:</strong>
-                                            <span th:text="${serviceNoteByLineId.get(item.id).note ?: '-'}">-</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="health-notes" style="padding: 0;"
-                                         th:if="${isManager and vaccineRecordByLineId != null and vaccineRecordByLineId.containsKey(item.id)}">
-                                        <div class="block" style="border-left:4px solid #f59e0b; background:#fff7ed;">
-                                            <strong>Vaccine Record</strong>
-                                            <div style="margin-top:8px;">
-                                                <div><strong>Name:</strong> <span th:text="${vaccineRecordByLineId.get(item.id).vaccineName ?: '-'}">-</span></div>
-                                                <div><strong>Administered:</strong> <span th:text="${vaccineRecordByLineId.get(item.id).administeredDate ?: '-'}">-</span></div>
-                                                <div><strong>Next Due:</strong> <span th:text="${vaccineRecordByLineId.get(item.id).nextDueDate ?: '-'}">-</span></div>
-                                                <div><strong>Performed By:</strong> <span th:text="${vaccineRecordByLineId.get(item.id).performedByName ?: '-'}">-</span></div>
-                                                <div style="margin-top:6px;"><strong>Note:</strong> <span th:text="${vaccineRecordByLineId.get(item.id).note ?: '-'}">-</span></div>
+                                <div class="modal-body svc-note-modal__body">
+                                    <th:block
+                                        th:with="rawSvcNote=${serviceNoteByLineId.get(item.id).note},
+                                                 svcNoteTrim=${rawSvcNote != null ? #strings.trim(rawSvcNote) : ''},
+                                                 hasSvcNote=${!#strings.isEmpty(svcNoteTrim) and not #strings.equals(svcNoteTrim, '-')}"
+                                    >
+                                        <section class="svc-note-modal__section" th:aria-labelledby="${'svc-note-h-' + item.id}">
+                                            <h3 class="svc-note-modal__section-label" th:id="${'svc-note-h-' + item.id}">Staff note</h3>
+                                            <div th:if="${hasSvcNote}" class="svc-note-modal__note-card">
+                                                <p class="svc-note-modal__note-text" th:text="${rawSvcNote}">Note text</p>
                                             </div>
+                                            <div th:unless="${hasSvcNote}" class="svc-note-modal__empty svc-note-modal__empty--note">
+                                                <p class="svc-note-modal__empty-text">No additional service note</p>
+                                                <p class="svc-note-modal__empty-hint">No note was provided for this service line.</p>
+                                            </div>
+                                        </section>
+                                    </th:block>
+
+                                    <section
+                                        class="svc-note-modal__section"
+                                        th:if="${isManager and vaccineRecordByLineId != null and vaccineRecordByLineId.containsKey(item.id)}"
+                                        th:aria-labelledby="${'svc-vaccine-h-' + item.id}"
+                                    >
+                                        <h3 class="svc-note-modal__section-label" th:id="${'svc-vaccine-h-' + item.id}">Vaccination record</h3>
+                                        <div class="svc-note-modal__info-card svc-note-modal__info-card--accent">
+                                            <th:block th:with="vr=${vaccineRecordByLineId.get(item.id)},
+                                                         rawVrNote=${vr.note},
+                                                         vrNoteTrim=${rawVrNote != null ? #strings.trim(rawVrNote) : ''},
+                                                         hasVrNote=${!#strings.isEmpty(vrNoteTrim) and not #strings.equals(vrNoteTrim, '-')}"
+                                            >
+                                                <dl class="svc-note-modal__dl">
+                                                    <div class="svc-note-modal__dl-pair">
+                                                        <dt>Vaccine</dt>
+                                                        <dd th:text="${#strings.isEmpty(vr.vaccineName) or #strings.equals(#strings.trim(vr.vaccineName), '-')} ? '—' : ${vr.vaccineName}">—</dd>
+                                                    </div>
+                                                    <div class="svc-note-modal__dl-pair">
+                                                        <dt>Administered</dt>
+                                                        <dd th:text="${vr.administeredDate != null} ? ${vr.administeredDate} : '—'">—</dd>
+                                                    </div>
+                                                    <div class="svc-note-modal__dl-pair">
+                                                        <dt>Next due</dt>
+                                                        <dd th:text="${vr.nextDueDate != null} ? ${vr.nextDueDate} : '—'">—</dd>
+                                                    </div>
+                                                    <div class="svc-note-modal__dl-pair">
+                                                        <dt>Performed by</dt>
+                                                        <dd th:text="${#strings.isEmpty(vr.performedByName) or #strings.equals(#strings.trim(vr.performedByName), '-')} ? '—' : ${vr.performedByName}">—</dd>
+                                                    </div>
+                                                </dl>
+                                                <div th:if="${hasVrNote}" class="svc-note-modal__sub-block">
+                                                    <span class="svc-note-modal__sub-label">Record note</span>
+                                                    <p class="svc-note-modal__note-text svc-note-modal__note-text--sm" th:text="${rawVrNote}">Note</p>
+                                                </div>
+                                                <div th:unless="${hasVrNote}" class="svc-note-modal__empty svc-note-modal__empty--inline">
+                                                    <p class="svc-note-modal__empty-text">No note on vaccination record</p>
+                                                    <p class="svc-note-modal__empty-hint">Details above are still shown when available.</p>
+                                                </div>
+                                            </th:block>
                                         </div>
-                                    </div>
+                                    </section>
 
-                                    <div
-                                        class="health-photos"
-                                        style="padding: 0;"
+                                    <section
+                                        class="svc-note-modal__section"
                                         th:if="${serviceNotePhotosByLineId != null and serviceNotePhotosByLineId.containsKey(item.id) and !#lists.isEmpty(serviceNotePhotosByLineId.get(item.id))}"
+                                        th:aria-labelledby="${'svc-media-h-' + item.id}"
                                     >
-                                        <img
-                                            th:each="photo : ${serviceNotePhotosByLineId.get(item.id)}"
-                                            th:src="@{${photo.imageUrl}}"
-                                            alt="service note"
-                                        />
-                                    </div>
-
-                                    <div
-                                        class="text-muted mt-2"
-                                        th:unless="${serviceNotePhotosByLineId != null and serviceNotePhotosByLineId.containsKey(item.id) and !#lists.isEmpty(serviceNotePhotosByLineId.get(item.id))}"
-                                    >
-                                        No photos.
-                                    </div>
+                                        <h3 class="svc-note-modal__section-label" th:id="${'svc-media-h-' + item.id}">Attached images</h3>
+                                        <div class="svc-note-modal__media">
+                                            <figure th:each="photo : ${serviceNotePhotosByLineId.get(item.id)}" class="svc-note-modal__figure">
+                                                <img
+                                                    th:src="@{${photo.imageUrl}}"
+                                                    alt="Service documentation image"
+                                                    loading="lazy"
+                                                />
+                                            </figure>
+                                        </div>
+                                    </section>
                                 </div>
                             </div>
                         </div>
@@ -337,7 +374,7 @@
                         </th:block>
 
                         <form
-                            th:if="${appointment.status != null and (appointment.status.toLowerCase() == 'confirmed' or appointment.status.toLowerCase() == 'checked_in')}"
+                            th:if="${appointment.status != null and (appointment.status.toLowerCase() == 'confirmed' or appointment.status.toLowerCase() == 'checked_in') and canReportNoShow}"
                             th:action="@{/staff/appointment/no-show}"
                             method="post"
                             style="display: inline-block; margin-left: 8px;"
@@ -345,6 +382,15 @@
                             <input type="hidden" name="id" th:value="${appointment.id}" />
                             <button class="btn btn-ghost" type="submit">Report No-show</button>
                         </form>
+
+                        <p
+                            class="text-muted small mt-2 mb-0"
+                            style="max-width: 42rem;"
+                            th:if="${appointment.status != null and appointment.status.toLowerCase() == 'confirmed' and !canReportNoShow and noShowReportEarliest != null}"
+                            th:text="|Report No-show is available after ${#temporals.format(noShowReportEarliest, 'dd/MM/yyyy HH:mm')} (30 minutes after the scheduled time — customer may still check in until then).|"
+                        >
+                            Report No-show timing hint.
+                        </p>
 
                         <!-- Confirm COD Payment is placed at the bottom of the page (near Back to list). -->
                     </div>

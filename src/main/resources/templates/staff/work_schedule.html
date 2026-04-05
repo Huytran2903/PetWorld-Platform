@@ -62,7 +62,7 @@
                             <tbody>
                             <tr th:each="item : ${schedules}"
                                 th:classappend="${item.displayStatus != null} ? (${#strings.equalsIgnoreCase(item.displayStatus, 'done')} ? ' row-done' : ' row-pending') : ''">
-                                <td th:text="${#temporals.format(item.workDate, 'dd/MM/yyyy (EEE)')}">01/03/2026 (Mon)</td>
+                                <td th:text="${#temporals.format(item.workDate, 'dd/MM/yyyy (EEE)', T(java.util.Locale).ENGLISH)}">01/03/2026 (Mon)</td>
                                 <td th:text="${#temporals.format(item.startTime, 'HH:mm')}">08:00</td>
                                 <td th:text="${#temporals.format(item.endTime, 'HH:mm')}">12:00</td>
                                 <td th:text="${item.note ?: '-'}">Morning Shift</td>

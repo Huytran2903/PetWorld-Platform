@@ -135,8 +135,15 @@ public class AdminController {
     //Edit Pet
     @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("admin/pet/edit/{id}")
-    public String editPet(Model model, @PathVariable("id") Integer id) {
-        Pets pet = petService.getPetById(id);
+    public String editPet(Model model, @PathVariable("id") Integer id,
+                          RedirectAttributes redirectAttributes) {
+        Pets pet;
+        try {
+            pet = petService.getPetById(id);
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/admin/manage-pet";
+        }
 
         if (pet.getVaccinations() != null && !pet.getVaccinations().isEmpty()) {
             pet.setIsVaccinated(true);
@@ -290,8 +297,14 @@ public class AdminController {
     //Edit
     @PreAuthorize("hasAuthority('MANAGE_CATEGORY')")
     @GetMapping("/admin/category/edit/{id}")
-    public String editCategory(Model model, @PathVariable("id") Integer id) {
-        model.addAttribute("selectedCate", categoryService.getCategoryById(id));
+    public String editCategory(Model model, @PathVariable("id") Integer id,
+                               RedirectAttributes redirectAttributes) {
+        try {
+            model.addAttribute("selectedCate", categoryService.getCategoryById(id));
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/admin/manage-categories";
+        }
         model.addAttribute("formMode", "edit");
 
         return "admin/category-form";
@@ -454,8 +467,14 @@ public class AdminController {
 
     @PreAuthorize("hasAuthority('MANAGE_PRODUCT')")
     @GetMapping("/admin/product/edit/{id}")
-    public String updateProduct(Model model, @PathVariable("id") Integer id) {
-        model.addAttribute("selectedPro", productService.findProductById(id));
+    public String updateProduct(Model model, @PathVariable("id") Integer id,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            model.addAttribute("selectedPro", productService.findProductById(id));
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/admin/manage-product";
+        }
 
         model.addAttribute("cates", categoryService.getAllCategories());
 

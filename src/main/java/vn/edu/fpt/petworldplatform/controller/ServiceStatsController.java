@@ -94,6 +94,8 @@ public class ServiceStatsController {
         model.addAttribute("maxDate", today);
         model.addAttribute("dateError", dateError);
 
+        model.addAttribute("activePage", "service-stats");
+        model.addAttribute("pageTitle", "Service Usage Statistics - PetShop");
         return "staff/service-stats";
     }
 }

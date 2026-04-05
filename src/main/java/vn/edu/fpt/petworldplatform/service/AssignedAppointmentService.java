@@ -19,6 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -145,6 +146,35 @@ public class AssignedAppointmentService implements IAssignedAppointmentService {
         return updateStatus(appointment, STATUS_CHECKED_IN);
     }
 
+    /**
+     * Tránh báo no-show khi chưa tới/đang trong cửa sổ check-in (đồng bộ với {@link #checkIn}).
+     * Với trạng thái {@code confirmed}: chỉ cho phép sau {@code appointmentDate + CHECK_IN_LATE_GRACE_MINUTES}.
+     * Với {@code checked_in}: vẫn cho phép (luồng hiếm, giữ tương thích UI cũ).
+     */
+    @Override
+    public boolean isNoShowReportAllowed(Appointment appointment) {
+        if (appointment == null || appointment.getAppointmentDate() == null) {
+            return false;
+        }
+        String currentStatus = lower(appointment.getStatus());
+        if (!STATUS_CONFIRMED.equals(currentStatus)) {
+            return true;
+        }
+        LocalDateTime latestCheckIn = appointment.getAppointmentDate().plusMinutes(CHECK_IN_LATE_GRACE_MINUTES);
+        return LocalDateTime.now().isAfter(latestCheckIn);
+    }
+
+    @Override
+    public Optional<LocalDateTime> getEarliestNoShowReportTime(Appointment appointment) {
+        if (appointment == null || appointment.getAppointmentDate() == null) {
+            return Optional.empty();
+        }
+        if (!STATUS_CONFIRMED.equals(lower(appointment.getStatus()))) {
+            return Optional.empty();
+        }
+        return Optional.of(appointment.getAppointmentDate().plusMinutes(CHECK_IN_LATE_GRACE_MINUTES));
+    }
+
     @Override
     @Transactional
     public Appointment reportNoShow(Integer staffId, Integer appointmentId) {
@@ -154,6 +184,12 @@ public class AssignedAppointmentService implements IAssignedAppointmentService {
         String currentStatus = lower(appointment.getStatus());
         if (!(STATUS_CONFIRMED.equals(currentStatus) || STATUS_CHECKED_IN.equals(currentStatus))) {
             throw new IllegalStateException("No-show can only be reported for confirmed or checked-in appointments.");
+        }
+
+        if (STATUS_CONFIRMED.equals(currentStatus) && !isNoShowReportAllowed(appointment)) {
+            throw new IllegalStateException(
+                    "No-show can only be reported after the check-in window has ended (more than "
+                            + CHECK_IN_LATE_GRACE_MINUTES + " minutes after the scheduled time).");
         }
 
         appointment.setCanceledAt(LocalDateTime.now());

@@ -20,6 +20,7 @@
     />
     <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}" />
     <link rel="stylesheet" th:href="@{/css/sidebar-admin.css}" />
+    <link rel="stylesheet" th:href="@{/css/service-note-modal.css}" />
 
     <style>
         .bg-orange {
@@ -332,6 +333,24 @@
                                         Note
                                     </div>
                                 </div>
+
+                                <div class="col-12"
+                                     th:if="${appointment.status != null and appointment.status.equalsIgnoreCase('canceled')}">
+                                    <label class="form-label text-muted small">Cancellation Reason</label>
+                                    <div class="p-2 bg-light rounded border-start border-3 border-danger"
+                                         th:text="${appointment.cancellationReason != null and !#strings.isEmpty(#strings.trim(appointment.cancellationReason))} ? ${appointment.cancellationReason} : '—'">
+                                        —
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6"
+                                     th:if="${appointment.status != null and appointment.status.equalsIgnoreCase('canceled') and appointment.canceledAt != null}">
+                                    <label class="form-label text-muted small">Canceled At</label>
+                                    <div class="fw-bold"
+                                         th:text="${#temporals.format(appointment.canceledAt, 'dd/MM/yyyy HH:mm')}">
+                                        —
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -486,43 +505,54 @@
                                     aria-hidden="true"
                                 >
                                     <div class="modal-dialog modal-xl modal-dialog-scrollable service-note-modal">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title">
-                                                    Service Note -
-                                                    <span th:text="${line.service.name}">Service</span>
-                                                </h5>
+                                        <div class="modal-content svc-note-modal">
+                                            <div class="modal-header svc-note-modal__header">
+                                                <div class="svc-note-modal__head-text">
+                                                    <h2 class="svc-note-modal__title">Service Note</h2>
+                                                    <p class="svc-note-modal__subtitle" th:text="${line.service != null ? line.service.name : 'Service'}">Service name</p>
+                                                </div>
                                                 <button
                                                     type="button"
-                                                    class="btn-close"
+                                                    class="btn-close svc-note-modal__close"
                                                     data-bs-dismiss="modal"
                                                     aria-label="Close"
                                                 ></button>
                                             </div>
 
-                                            <div class="modal-body">
-                                                <div class="mt-2 p-2 border rounded">
-                                                    <strong>Note:</strong>
-                                                    <span th:text="${serviceNoteByLineId.get(line.id).note ?: '-'}"></span>
-                                                </div>
+                                            <div class="modal-body svc-note-modal__body">
+                                                <th:block
+                                                    th:with="rawSvcNote=${serviceNoteByLineId.get(line.id).note},
+                                                             svcNoteTrim=${rawSvcNote != null ? #strings.trim(rawSvcNote) : ''},
+                                                             hasSvcNote=${!#strings.isEmpty(svcNoteTrim) and not #strings.equals(svcNoteTrim, '-')}"
+                                                >
+                                                    <section class="svc-note-modal__section" th:aria-labelledby="${'adm-svc-note-h-' + line.id}">
+                                                        <h3 class="svc-note-modal__section-label" th:id="${'adm-svc-note-h-' + line.id}">Staff note</h3>
+                                                        <div th:if="${hasSvcNote}" class="svc-note-modal__note-card">
+                                                            <p class="svc-note-modal__note-text" th:text="${rawSvcNote}">Note</p>
+                                                        </div>
+                                                        <div th:unless="${hasSvcNote}" class="svc-note-modal__empty svc-note-modal__empty--note">
+                                                            <p class="svc-note-modal__empty-text">No additional service note</p>
+                                                            <p class="svc-note-modal__empty-hint">No note was provided for this service line.</p>
+                                                        </div>
+                                                    </section>
+                                                </th:block>
 
-                                                <div
-                                                    class="health-photos health-photos--modal mt-3"
+                                                <section
+                                                    class="svc-note-modal__section"
                                                     th:if="${serviceNotePhotosByLineId != null and serviceNotePhotosByLineId.containsKey(line.id) and !#lists.isEmpty(serviceNotePhotosByLineId.get(line.id))}"
+                                                    th:aria-labelledby="${'adm-svc-media-h-' + line.id}"
                                                 >
-                                                    <img
-                                                        th:each="photo : ${serviceNotePhotosByLineId.get(line.id)}"
-                                                        th:src="@{${photo.imageUrl}}"
-                                                        alt="service note"
-                                                    />
-                                                </div>
-
-                                                <div
-                                                    class="text-muted mt-2"
-                                                    th:unless="${serviceNotePhotosByLineId != null and serviceNotePhotosByLineId.containsKey(line.id) and !#lists.isEmpty(serviceNotePhotosByLineId.get(line.id))}"
-                                                >
-                                                    No photos.
-                                                </div>
+                                                    <h3 class="svc-note-modal__section-label" th:id="${'adm-svc-media-h-' + line.id}">Attached images</h3>
+                                                    <div class="svc-note-modal__media">
+                                                        <figure th:each="photo : ${serviceNotePhotosByLineId.get(line.id)}" class="svc-note-modal__figure">
+                                                            <img
+                                                                th:src="@{${photo.imageUrl}}"
+                                                                alt="Service documentation image"
+                                                                loading="lazy"
+                                                            />
+                                                        </figure>
+                                                    </div>
+                                                </section>
                                             </div>
                                         </div>
                                     </div>

@@ -32,6 +32,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class HealthCheckService implements IHealthCheckService {
 
+    private final IAssignedAppointmentService assignedAppointmentService;
     private final AppointmentRepository appointmentRepository;
     private final AppointmentServiceLineRepository appointmentServiceLineRepository;
     private final StaffRepository staffRepository;
@@ -75,16 +76,7 @@ public class HealthCheckService implements IHealthCheckService {
     @Override
     @Transactional
     public Appointment checkInPet(Integer staffId, Integer appointmentId) {
-        validateStaffActive(staffId);
-
-        Appointment appointment = getAppointmentDetail(staffId, appointmentId);
-        if (!"confirmed".equals(lower(appointment.getStatus()))) {
-            throw new IllegalStateException("Only confirmed appointments can be checked in.");
-        }
-
-        appointment.setStatus("checked_in");
-        appointment.setUpdatedAt(LocalDateTime.now());
-        return appointmentRepository.save(appointment);
+        return assignedAppointmentService.checkIn(staffId, appointmentId);
     }
 
     @Override

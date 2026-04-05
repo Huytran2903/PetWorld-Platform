@@ -1,17 +1,9 @@
-<!-- Place this file at: src/main/resources/templates/staff/service-execution-history.html -->
-
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Execution History - PetShop</title>
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <!-- Sidebar CSS (FIX: load actual CSS file) -->
-    <link rel="stylesheet" th:href="@{/css/sidebar-admin.css}">
+<html xmlns:th="http://www.thymeleaf.org">
+
+<th:block th:replace="~{fragments/staff_layout :: layout(~{::page_content})}">
+
+<div th:fragment="page_content" class="staff-page-body">
     <style>
         :root {
             --primary-color: #f59e0b;
@@ -28,30 +20,24 @@
             --info-color: #3b82f6;
         }
 
-        * {
+        .staff-page-body,
+        .staff-page-body * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        body {
+        main.staff-content {
             background-color: var(--bg-light);
             font-family: 'Nunito', sans-serif;
             color: var(--text-dark);
         }
 
-        .staff-page-shell {
-            display: flex;
-            align-items: flex-start;
-            width: 100%;
-            min-height: 100vh;
-        }
-
-        .main-content {
-            flex: 1;
-            min-width: 0;
+        .staff-page-body {
             padding: 30px;
-            min-height: 100vh;
+            min-width: 0;
+            flex: 1 1 auto;
+            box-sizing: border-box;
         }
 
         /* Header */
@@ -432,11 +418,7 @@
 
         /* Responsive */
         @media (max-width: 768px) {
-            .staff-page-shell {
-                flex-direction: column;
-            }
-
-            .main-content {
+            .staff-page-body {
                 padding: 20px;
             }
 
@@ -470,12 +452,6 @@
             }
         }
     </style>
-</head>
-<body>
-<div class="staff-page-shell">
-    <div th:replace="~{fragments/sidebar-staff :: aside(activePage='service-history')}"></div>
-
-    <main class="main-content">
         <!-- Header -->
         <div class="page-header">
             <a th:href="@{/staff/assigned_list}" class="back-link">
@@ -645,7 +621,7 @@
                 </table>
             </div>
         </div>
-    </main>
 </div>
-</body>
+
+</th:block>
 </html>

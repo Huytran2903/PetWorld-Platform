@@ -55,13 +55,15 @@ public interface AppointmentServiceLineRepository extends JpaRepository<Appointm
      * Counts other appointments' service lines that still require this staff's time and overlap the given window.
      * Excludes finished appointments and completed/canceled service lines so staff show as available correctly.
      */
-    @Query("SELECT COUNT(asl) FROM AppointmentServiceLine asl " +
-            "WHERE asl.assignedStaffId = :staffId " +
-            "AND asl.appointment.id <> :appointmentId " +
-            "AND LOWER(TRIM(asl.appointment.status)) NOT IN ('canceled', 'rejected', 'done', 'no_show') " +
-            "AND LOWER(TRIM(asl.serviceStatus)) IN ('pending', 'assigned', 'in_progress') " +
-            "AND asl.appointment.appointmentDate < :newEnd " +
-            "AND asl.appointment.endTime > :newStart")
+    @Query(value = "SELECT COUNT(*) FROM AppointmentServices asl "
+            + "INNER JOIN Appointments a ON a.AppointmentID = asl.AppointmentID "
+            + "WHERE asl.AssignedStaffID = :staffId "
+            + "AND a.AppointmentID <> :appointmentId "
+            + "AND LOWER(LTRIM(RTRIM(a.Status))) NOT IN ('canceled', 'cancelled', 'rejected', 'done', 'no_show') "
+            + "AND LOWER(LTRIM(RTRIM(asl.ServiceStatus))) IN ('pending', 'assigned', 'in_progress') "
+            + "AND a.AppointmentDate < :newEnd "
+            + "AND COALESCE(a.EndTime, DATEADD(MINUTE, 60, a.AppointmentDate)) > :newStart",
+            nativeQuery = true)
     long countOverlappingAssignedLines(@Param("staffId") Integer staffId,
                                        @Param("appointmentId") Integer appointmentId,
                                        @Param("newStart") LocalDateTime newStart,

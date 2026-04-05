@@ -132,6 +132,8 @@ public class ServiceExecutionHistoryController {
             e.printStackTrace();
         }
 
+        model.addAttribute("activePage", "service-history");
+        model.addAttribute("pageTitle", "Service Execution History - PetShop");
         return "staff/service-execution-history";
     }
 

@@ -7,7 +7,6 @@
 </th:block>
 <div th:fragment="content" class="pw-booking">
 <main class="container">
-    <!-- Thông báo flash: dòng chữ + viền trái, không dùng ô nền đỏ/xanh -->
     <div
             th:if="${message}"
             class="booking-flash booking-flash--success"
@@ -24,42 +23,41 @@
             th:text="${error}"
     ></div>
 
-    <!-- Hero -->
     <div class="hero">
         <div class="hero-inner">
-            <div>
+            <div class="hero-top">
                 <h1
+                        class="hero-title"
                         id="heroTitle"
                         th:text="${heroTitle} ?: 'Book Service Appointment'"
                 >
                     Book Service Appointment
                 </h1>
-                <p id="heroDesc">
-                    Choose a pet, select date &amp; time, and pick a service package.
-                </p>
+                <div class="hero-type-chip" title="Appointment category for this booking form">
+                    <span class="hero-type-chip__label">Category</span>
+                    <span
+                            class="hero-type-chip__value"
+                            id="typePill"
+                            th:text="${currentType != null ? currentType.toUpperCase() : 'SERVICE'}"
+                    >SERVICE</span>
+                </div>
             </div>
-
-            <div
-                    class="type-pill"
-                    id="typePill"
-                    th:text="${currentType != null ? currentType.toUpperCase() : 'SERVICE'}"
-            >
-                SERVICE
-            </div>
+            <p id="heroDesc" class="hero-desc">
+                Choose a pet, select date &amp; time, and pick a service package.
+            </p>
         </div>
     </div>
 
-    <!-- Main form card -->
     <section class="card booking-main">
-        <header class="card-header">
-            <div>
-                <h2 class="title">Booking Information</h2>
-                <p class="subtitle">Please fill in the details below</p>
+        <header class="card-header card-header--booking">
+            <div class="card-header__text">
+                <h2 class="title title--lg">Booking Information</h2>
+                <p class="subtitle subtitle--muted">Please fill in the details below</p>
             </div>
-            <div class="pill">CUSTOMER</div>
+            <span class="pill pill--badge" aria-hidden="true">Customer</span>
         </header>
 
-        <div class="card-body">
+        <div class="card-body card-body--booking">
             <form id="bookForm" th:action="@{/appointment/create}" method="post" novalidate>
                 <input
                         type="hidden"
@@ -68,189 +66,239 @@
                         th:value="${currentType}"
                 />
 
-                <!-- Top grid -->
-                <div class="grid">
-                    <div>
-                        <label for="petId">Select Pet</label>
-                        <select id="petId" name="petId">
-                            <option value="">— Select your pet —</option>
-                            <option
-                                    th:each="pet : ${petList}"
-                                    th:value="${pet.id}"
-                                    th:selected="${formPetId != null and formPetId == pet.id}"
-                                    th:text="${pet.name} + ' (' + ${pet.petType} + ')'"
-                            ></option>
-                        </select>
-                        <p id="booking-pet-error" class="booking-field-error" role="alert"></p>
-
-                        <div class="hint" th:if="${#lists.isEmpty(petList)}">
+                <div class="grid booking-form-grid">
+                    <div class="booking-field">
+                        <label class="booking-label" for="petId">Select Pet</label>
+                        <div class="booking-control-wrap booking-control-wrap--pet">
+                            <select id="petId" name="petId" class="booking-input booking-input--pet-select">
+                                <option value="">— Select your pet —</option>
+                                <option
+                                        th:each="pet : ${petList}"
+                                        th:value="${pet.id}"
+                                        th:selected="${formPetId != null and formPetId == pet.id}"
+                                        th:text="${pet.name} + ' (' + ${pet.petType} + ')'"
+                                ></option>
+                            </select>
+                        </div>
+                        <p id="booking-pet-error" class="booking-field-error visually-hidden" role="status" aria-live="polite" hidden></p>
+                        <p class="hint hint--pet" th:if="${#lists.isEmpty(petList)}">
                             You have no pets.
                             <a th:href="@{/customer/pet/create}">Add a pet now</a>.
-                        </div>
+                        </p>
                     </div>
 
-                    <div>
-                        <label for="appointmentDate">Appointment Date &amp; Time</label>
-                        <input
-                                type="datetime-local"
-                                id="appointmentDate"
-                                name="appointmentDate"
-                                th:value="${formAppointmentDate != null ? formAppointmentDate : ''}"
-                        />
-                        <div class="hint">Appointments must be at least 2 hours from now, within 30 days, and between <strong>08:00–20:00</strong> (clinic hours).</div>
-                        <p id="booking-datetime-error" class="booking-field-error" role="alert"></p>
+                    <div class="booking-field">
+                        <label class="booking-label" for="appointmentDate">Appointment Date &amp; Time</label>
+                        <div class="booking-control-wrap">
+                            <input
+                                    type="datetime-local"
+                                    id="appointmentDate"
+                                    name="appointmentDate"
+                                    class="booking-input"
+                                    th:value="${formAppointmentDate != null ? formAppointmentDate : ''}"
+                            />
+                        </div>
+                        <p id="booking-datetime-error" class="booking-field-error visually-hidden" role="status" aria-live="polite" hidden></p>
                     </div>
                 </div>
 
-                <!-- Service package -->
-                <div class="section">
+                <div class="section booking-section">
                     <h3 class="section-title">
-                        <span class="dot"></span>
+                        <span class="section-title__icon" aria-hidden="true"></span>
                         Service Package
                     </h3>
+
+                    <p id="booking-services-error" class="booking-field-error visually-hidden" role="status" aria-live="polite" hidden></p>
 
                     <div class="svc-table-container">
                         <table class="svc-table">
                             <thead>
                                 <tr>
-                                    <th class="col-check"></th>
-                                    <th class="col-name">NAME</th>
-                                    <th class="col-desc">DESCRIPTION</th>
-                                    <th class="col-price">PRICE</th>
-                                    <th class="col-duration">DURATION</th>
+                                    <th class="col-check" scope="col"><span class="th-sr">Select</span></th>
+                                    <th class="col-name" scope="col">Service</th>
+                                    <th class="col-desc" scope="col">Description</th>
+                                    <th class="col-price" scope="col">Price</th>
+                                    <th class="col-duration" scope="col">Duration</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr th:each="svc : ${serviceList}" class="svc-row">
                                     <td class="col-check">
-                                        <input
-                                                type="checkbox"
-                                                name="mainServices"
-                                                th:value="${svc.id}"
-                                                th:checked="${selectedServiceIds != null and selectedServiceIds.contains(svc.id)}"
-                                                th:data-type="${svc.serviceType != null ? svc.serviceType.name : ''}"
-                                                th:data-price="${svc.basePrice}"
-                                                th:data-duration="${svc.durationMinutes}"
-                                                th:data-name="${svc.name}"
-                                                th:data-unit="${svc.serviceType != null && svc.serviceType.name == 'boarding' ? 'day' : 'time'}"
-                                        />
+                                        <label class="svc-check-label">
+                                            <input
+                                                    type="checkbox"
+                                                    name="mainServices"
+                                                    class="svc-checkbox"
+                                                    th:value="${svc.id}"
+                                                    th:checked="${selectedServiceIds != null and selectedServiceIds.contains(svc.id)}"
+                                                    th:data-type="${svc.serviceType != null ? svc.serviceType.name : ''}"
+                                                    th:data-price="${svc.basePrice}"
+                                                    th:data-duration="${svc.durationMinutes}"
+                                                    th:data-name="${svc.name}"
+                                                    th:data-unit="${svc.serviceType != null && svc.serviceType.name == 'boarding' ? 'day' : 'time'}"
+                                            />
+                                            <span class="svc-check-ui" aria-hidden="true"></span>
+                                        </label>
                                     </td>
                                     <td class="col-name">
-                                        <span class="fw-bold" th:text="${svc.name}">Service Name</span>
+                                        <span class="svc-name" th:text="${svc.name}">Service Name</span>
                                     </td>
                                     <td class="col-desc">
-                                        <span class="text-muted small" th:text="${svc.description != null ? svc.description : '-'}">Description</span>
+                                        <span class="svc-desc" th:text="${svc.description != null ? svc.description : '—'}">Description</span>
                                     </td>
                                     <td class="col-price">
-                                        <span class="fw-bold" th:text="${#numbers.formatDecimal(svc.basePrice, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</span>
+                                        <span class="svc-price" th:text="${#numbers.formatDecimal(svc.basePrice, 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</span>
                                     </td>
                                     <td class="col-duration">
-                                        <span th:text="${svc.durationMinutes} + ' min'">0 min</span>
+                                        <span class="svc-duration" th:text="${svc.durationMinutes} + ' min'">0 min</span>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <!-- Boarding extra fields -->
                     <div
                             id="boardingQtyBlock"
                             class="boarding-qty-block"
                             th:if="${currentType == 'boarding'}"
                     >
-                        <div class="grid">
-                            <div>
-                                <label for="boardingQty">Quantity (Days/Hours)</label>
-                                <input
-                                        type="number"
-                                        id="boardingQty"
-                                        name="boardingQty"
-                                        min="1"
-                                        value="1"
-                                />
+                        <div class="grid booking-form-grid">
+                            <div class="booking-field">
+                                <label class="booking-label" for="boardingQty">Quantity (Days/Hours)</label>
+                                <div class="booking-control-wrap">
+                                    <input
+                                            type="number"
+                                            id="boardingQty"
+                                            name="boardingQty"
+                                            class="booking-input"
+                                            min="1"
+                                            value="1"
+                                    />
+                                </div>
                             </div>
-
-                            <div>
-                                <label for="boardingHint">Pick-up/Drop-off Note</label>
-                                <input
-                                        type="text"
-                                        id="boardingHint"
-                                        placeholder="Ex: Pick up at 9 AM..."
-                                />
+                            <div class="booking-field">
+                                <label class="booking-label" for="boardingHint">Pick-up / Drop-off Note</label>
+                                <div class="booking-control-wrap">
+                                    <input
+                                            type="text"
+                                            id="boardingHint"
+                                            class="booking-input"
+                                            placeholder="e.g. Pick up at 9:00 AM"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Notes -->
-                <div class="section">
+                <div class="section booking-section booking-section--notes">
                     <h3 class="section-title">
-                        <span class="dot"></span>
+                        <span class="section-title__icon" aria-hidden="true"></span>
                         Additional Notes
                     </h3>
+                    <p class="booking-notes-helper">Optional — helps our team prepare for your pet’s visit.</p>
+                    <label class="visually-hidden" for="note">Additional notes</label>
                     <textarea
                             id="note"
                             name="note"
-                            placeholder="Ex: Allergies, aggressive behavior, needs muzzle..."
+                            class="booking-textarea"
+                            rows="4"
+                            placeholder="Allergies, temperament, special care, or anything our team should know…"
                             th:text="${formNote != null ? formNote : ''}"
                     ></textarea>
                 </div>
 
-                <!-- Generated services (JS) -->
                 <div id="generatedServices"></div>
 
-                <!-- Actions -->
-                <div class="actions">
-                    <button class="btn btn-primary" type="submit">
-                        Confirm Booking
-                    </button>
-                    <a th:href="@{/customer/appointments}" class="btn btn-secondary">History</a>
-                    <button
-                            class="btn btn-secondary"
-                            type="button"
-                            onclick="history.back()"
-                    >
-                        Back
-                    </button>
+                <div class="actions booking-actions">
+                    <div class="booking-actions__primary">
+                        <button class="btn btn-primary" type="submit">
+                            Confirm Booking
+                        </button>
+                    </div>
+                    <div class="booking-actions__secondary">
+                        <a th:href="@{/customer/appointments}" class="btn btn-secondary">History</a>
+                        <button
+                                class="btn btn-secondary"
+                                type="button"
+                                onclick="history.back()"
+                        >
+                            Back
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
     </section>
 
-    <!-- Summary card -->
-    <aside class="card booking-summary">
-        <header class="card-header">
-            <div>
-                <h2 class="title">Estimated Cost</h2>
-                <p class="subtitle">Cost estimation</p>
-            </div>
-            <div class="pill">SUMMARY</div>
-        </header>
+    <div class="booking-sidebar-stack">
+        <aside class="card booking-summary" id="bookingSummaryAside" data-empty="true">
+            <header class="card-header card-header--summary">
+                <div class="card-header__text">
+                    <h2 class="title title--summary">Estimated Cost</h2>
+                    <p class="subtitle subtitle--muted">Updates as you select services</p>
+                </div>
+                <span class="pill pill--badge" aria-hidden="true">Summary</span>
+            </header>
 
-        <div class="card-body">
-            <div class="summary-row">
-                <span>Selected Services</span>
-                <strong id="sumServices">—</strong>
-            </div>
+            <div class="card-body booking-summary__body">
+                <div id="summaryEmptyState" class="summary-empty">
+                    <div class="summary-empty__icon" aria-hidden="true">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M9 12h6M9 16h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div class="summary-empty__copy">
+                        <p class="summary-empty__title">No services selected</p>
+                        <p class="summary-empty__text">Choose packages in the table — duration and total update here.</p>
+                    </div>
+                </div>
 
-            <div class="summary-row">
-                <span>Estimated Duration</span>
-                <strong id="sumDuration">—</strong>
+                <div id="summaryMetrics" class="summary-metrics" hidden>
+                    <div class="summary-block">
+                        <span class="summary-label">Selected Services</span>
+                        <p class="summary-value summary-value--services" id="sumServices"></p>
+                    </div>
+                    <div class="summary-divider" role="presentation"></div>
+                    <div class="summary-block summary-block--compact">
+                        <span class="summary-label">Estimated Duration</span>
+                        <p class="summary-value" id="sumDuration"></p>
+                    </div>
+                    <div class="summary-divider" role="presentation"></div>
+                    <div class="summary-block summary-block--total">
+                        <span class="summary-label summary-label--total">Total Amount</span>
+                        <p class="summary-total" id="sumTotal"></p>
+                    </div>
+                </div>
             </div>
+        </aside>
 
-            <div class="summary-row">
-                <span>Total Amount</span>
-                <strong id="sumTotal" class="summary-total">—</strong>
+        <aside class="card booking-rules-card" aria-labelledby="bookingRulesHeading">
+            <header class="card-header card-header--summary card-header--rules">
+                <div class="card-header__text">
+                    <h2 class="title title--summary" id="bookingRulesHeading">Booking Rules</h2>
+                    <p class="subtitle subtitle--muted">Date &amp; time requirements</p>
+                </div>
+                <span class="pill pill--badge" aria-hidden="true">Info</span>
+            </header>
+            <div class="card-body booking-rules-card__body" role="note">
+                <ul class="booking-rules">
+                    <li>At least <strong class="rule-highlight">2 hours</strong> from now</li>
+                    <li>Within <strong class="rule-highlight">30 days</strong> ahead</li>
+                    <li>Arrival between <strong class="rule-highlight">08:00 – 20:00</strong> (clinic hours)</li>
+                    <li>Visit must finish by <strong class="rule-highlight">20:00</strong>, unless <strong class="rule-highlight">overnight boarding</strong> applies</li>
+                    <li>Repeated <strong class="rule-highlight">no-shows</strong> without canceling may temporarily restrict new bookings</li>
+                </ul>
             </div>
-        </div>
-    </aside>
+        </aside>
+    </div>
 
     <script>
         (function () {
             function updateBookingHeaderOffset() {
                 var header = document.querySelector("header.sticky-top");
                 var headerHeight = header ? Math.ceil(header.getBoundingClientRect().height) : 124;
-                // Add a small gap so the fixed summary never touches the sticky header.
                 document.documentElement.style.setProperty("--header-offset", (headerHeight + 16) + "px");
             }
 

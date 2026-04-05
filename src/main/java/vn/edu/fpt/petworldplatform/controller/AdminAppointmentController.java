@@ -112,6 +112,10 @@ public class AdminAppointmentController {
 
             redirectAttributes.addFlashAttribute("message", "Appointment canceled successfully.");
 
+        } catch (IllegalArgumentException e) {
+
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+
         } catch (Exception e) {
 
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -166,9 +170,16 @@ public class AdminAppointmentController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('MANAGE_APPOINTMENT')")
-    public String viewDetail(@PathVariable Integer id, Model model) {
+    public String viewDetail(@PathVariable Integer id, Model model,
+                             RedirectAttributes redirectAttributes) {
 
-        Appointment appointment = appointmentService.getAppointmentById(id);
+        Appointment appointment;
+        try {
+            appointment = appointmentService.getAppointmentById(id);
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", "Không tìm thấy lịch hẹn.");
+            return "redirect:/admin/appointments";
+        }
 
         List<AppointmentServiceLine> lines = appointmentService.getServiceLinesByAppointment(id);
 

@@ -120,9 +120,9 @@
                     </div>
                     <div>
                         <p><strong>Note:</strong> <span th:text="${appointment.note ?: '—'}">—</span></p>
-                        <p th:if="${appointment.cancellationReason}">
+                        <p th:if="${appointment.status != null and appointment.status.toLowerCase() == 'canceled'}">
                             <strong>Cancellation Reason:</strong> <span
-                                th:text="${appointment.cancellationReason}">—</span>
+                                th:text="${appointment.cancellationReason != null and !#strings.isEmpty(#strings.trim(appointment.cancellationReason))} ? ${appointment.cancellationReason} : '—'">—</span>
                         </p>
                         <p th:if="${appointment.previousAppointmentDate}">
                             <strong>Previous Date:</strong> <span
@@ -151,7 +151,6 @@
                         <div>
                             <h4 class="service-name" th:text="${line.service.name}">Service Name</h4>
                             <p class="service-meta">
-                                <span class="badge" th:text="${line.service.serviceType != null ? line.service.serviceType.name : '-'}">TYPE</span>
                                 <span class="badge badge-outline"
                                     th:text="${line.serviceStatus != null ? line.serviceStatus : 'pending'}">pending</span>
                                 <span

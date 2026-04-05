@@ -31,23 +31,27 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
 
     long countByAppointmentDateAndStatusNotIn(LocalDateTime appointmentDate, List<String> excludedStatuses);
 
-    @Query("SELECT COUNT(a) FROM Appointment a " +
-            "WHERE a.petId = :petId " +
-            "AND a.id != :excludeId " +
-            "AND a.status NOT IN ('canceled', 'rejected') " +
-            "AND a.appointmentDate < :newEnd " +
-            "AND a.endTime > :newStart")
+    /**
+     * Legacy rows may have NULL EndTime; treat as start + 60 minutes (same as {@code effectiveOverlapEnd}).
+     * Status compared case-insensitively; British spelling {@code cancelled} excluded too.
+     */
+    @Query(value = "SELECT COUNT(*) FROM Appointments a WHERE a.PetID = :petId "
+            + "AND a.AppointmentID <> :excludeId "
+            + "AND LOWER(LTRIM(RTRIM(a.Status))) NOT IN ('canceled', 'cancelled', 'rejected') "
+            + "AND a.AppointmentDate < :newEnd "
+            + "AND COALESCE(a.EndTime, DATEADD(MINUTE, 60, a.AppointmentDate)) > :newStart",
+            nativeQuery = true)
     long countOverlappingAppointments(@Param("petId") Integer petId,
                                       @Param("excludeId") Integer excludeId,
                                       @Param("newStart") LocalDateTime newStart,
                                       @Param("newEnd") LocalDateTime newEnd);
 
-    @Query("SELECT COUNT(a) FROM Appointment a " +
-            "WHERE a.staffId = :staffId " +
-            "AND a.id != :excludeId " +
-            "AND a.status NOT IN ('canceled', 'rejected') " +
-            "AND a.appointmentDate < :newEnd " +
-            "AND a.endTime > :newStart")
+    @Query(value = "SELECT COUNT(*) FROM Appointments a WHERE a.StaffID = :staffId "
+            + "AND a.AppointmentID <> :excludeId "
+            + "AND LOWER(LTRIM(RTRIM(a.Status))) NOT IN ('canceled', 'cancelled', 'rejected') "
+            + "AND a.AppointmentDate < :newEnd "
+            + "AND COALESCE(a.EndTime, DATEADD(MINUTE, 60, a.AppointmentDate)) > :newStart",
+            nativeQuery = true)
     long countOverlappingStaffAppointments(@Param("staffId") Integer staffId,
                                            @Param("excludeId") Integer excludeId,
                                            @Param("newStart") LocalDateTime newStart,
@@ -62,17 +66,34 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Intege
 
     @Query("SELECT a FROM Appointment a WHERE a.staffId = :staffId " +
             "AND (:status IS NULL OR a.status = :status) " +
-            "AND (cast(:from as date) IS NULL OR a.appointmentDate >= :from) " +
-            "AND (cast(:to as date) IS NULL OR a.appointmentDate <= :to) " +
+            "AND (:from IS NULL OR a.appointmentDate >= :from) " +
+            "AND (:to IS NULL OR a.appointmentDate <= :to) " +
             "ORDER BY a.appointmentDate ASC")
-    List<Appointment> findByAssignedStaffAndFilter(@Param("staffId") Long staffId,
+    List<Appointment> findByAssignedStaffAndFilter(@Param("staffId") Integer staffId,
                                                    @Param("from") LocalDateTime from,
                                                    @Param("to") LocalDateTime to,
                                                    @Param("status") String status);
 
     @Query("SELECT a FROM Appointment a WHERE a.id = :appointmentId AND a.staffId = :staffId")
     Optional<Appointment> findByIdAndAssignedStaff(@Param("appointmentId") Integer appointmentId,
-                                                   @Param("staffId") Long staffId);
+                                                   @Param("staffId") Integer staffId);
+
+    /**
+     * Customer self-service anti-spam: count canceled appointments since {@code since} (uses CanceledAt).
+     */
+    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.customerId = :customerId " +
+            "AND LOWER(TRIM(a.status)) IN ('canceled', 'cancelled') " +
+            "AND a.canceledAt IS NOT NULL AND a.canceledAt >= :since")
+    long countCustomerCancellationsSince(@Param("customerId") Integer customerId, @Param("since") LocalDateTime since);
+
+    /**
+     * Counts no-show appointments for this customer whose scheduled time falls on or after {@code since}
+     * (rolling window by appointment slot).
+     */
+    @Query("SELECT COUNT(a) FROM Appointment a WHERE a.customerId = :customerId "
+            + "AND LOWER(TRIM(a.status)) = 'no_show' "
+            + "AND a.appointmentDate >= :since")
+    long countCustomerNoShowsSince(@Param("customerId") Integer customerId, @Param("since") LocalDateTime since);
 
     @Modifying
     @Query(value = "UPDATE Appointments SET StaffID = :newStaffId WHERE StaffID = :oldStaffId AND Status IN ('Pending', 'Confirmed', 'Pending')", nativeQuery = true)

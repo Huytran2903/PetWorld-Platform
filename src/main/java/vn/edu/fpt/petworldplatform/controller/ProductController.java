@@ -8,6 +8,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import vn.edu.fpt.petworldplatform.entity.*;
 import vn.edu.fpt.petworldplatform.repository.PetRepository;
 import vn.edu.fpt.petworldplatform.repository.ProductRepository;
@@ -140,16 +141,28 @@ public class ProductController {
 
     //Product Detail
     @GetMapping("/product/detail/{id}")
-    public String getProductDetail(Model model, @PathVariable("id") Integer id) {
-        model.addAttribute("proDetail", productService.findProductById(id));
-        return "product/product-detail";
+    public String getProductDetail(Model model, @PathVariable("id") Integer id,
+                                   RedirectAttributes redirectAttributes) {
+        try {
+            model.addAttribute("proDetail", productService.findProductById(id));
+            return "product/product-detail";
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/product";
+        }
     }
 
     //Pet Detail
     @GetMapping("/pet/detail/{id}")
-    public String getPetDetail(Model model, @PathVariable("id") Integer id) {
-        model.addAttribute("petDetail", petService.getPetById(id));
-        return "product/pet-detail";
+    public String getPetDetail(Model model, @PathVariable("id") Integer id,
+                               RedirectAttributes redirectAttributes) {
+        try {
+            model.addAttribute("petDetail", petService.getPetById(id));
+            return "product/pet-detail";
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/product";
+        }
     }
 
 }

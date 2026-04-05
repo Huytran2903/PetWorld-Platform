@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.util.StringUtils;
+
 import vn.edu.fpt.petworldplatform.dto.AppointmentFilterRequest;
 
 import vn.edu.fpt.petworldplatform.entity.Appointment;
@@ -92,12 +94,12 @@ public class AppointmentService implements IAppointmentService {
     }
 
     @Override
-
+    @Transactional
     public void cancelAppointment(Integer id, String reason) {
 
         Appointment appointment = getAppointmentById(id);
 
-        String status = appointment.getStatus().toLowerCase();
+        String status = appointment.getStatus() != null ? appointment.getStatus().toLowerCase() : "";
 
         if ("done".equals(status) || "canceled".equals(status) || "no_show".equals(status)) {
 
@@ -105,9 +107,14 @@ public class AppointmentService implements IAppointmentService {
 
         }
 
+        String trimmedReason = StringUtils.hasText(reason) ? reason.trim() : "";
+        if (trimmedReason.isEmpty()) {
+            throw new IllegalArgumentException("Cancellation reason is required.");
+        }
+
         appointment.setStatus("canceled");
 
-        appointment.setCancellationReason(reason);
+        appointment.setCancellationReason(trimmedReason);
 
         appointment.setCanceledAt(LocalDateTime.now());
 

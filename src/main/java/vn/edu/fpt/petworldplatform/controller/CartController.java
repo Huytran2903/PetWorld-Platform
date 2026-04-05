@@ -440,12 +440,21 @@ public class CartController {
 
 
     @GetMapping("/cart/order-history")
-    public String orderHistory(Model model, @PageableDefault(size = 10, page = 0) Pageable pageable, Authentication authentication) {
+    public String orderHistory(Model model, @PageableDefault(size = 10, page = 0) Pageable pageable,
+                               Authentication authentication,
+                               RedirectAttributes redirectAttributes) {
         Integer customerId = getCustomerIdFromAuth(authentication);
-
-        Page<Order> orderHistory = orderService.getAllOrderById(pageable, customerService.getCustomerById(customerId));
-        model.addAttribute("orderHistory",orderHistory);
-        return "customer/order-history";
+        if (customerId == null) {
+            return "redirect:/login";
+        }
+        try {
+            Page<Order> orderHistory = orderService.getAllOrderById(pageable, customerService.getCustomerById(customerId));
+            model.addAttribute("orderHistory", orderHistory);
+            return "customer/order-history";
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/login";
+        }
     }
 
     @PostMapping("/orders/cancel/{id}")

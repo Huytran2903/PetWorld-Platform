@@ -22,7 +22,8 @@ public class CategoryService {
     }
 
     public Categories getCategoryById(Integer id) {
-        return categoryRepository.findById(id).get();
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Category not found."));
     }
 
     public void saveCategory(Categories cate) {

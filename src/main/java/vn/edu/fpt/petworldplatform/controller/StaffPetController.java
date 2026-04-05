@@ -50,19 +50,29 @@ public class StaffPetController {
     // Đổi Integer -> Long
     @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("/detail")
-    public String showPetDetail(@RequestParam("id") Integer id, Model model) {
-        Pets pet = petService.getPetById(id);
-        model.addAttribute("pet", pet);
-        return "staff/pet/pet-detail";
+    public String showPetDetail(@RequestParam("id") Integer id, Model model,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            model.addAttribute("pet", petService.getPetById(id));
+            return "staff/pet/pet-detail";
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/staff/pet/create";
+        }
     }
 
     // Đổi Integer -> Long
     @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("/update")
-    public String showUpdatePet(@RequestParam("id") Integer id, Model model) {
-        Pets pet = petService.getPetById(id);
-        model.addAttribute("pet", pet);
-        return "staff/pet/pet-update";
+    public String showUpdatePet(@RequestParam("id") Integer id, Model model,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            model.addAttribute("pet", petService.getPetById(id));
+            return "staff/pet/pet-update";
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/staff/pet/create";
+        }
     }
 
     @PreAuthorize("hasAuthority('MANAGE_PET')")
@@ -75,9 +85,14 @@ public class StaffPetController {
     // Đổi Integer -> Long
     @PreAuthorize("hasAuthority('MANAGE_PET')")
     @GetMapping("/history")
-    public String showPetHistory(@RequestParam("id") Integer id, Model model) {
-        Pets pet = petService.getPetById(id);
-        model.addAttribute("pet", pet);
-        return "staff/pet/pet-history";
+    public String showPetHistory(@RequestParam("id") Integer id, Model model,
+                                 RedirectAttributes redirectAttributes) {
+        try {
+            model.addAttribute("pet", petService.getPetById(id));
+            return "staff/pet/pet-history";
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/staff/pet/create";
+        }
     }
 }

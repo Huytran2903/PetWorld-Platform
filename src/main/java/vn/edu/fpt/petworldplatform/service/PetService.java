@@ -74,7 +74,7 @@ public class PetService {
 
     public Pets getPetById(Integer id) {
         return petRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("No pet found with this ID: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Pet not found."));
     }
 
     public void removePet(Integer id) {
